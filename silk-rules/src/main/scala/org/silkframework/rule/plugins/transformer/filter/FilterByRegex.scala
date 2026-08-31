@@ -4,6 +4,7 @@ import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.rule.plugins.transformer.selection.RegexSelectTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
+import org.silkframework.runtime.validation.ValidationException
 
 import java.util.regex.{Matcher, Pattern}
 
@@ -69,6 +70,17 @@ import java.util.regex.{Matcher, Pattern}
     parameters = Array("regex", "^abc", "contains", "true"),
     input1 = Array("abcxyz", "xabcx", "xyz"),
     output = Array("abcxyz")
+  ),
+  new TransformExample(
+    description = "Returns nothing when the connected input carries no values.",
+    parameters = Array("regex", "abc"),
+    input1 = Array(),
+    output = Array()
+  ),
+  new TransformExample(
+    description = "Throws when no input is connected.",
+    parameters = Array("regex", "abc"),
+    throwsException = classOf[ValidationException]
   )
 ))
 case class FilterByRegex(@Param(value = "The regular expression to test each value against.")
@@ -84,7 +96,10 @@ case class FilterByRegex(@Param(value = "The regular expression to test each val
 
   private def negateIf[A](flag: Boolean)(f: A => Boolean): A => Boolean = if (flag) a => !f(a) else f
 
-  override def apply(values: Seq[Seq[String]]): Seq[String] = values.head.filter(negateIf(negate)(isMatch))
+  override def apply(values: Seq[Seq[String]]): Seq[String] =
+    values.headOption
+      .getOrElse(throw new ValidationException("FilterByRegex requires at least one input."))
+      .filter(negateIf(negate)(isMatch))
 }
 
 object FilterByRegex {
