@@ -672,6 +672,34 @@
             "title": "Activities",
             "noActivities": "No activities found"
         },
+        "changes": {
+            "title": "Changes",
+            "loading": "Loading changes.",
+            "noChanges": "No changes have been recorded for this project.",
+            "reload": "Reload changes",
+            "originTooltip": "The client the change came from",
+            "revertsTag": "Reverts #{{seq}}",
+            "revertedByTag": "Reverted by #{{seq}}",
+            "column": {
+                "seq": "#",
+                "date": "Date",
+                "user": "User",
+                "change": "Change"
+            },
+            "revert": {
+                "action": "Revert this change",
+                "title": "Revert change",
+                "alreadyReverted": "Already reverted by change #{{seq}}",
+                "notRevertible": "This change cannot be reverted",
+                "confirmText": "Do you really want to revert the change '{{description}}'?",
+                "note": "The revert is recorded as a new change; reverting that one redoes this change."
+            },
+            "errors": {
+                "fetchChanges": "Loading the change list failed",
+                "fetchProject": "Loading the project failed",
+                "revertChange": "The change could not be reverted"
+            }
+        },
         "deprecatedPlugins": {
             "title": "Deprecated plugins usage",
             "noPluginsFound": "This page lists plugins that are used in existing projects but have been marked as deprecated. Good news: No deprecated plugins were found in your workspace!",
@@ -1017,6 +1045,10 @@
         "ActivityInfoWidget": {
             "title": "Activities",
             "view": "View project activities"
+        },
+        "ChangesWidget": {
+            "title": "Changes",
+            "view": "View project changes"
         },
         "ConfigWidget": {
             "loading": "Loading configuration list.",
