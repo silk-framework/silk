@@ -20,7 +20,7 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
 
   @Operation(
     summary = "List changes",
-    description = "The changes made to the project since it was loaded, newest first. A change can be reverted while " +
+    description = "The changes made to the project, as far as the configured store keeps them, newest first. A change can be reverted while " +
       "'revertible' is true and 'revertedBy' does not name the change that reverted it already; 'reverts' names the " +
       "change a revert undid.",
     responses = Array(

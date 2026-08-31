@@ -21,13 +21,11 @@ case class ChangeEntry(seq: Int, timestamp: Instant, user: Option[String], origi
 
 /**
   * The change journal of a project: every write to the project is recorded as a [[Change]], which can be reverted.
-  * Prototype: held in memory only and bounded to the most recent entries.
+  * The entries are held in the configured [[ChangeJournalStore]].
   */
 class ChangeJournal(project: Project) {
 
-  private var entries = Vector.empty[ChangeEntry]
-
-  private var nextSeq = 1
+  private var nextSeq = store.entries(project.id).lastOption.map(_.seq + 1).getOrElse(1)
 
   // Set while an entry is reverted, so the first entry that the revert records refers to it.
   // Not inheritable, so that an activity started by the write does not pick it up.
@@ -43,10 +41,16 @@ class ChangeJournal(project: Project) {
   // The entries whose inverse is being applied. Their revert is not recorded yet, so nothing else marks them.
   private var revertsInProgress = Set.empty[Int]
 
-  /** All entries, oldest first. */
-  def all: Seq[ChangeEntry] = synchronized(entries)
+  // Resolved per call, so a config reload swaps the store.
+  private def store: ChangeJournalStore = ChangeJournalStore()
 
-  def entry(seq: Int): Option[ChangeEntry] = synchronized(entries.find(_.seq == seq))
+  /** All entries, oldest first. */
+  def all: Seq[ChangeEntry] = store.entries(project.id)
+
+  def entry(seq: Int): Option[ChangeEntry] = all.find(_.seq == seq)
+
+  /** Drops all entries. Called when the project is deleted, so a later project of the same name starts clean. */
+  private[workspace] def clear(): Unit = store.remove(project.id)
 
   /**
     * Runs writes that are derived from a change recorded on this thread, e.g. the tasks re-resolved after a variable
@@ -72,7 +76,7 @@ class ChangeJournal(project: Project) {
       // A change that writes more than one task records one entry per task; only the first one reverts the entry.
       reverting.remove()
       nextSeq += 1
-      entries = (entries :+ entry).takeRight(ChangeJournal.maxEntries)
+      store.append(project.id, entry)
       Some(entry)
     }
   }
@@ -107,6 +111,7 @@ class ChangeJournal(project: Project) {
     * as it writes to the project.
     */
   private def claimRevert(seq: Int): Change = synchronized {
+    val entries = all
     val entry = entries.find(_.seq == seq).getOrElse(throw new NotFoundException(s"No change $seq in project '${project.id}'."))
     if(revertsInProgress.contains(seq) || entries.exists(_.reverts.contains(seq))) {
       throw ChangeConflictException(s"Change $seq in project '${project.id}' has been reverted already.")
@@ -117,13 +122,10 @@ class ChangeJournal(project: Project) {
     inverse
   }
 
-  private def revertOf(seq: Int): Option[ChangeEntry] = synchronized(entries.find(_.reverts.contains(seq)))
+  private def revertOf(seq: Int): Option[ChangeEntry] = all.find(_.reverts.contains(seq))
 }
 
 object ChangeJournal {
-
-  /** The number of entries kept per project. */
-  val maxEntries: Int = 500
 
   // The user of the request being served, for writes that carry no user context, such as resource writes.
   private val requestUser = new ThreadLocal[Option[UserContext]] {

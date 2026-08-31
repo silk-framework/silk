@@ -15,7 +15,7 @@ import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
 import org.silkframework.util.{ConfigTestTrait, Uri}
 import org.silkframework.workspace.variables.{DeleteVariableModification, UpdateVariableModification}
-import org.silkframework.workspace.{ProjectTask, TestWorkspaceProviderTestTrait}
+import org.silkframework.workspace.{ProjectTask, TestWorkspaceProviderTestTrait, WorkspaceFactory}
 
 import java.util.concurrent.CyclicBarrier
 import scala.util.{Failure, Try}
@@ -389,5 +389,14 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
         Seq("Added file 'folder/nested.txt'", "Deleted file 'folder/nested.txt'")
       project.resources.listChildren should not contain "folder"
     }
+  }
+
+  it should "start with an empty journal when a project is re-created after deletion" in {
+    val project = retrieveOrCreateProject("journalRecreated")
+    project.addTask[TransformSpec]("transform", transform(name))
+    project.changeJournal.all should not be empty
+
+    WorkspaceFactory().workspace.removeProject("journalRecreated")
+    retrieveOrCreateProject("journalRecreated").changeJournal.all shouldBe empty
   }
 }
