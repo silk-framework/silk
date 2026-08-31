@@ -6,7 +6,7 @@ import org.silkframework.rule.plugins.transformer.selection.RegexSelectTransform
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.validation.ValidationException
 
-import java.util.regex.{Matcher, Pattern}
+import java.util.regex.{Matcher, Pattern, PatternSyntaxException}
 
 /**
  * This transformer keeps or drops values based on a regular expression, matched in full by default or
@@ -70,6 +70,30 @@ import java.util.regex.{Matcher, Pattern}
     parameters = Array("regex", "^abc", "contains", "true"),
     input1 = Array("abcxyz", "xabcx", "xyz"),
     output = Array("abcxyz")
+  ),
+  new TransformExample(
+    description = "Throws when the regex fails to compile.",
+    parameters = Array("regex", "("),
+    input1 = Array("abc"),
+    throwsException = classOf[PatternSyntaxException]
+  ),
+  new TransformExample(
+    description = "A backslash-escaped metacharacter in the regex is matched literally.",
+    parameters = Array("regex", "a\\.b"),
+    input1 = Array("a.b", "aXb"),
+    output = Array("a.b")
+  ),
+  new TransformExample(
+    description = "A whitespace-only value matches a whitespace pattern.",
+    parameters = Array("regex", "\\s+"),
+    input1 = Array("   ", "abc"),
+    output = Array("   ")
+  ),
+  new TransformExample(
+    description = "A Unicode value matches a literal pattern correctly.",
+    parameters = Array("regex", "café"),
+    input1 = Array("café", "cafe"),
+    output = Array("café")
   ),
   new TransformExample(
     description = "Returns nothing when the connected input carries no values.",
