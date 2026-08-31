@@ -154,6 +154,12 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     }
   }
 
+  "Reject a rule whose id is taken elsewhere in the transform as bad input" in {
+    val response = client.url(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules")
+      .post(Json.parse(directRuleJson("addressStreetRule", "source:street", "target:street")))
+    checkResponseExactStatusCode(response, BAD_REQUEST).body must include(s"already exists in this transform (under parent '$OBJECT_RULE_ID')")
+  }
+
   "Retrieve full mapping rule tree" in {
     jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rules") mustBe
       expectedRootRuleResponse(

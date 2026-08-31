@@ -163,6 +163,21 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     a[BadUserInputException] should be thrownBy ReorderMappings.of("transform", task.data, "complex", Seq.empty)
   }
 
+  it should "validate a rule addition as requested" in {
+    val project = retrieveOrCreateProject("journalAddMapping")
+    val address = ObjectMapping(id = "address", rules = MappingRules(propertyRules = Seq(city)))
+    val task = project.addTask[TransformSpec]("transform", transform(name, address))
+    AddMapping.of("transform", task.data, "address", age, Some(0)) shouldBe AddMapping("transform", "address", age, Some(0))
+    // A taken id is rejected as input, naming the parent that holds it; so is one that a nested rule brings along
+    (the[BadUserInputException] thrownBy AddMapping.of("transform", task.data, "root", city)).getMessage should
+      include("A rule with id 'city' already exists in this transform (under parent 'address')")
+    val nested = ObjectMapping(id = "other", rules = MappingRules(propertyRules = Seq(name)))
+    a[BadUserInputException] should be thrownBy AddMapping.of("transform", task.data, "root", nested)
+    // The parent must exist and hold child rules
+    a[NotFoundException] should be thrownBy AddMapping.of("transform", task.data, "missing", age)
+    a[BadUserInputException] should be thrownBy AddMapping.of("transform", task.data, "name", age)
+  }
+
   it should "restore a removed rule at its position" in {
     val project = retrieveOrCreateProject("journalRemove")
     val task = project.addTask[TransformSpec]("transform", transform(name, age, city))

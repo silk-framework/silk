@@ -28,6 +28,17 @@ case class AddMapping(taskId: Identifier, parentId: Identifier, rule: TransformR
   }
 }
 
+object AddMapping {
+
+  /** The addition of a rule under a container rule, as a request names it; each id it brings must be free in the transform. */
+  def of(taskId: Identifier, spec: TransformSpec, parentId: Identifier, rule: TransformRule, index: Option[Int] = None): AddMapping = {
+    MappingChanges.requestedContainer(spec, taskId, parentId)
+    // Names the parent of the rule that holds the id, which the conflict at apply time does not.
+    (rule +: rule.rules.allRulesRecursive).foreach(nested => spec.validateNewRuleId(nested.id.toString))
+    AddMapping(taskId, parentId, rule, index)
+  }
+}
+
 /**
   * Removes a mapping rule. Holds the rule and its position, so the removal can be reverted.
   * Applies only while the rule is unchanged; [[RemoveMapping.of]] captures the current rule.
@@ -116,13 +127,7 @@ object ReorderMappings {
 
   /** The reordering of the property rules under a container rule into `order`, which must name each of them once. */
   def of(taskId: Identifier, spec: TransformSpec, parentId: Identifier, order: Seq[String]): ReorderMappings = {
-    val parent = RuleTraverser(spec.mappingRule).find(parentId)
-      .getOrElse(throw new NotFoundException(s"No rule '$parentId' found in transform '$taskId'."))
-    val rules = parent.operator match {
-      case container: ContainerTransformRule => container.rules
-      case _ => throw BadUserInputException(s"Rule '$parentId' in transform '$taskId' cannot hold child rules.")
-    }
-    val current = rules.propertyRules.map(_.id)
+    val current = MappingChanges.requestedContainer(spec, taskId, parentId).rules.propertyRules.map(_.id)
     if(order.sorted != current.map(_.toString).sorted) {
       throw BadUserInputException(s"Provided list [${order.mkString(", ")}] does not contain the same elements " +
         s"as current list [${current.mkString(", ")}].")
@@ -132,6 +137,16 @@ object ReorderMappings {
 }
 
 private object MappingChanges {
+
+  /** The container rule a request names: it must exist and be able to hold child rules. */
+  def requestedContainer(spec: TransformSpec, taskId: Identifier, ruleId: Identifier): ContainerTransformRule = {
+    val traverser = RuleTraverser(spec.mappingRule).find(ruleId)
+      .getOrElse(throw new NotFoundException(s"No rule '$ruleId' found in transform '$taskId'."))
+    traverser.operator match {
+      case container: ContainerTransformRule => container
+      case _ => throw BadUserInputException(s"Rule '$ruleId' in transform '$taskId' cannot hold child rules.")
+    }
+  }
 
   /** The rule with the given id, which must be able to hold child rules. */
   def container(spec: TransformSpec, taskId: Identifier, ruleId: Identifier): RuleTraverser = {

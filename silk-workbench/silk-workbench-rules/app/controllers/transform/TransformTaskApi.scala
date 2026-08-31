@@ -676,7 +676,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                                      project: Project): Result = {
     // Inserted after the given rule, or appended if that is not a child of the parent
     val index = afterRuleId.map(after => parentRule.operator.children.indexWhere(_.id.toString == after)).filter(_ >= 0).map(_ + 1)
-    task.applyChange(AddMapping(task.id, parentRule.operator.id, newChildRule, index))
+    task.applyChange(AddMapping.of(task.id, task.data, parentRule.operator.id, newChildRule, index))
     serializeCompileTime(newChildRule, Some(project))
   }
 
