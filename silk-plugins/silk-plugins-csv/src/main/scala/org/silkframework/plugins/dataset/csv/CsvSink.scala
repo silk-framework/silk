@@ -35,6 +35,8 @@ class CsvSink(val resource: WritableResource, settings: CsvSettings) extends Dir
   }
 
   override def close()(implicit userContext: UserContext): Unit = {
+    // Closes the writer of a table left open by a failed execution, so the file is not held open.
+    closeTable()
     super.close()
   }
 

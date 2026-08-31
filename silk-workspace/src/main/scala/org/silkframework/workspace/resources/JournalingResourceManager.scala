@@ -3,7 +3,7 @@ package org.silkframework.workspace.resources
 import org.silkframework.runtime.resource.{ResourceManager, WritableResource}
 import org.silkframework.workspace.changes.{Change, ChangeJournal, FileState, ResourceCreated, ResourceDeleted, ResourceOverwritten}
 
-import java.io.{InputStream, OutputStream}
+import java.io.{File, InputStream, OutputStream}
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -67,6 +67,8 @@ private class JournalingResource(private val underlying: WritableResource, journ
   override def path: String = underlying.path
 
   override def entryPath: Option[String] = underlying.entryPath
+
+  override def underlyingFile: Option[File] = underlying.underlyingFile
 
   override def exists: Boolean = underlying.exists
 
