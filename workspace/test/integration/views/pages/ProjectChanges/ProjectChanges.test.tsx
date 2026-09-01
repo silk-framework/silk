@@ -37,6 +37,7 @@ describe("Project changes", () => {
             unreviewed: true,
         },
         {
+            // A reverted entry is never flagged unreviewed
             seq: 2,
             timestamp: "2026-08-26T09:50:12.345Z",
             user: "urn:user:alice",
@@ -45,15 +46,16 @@ describe("Project changes", () => {
             description: "Updated task 'persons'",
             revertible: true,
             revertedBy: 3,
-            unreviewed: true,
         },
         {
             seq: 1,
             timestamp: "2026-08-26T09:49:58.001Z",
             user: "urn:user:alice",
+            origin: "mcp:claude-code",
             type: "WorkflowExecuted",
             description: "Executed workflow 'workflow'",
             revertible: false,
+            unreviewed: true,
         },
     ];
 
@@ -151,11 +153,12 @@ describe("Project changes", () => {
         await waitFor(() => {
             expect(findElement(document.body, byTestId("remove-item-button"))).toBeInTheDocument();
         });
-        // The dialog lists what will be attempted and notes the reverted entry that will be skipped
+        // The dialog lists what will be attempted and notes the non-revertible entry that will be skipped
         expect(document.body.textContent).toContain(changes[0].description);
+        expect(document.body.textContent).toContain("Skipped as not revertible: 1.");
         clickFoundElement(document.body, byTestId("remove-item-button"));
         await waitFor(() => {
-            checkRequestMade(revertAllUrl, "POST", { seqs: [3, 2] });
+            checkRequestMade(revertAllUrl, "POST", { seqs: [3, 1] });
         });
         mockAxios.mockResponseFor(
             { url: revertAllUrl },
@@ -163,7 +166,7 @@ describe("Project changes", () => {
                 data: {
                     results: [
                         { seq: 3, outcome: "reverted", entry: { seq: 4, type: "RemoveMapping", revertible: true } },
-                        { seq: 2, outcome: "skipped", message: "Change 2 has been reverted already." },
+                        { seq: 1, outcome: "skipped", message: "Change 1 (WorkflowExecuted) cannot be reverted." },
                     ],
                 },
             }),

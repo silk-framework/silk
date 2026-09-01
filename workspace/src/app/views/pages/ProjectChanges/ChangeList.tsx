@@ -108,7 +108,7 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
 
     const unreviewedEntries = entries.filter((entry) => entry.unreviewed);
     // The batch attempts these; the server skips the rest of the unreviewed entries as not revertible.
-    const revertableUnreviewed = unreviewedEntries.filter((entry) => entry.revertible && entry.revertedBy == null);
+    const revertableUnreviewed = unreviewedEntries.filter((entry) => entry.revertible);
 
     const markReviewed = async () => {
         setReviewLoading(true);

@@ -56,10 +56,13 @@ class ChangeJournal(project: Project) {
   /** The seq up to which the user has reviewed the changes; 0 if never set. */
   def reviewedUpTo: Int = store.reviewedUpTo(project.id)
 
-  /** The agent entries after the reviewed watermark, oldest first. The user's own writes do not queue for review. */
+  /** The agent entries after the reviewed watermark, oldest first. The user's own writes do not queue for review,
+    * and a reverted entry needs no review anymore: its effect is undone. */
   def unreviewed: Seq[ChangeEntry] = {
+    val entries = all
     val watermark = reviewedUpTo
-    all.filter(entry => entry.seq > watermark && entry.agentWrite)
+    val reverted = entries.flatMap(_.reverts).toSet
+    entries.filter(entry => entry.seq > watermark && entry.agentWrite && !reverted.contains(entry.seq))
   }
 
   /**

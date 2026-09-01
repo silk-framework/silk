@@ -272,8 +272,13 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     journal.markReviewed(1)
     journal.reviewedUpTo shouldBe 2
     a[ChangeConflictException] should be thrownBy journal.markReviewed(99)
-    journal.markReviewed(3)
+
+    // A reverted entry needs no review anymore; reverting does not move the watermark
+    journal.revert(3)
     journal.unreviewed shouldBe empty
+    journal.reviewedUpTo shouldBe 2
+    journal.markReviewed(4)
+    journal.reviewedUpTo shouldBe 4
   }
 
   it should "revert entries newest-first, skipping what cannot be reverted and stopping at a conflict" in {

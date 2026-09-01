@@ -187,7 +187,7 @@ object ChangeJournalApi {
                              reverts: Option[Int],
                              @Schema(description = "The change that reverted this one. Present only if the change has been reverted.")
                              revertedBy: Option[Int],
-                             @Schema(description = "True for an agent change after the reviewed watermark. Absent otherwise.")
+                             @Schema(description = "True for an agent change after the reviewed watermark that has not been reverted. Absent otherwise.")
                              unreviewed: Option[Boolean])
 
   object ChangeEntryJson {
@@ -274,7 +274,7 @@ object ChangeJournalApi {
   final val listExample =
     """
       {
-        "reviewedUpTo": 1,
+        "reviewedUpTo": 0,
         "changes": [
         {
           "seq": 3,
@@ -293,8 +293,7 @@ object ChangeJournalApi {
           "type": "AddMapping",
           "description": "Added mapping rule 'name' under 'root' in transform 'persons'",
           "revertible": true,
-          "revertedBy": 3,
-          "unreviewed": true
+          "revertedBy": 3
         },
         {
           "seq": 1,
@@ -303,7 +302,8 @@ object ChangeJournalApi {
           "origin": "mcp:claude-code",
           "type": "AddTask",
           "description": "Added task 'persons'",
-          "revertible": true
+          "revertible": true,
+          "unreviewed": true
         }
         ]
       }

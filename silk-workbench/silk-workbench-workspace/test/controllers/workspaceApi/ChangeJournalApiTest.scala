@@ -90,6 +90,11 @@ class ChangeJournalApiTest extends AnyFlatSpec with IntegrationTestTrait with Ap
     results.last.entry.get.`type` mustBe "RemoveTask"
     project.anyTaskOption("first") mustBe None
     project.anyTaskOption("second") mustBe None
+
+    // The reverted entries need no review anymore, although the watermark did not move
+    val afterRevert = checkResponse(client.url(changesUrl(watermarkProjectId)).get()).json.as[ChangeListJson]
+    afterRevert.reviewedUpTo mustBe 1
+    afterRevert.changes.flatMap(_.unreviewed) mustBe empty
   }
 
   it should "journal a variable written through the variables API and revert it" in {
