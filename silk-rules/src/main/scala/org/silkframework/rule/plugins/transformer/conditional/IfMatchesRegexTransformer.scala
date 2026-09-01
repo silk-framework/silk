@@ -3,6 +3,7 @@ package org.silkframework.rule.plugins.transformer.conditional
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.rule.plugins.transformer.extraction.RegexExtractionTransformer
+import org.silkframework.rule.plugins.transformer.filter.FilterByRegex
 import org.silkframework.rule.plugins.transformer.selection.RegexSelectTransformer
 import org.silkframework.rule.plugins.transformer.validation.ValidateRegex
 import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
@@ -26,6 +27,10 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
     new PluginReference(
       id = RegexExtractionTransformer.pluginId,
       description = "The Regex extract plugin returns the matching content from the input string, or the first capturing group if the regular expression contains capturing groups. The If matches regex plugin does not return matched content; it uses the match only to choose which of the provided input values becomes the output."
+    ),
+    new PluginReference(
+      id = FilterByRegex.pluginId,
+      description = "Filter by regex looks at values one at a time, deciding for each whether it belongs in the output. If matches regex takes an entirely different approach: the whole first sequence is checked at once, and whichever of the two other sequences applies comes back exactly as given."
     ),
   )
 )

@@ -2,7 +2,11 @@ package org.silkframework.rule.plugins.transformer.filter
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.InlineTransformer
+import org.silkframework.rule.plugins.transformer.conditional.IfMatchesRegexTransformer
+import org.silkframework.rule.plugins.transformer.extraction.RegexExtractionTransformer
+import org.silkframework.rule.plugins.transformer.replace.RegexReplaceTransformer
 import org.silkframework.rule.plugins.transformer.selection.RegexSelectTransformer
+import org.silkframework.rule.plugins.transformer.validation.ValidateRegex
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.validation.ValidationException
 
@@ -26,6 +30,40 @@ import java.util.regex.{Matcher, Pattern, PatternSyntaxException}
       description = "Filter by regex keeps or drops values from the input sequence based on regex matching. " +
         "Regex selection keeps the checked value out of the output and instead returns a pattern-list-shaped result " +
         "filled with the provided output value where a pattern matches."
+    ),
+    new PluginReference(
+      id = ValidateRegex.pluginId,
+      description = "Validate regex throws on the first non-matching value, failing the whole operation. " +
+        "Filter by regex just drops it and keeps the rest."
+    ),
+    new PluginReference(
+      id = RegexReplaceTransformer.pluginId,
+      description = "Filter by regex is a structural filter: it never changes a value's content, only whether " +
+        "that value appears in the output. Regex replace works the other way: it changes what's inside each " +
+        "value, but every value that goes in still comes out."
+    ),
+    new PluginReference(
+      id = RegexExtractionTransformer.pluginId,
+      description = "Regex extract never returns the original value — only part of the match itself, a substring " +
+        "or a capturing group. By contrast, Filter by regex returns only the original value, unmodified, or " +
+        "nothing at all."
+    ),
+    new PluginReference(
+      id = IfMatchesRegexTransformer.pluginId,
+      description = "If matches regex checks one sequence for a match, then returns one of two candidate " +
+        "sequences, completely unchanged. Each value in a single sequence is tested on its own under Filter by " +
+        "regex, kept or dropped to build the output."
+    ),
+    new PluginReference(
+      id = FilterByLength.pluginId,
+      description = "Filter by length only checks length, bounded by a minimum and a maximum. Length is " +
+        "irrelevant to Filter by regex; only the pattern matters."
+    ),
+    new PluginReference(
+      id = RemoveValues.pluginId,
+      description = "Remove values checks each value against a fixed, comma-separated blacklist — an exact, " +
+        "case-insensitive match, nothing computed. Filter by regex checks each value against a regular " +
+        "expression instead, which can be a single word or a broad, open-ended pattern."
     )
   )
 )

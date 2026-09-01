@@ -17,6 +17,7 @@ package org.silkframework.rule.plugins.transformer.validation
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.rule.plugins.transformer.conditional.IfMatchesRegexTransformer
+import org.silkframework.rule.plugins.transformer.filter.FilterByRegex
 import org.silkframework.rule.plugins.transformer.extraction.RegexExtractionTransformer
 import org.silkframework.rule.plugins.transformer.replace.RegexReplaceTransformer
 import org.silkframework.rule.plugins.transformer.selection.RegexSelectTransformer
@@ -47,6 +48,10 @@ import scala.util.matching.Regex
     new PluginReference(
       id = RegexExtractionTransformer.pluginId,
       description = "Regex extract turns the match into output by returning the matched substring or the first capturing group. Validate regex leaves the value unchanged and only lets it through when the full value matches the pattern."
+    ),
+    new PluginReference(
+      id = FilterByRegex.pluginId,
+      description = "A non-matching value is excluded by Filter by regex; every other value continues. One mismatch fails the whole check under Validate regex."
     )
   )
 )
