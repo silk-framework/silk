@@ -1,7 +1,14 @@
-import { IArtefactItemProperty } from "@ducks/common/typings";
+import { IArtefactItemProperty, ICompanionFrontendConfig } from "@ducks/common/typings";
 import { IViewActions } from "../../views/plugins/PluginRegistry";
 import { TestableComponent } from "@eccenca/gui-elements";
 import { AccessControlConfig } from "@ducks/workspace/requests";
+
+/** Host integration parameters for a feature rendered in the global application toolbar. */
+export interface CompanionToolbarProps {
+    companionConfig: ICompanionFrontendConfig;
+    closeOtherToolbarPanels: () => void;
+    isAnotherToolbarPanelOpen: boolean;
+}
 
 export type IPreview = IDatasetConfigPreview | IResourcePreview | IDatasetPreview | FixedPreview;
 
