@@ -1,6 +1,6 @@
 package org.silkframework.workspace.changes
 
-import org.silkframework.config.TaskSpec
+import org.silkframework.config.{HasMetaData, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.RequestException
 import org.silkframework.util.Identifier
@@ -31,6 +31,14 @@ trait Change {
   def applyTo(project: Project)(implicit userContext: UserContext): Unit
 }
 
+object Change {
+
+  /** The label to capture in a change that does not hold the task itself; None when no label is set. */
+  def capturedName(obj: HasMetaData): Option[String] = {
+    obj.metaData.label.filter(_.trim.nonEmpty).map(_ => obj.labelOrId)
+  }
+}
+
 /** A change recorded from the outcome of a write, e.g. a file write or a workflow run. It holds no content, so it is not applied itself. */
 trait RecordedChange extends Change {
 
@@ -49,6 +57,12 @@ abstract class TaskChange[T <: TaskSpec : ClassTag] extends Change {
 
   def taskId: Identifier
 
+  /** The task's label, captured when the change was created; None when no label was set. */
+  def taskLabel: Option[String] = None
+
+  /** Names the task for display: the captured label, or the id. */
+  final def taskName: String = taskLabel.getOrElse(taskId.toString)
+
   /**
     * Applies this change to the task data.
     *
@@ -61,13 +75,13 @@ abstract class TaskChange[T <: TaskSpec : ClassTag] extends Change {
   /** Applies this change to task data of unknown type. */
   final def applyAny(data: TaskSpec): TaskSpec = data match {
     case typed: T => apply(typed)
-    case other => throw ChangeConflictException(s"Task '$taskId' is a ${other.getClass.getSimpleName}, " +
+    case other => throw ChangeConflictException(s"Task '$taskName' is a ${other.getClass.getSimpleName}, " +
       s"but this change expects a ${classTag[T].runtimeClass.getSimpleName}.")
   }
 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
     val task = project.anyTaskOption(taskId)
-      .getOrElse(throw ChangeConflictException(s"Task '$taskId' does not exist in project '${project.id}'."))
+      .getOrElse(throw ChangeConflictException(s"Task '$taskName' does not exist in project '${project.id}'."))
     task.applyChange(this)
   }
 }

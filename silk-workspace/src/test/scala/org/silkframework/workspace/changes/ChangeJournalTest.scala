@@ -2,6 +2,7 @@ package org.silkframework.workspace.changes
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.silkframework.config.MetaData
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity.paths.UntypedPath
@@ -143,7 +144,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     added.change.describe shouldBe "Added mapping rule 'age' under 'root' in transform 'transform'"
 
     // A later change to another rule does not block the revert, as only the added rule is removed
-    task.applyChange(UpdateMapping.of("transform", task.data, "city", city.copy(id = "town")))
+    task.applyChange(UpdateMapping.of(task, "city", city.copy(id = "town")))
     ruleIds(task) shouldBe Seq("name", "age", "town")
     val reverted = project.changeJournal.revert(added.seq)
     reverted.change shouldBe RemoveMapping("transform", "root", age, Some(1))
@@ -156,32 +157,32 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
       target = Some(MappingTarget("http://example.org/name")))
     val task = project.addTask[TransformSpec]("transform", transform(complex, age))
     // The rule JSON shows the ids of the input operators, but they do not name a rule
-    a[NotFoundException] should be thrownBy RemoveMapping.of("transform", task.data, "input")
-    a[NotFoundException] should be thrownBy UpdateMapping.of("transform", task.data, "input", age)
-    a[NotFoundException] should be thrownBy ReorderMappings.of("transform", task.data, "input", Seq.empty)
+    a[NotFoundException] should be thrownBy RemoveMapping.of(task, "input")
+    a[NotFoundException] should be thrownBy UpdateMapping.of(task, "input", age)
+    a[NotFoundException] should be thrownBy ReorderMappings.of(task, "input", Seq.empty)
     // A value rule holds no child rules, so there is nothing to reorder under it
-    a[BadUserInputException] should be thrownBy ReorderMappings.of("transform", task.data, "complex", Seq.empty)
+    a[BadUserInputException] should be thrownBy ReorderMappings.of(task, "complex", Seq.empty)
   }
 
   it should "validate a rule addition as requested" in {
     val project = retrieveOrCreateProject("journalAddMapping")
     val address = ObjectMapping(id = "address", rules = MappingRules(propertyRules = Seq(city)))
     val task = project.addTask[TransformSpec]("transform", transform(name, address))
-    AddMapping.of("transform", task.data, "address", age, Some(0)) shouldBe AddMapping("transform", "address", age, Some(0))
+    AddMapping.of(task, "address", age, Some(0)) shouldBe AddMapping("transform", "address", age, Some(0))
     // A taken id is rejected as input, naming the parent that holds it; so is one that a nested rule brings along
-    (the[BadUserInputException] thrownBy AddMapping.of("transform", task.data, "root", city)).getMessage should
+    (the[BadUserInputException] thrownBy AddMapping.of(task, "root", city)).getMessage should
       include("A rule with id 'city' already exists in this transform (under parent 'address')")
     val nested = ObjectMapping(id = "other", rules = MappingRules(propertyRules = Seq(name)))
-    a[BadUserInputException] should be thrownBy AddMapping.of("transform", task.data, "root", nested)
+    a[BadUserInputException] should be thrownBy AddMapping.of(task, "root", nested)
     // The parent must exist and hold child rules
-    a[NotFoundException] should be thrownBy AddMapping.of("transform", task.data, "missing", age)
-    a[BadUserInputException] should be thrownBy AddMapping.of("transform", task.data, "name", age)
+    a[NotFoundException] should be thrownBy AddMapping.of(task, "missing", age)
+    a[BadUserInputException] should be thrownBy AddMapping.of(task, "name", age)
   }
 
   it should "restore a removed rule at its position" in {
     val project = retrieveOrCreateProject("journalRemove")
     val task = project.addTask[TransformSpec]("transform", transform(name, age, city))
-    task.applyChange(RemoveMapping.of("transform", task.data, "age"))
+    task.applyChange(RemoveMapping.of(task, "age"))
     ruleIds(task) shouldBe Seq("name", "city")
     project.changeJournal.revert(project.changeJournal.all.last.seq)
     ruleIds(task) shouldBe Seq("name", "age", "city")
@@ -210,9 +211,9 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     val project = retrieveOrCreateProject("journalUpdate")
     val task = project.addTask[TransformSpec]("transform", transform(name))
     val renamedTarget = name.copy(mappingTarget = MappingTarget("http://example.org/fullName"))
-    task.applyChange(UpdateMapping.of("transform", task.data, "name", renamedTarget))
+    task.applyChange(UpdateMapping.of(task, "name", renamedTarget))
     val update = project.changeJournal.all.last
-    task.applyChange(UpdateMapping.of("transform", task.data, "name", renamedTarget.copy(id = "fullName")))
+    task.applyChange(UpdateMapping.of(task, "name", renamedTarget.copy(id = "fullName")))
     ruleIds(task) shouldBe Seq("fullName")
 
     a[ChangeConflictException] should be thrownBy project.changeJournal.revert(update.seq)
@@ -224,7 +225,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     val journal = project.changeJournal
     val rules = MappingRules(typeRules = Seq(TypeMapping(id = "type")), propertyRules = Seq(name, age, city))
     val task = project.addTask[TransformSpec]("transform", TransformSpec(mappingRule = RootMappingRule(rules)))
-    val reorder = ReorderMappings.of("transform", task.data, "root", Seq("city", "name", "age"))
+    val reorder = ReorderMappings.of(task, "root", Seq("city", "name", "age"))
     reorder shouldBe ReorderMappings("transform", "root", Seq("name", "age", "city"), Seq("city", "name", "age"))
     reorder.describe shouldBe "Reordered mapping rules under 'root' in transform 'transform'"
     task.applyChange(reorder)
@@ -232,13 +233,13 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     ruleIds(task) shouldBe Seq("type", "city", "name", "age")
 
     // The new order must name each rule once
-    a[BadUserInputException] should be thrownBy ReorderMappings.of("transform", task.data, "root", Seq("city", "city", "age"))
+    a[BadUserInputException] should be thrownBy ReorderMappings.of(task, "root", Seq("city", "city", "age"))
     an[IllegalArgumentException] should be thrownBy ReorderMappings("transform", "root", Seq("name"), Seq("age"))
 
     val reverted = journal.revert(journal.all.last.seq)
     ruleIds(task) shouldBe Seq("type", "name", "age", "city")
     // Redoing the reorder refuses once the rules were reordered again
-    task.applyChange(ReorderMappings.of("transform", task.data, "root", Seq("age", "name", "city")))
+    task.applyChange(ReorderMappings.of(task, "root", Seq("age", "name", "city")))
     a[ChangeConflictException] should be thrownBy journal.revert(reverted.seq)
     ruleIds(task) shouldBe Seq("type", "age", "name", "city")
   }
@@ -251,6 +252,23 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     val entry = project.changeJournal.all.last
     entry.user shouldBe Some("urn:agent")
     entry.origin shouldBe Some("mcp:test")
+  }
+
+  it should "describe changes by their labels when set" in {
+    val project = retrieveOrCreateProject("journalLabels")
+    val journal = project.changeJournal
+    val task = project.addTask[TransformSpec]("transform", transform(name), MetaData(Some("Persons")))
+    journal.all.last.change.describe shouldBe "Added task 'Persons'"
+
+    val labeledCity = city.copy(metaData = MetaData(Some("City")))
+    task.applyChange(AddMapping.of(task, "root", labeledCity))
+    val added = journal.all.last
+    added.change.describe shouldBe "Added mapping rule 'City' under 'root' in transform 'Persons'"
+
+    // A whole-task update names the task as the update left it; a revert keeps the label captured with the change
+    project.updateTask[TransformSpec]("transform", transform(name, labeledCity), Some(MetaData(Some("People"))))
+    journal.all.last.change.describe shouldBe "Updated task 'People'"
+    journal.revert(added.seq).change.describe shouldBe "Removed mapping rule 'City' from transform 'Persons'"
   }
 
   it should "track the reviewed watermark over the agent entries" in {
@@ -300,9 +318,9 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     val second = project.addTask[TransformSpec]("second", transform(name, age))
     val added = journal.all.last.seq
     val renamed = name.copy(mappingTarget = MappingTarget("http://example.org/fullName"))
-    second.applyChange(UpdateMapping.of("second", second.data, "name", renamed))
+    second.applyChange(UpdateMapping.of(second, "name", renamed))
     val update = journal.all.last.seq
-    second.applyChange(UpdateMapping.of("second", second.data, "name", renamed.copy(id = "fullName")))
+    second.applyChange(UpdateMapping.of(second, "name", renamed.copy(id = "fullName")))
 
     val stopped = journal.revertAll(Seq(added, update))
     stopped.map(_.seq) shouldBe Seq(update, added)

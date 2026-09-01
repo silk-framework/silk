@@ -8,13 +8,13 @@ import org.silkframework.workspace.{Project, ProjectTask}
 /** Adds a task to the project. Recorded whenever a task is added. */
 case class AddTask(task: PlainTask[TaskSpec]) extends Change {
 
-  override def describe: String = s"Added task '${task.id}'"
+  override def describe: String = s"Added task '${task.labelOrId}'"
 
   override def inverse: Option[RemoveTask] = Some(RemoveTask(task))
 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
     if(project.anyTaskOption(task.id).isDefined) {
-      throw ChangeConflictException(s"Task '${task.id}' already exists in project '${project.id}'.")
+      throw ChangeConflictException(s"Task '${task.labelOrId}' already exists in project '${project.id}'.")
     }
     project.restoreTask(task)
   }
@@ -26,7 +26,7 @@ case class AddTask(task: PlainTask[TaskSpec]) extends Change {
 /** Removes a task from the project. Holds the removed task, so the removal can be reverted. */
 case class RemoveTask(task: PlainTask[TaskSpec]) extends Change {
 
-  override def describe: String = s"Removed task '${task.id}'"
+  override def describe: String = s"Removed task '${task.labelOrId}'"
 
   override def inverse: Option[AddTask] = Some(AddTask(task))
 
@@ -46,7 +46,8 @@ case class ReplaceTask(before: PlainTask[TaskSpec], after: PlainTask[TaskSpec]) 
 
   def taskId: Identifier = before.id
 
-  override def describe: String = s"Updated task '$taskId'"
+  // Names the task as the update left it, i.e. a rename shows the new label.
+  override def describe: String = s"Updated task '${after.labelOrId}'"
 
   override def inverse: Option[ReplaceTask] = Some(ReplaceTask(after, before))
 
@@ -72,9 +73,9 @@ object TaskChanges {
   private[changes] def expectState(project: Project, expected: PlainTask[TaskSpec])
                                   (implicit userContext: UserContext): ProjectTask[TaskSpec] = {
     val task = project.anyTaskOption(expected.id)
-      .getOrElse(throw ChangeConflictException(s"Task '${expected.id}' does not exist in project '${project.id}'."))
+      .getOrElse(throw ChangeConflictException(s"Task '${expected.labelOrId}' does not exist in project '${project.id}'."))
     if(!same(task, expected)) {
-      throw ChangeConflictException(s"Task '${expected.id}' in project '${project.id}' has been changed since.")
+      throw ChangeConflictException(s"Task '${expected.labelOrId}' in project '${project.id}' has been changed since.")
     }
     task.asInstanceOf[ProjectTask[TaskSpec]]
   }

@@ -32,7 +32,7 @@ import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{Identifier, IdentifierGenerator, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
-import org.silkframework.workspace.changes.{AddMapping, RemoveMapping, ReorderMappings, UpdateMapping}
+import org.silkframework.workspace.changes.{AddMapping, Change, RemoveMapping, ReorderMappings, UpdateMapping}
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc._
@@ -518,7 +518,8 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
           implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
           implicit val updatedRequest: Request[AnyContent] = updateJsonRequest(request, currentRule)
           deserializeCompileTime[TransformRule]() { updatedRule =>
-            task.applyChange(UpdateMapping(task.id, currentRule.operator.asInstanceOf[TransformRule], updatedRule))
+            task.applyChange(UpdateMapping(task.id, currentRule.operator.asInstanceOf[TransformRule], updatedRule,
+              Change.capturedName(task)))
             serializeCompileTime[TransformRule](updatedRule, Some(project))
           }
         }
@@ -572,7 +573,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
 
     catchExceptions {
       task.synchronized {
-        task.applyChange(RemoveMapping.of(task.id, task.data, rule))
+        task.applyChange(RemoveMapping.of(task, rule))
         Ok
       }
     }
@@ -676,7 +677,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                                      project: Project): Result = {
     // Inserted after the given rule, or appended if that is not a child of the parent
     val index = afterRuleId.map(after => parentRule.operator.children.indexWhere(_.id.toString == after)).filter(_ >= 0).map(_ + 1)
-    task.applyChange(AddMapping.of(task.id, task.data, parentRule.operator.id, newChildRule, index))
+    task.applyChange(AddMapping.of(task, parentRule.operator.id, newChildRule, index))
     serializeCompileTime(newChildRule, Some(project))
   }
 
@@ -884,7 +885,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
         request.body.asJson match {
           case Some(json) =>
             val newOrder = json.as[JsArray].value.map(_.as[JsString].value).toSeq
-            val change = ReorderMappings.of(task.id, task.data, parentRule.operator.id, newOrder)
+            val change = ReorderMappings.of(task, parentRule.operator.id, newOrder)
             task.applyChange(change)
             Ok(JsArray(change.after.map(id => JsString(id.toString))))
           case None =>

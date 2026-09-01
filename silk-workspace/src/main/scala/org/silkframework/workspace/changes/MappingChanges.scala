@@ -1,5 +1,6 @@
 package org.silkframework.workspace.changes
 
+import org.silkframework.config.Task
 import org.silkframework.rule.{ContainerTransformRule, RootMappingRule, RuleTraverser, TransformRule, TransformSpec}
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
 import org.silkframework.util.Identifier
@@ -10,17 +11,17 @@ import org.silkframework.util.Identifier
   * @param index The position among the parent's children, or None to append. A URI or type rule is stored
   *              ahead of the property rules regardless of the position.
   */
-case class AddMapping(taskId: Identifier, parentId: Identifier, rule: TransformRule, index: Option[Int] = None)
-  extends TaskChange[TransformSpec] {
+case class AddMapping(taskId: Identifier, parentId: Identifier, rule: TransformRule, index: Option[Int] = None,
+                      override val taskLabel: Option[String] = None) extends TaskChange[TransformSpec] {
 
-  override def describe: String = s"Added mapping rule '${rule.id}' under '$parentId' in transform '$taskId'"
+  override def describe: String = s"Added mapping rule '${rule.labelOrId}' under '$parentId' in transform '$taskName'"
 
-  override def inverse: Option[RemoveMapping] = Some(RemoveMapping(taskId, parentId, rule, index))
+  override def inverse: Option[RemoveMapping] = Some(RemoveMapping(taskId, parentId, rule, index, taskLabel))
 
   override def apply(spec: TransformSpec): TransformSpec = {
-    val parent = MappingChanges.container(spec, taskId, parentId)
+    val parent = MappingChanges.container(spec, taskName, parentId)
     for(id <- (rule +: rule.rules.allRulesRecursive).map(_.id) if spec.nestedRuleAndSourcePath(id).isDefined) {
-      throw ChangeConflictException(s"A rule with id '$id' already exists in transform '$taskId'.")
+      throw ChangeConflictException(s"A rule with id '$id' already exists in transform '$taskName'.")
     }
     val children = parent.operator.children
     val (before, after) = children.splitAt(index.getOrElse(children.size) min children.size)
@@ -31,11 +32,12 @@ case class AddMapping(taskId: Identifier, parentId: Identifier, rule: TransformR
 object AddMapping {
 
   /** The addition of a rule under a container rule, as a request names it; each id it brings must be free in the transform. */
-  def of(taskId: Identifier, spec: TransformSpec, parentId: Identifier, rule: TransformRule, index: Option[Int] = None): AddMapping = {
-    MappingChanges.requestedContainer(spec, taskId, parentId)
+  def of(task: Task[TransformSpec], parentId: Identifier, rule: TransformRule, index: Option[Int] = None): AddMapping = {
+    val spec = task.data
+    MappingChanges.requestedContainer(spec, task.labelOrId, parentId)
     // Names the parent of the rule that holds the id, which the conflict at apply time does not.
     (rule +: rule.rules.allRulesRecursive).foreach(nested => spec.validateNewRuleId(nested.id.toString))
-    AddMapping(taskId, parentId, rule, index)
+    AddMapping(task.id, parentId, rule, index, Change.capturedName(task))
   }
 }
 
@@ -43,15 +45,15 @@ object AddMapping {
   * Removes a mapping rule. Holds the rule and its position, so the removal can be reverted.
   * Applies only while the rule is unchanged; [[RemoveMapping.of]] captures the current rule.
   */
-case class RemoveMapping(taskId: Identifier, parentId: Identifier, rule: TransformRule, index: Option[Int])
-  extends TaskChange[TransformSpec] {
+case class RemoveMapping(taskId: Identifier, parentId: Identifier, rule: TransformRule, index: Option[Int],
+                         override val taskLabel: Option[String] = None) extends TaskChange[TransformSpec] {
 
-  override def describe: String = s"Removed mapping rule '${rule.id}' from transform '$taskId'"
+  override def describe: String = s"Removed mapping rule '${rule.labelOrId}' from transform '$taskName'"
 
-  override def inverse: Option[AddMapping] = Some(AddMapping(taskId, parentId, rule, index))
+  override def inverse: Option[AddMapping] = Some(AddMapping(taskId, parentId, rule, index, taskLabel))
 
   override def apply(spec: TransformSpec): TransformSpec = {
-    MappingChanges.expectRule(spec, taskId, rule)
+    MappingChanges.expectRule(spec, taskName, rule)
     MappingChanges.withRoot(spec, RuleTraverser(spec.mappingRule).remove(rule.id))
   }
 }
@@ -59,13 +61,14 @@ case class RemoveMapping(taskId: Identifier, parentId: Identifier, rule: Transfo
 object RemoveMapping {
 
   /** The removal of an existing rule of the transform, capturing the rule and its position. */
-  def of(taskId: Identifier, spec: TransformSpec, ruleId: Identifier): RemoveMapping = {
-    val traverser = RuleTraverser(spec.mappingRule).find(ruleId)
-      .getOrElse(throw new NotFoundException(s"No rule '$ruleId' found in transform '$taskId'."))
+  def of(task: Task[TransformSpec], ruleId: Identifier): RemoveMapping = {
+    val traverser = RuleTraverser(task.data.mappingRule).find(ruleId)
+      .getOrElse(throw new NotFoundException(s"No rule '$ruleId' found in transform '${task.labelOrId}'."))
     val parent = traverser.moveUp
-      .getOrElse(throw BadUserInputException(s"The root rule of transform '$taskId' cannot be removed."))
+      .getOrElse(throw BadUserInputException(s"The root rule of transform '${task.labelOrId}' cannot be removed."))
     val index = parent.operator.children.indexWhere(_.id == ruleId)
-    RemoveMapping(taskId, parent.operator.id, traverser.operator.asInstanceOf[TransformRule], Some(index))
+    RemoveMapping(task.id, parent.operator.id, traverser.operator.asInstanceOf[TransformRule], Some(index),
+      Change.capturedName(task))
   }
 }
 
@@ -73,16 +76,18 @@ object RemoveMapping {
   * Replaces a mapping rule, including its nested rules, by an updated version, which may carry a new id.
   * Applies only while the rule equals `before`; [[UpdateMapping.of]] captures the current rule.
   */
-case class UpdateMapping(taskId: Identifier, before: TransformRule, after: TransformRule) extends TaskChange[TransformSpec] {
+case class UpdateMapping(taskId: Identifier, before: TransformRule, after: TransformRule,
+                         override val taskLabel: Option[String] = None) extends TaskChange[TransformSpec] {
 
-  override def describe: String = s"Updated mapping rule '${before.id}' in transform '$taskId'"
+  // Names the rule as the update left it, i.e. a rename shows the new label.
+  override def describe: String = s"Updated mapping rule '${after.labelOrId}' in transform '$taskName'"
 
-  override def inverse: Option[UpdateMapping] = Some(UpdateMapping(taskId, after, before))
+  override def inverse: Option[UpdateMapping] = Some(UpdateMapping(taskId, after, before, taskLabel))
 
   override def apply(spec: TransformSpec): TransformSpec = {
-    val current = MappingChanges.expectRule(spec, taskId, before)
+    val current = MappingChanges.expectRule(spec, taskName, before)
     if(after.id != before.id && spec.nestedRuleAndSourcePath(after.id).isDefined) {
-      throw ChangeConflictException(s"A rule with id '${after.id}' already exists in transform '$taskId'.")
+      throw ChangeConflictException(s"A rule with id '${after.id}' already exists in transform '$taskName'.")
     }
     MappingChanges.withRoot(spec, current.update(after))
   }
@@ -91,10 +96,10 @@ case class UpdateMapping(taskId: Identifier, before: TransformRule, after: Trans
 object UpdateMapping {
 
   /** The update of an existing rule of the transform, capturing the current rule. */
-  def of(taskId: Identifier, spec: TransformSpec, ruleId: Identifier, updated: TransformRule): UpdateMapping = {
-    val current = RuleTraverser(spec.mappingRule).find(ruleId)
-      .getOrElse(throw new NotFoundException(s"No rule '$ruleId' found in transform '$taskId'."))
-    UpdateMapping(taskId, current.operator.asInstanceOf[TransformRule], updated)
+  def of(task: Task[TransformSpec], ruleId: Identifier, updated: TransformRule): UpdateMapping = {
+    val current = RuleTraverser(task.data.mappingRule).find(ruleId)
+      .getOrElse(throw new NotFoundException(s"No rule '$ruleId' found in transform '${task.labelOrId}'."))
+    UpdateMapping(task.id, current.operator.asInstanceOf[TransformRule], updated, Change.capturedName(task))
   }
 }
 
@@ -102,20 +107,20 @@ object UpdateMapping {
   * Reorders the property rules under a container rule; the URI and type rules stay ahead of them.
   * Applies only while the rules are in the `before` order; [[ReorderMappings.of]] captures the current order.
   */
-case class ReorderMappings(taskId: Identifier, parentId: Identifier, before: Seq[Identifier], after: Seq[Identifier])
-  extends TaskChange[TransformSpec] {
+case class ReorderMappings(taskId: Identifier, parentId: Identifier, before: Seq[Identifier], after: Seq[Identifier],
+                           override val taskLabel: Option[String] = None) extends TaskChange[TransformSpec] {
 
   require(before.sorted == after.sorted, "The new order must name each rule of the current order once.")
 
-  override def describe: String = s"Reordered mapping rules under '$parentId' in transform '$taskId'"
+  override def describe: String = s"Reordered mapping rules under '$parentId' in transform '$taskName'"
 
-  override def inverse: Option[ReorderMappings] = Some(ReorderMappings(taskId, parentId, after, before))
+  override def inverse: Option[ReorderMappings] = Some(ReorderMappings(taskId, parentId, after, before, taskLabel))
 
   override def apply(spec: TransformSpec): TransformSpec = {
-    val parent = MappingChanges.container(spec, taskId, parentId)
+    val parent = MappingChanges.container(spec, taskName, parentId)
     val rules = parent.operator.asInstanceOf[TransformRule].rules
     if(rules.propertyRules.map(_.id) != before) {
-      throw ChangeConflictException(s"The rules under '$parentId' in transform '$taskId' have been changed since.")
+      throw ChangeConflictException(s"The rules under '$parentId' in transform '$taskName' have been changed since.")
     }
     val byId = rules.propertyRules.map(rule => rule.id -> rule).toMap
     val children = rules.uriRule.toSeq ++ rules.typeRules ++ after.map(byId)
@@ -126,48 +131,48 @@ case class ReorderMappings(taskId: Identifier, parentId: Identifier, before: Seq
 object ReorderMappings {
 
   /** The reordering of the property rules under a container rule into `order`, which must name each of them once. */
-  def of(taskId: Identifier, spec: TransformSpec, parentId: Identifier, order: Seq[String]): ReorderMappings = {
-    val current = MappingChanges.requestedContainer(spec, taskId, parentId).rules.propertyRules.map(_.id)
+  def of(task: Task[TransformSpec], parentId: Identifier, order: Seq[String]): ReorderMappings = {
+    val current = MappingChanges.requestedContainer(task.data, task.labelOrId, parentId).rules.propertyRules.map(_.id)
     if(order.sorted != current.map(_.toString).sorted) {
       throw BadUserInputException(s"Provided list [${order.mkString(", ")}] does not contain the same elements " +
         s"as current list [${current.mkString(", ")}].")
     }
-    ReorderMappings(taskId, parentId, current, order.map(Identifier(_)))
+    ReorderMappings(task.id, parentId, current, order.map(Identifier(_)), Change.capturedName(task))
   }
 }
 
 private object MappingChanges {
 
   /** The container rule a request names: it must exist and be able to hold child rules. */
-  def requestedContainer(spec: TransformSpec, taskId: Identifier, ruleId: Identifier): ContainerTransformRule = {
+  def requestedContainer(spec: TransformSpec, taskName: String, ruleId: Identifier): ContainerTransformRule = {
     val traverser = RuleTraverser(spec.mappingRule).find(ruleId)
-      .getOrElse(throw new NotFoundException(s"No rule '$ruleId' found in transform '$taskId'."))
+      .getOrElse(throw new NotFoundException(s"No rule '$ruleId' found in transform '$taskName'."))
     traverser.operator match {
       case container: ContainerTransformRule => container
-      case _ => throw BadUserInputException(s"Rule '$ruleId' in transform '$taskId' cannot hold child rules.")
+      case _ => throw BadUserInputException(s"Rule '$ruleId' in transform '$taskName' cannot hold child rules.")
     }
   }
 
   /** The rule with the given id, which must be able to hold child rules. */
-  def container(spec: TransformSpec, taskId: Identifier, ruleId: Identifier): RuleTraverser = {
-    val traverser = rule(spec, taskId, ruleId)
+  def container(spec: TransformSpec, taskName: String, ruleId: Identifier): RuleTraverser = {
+    val traverser = rule(spec, taskName, ruleId)
     traverser.operator match {
       case _: ContainerTransformRule => traverser
-      case _ => throw ChangeConflictException(s"Rule '$ruleId' in transform '$taskId' cannot hold child rules.")
+      case _ => throw ChangeConflictException(s"Rule '$ruleId' in transform '$taskName' cannot hold child rules.")
     }
   }
 
   /** The rule with the given id. */
-  def rule(spec: TransformSpec, taskId: Identifier, ruleId: Identifier): RuleTraverser = {
+  def rule(spec: TransformSpec, taskName: String, ruleId: Identifier): RuleTraverser = {
     RuleTraverser(spec.mappingRule).find(ruleId)
-      .getOrElse(throw ChangeConflictException(s"No rule '$ruleId' found in transform '$taskId'."))
+      .getOrElse(throw ChangeConflictException(s"No rule '$ruleId' found in transform '$taskName'."))
   }
 
   /** The rule with the id of `expected`, which must be unchanged. */
-  def expectRule(spec: TransformSpec, taskId: Identifier, expected: TransformRule): RuleTraverser = {
-    val traverser = rule(spec, taskId, expected.id)
+  def expectRule(spec: TransformSpec, taskName: String, expected: TransformRule): RuleTraverser = {
+    val traverser = rule(spec, taskName, expected.id)
     if(traverser.operator != expected) {
-      throw ChangeConflictException(s"Rule '${expected.id}' in transform '$taskId' has been changed since.")
+      throw ChangeConflictException(s"Rule '${expected.id}' in transform '$taskName' has been changed since.")
     }
     traverser
   }

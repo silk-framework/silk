@@ -5,7 +5,7 @@ import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.templating.{ExecutionVariablesHolder, TemplateVariables}
 import org.silkframework.workspace.ProjectTask
-import org.silkframework.workspace.changes.WorkflowExecuted
+import org.silkframework.workspace.changes.{Change, WorkflowExecuted}
 import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
 
 import java.util.logging.Logger
@@ -103,7 +103,8 @@ trait WorkflowExecutorGeneratingProvenance extends Activity[WorkflowExecutionRep
 
   /** Records the run in the project's change journal, where it marks what the changes before it were consumed by. */
   private def recordRun(reportId: Option[ReportIdentifier], failed: Boolean)(implicit userContext: UserContext): Unit = {
-    workflowTask.project.changeJournal.record(WorkflowExecuted(workflowTask.id, reportId.map(_.time.toString), failed))
+    workflowTask.project.changeJournal.record(
+      WorkflowExecuted(workflowTask.id, reportId.map(_.time.toString), failed, Change.capturedName(workflowTask)))
   }
 }
 
