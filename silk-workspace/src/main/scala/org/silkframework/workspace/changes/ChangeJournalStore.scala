@@ -21,7 +21,13 @@ trait ChangeJournalStore extends AnyPlugin {
   /** All entries of a project, oldest first. */
   def entries(project: Identifier): Seq[ChangeEntry]
 
-  /** Drops the journal of a project. Called when the project is deleted. */
+  /** The seq up to which the user has reviewed a project's changes; 0 if never set. */
+  def reviewedUpTo(project: Identifier): Int
+
+  /** Sets the seq up to which the user has reviewed a project's changes. */
+  def setReviewedUpTo(project: Identifier, seq: Int): Unit
+
+  /** Drops the journal of a project, including its reviewed watermark. Called when the project is deleted. */
   def remove(project: Identifier): Unit
 }
 

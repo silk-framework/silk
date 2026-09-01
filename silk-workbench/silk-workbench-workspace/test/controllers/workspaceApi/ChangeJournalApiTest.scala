@@ -1,13 +1,15 @@
 package controllers.workspaceApi
 
-import controllers.projectApi.ChangeJournalApi.{ChangeEntryJson, ChangeListJson}
+import controllers.projectApi.ChangeJournalApi.{ChangeEntryJson, ChangeListJson, RevertResultsJson}
 import controllers.workspaceApi.coreApi.routes.{VariableTemplateApi => TemplateApi}
 import helper.{ApiClient, IntegrationTestTrait}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.{DirectMapping, MappingRules, MappingTarget, RootMappingRule, TransformSpec}
+import org.silkframework.runtime.activity.{SimpleUserContext, UserExecutionContext}
 import org.silkframework.runtime.templating.{TemplateVariable, VariableScope}
+import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.serialization.json.TemplateVariableJson
 import org.silkframework.workspace.changes.AddMapping
 import org.silkframework.workspace.{ProjectConfig, WorkspaceFactory}
@@ -56,6 +58,38 @@ class ChangeJournalApiTest extends AnyFlatSpec with IntegrationTestTrait with Ap
     // A change is reverted at most once; an unknown change is not found.
     checkResponseExactStatusCode(client.url(revertUrl(seq)).post(""), CONFLICT)
     checkResponseExactStatusCode(client.url(revertUrl(999)).post(""), NOT_FOUND)
+  }
+
+  it should "track the reviewed watermark and revert batches" in {
+    val watermarkProjectId = "changeJournalWatermarkProject"
+    val project = WorkspaceFactory().workspace.createProject(ProjectConfig(watermarkProjectId))
+    val agent = SimpleUserContext(Some(DefaultUserManager.get("urn:agent")), UserExecutionContext(origin = Some("mcp:test")))
+    def transform(ruleName: String): TransformSpec =
+      TransformSpec(mappingRule = RootMappingRule(MappingRules(propertyRules = Seq(rule(ruleName)))))
+    project.addTask[TransformSpec]("first", transform("a"))(implicitly, agent)
+    project.addTask[TransformSpec]("second", transform("b"))(implicitly, agent)
+
+    // Both agent entries are unreviewed until the watermark passes them
+    val listed = checkResponse(client.url(changesUrl(watermarkProjectId)).get()).json.as[ChangeListJson]
+    listed.reviewedUpTo mustBe 0
+    listed.changes.map(_.unreviewed) mustBe Seq(Some(true), Some(true))
+
+    val reviewedUrl = baseUrl + controllers.projectApi.routes.ChangeJournalApi.markReviewed(watermarkProjectId).url
+    checkResponse(client.url(reviewedUrl).put(Json.obj("upTo" -> 1))).json mustBe Json.obj("reviewedUpTo" -> 1)
+    val reviewed = checkResponse(client.url(changesUrl(watermarkProjectId)).get()).json.as[ChangeListJson]
+    reviewed.reviewedUpTo mustBe 1
+    reviewed.changes.map(_.unreviewed) mustBe Seq(Some(true), None)
+    // A review beyond the latest change is refused
+    checkResponseExactStatusCode(client.url(reviewedUrl).put(Json.obj("upTo" -> 99)), CONFLICT)
+
+    // The batch reverts newest-first and skips an unknown entry
+    val revertAllUrl = baseUrl + controllers.projectApi.routes.ChangeJournalApi.revertAll(watermarkProjectId).url
+    val results = checkResponse(client.url(revertAllUrl).post(Json.obj("seqs" -> Seq(1, 2, 99)))).json.as[RevertResultsJson].results
+    results.map(_.seq) mustBe Seq(99, 2, 1)
+    results.map(_.outcome) mustBe Seq("skipped", "reverted", "reverted")
+    results.last.entry.get.`type` mustBe "RemoveTask"
+    project.anyTaskOption("first") mustBe None
+    project.anyTaskOption("second") mustBe None
   }
 
   it should "journal a variable written through the variables API and revert it" in {

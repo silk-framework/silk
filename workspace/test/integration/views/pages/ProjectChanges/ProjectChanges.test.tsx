@@ -22,6 +22,8 @@ describe("Project changes", () => {
     const PROJECT_ID = "cmem";
     const changesUrl = apiUrl(`/workspace/projects/${PROJECT_ID}/changes`);
     const revertUrl = (seq: number) => apiUrl(`/workspace/projects/${PROJECT_ID}/changes/${seq}/revert`);
+    const revertAllUrl = apiUrl(`/workspace/projects/${PROJECT_ID}/changes/revert`);
+    const reviewedUrl = apiUrl(`/workspace/projects/${PROJECT_ID}/changes/reviewed`);
 
     const changes: IChangeEntry[] = [
         {
@@ -32,15 +34,18 @@ describe("Project changes", () => {
             type: "AddMapping",
             description: "Added mapping rule 'name' under 'root' in transform 'persons'",
             revertible: true,
+            unreviewed: true,
         },
         {
             seq: 2,
             timestamp: "2026-08-26T09:50:12.345Z",
             user: "urn:user:alice",
+            origin: "mcp:claude-code",
             type: "ReplaceTask",
             description: "Updated task 'persons'",
             revertible: true,
             revertedBy: 3,
+            unreviewed: true,
         },
         {
             seq: 1,
@@ -52,9 +57,11 @@ describe("Project changes", () => {
         },
     ];
 
+    const reviewedChanges = changes.map(({ unreviewed, ...change }) => change);
+
     const loadChangeList = async (): Promise<RenderResult> => {
         const wrapper = renderWrapper(<ChangeList projectId={PROJECT_ID} />);
-        mockAxios.mockResponseFor({ url: changesUrl }, mockedAxiosResponse({ data: { changes } }));
+        mockAxios.mockResponseFor({ url: changesUrl }, mockedAxiosResponse({ data: { reviewedUpTo: 0, changes } }));
         await waitFor(() => {
             expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(changes.length);
         });
@@ -102,9 +109,73 @@ describe("Project changes", () => {
         await waitFor(() => {
             expect(mockAxios.queue().length).toBeGreaterThan(0);
         });
-        mockAxios.mockResponseFor({ url: changesUrl }, mockedAxiosResponse({ data: { changes } }));
+        mockAxios.mockResponseFor({ url: changesUrl }, mockedAxiosResponse({ data: { reviewedUpTo: 0, changes } }));
         await waitFor(() => {
             expect(document.body.querySelector(byTestId("remove-item-button"))).not.toBeInTheDocument();
+        });
+    });
+
+    it("should mark the unreviewed changes and offer the review actions", async () => {
+        const wrapper = await loadChangeList();
+        expect(wrapper.container.textContent).toContain("Unreviewed changes: 2");
+        expect(findElement(wrapper, byTestId("changes-mark-reviewed-btn"))).toBeInTheDocument();
+        expect(findElement(wrapper, byTestId("changes-revert-unreviewed-btn"))).toBeInTheDocument();
+    });
+
+    it("should mark all changes as reviewed with the latest fetched seq", async () => {
+        const wrapper = await loadChangeList();
+        clickFoundElement(wrapper, byTestId("changes-mark-reviewed-btn"));
+        await waitFor(() => {
+            expect(findElement(document.body, byTestId("changes-mark-reviewed-confirm-btn"))).toBeInTheDocument();
+        });
+        clickFoundElement(document.body, byTestId("changes-mark-reviewed-confirm-btn"));
+        await waitFor(() => {
+            checkRequestMade(reviewedUrl, "PUT", { upTo: 3 });
+        });
+        mockAxios.mockResponseFor({ url: reviewedUrl }, mockedAxiosResponse({ data: { reviewedUpTo: 3 } }));
+        await waitFor(() => {
+            expect(mockAxios.queue().length).toBeGreaterThan(0);
+        });
+        mockAxios.mockResponseFor(
+            { url: changesUrl },
+            mockedAxiosResponse({ data: { reviewedUpTo: 3, changes: reviewedChanges } }),
+        );
+        await waitFor(() => {
+            expect(wrapper.container.querySelector(byTestId("changes-mark-reviewed-btn"))).not.toBeInTheDocument();
+        });
+    });
+
+    it("should revert the unreviewed changes and report the outcome", async () => {
+        const wrapper = await loadChangeList();
+        clickFoundElement(wrapper, byTestId("changes-revert-unreviewed-btn"));
+        await waitFor(() => {
+            expect(findElement(document.body, byTestId("remove-item-button"))).toBeInTheDocument();
+        });
+        // The dialog lists what will be attempted and notes the reverted entry that will be skipped
+        expect(document.body.textContent).toContain(changes[0].description);
+        clickFoundElement(document.body, byTestId("remove-item-button"));
+        await waitFor(() => {
+            checkRequestMade(revertAllUrl, "POST", { seqs: [3, 2] });
+        });
+        mockAxios.mockResponseFor(
+            { url: revertAllUrl },
+            mockedAxiosResponse({
+                data: {
+                    results: [
+                        { seq: 3, outcome: "reverted", entry: { seq: 4, type: "RemoveMapping", revertible: true } },
+                        { seq: 2, outcome: "skipped", message: "Change 2 has been reverted already." },
+                    ],
+                },
+            }),
+        );
+        await waitFor(() => {
+            expect(mockAxios.queue().length).toBeGreaterThan(0);
+        });
+        mockAxios.mockResponseFor({ url: changesUrl }, mockedAxiosResponse({ data: { reviewedUpTo: 0, changes } }));
+        await waitFor(() => {
+            const summary = findElement(wrapper, byTestId("changes-revert-all-summary"));
+            expect(summary.textContent).toContain("Reverted changes: 1.");
+            expect(summary.textContent).toContain("Skipped: 1.");
         });
     });
 });

@@ -253,6 +253,59 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     entry.origin shouldBe Some("mcp:test")
   }
 
+  it should "track the reviewed watermark over the agent entries" in {
+    val project = retrieveOrCreateProject("journalWatermark")
+    val journal = project.changeJournal
+    val agent = SimpleUserContext(Some(DefaultUserManager.get("urn:agent")), UserExecutionContext(origin = Some("mcp:test")))
+    project.addTask[TransformSpec]("byUser", transform(name))
+    project.addTask[TransformSpec]("byAgent", transform(age))(implicitly, agent)
+    project.addTask[TransformSpec]("alsoAgent", transform(city))(implicitly, agent)
+
+    // The user's own writes do not queue for review
+    journal.reviewedUpTo shouldBe 0
+    journal.unreviewed.map(_.change.describe) shouldBe Seq("Added task 'byAgent'", "Added task 'alsoAgent'")
+
+    // Reviews only add up; a review beyond the latest change is refused
+    journal.markReviewed(2)
+    journal.reviewedUpTo shouldBe 2
+    journal.unreviewed.map(_.change.describe) shouldBe Seq("Added task 'alsoAgent'")
+    journal.markReviewed(1)
+    journal.reviewedUpTo shouldBe 2
+    a[ChangeConflictException] should be thrownBy journal.markReviewed(99)
+    journal.markReviewed(3)
+    journal.unreviewed shouldBe empty
+  }
+
+  it should "revert entries newest-first, skipping what cannot be reverted and stopping at a conflict" in {
+    val project = retrieveOrCreateProject("journalRevertAll")
+    val journal = project.changeJournal
+    val task = project.addTask[TransformSpec]("transform", transform(name))
+    task.applyChange(AddMapping("transform", "root", age))
+    task.applyChange(AddMapping("transform", "root", city))
+    journal.revert(3)
+
+    // An unknown entry and a reverted one are skipped, the rest unwinds newest-first back to the empty project
+    val outcomes = journal.revertAll(Seq(1, 2, 3, 99))
+    outcomes.map(_.seq) shouldBe Seq(99, 3, 2, 1)
+    outcomes.take(2).foreach(_ shouldBe a[RevertOutcome.Skipped])
+    outcomes.drop(2).foreach(_ shouldBe a[RevertOutcome.Reverted])
+    project.anyTaskOption("transform") shouldBe None
+
+    // A conflict stops the batch and leaves the older entries unattempted
+    val second = project.addTask[TransformSpec]("second", transform(name, age))
+    val added = journal.all.last.seq
+    val renamed = name.copy(mappingTarget = MappingTarget("http://example.org/fullName"))
+    second.applyChange(UpdateMapping.of("second", second.data, "name", renamed))
+    val update = journal.all.last.seq
+    second.applyChange(UpdateMapping.of("second", second.data, "name", renamed.copy(id = "fullName")))
+
+    val stopped = journal.revertAll(Seq(added, update))
+    stopped.map(_.seq) shouldBe Seq(update, added)
+    stopped.head shouldBe a[RevertOutcome.Conflict]
+    stopped.last shouldBe RevertOutcome.NotAttempted(added)
+    ruleIds(second) shouldBe Seq("fullName", "age")
+  }
+
   private def variable(name: String, value: String, template: Option[String] = None): TemplateVariable = {
     TemplateVariable(name, value, template, scope = VariableScope.project)
   }
@@ -395,8 +448,11 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     val project = retrieveOrCreateProject("journalRecreated")
     project.addTask[TransformSpec]("transform", transform(name))
     project.changeJournal.all should not be empty
+    project.changeJournal.markReviewed(1)
 
     WorkspaceFactory().workspace.removeProject("journalRecreated")
-    retrieveOrCreateProject("journalRecreated").changeJournal.all shouldBe empty
+    val recreated = retrieveOrCreateProject("journalRecreated").changeJournal
+    recreated.all shouldBe empty
+    recreated.reviewedUpTo shouldBe 0
   }
 }

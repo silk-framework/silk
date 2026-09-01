@@ -1,7 +1,7 @@
 package org.silkframework.workspace.changes
 
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.validation.NotFoundException
+import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
 import org.silkframework.workspace.Project
 
 import java.time.Instant
@@ -17,7 +17,11 @@ import java.time.Instant
   * @param reverts   The seq of the entry this change reverts, if it was recorded by reverting one.
   */
 case class ChangeEntry(seq: Int, timestamp: Instant, user: Option[String], origin: Option[String], change: Change,
-                       reverts: Option[Int] = None)
+                       reverts: Option[Int] = None) {
+
+  /** Whether the change came in through a client that names itself, e.g. an MCP agent; these queue for user review. */
+  def agentWrite: Boolean = origin.isDefined
+}
 
 /**
   * The change journal of a project: every write to the project is recorded as a [[Change]], which can be reverted.
@@ -48,6 +52,30 @@ class ChangeJournal(project: Project) {
   def all: Seq[ChangeEntry] = store.entries(project.id)
 
   def entry(seq: Int): Option[ChangeEntry] = all.find(_.seq == seq)
+
+  /** The seq up to which the user has reviewed the changes; 0 if never set. */
+  def reviewedUpTo: Int = store.reviewedUpTo(project.id)
+
+  /** The agent entries after the reviewed watermark, oldest first. The user's own writes do not queue for review. */
+  def unreviewed: Seq[ChangeEntry] = {
+    val watermark = reviewedUpTo
+    all.filter(entry => entry.seq > watermark && entry.agentWrite)
+  }
+
+  /**
+    * Advances the reviewed watermark. Reviews only add up: a seq at or below the watermark is a no-op.
+    *
+    * @throws ChangeConflictException If `upTo` lies beyond the latest recorded change, which the caller cannot have seen.
+    */
+  def markReviewed(upTo: Int): Unit = synchronized {
+    if(upTo >= nextSeq) {
+      throw ChangeConflictException(s"Cannot mark the changes of project '${project.id}' as reviewed up to $upTo: " +
+        s"the latest change is ${nextSeq - 1}.")
+    }
+    if(upTo > store.reviewedUpTo(project.id)) {
+      store.setReviewedUpTo(project.id, upTo)
+    }
+  }
 
   /** Drops all entries. Called when the project is deleted, so a later project of the same name starts clean. */
   private[workspace] def clear(): Unit = store.remove(project.id)
@@ -106,6 +134,39 @@ class ChangeJournal(project: Project) {
   }
 
   /**
+    * Reverts entries newest-first, so that no entry is reverted while a later one still builds on it: an entry
+    * that cannot be reverted is skipped, a conflict stops the batch and leaves the remaining entries unattempted.
+    * Not transactional: the entries reverted before a conflict stay reverted, as the outcomes report.
+    */
+  def revertAll(seqs: Seq[Int])(implicit userContext: UserContext): Seq[RevertOutcome] = {
+    val outcomes = Seq.newBuilder[RevertOutcome]
+    var stopped = false
+    for(seq <- seqs.distinct.sorted(Ordering[Int].reverse)) {
+      if(stopped) {
+        outcomes += RevertOutcome.NotAttempted(seq)
+      } else {
+        entry(seq) match {
+          case None =>
+            outcomes += RevertOutcome.Skipped(seq, s"No change $seq in project '${project.id}'.")
+          case Some(e) if e.change.inverse.isEmpty =>
+            outcomes += RevertOutcome.Skipped(seq, s"Change $seq (${e.change.describe}) cannot be reverted.")
+          case Some(_) if revertOf(seq).isDefined =>
+            outcomes += RevertOutcome.Skipped(seq, s"Change $seq has been reverted already.")
+          case Some(_) =>
+            try {
+              outcomes += RevertOutcome.Reverted(seq, revert(seq))
+            } catch {
+              case ex @ (_: ChangeConflictException | _: ValidationException | _: NotFoundException) =>
+                outcomes += RevertOutcome.Conflict(seq, ex.getMessage)
+                stopped = true
+            }
+        }
+      }
+    }
+    outcomes.result()
+  }
+
+  /**
     * Claims an entry for reverting and returns the inverse to apply. The claim is held until the revert is recorded,
     * so that an entry is reverted once even if it is reverted concurrently. The inverse is applied without the lock,
     * as it writes to the project.
@@ -123,6 +184,26 @@ class ChangeJournal(project: Project) {
   }
 
   private def revertOf(seq: Int): Option[ChangeEntry] = all.find(_.reverts.contains(seq))
+}
+
+/** The outcome of one entry within [[ChangeJournal.revertAll]]. */
+sealed trait RevertOutcome {
+  def seq: Int
+}
+
+object RevertOutcome {
+
+  /** The entry was reverted; `entry` records the revert. */
+  case class Reverted(seq: Int, entry: ChangeEntry) extends RevertOutcome
+
+  /** The entry cannot be reverted (unknown, no inverse, or reverted already); the batch continues. */
+  case class Skipped(seq: Int, reason: String) extends RevertOutcome
+
+  /** The revert conflicted; the batch stops, the newer entries stay reverted. */
+  case class Conflict(seq: Int, reason: String) extends RevertOutcome
+
+  /** Not attempted, as a newer entry conflicted. */
+  case class NotAttempted(seq: Int) extends RevertOutcome
 }
 
 object ChangeJournal {

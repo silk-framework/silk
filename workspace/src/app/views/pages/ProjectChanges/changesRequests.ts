@@ -22,10 +22,24 @@ export interface IChangeEntry {
     reverts?: number;
     /** The change that reverted this one, if it has been reverted. */
     revertedBy?: number;
+    /** True for an agent change after the reviewed watermark. */
+    unreviewed?: boolean;
 }
 
 export interface IChangeList {
+    /** The seq up to which the user has reviewed the changes; 0 if never set. */
+    reviewedUpTo: number;
     changes: IChangeEntry[];
+}
+
+/** What happened to one change of a revert batch. */
+export interface IRevertOutcome {
+    seq: number;
+    outcome: "reverted" | "skipped" | "conflict" | "notAttempted";
+    /** Why the change was skipped or conflicted. */
+    message?: string;
+    /** The change that records the revert, for outcome 'reverted'. */
+    entry?: IChangeEntry;
 }
 
 /** The changes made to a project, newest first. */
@@ -35,3 +49,17 @@ export const requestProjectChanges = (projectId: string): Promise<FetchResponse<
 /** Reverts a change. Answers with the change that records the revert; 409 on a conflict. */
 export const requestRevertChange = (projectId: string, seq: number): Promise<FetchResponse<IChangeEntry>> =>
     fetch({ url: projectApi(`/${projectId}/changes/${seq}/revert`), method: "post" });
+
+/** Reverts the given changes newest-first; skips what cannot be reverted and stops at the first conflict. */
+export const requestRevertChanges = (
+    projectId: string,
+    seqs: number[],
+): Promise<FetchResponse<{ results: IRevertOutcome[] }>> =>
+    fetch({ url: projectApi(`/${projectId}/changes/revert`), method: "post", body: { seqs } });
+
+/** Marks the changes up to the given seq as reviewed. */
+export const requestMarkReviewed = (
+    projectId: string,
+    upTo: number,
+): Promise<FetchResponse<{ reviewedUpTo: number }>> =>
+    fetch({ url: projectApi(`/${projectId}/changes/reviewed`), method: "put", body: { upTo } });

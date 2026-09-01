@@ -53,3 +53,5 @@ POST          /:projectId/taskContext                                  controlle
 # Change journal
 GET           /:projectId/changes                                      controllers.projectApi.ChangeJournalApi.changes(projectId: String)
 POST          /:projectId/changes/:seq/revert                          controllers.projectApi.ChangeJournalApi.revert(projectId: String, seq: Int)
+POST          /:projectId/changes/revert                               controllers.projectApi.ChangeJournalApi.revertAll(projectId: String)
+PUT           /:projectId/changes/reviewed                             controllers.projectApi.ChangeJournalApi.markReviewed(projectId: String)

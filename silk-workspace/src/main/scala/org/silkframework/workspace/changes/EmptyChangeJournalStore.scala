@@ -14,5 +14,9 @@ case class EmptyChangeJournalStore() extends ChangeJournalStore {
 
   override def entries(project: Identifier): Seq[ChangeEntry] = Seq.empty
 
+  override def reviewedUpTo(project: Identifier): Int = 0
+
+  override def setReviewedUpTo(project: Identifier, seq: Int): Unit = { }
+
   override def remove(project: Identifier): Unit = { }
 }
