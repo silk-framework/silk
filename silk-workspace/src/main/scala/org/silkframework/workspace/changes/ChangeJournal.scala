@@ -2,6 +2,7 @@ package org.silkframework.workspace.changes
 
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
+import org.silkframework.util.Identifier
 import org.silkframework.workspace.Project
 
 import java.time.Instant
@@ -77,6 +78,28 @@ class ChangeJournal(project: Project) {
     }
     if(upTo > store.reviewedUpTo(project.id)) {
       store.setReviewedUpTo(project.id, upTo)
+    }
+  }
+
+  /** Records a proposed irreversible action, e.g. an agent's workflow run that awaits the user's review. */
+  def propose(change: Change)(implicit userContext: UserContext): ChangeEntry = {
+    record(change).getOrElse(throw new IllegalStateException("A proposal cannot be recorded from a derived write."))
+  }
+
+  /** The open proposal to run the task, if any: proposed, not discarded, and not consumed by a later run of the task. */
+  def openRunProposal(taskId: Identifier): Option[ChangeEntry] = {
+    val entries = all
+    entries.reverseIterator.find { entry =>
+      entry.change match {
+        case proposal: ProposedWorkflowRun =>
+          proposal.taskId == taskId &&
+            !entries.exists(_.reverts.contains(entry.seq)) &&
+            !entries.exists(later => later.seq > entry.seq && (later.change match {
+              case run: WorkflowExecuted => run.taskId == taskId
+              case _ => false
+            }))
+        case _ => false
+      }
     }
   }
 

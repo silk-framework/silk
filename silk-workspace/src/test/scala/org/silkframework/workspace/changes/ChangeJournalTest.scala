@@ -271,6 +271,32 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     journal.revert(added.seq).change.describe shouldBe "Removed mapping rule 'City' from transform 'Persons'"
   }
 
+  it should "track open workflow run proposals until they are discarded or consumed" in {
+    val project = retrieveOrCreateProject("journalProposals")
+    val journal = project.changeJournal
+    val agent = SimpleUserContext(Some(DefaultUserManager.get("urn:agent")), UserExecutionContext(origin = Some("mcp:test")))
+
+    // A proposal queues for review like any other agent change
+    val proposal = journal.propose(ProposedWorkflowRun("wf"))(agent)
+    proposal.change.describe shouldBe "Proposed to run workflow 'wf'"
+    journal.openRunProposal("wf") shouldBe Some(proposal)
+    journal.openRunProposal("other") shouldBe None
+    journal.unreviewed.map(_.seq) shouldBe Seq(proposal.seq)
+
+    // Discarding a proposal is reverting it; the discard itself cannot be reverted
+    val discarded = journal.revert(proposal.seq)
+    discarded.change.describe shouldBe "Discarded the proposed run of workflow 'wf'"
+    discarded.change.inverse shouldBe None
+    journal.openRunProposal("wf") shouldBe None
+    journal.unreviewed shouldBe empty
+
+    // A later run of the task consumes the open proposal
+    val again = journal.propose(ProposedWorkflowRun("wf"))(agent)
+    journal.openRunProposal("wf") shouldBe Some(again)
+    journal.record(WorkflowExecuted("wf", None, failed = false))(agent)
+    journal.openRunProposal("wf") shouldBe None
+  }
+
   it should "track the reviewed watermark over the agent entries" in {
     val project = retrieveOrCreateProject("journalWatermark")
     val journal = project.changeJournal
