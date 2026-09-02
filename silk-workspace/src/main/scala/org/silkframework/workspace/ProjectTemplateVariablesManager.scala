@@ -43,6 +43,7 @@ class ProjectTemplateVariablesManager(serializer: TemplateVariablesSerializer, l
 
   /**
     * Updates all template variables. Records each added, changed or removed variable in the change journal.
+    * Takes this manager's monitor, so a caller that also locks the project must take the project monitor first.
     */
   override def put(variables: TemplateVariables)(implicit user: UserContext): Unit = synchronized {
     validateScope(variables)
