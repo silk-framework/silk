@@ -48,7 +48,12 @@ object AddMapping {
 case class RemoveMapping(taskId: Identifier, parentId: Identifier, rule: TransformRule, index: Option[Int],
                          override val taskLabel: Option[String] = None) extends TaskChange[TransformSpec] {
 
-  override def describe: String = s"Removed mapping rule '${rule.labelOrId}' from transform '$taskName'"
+  // Removing a container rule takes its nested rules with it, which the reviewer should see.
+  override def describe: String = {
+    val nested = rule.rules.allRulesRecursive.size
+    val suffix = if(nested == 1) " and its nested rule" else if(nested > 1) s" and its $nested nested rules" else ""
+    s"Removed mapping rule '${rule.labelOrId}'$suffix from transform '$taskName'"
+  }
 
   override def inverse: Option[AddMapping] = Some(AddMapping(taskId, parentId, rule, index, taskLabel))
 

@@ -20,7 +20,7 @@ object FileState {
 /** A file was written that did not exist. Reverting deletes it while it is unchanged. */
 case class ResourceCreated(path: String, after: FileState) extends RecordedChange {
 
-  override def describe: String = s"Added file '$path'"
+  override def describe: String = s"Added file '$path'${ResourceChanges.sizeInfo(after)}"
 
   override def inverse: Option[Change] = Some(DeleteResource(path, after))
 }
@@ -28,7 +28,7 @@ case class ResourceCreated(path: String, after: FileState) extends RecordedChang
 /** An existing file was overwritten or appended to. Its previous content is not kept, so it cannot be reverted. */
 case class ResourceOverwritten(path: String, before: FileState, after: FileState) extends RecordedChange {
 
-  override def describe: String = s"Overwrote file '$path'"
+  override def describe: String = s"Overwrote file '$path'${ResourceChanges.sizeInfo(before, after)}"
 
   override def inverse: Option[Change] = None
 }
@@ -36,7 +36,7 @@ case class ResourceOverwritten(path: String, before: FileState, after: FileState
 /** A file was deleted. Its content is not kept, so it cannot be reverted. */
 case class ResourceDeleted(path: String, before: FileState) extends RecordedChange {
 
-  override def describe: String = s"Deleted file '$path'"
+  override def describe: String = s"Deleted file '$path'${ResourceChanges.sizeInfo(before)}"
 
   override def inverse: Option[Change] = None
 }
@@ -57,6 +57,23 @@ case class DeleteResource(path: String, expected: FileState) extends Change {
 }
 
 private[workspace] object ResourceChanges {
+
+  /** The file size for display, e.g. " (2.1 KB)", or empty if unknown. */
+  def sizeInfo(state: FileState): String = state.size.map(size => s" (${formatSize(size)})").getOrElse("")
+
+  /** The size change for display, e.g. " (1.8 KB → 2.1 KB)"; what is known of both sizes, or empty. */
+  def sizeInfo(before: FileState, after: FileState): String = (before.size, after.size) match {
+    case (Some(previous), Some(current)) => s" (${formatSize(previous)} → ${formatSize(current)})"
+    case _ => sizeInfo(after)
+  }
+
+  private def formatSize(bytes: Long): String = {
+    val units = Seq("B", "KB", "MB", "GB", "TB")
+    var value = bytes.toDouble
+    var unit = 0
+    while(value >= 1024 && unit < units.size - 1) { value /= 1024; unit += 1 }
+    if(unit == 0) s"$bytes B" else String.format(java.util.Locale.ROOT, "%.1f %s", value, units(unit))
+  }
 
   /** The project's file at that path, which must be in the expected state. */
   def expect(project: Project, path: String, expected: FileState): WritableResource = {

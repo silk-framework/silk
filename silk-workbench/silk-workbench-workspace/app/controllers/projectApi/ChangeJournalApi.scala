@@ -301,7 +301,7 @@ object ChangeJournalApi {
           "user": "urn:user:alice",
           "origin": "mcp:claude-code",
           "type": "AddTask",
-          "description": "Added task 'persons'",
+          "description": "Added transform 'persons'",
           "revertible": true,
           "unreviewed": true
         }

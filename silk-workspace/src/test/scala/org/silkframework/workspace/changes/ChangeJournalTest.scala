@@ -54,7 +54,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
 
     val entries = project.changeJournal.all
     entries.map(_.seq) shouldBe Seq(1, 2, 3)
-    entries.map(_.change.describe) shouldBe Seq("Added task 'transform'", "Updated task 'transform'", "Removed task 'transform'")
+    entries.map(_.change.describe) shouldBe Seq("Added transform 'transform'", "Updated transform 'transform'", "Removed transform 'transform'")
     entries.map(_.reverts) shouldBe Seq(None, None, None)
     // The task parameters may be sensitive, so a change never prints the task data
     entries.map(_.change.toString) shouldBe Seq("AddTask(transform)", "ReplaceTask(transform)", "RemoveTask(transform)")
@@ -68,7 +68,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     }
     project.addTask[GenericDatasetSpec]("dataset", dataset)
     project.updateTask[GenericDatasetSpec]("dataset", dataset)
-    project.changeJournal.all.map(_.change.describe) shouldBe Seq("Added task 'dataset'")
+    project.changeJournal.all.map(_.change.describe) shouldBe Seq("Added Text dataset 'dataset'")
 
     // The recording wrapper keeps the value equality of the resources it wraps, also in sub directories
     project.resources.get("data.txt") shouldBe project.resources.get("data.txt")
@@ -169,6 +169,9 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     val address = ObjectMapping(id = "address", rules = MappingRules(propertyRules = Seq(city)))
     val task = project.addTask[TransformSpec]("transform", transform(name, address))
     AddMapping.of(task, "address", age, Some(0)) shouldBe AddMapping("transform", "address", age, Some(0))
+    // Removing a container rule mentions the nested rules it takes with it
+    RemoveMapping.of(task, "address").describe shouldBe
+      "Removed mapping rule 'address' and its nested rule from transform 'transform'"
     // A taken id is rejected as input, naming the parent that holds it; so is one that a nested rule brings along
     (the[BadUserInputException] thrownBy AddMapping.of(task, "root", city)).getMessage should
       include("A rule with id 'city' already exists in this transform (under parent 'address')")
@@ -258,7 +261,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     val project = retrieveOrCreateProject("journalLabels")
     val journal = project.changeJournal
     val task = project.addTask[TransformSpec]("transform", transform(name), MetaData(Some("Persons")))
-    journal.all.last.change.describe shouldBe "Added task 'Persons'"
+    journal.all.last.change.describe shouldBe "Added transform 'Persons'"
 
     val labeledCity = city.copy(metaData = MetaData(Some("City")))
     task.applyChange(AddMapping.of(task, "root", labeledCity))
@@ -267,7 +270,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
 
     // A whole-task update names the task as the update left it; a revert keeps the label captured with the change
     project.updateTask[TransformSpec]("transform", transform(name, labeledCity), Some(MetaData(Some("People"))))
-    journal.all.last.change.describe shouldBe "Updated task 'People'"
+    journal.all.last.change.describe shouldBe "Updated transform 'People', renamed from 'Persons'"
     journal.revert(added.seq).change.describe shouldBe "Removed mapping rule 'City' from transform 'Persons'"
   }
 
@@ -307,12 +310,12 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
 
     // The user's own writes do not queue for review
     journal.reviewedUpTo shouldBe 0
-    journal.unreviewed.map(_.change.describe) shouldBe Seq("Added task 'byAgent'", "Added task 'alsoAgent'")
+    journal.unreviewed.map(_.change.describe) shouldBe Seq("Added transform 'byAgent'", "Added transform 'alsoAgent'")
 
     // Reviews only add up; a review beyond the latest change is refused
     journal.markReviewed(2)
     journal.reviewedUpTo shouldBe 2
-    journal.unreviewed.map(_.change.describe) shouldBe Seq("Added task 'alsoAgent'")
+    journal.unreviewed.map(_.change.describe) shouldBe Seq("Added transform 'alsoAgent'")
     journal.markReviewed(1)
     journal.reviewedUpTo shouldBe 2
     a[ChangeConflictException] should be thrownBy journal.markReviewed(99)
@@ -370,8 +373,16 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     variables.put(TemplateVariables(Seq(variable("b", "3"), variable("c", "4"), variable("d", "3", Some("{{project.b}}")))))
     variables.put(TemplateVariables(Seq(variable("b", "3"), variable("c", "4"), variable("d", "other", Some("{{project.b}}")))))
 
-    project.changeJournal.all.map(_.change.describe) shouldBe Seq("Added variable 'a'", "Added variable 'b'",
-      "Set variable 'b'", "Added variable 'c'", "Removed variable 'a'", "Added variable 'd'")
+    project.changeJournal.all.map(_.change.describe) shouldBe Seq("Added variable 'a' = '1'", "Added variable 'b' = '2'",
+      "Set variable 'b': '2' → '3'", "Added variable 'c' = '4'", "Removed variable 'a' ('1')",
+      "Added variable 'd' = template '{{project.b}}'")
+
+    // The value of a sensitive variable is never printed; a long value is shortened
+    val secret = variable("s", "secret").copy(isSensitive = true)
+    SetVariable(None, secret).describe shouldBe "Added variable 's'"
+    SetVariable(Some(secret), secret.copy(value = "other")).describe shouldBe "Set variable 's'"
+    RemoveVariable(secret).describe shouldBe "Removed variable 's'"
+    SetVariable(None, variable("l", "x" * 60)).describe shouldBe s"Added variable 'l' = '${"x" * 50}…'"
   }
 
   it should "apply concurrent variable modifications without losing one" in {
@@ -388,7 +399,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
 
     // Each modification reads, computes and writes; as one step, neither overwrites the other
     project.templateVariables.all.map.keySet shouldBe Set("a", "b")
-    project.changeJournal.all.map(_.change.describe).sorted shouldBe Seq("Added variable 'a'", "Added variable 'b'")
+    project.changeJournal.all.map(_.change.describe).sorted shouldBe Seq("Added variable 'a' = '1'", "Added variable 'b' = '1'")
   }
 
   it should "revert variable changes while the variable is unchanged" in {
@@ -439,11 +450,11 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     // The dataset follows the variable; only the variable change is recorded
     UpdateVariableModification(project, variable("fileName", "b.csv")).execute()
     file shouldBe "b.csv"
-    journal.all.drop(recorded).map(_.change.describe) shouldBe Seq("Set variable 'fileName'")
+    journal.all.drop(recorded).map(_.change.describe) shouldBe Seq("Set variable 'fileName': 'a.csv' → 'b.csv'")
     val reverted = journal.revert(journal.all.last.seq)
     file shouldBe "a.csv"
     reverted.reverts shouldBe Some(journal.all(recorded).seq)
-    journal.all.drop(recorded + 1).map(_.change.describe) shouldBe Seq("Set variable 'fileName'")
+    journal.all.drop(recorded + 1).map(_.change.describe) shouldBe Seq("Set variable 'fileName': 'b.csv' → 'a.csv'")
 
     // A variable that a task uses cannot be removed by reverting its addition
     a[ChangeConflictException] should be thrownBy journal.revert(journal.all.head.seq)
@@ -464,7 +475,8 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
       file.writeString("first")
       file.writeString("second!")
       file.delete()
-      journal.all.map(_.change.describe) shouldBe Seq("Added file 'data.txt'", "Overwrote file 'data.txt'", "Deleted file 'data.txt'")
+      journal.all.map(_.change.describe) shouldBe
+        Seq("Added file 'data.txt' (5 B)", "Overwrote file 'data.txt' (5 B → 7 B)", "Deleted file 'data.txt' (7 B)")
       // The previous content is not kept, so only a creation has an inverse
       journal.all.map(_.change.inverse.isDefined) shouldBe Seq(true, false, false)
       (the[ChangeConflictException] thrownBy journal.revert(journal.all.last.seq)).getMessage should include("cannot be reverted")
@@ -488,7 +500,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
       project.resources.child("folder").get("nested.txt").writeString("content")
       project.resources.delete("folder")
       journal.all.map(_.change.describe).takeRight(2) shouldBe
-        Seq("Added file 'folder/nested.txt'", "Deleted file 'folder/nested.txt'")
+        Seq("Added file 'folder/nested.txt' (7 B)", "Deleted file 'folder/nested.txt' (7 B)")
       project.resources.listChildren should not contain "folder"
     }
   }

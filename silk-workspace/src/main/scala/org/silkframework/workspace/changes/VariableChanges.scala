@@ -12,8 +12,12 @@ import org.silkframework.workspace.variables.{DeleteVariableModification, Update
   */
 case class SetVariable(before: Option[TemplateVariable], after: TemplateVariable) extends Change {
 
-  override def describe: String = {
-    if(before.isEmpty) s"Added variable '${after.name}'" else s"Set variable '${after.name}'"
+  // The value of a sensitive variable is never printed.
+  override def describe: String = (before, VariableChanges.sensitive(before.toSeq :+ after)) match {
+    case (None, true) => s"Added variable '${after.name}'"
+    case (None, false) => s"Added variable '${after.name}' = ${VariableChanges.render(after)}"
+    case (Some(_), true) => s"Set variable '${after.name}'"
+    case (Some(previous), false) => s"Set variable '${after.name}': ${VariableChanges.render(previous)} → ${VariableChanges.render(after)}"
   }
 
   override def inverse: Option[Change] = Some(before match {
@@ -33,7 +37,10 @@ case class SetVariable(before: Option[TemplateVariable], after: TemplateVariable
 /** Removes a project variable. Holds the variable, so the removal can be reverted; the variable is re-added at the end. */
 case class RemoveVariable(variable: TemplateVariable) extends Change {
 
-  override def describe: String = s"Removed variable '${variable.name}'"
+  override def describe: String = {
+    if(variable.isSensitive) s"Removed variable '${variable.name}'"
+    else s"Removed variable '${variable.name}' (${VariableChanges.render(variable)})"
+  }
 
   override def inverse: Option[SetVariable] = Some(SetVariable(None, variable))
 
@@ -46,6 +53,19 @@ case class RemoveVariable(variable: TemplateVariable) extends Change {
 }
 
 private[workspace] object VariableChanges {
+
+  /** The authored value of a variable for display: its template if set, else its value, shortened. */
+  def render(variable: TemplateVariable): String = {
+    variable.template.filter(_.nonEmpty) match {
+      case Some(template) => s"template '${shorten(template)}'"
+      case None => s"'${shorten(variable.value)}'"
+    }
+  }
+
+  /** Whether any of the variables is sensitive, i.e. its value must not be shown. */
+  def sensitive(variables: Seq[TemplateVariable]): Boolean = variables.exists(_.isSensitive)
+
+  private def shorten(value: String): String = if(value.length > 50) value.take(50) + "…" else value
 
   /** The changes that turn `before` into `after`: added and changed variables in the order of `after`, then the removed ones. */
   def diff(before: TemplateVariables, after: TemplateVariables): Seq[Change] = {

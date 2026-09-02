@@ -105,7 +105,7 @@ class ChangeJournalApiTest extends AnyFlatSpec with IntegrationTestTrait with Ap
 
     val listed = changes(variablesProjectId)
     listed.map(_.`type`) mustBe Seq("SetVariable")
-    listed.head.description mustBe "Added variable 'base'"
+    listed.head.description mustBe "Added variable 'base' = 'urn:a'"
 
     val revert = checkResponse(client.url(revertUrl(listed.head.seq, variablesProjectId)).post("")).json.as[ChangeEntryJson]
     revert.`type` mustBe "RemoveVariable"

@@ -1,14 +1,17 @@
 package org.silkframework.workspace.changes
 
-import org.silkframework.config.{PlainTask, Task, TaskSpec}
+import org.silkframework.config.{CustomTask, PlainTask, Task, TaskSpec}
+import org.silkframework.dataset.DatasetSpec
+import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{Project, ProjectTask}
 
 /** Adds a task to the project. Recorded whenever a task is added. */
 case class AddTask(task: PlainTask[TaskSpec]) extends Change {
 
-  override def describe: String = s"Added task '${task.labelOrId}'"
+  override def describe: String = s"Added ${TaskChanges.kind(task.data)} '${task.labelOrId}'"
 
   override def inverse: Option[RemoveTask] = Some(RemoveTask(task))
 
@@ -26,7 +29,7 @@ case class AddTask(task: PlainTask[TaskSpec]) extends Change {
 /** Removes a task from the project. Holds the removed task, so the removal can be reverted. */
 case class RemoveTask(task: PlainTask[TaskSpec]) extends Change {
 
-  override def describe: String = s"Removed task '${task.labelOrId}'"
+  override def describe: String = s"Removed ${TaskChanges.kind(task.data)} '${task.labelOrId}'"
 
   override def inverse: Option[AddTask] = Some(AddTask(task))
 
@@ -46,8 +49,11 @@ case class ReplaceTask(before: PlainTask[TaskSpec], after: PlainTask[TaskSpec]) 
 
   def taskId: Identifier = before.id
 
-  // Names the task as the update left it, i.e. a rename shows the new label.
-  override def describe: String = s"Updated task '${after.labelOrId}'"
+  // Names the task as the update left it; a rename mentions the previous name.
+  override def describe: String = {
+    val renamed = if(after.labelOrId != before.labelOrId) s", renamed from '${before.labelOrId}'" else ""
+    s"Updated ${TaskChanges.kind(after.data)} '${after.labelOrId}'$renamed"
+  }
 
   override def inverse: Option[ReplaceTask] = Some(ReplaceTask(after, before))
 
@@ -61,6 +67,18 @@ case class ReplaceTask(before: PlainTask[TaskSpec], after: PlainTask[TaskSpec]) 
 }
 
 object TaskChanges {
+
+  /** Names the kind of task for display, e.g. "Text dataset", "transform" or "workflow". */
+  def kind(spec: TaskSpec): String = spec match {
+    case dataset: DatasetSpec[_] =>
+      val label = dataset.plugin.pluginSpec.label
+      if(label.toLowerCase.endsWith("dataset")) label else s"$label dataset"
+    case _: TransformSpec => "transform"
+    case _: LinkSpec => "linking task"
+    case _: Workflow => "workflow"
+    case custom: CustomTask => s"${custom.pluginSpec.label} task"
+    case _ => "task"
+  }
 
   /** Whether two tasks hold the same data, execution variables and metadata, ignoring timestamps and users. */
   def same(task1: Task[TaskSpec], task2: Task[TaskSpec]): Boolean = {
