@@ -21,6 +21,9 @@ trait ChangeJournalStore extends AnyPlugin {
   /** All entries of a project, oldest first. */
   def entries(project: Identifier): Seq[ChangeEntry]
 
+  /** The seq of a project's newest entry, 0 if it has none. Read on every write, so a store may answer it cheaper. */
+  def latestSeq(project: Identifier): Int = entries(project).lastOption.map(_.seq).getOrElse(0)
+
   /** The seq up to which the user has reviewed a project's changes; 0 if never set. */
   def reviewedUpTo(project: Identifier): Int
 

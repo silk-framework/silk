@@ -30,8 +30,6 @@ case class ChangeEntry(seq: Int, timestamp: Instant, user: Option[String], origi
   */
 class ChangeJournal(project: Project) {
 
-  private var nextSeq = store.entries(project.id).lastOption.map(_.seq + 1).getOrElse(1)
-
   // Set while an entry is reverted, so the first entry that the revert records refers to it.
   // Not inheritable, so that an activity started by the write does not pick it up.
   private val reverting = new ThreadLocal[Option[Int]] {
@@ -71,13 +69,17 @@ class ChangeJournal(project: Project) {
     *
     * @throws ChangeConflictException If `upTo` lies beyond the latest recorded change, which the caller cannot have seen.
     */
-  def markReviewed(upTo: Int): Unit = synchronized {
-    if(upTo >= nextSeq) {
-      throw ChangeConflictException(s"Cannot mark the changes of project '${project.id}' as reviewed up to $upTo: " +
-        s"the latest change is ${nextSeq - 1}.")
-    }
-    if(upTo > store.reviewedUpTo(project.id)) {
-      store.setReviewedUpTo(project.id, upTo)
+  def markReviewed(upTo: Int): Unit = {
+    val currentStore = store
+    currentStore.synchronized {
+      val latestSeq = currentStore.latestSeq(project.id)
+      if(upTo > latestSeq) {
+        throw ChangeConflictException(s"Cannot mark the changes of project '${project.id}' as reviewed up to $upTo: " +
+          s"the latest change is $latestSeq.")
+      }
+      if(upTo > currentStore.reviewedUpTo(project.id)) {
+        currentStore.setReviewedUpTo(project.id, upTo)
+      }
     }
   }
 
@@ -121,17 +123,21 @@ class ChangeJournal(project: Project) {
   }
 
   /** Records a change that has been applied. Called by the write path; a derived write is not recorded. */
-  private[workspace] def record(change: Change)(implicit userContext: UserContext): Option[ChangeEntry] = synchronized {
+  private[workspace] def record(change: Change)(implicit userContext: UserContext): Option[ChangeEntry] = {
     if(derivedWrite.get()) {
       None
     } else {
-      val entry = ChangeEntry(nextSeq, Instant.now, userContext.user.map(_.uri), userContext.executionContext.origin,
-        change, reverting.get())
-      // A change that writes more than one task records one entry per task; only the first one reverts the entry.
-      reverting.remove()
-      nextSeq += 1
-      store.append(project.id, entry)
-      Some(entry)
+      val currentStore = store
+      // The seq comes from the store, under its monitor: a project can have more than one journal while it is
+      // reloaded, and its journals share the store.
+      currentStore.synchronized {
+        val entry = ChangeEntry(currentStore.latestSeq(project.id) + 1, Instant.now, userContext.user.map(_.uri),
+          userContext.executionContext.origin, change, reverting.get())
+        // A change that writes more than one task records one entry per task; only the first one reverts the entry.
+        reverting.remove()
+        currentStore.append(project.id, entry)
+        Some(entry)
+      }
     }
   }
 
