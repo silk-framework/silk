@@ -93,3 +93,11 @@ case class ChangeConflictException(msg: String) extends RequestException(msg, No
 
   override def httpErrorCode: Option[Int] = Some(409)
 }
+
+/** The inverse of a change was applied, but left the project unchanged, so there is nothing that reverts it. */
+case class ChangeNotRevertedException(msg: String) extends RequestException(msg, None) {
+
+  override def errorTitle: String = "Change not reverted"
+
+  override def httpErrorCode: Option[Int] = Some(409)
+}

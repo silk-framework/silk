@@ -35,8 +35,8 @@ export interface IChangeList {
 /** What happened to one change of a revert batch. */
 export interface IRevertOutcome {
     seq: number;
-    outcome: "reverted" | "skipped" | "conflict" | "notAttempted";
-    /** Why the change was skipped or conflicted. */
+    outcome: "reverted" | "skipped" | "unchanged" | "conflict" | "notAttempted";
+    /** Why the change was skipped, left unchanged or conflicted. */
     message?: string;
     /** The change that records the revert, for outcome 'reverted'. */
     entry?: IChangeEntry;

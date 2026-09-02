@@ -713,6 +713,7 @@
                 "resultReverted_plural": "Reverted changes: {{count}}.",
                 "resultSkipped": "Skipped: {{count}}.",
                 "resultSkipped_plural": "Skipped: {{count}}.",
+                "resultUnchanged": "Change #{{seq}} was not reverted: {{message}}",
                 "resultConflict": "Stopped at change #{{seq}}: {{message}}"
             },
             "errors": {

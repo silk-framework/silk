@@ -66,8 +66,9 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
         ))
       ),
       new ApiResponse(responseCode = "404", description = "The project or the change does not exist."),
-      new ApiResponse(responseCode = "409", description = "The change has been reverted already, is not revertible, or " +
-        "the project has changed since so that the revert does not apply. The project is left unchanged.")
+      new ApiResponse(responseCode = "409", description = "The change has been reverted already, is not revertible, " +
+        "the project has changed since so that the revert does not apply, or applying the inverse changed nothing, " +
+        "e.g. because a variable template resolves the restored value again. The project is left unchanged.")
     ))
   def revert(@Parameter(
                name = "projectId",
@@ -130,8 +131,9 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
   @Operation(
     summary = "Revert changes",
     description = "Reverts the given changes newest-first, so that no change is reverted while a later one still builds " +
-      "on it: a change that cannot be reverted is skipped, a conflict stops the batch and leaves the remaining changes " +
-      "unattempted. The outcomes report what happened to each change; the changes reverted before a conflict stay reverted.",
+      "on it: a change that cannot be reverted is skipped, one whose inverse changes nothing stays unchanged, a conflict " +
+      "stops the batch and leaves the remaining changes unattempted. The outcomes report what happened to each change; " +
+      "the changes reverted before a conflict stay reverted.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -238,9 +240,10 @@ object ChangeJournalApi {
   case class RevertOutcomeJson(@Schema(description = "The sequence number of the change.")
                                seq: Int,
                                @Schema(description = "'reverted', 'skipped' (cannot be reverted, the batch continues), " +
-                                 "'conflict' (stops the batch) or 'notAttempted' (a newer change conflicted).")
+                                 "'unchanged' (the inverse changed nothing, the batch continues), 'conflict' (stops " +
+                                 "the batch) or 'notAttempted' (a newer change conflicted).")
                                outcome: String,
-                               @Schema(description = "Why the change was skipped or conflicted. Absent otherwise.")
+                               @Schema(description = "Why the change was skipped, left unchanged or conflicted. Absent otherwise.")
                                message: Option[String],
                                @Schema(description = "The change that records the revert. Present only for 'reverted'.")
                                entry: Option[ChangeEntryJson])
@@ -255,6 +258,8 @@ object ChangeJournalApi {
           RevertOutcomeJson(seq, "reverted", None, Some(ChangeEntryJson.of(entry, revertedBy = None)))
         case RevertOutcome.Skipped(seq, reason) =>
           RevertOutcomeJson(seq, "skipped", Some(reason), None)
+        case RevertOutcome.Unchanged(seq, reason) =>
+          RevertOutcomeJson(seq, "unchanged", Some(reason), None)
         case RevertOutcome.Conflict(seq, reason) =>
           RevertOutcomeJson(seq, "conflict", Some(reason), None)
         case RevertOutcome.NotAttempted(seq) =>

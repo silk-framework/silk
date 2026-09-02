@@ -128,15 +128,20 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
     const revertAllSummaryText = (results: IRevertOutcome[]): { intent: "success" | "warning"; text: string } => {
         const reverted = results.filter((result) => result.outcome === "reverted").length;
         const skipped = results.filter((result) => result.outcome === "skipped").length;
+        // Attempted but changed nothing, which is unexpected, so each one is reported with its reason
+        const unchanged = results.filter((result) => result.outcome === "unchanged");
         const conflict = results.find((result) => result.outcome === "conflict");
         const parts = [t("pages.changes.revertAll.resultReverted", { count: reverted })];
         if (skipped > 0) {
             parts.push(t("pages.changes.revertAll.resultSkipped", { count: skipped }));
         }
+        unchanged.forEach((result) =>
+            parts.push(t("pages.changes.revertAll.resultUnchanged", { seq: result.seq, message: result.message })),
+        );
         if (conflict) {
             parts.push(t("pages.changes.revertAll.resultConflict", { seq: conflict.seq, message: conflict.message }));
         }
-        return { intent: conflict ? "warning" : "success", text: parts.join(" ") };
+        return { intent: conflict || unchanged.length > 0 ? "warning" : "success", text: parts.join(" ") };
     };
 
     const revertUnreviewed = async () => {

@@ -148,6 +148,8 @@ class ChangeJournal(project: Project) {
     * @throws org.silkframework.runtime.validation.NotFoundException If there is no entry with this sequence number.
     * @throws ChangeConflictException If the entry is being or has been reverted already, has no inverse, or the
     *                                 project changed since so that the inverse does not apply.
+    * @throws ChangeNotRevertedException If the inverse changed nothing that the journal records, e.g. because it
+    *                                    restores a value that a variable template resolves to the same value again.
     */
   def revert(seq: Int)(implicit userContext: UserContext): ChangeEntry = {
     if(derivedWrite.get()) {
@@ -162,12 +164,15 @@ class ChangeJournal(project: Project) {
       reverting.remove()
       synchronized(revertsInProgress -= seq)
     }
-    revertOf(seq).getOrElse(throw new IllegalStateException(s"Reverting change $seq did not record a change."))
+    revertOf(seq).getOrElse(throw ChangeNotRevertedException(s"Change $seq in project '${project.id}' has not been " +
+      "reverted: applying its inverse changed nothing that the journal records, so the state it restores is derived, " +
+      "e.g. from a variable template."))
   }
 
   /**
     * Reverts entries newest-first, so that no entry is reverted while a later one still builds on it: an entry
-    * that cannot be reverted is skipped, a conflict stops the batch and leaves the remaining entries unattempted.
+    * that cannot be reverted is skipped, one whose inverse changes nothing stays unchanged, a conflict stops the
+    * batch and leaves the remaining entries unattempted.
     * Not transactional: the entries reverted before a conflict stay reverted, as the outcomes report.
     */
   def revertAll(seqs: Seq[Int])(implicit userContext: UserContext): Seq[RevertOutcome] = {
@@ -188,6 +193,9 @@ class ChangeJournal(project: Project) {
             try {
               outcomes += RevertOutcome.Reverted(seq, revert(seq))
             } catch {
+              // The project is unchanged, so the older entries can still be reverted.
+              case ex: ChangeNotRevertedException =>
+                outcomes += RevertOutcome.Unchanged(seq, ex.getMessage)
               case ex @ (_: ChangeConflictException | _: ValidationException | _: NotFoundException) =>
                 outcomes += RevertOutcome.Conflict(seq, ex.getMessage)
                 stopped = true
@@ -227,6 +235,9 @@ object RevertOutcome {
 
   /** The entry was reverted; `entry` records the revert. */
   case class Reverted(seq: Int, entry: ChangeEntry) extends RevertOutcome
+
+  /** The inverse was applied but changed nothing that the journal records, so the entry stays; the batch continues. */
+  case class Unchanged(seq: Int, reason: String) extends RevertOutcome
 
   /** The entry cannot be reverted (unknown, no inverse, or reverted already); the batch continues. */
   case class Skipped(seq: Int, reason: String) extends RevertOutcome
