@@ -106,6 +106,17 @@ class ChangeJournal(project: Project) {
     }
   }
 
+  /**
+    * The open proposal to run the task, or a newly recorded one if there is none. Finding and recording is one
+    * step under the store's monitor, so calls that arrive together share a proposal instead of stacking one each.
+    */
+  def proposeRunIfAbsent(taskId: Identifier, change: Change)(implicit userContext: UserContext): ChangeEntry = {
+    val currentStore = store
+    currentStore.synchronized {
+      openRunProposal(taskId).getOrElse(propose(change))
+    }
+  }
+
   /** Drops all entries. Called when the project is deleted, so a later project of the same name starts clean. */
   private[workspace] def clear(): Unit = store.remove(project.id)
 
