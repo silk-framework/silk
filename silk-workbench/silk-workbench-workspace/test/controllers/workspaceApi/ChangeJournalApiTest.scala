@@ -12,7 +12,7 @@ import org.silkframework.runtime.templating.{TemplateVariable, VariableScope}
 import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.serialization.json.TemplateVariableJson
 import org.silkframework.util.ConfigTestTrait
-import org.silkframework.workspace.changes.AddMapping
+import org.silkframework.workspace.changes.{AddMapping, TestJournalAccess, WorkflowExecuted}
 import org.silkframework.workspace.{ProjectConfig, WorkspaceFactory}
 import play.api.libs.json.Json
 import play.api.routing.Router
@@ -48,7 +48,8 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
 
     val listed = changes()
     listed.map(_.`type`) mustBe Seq("AddMapping", "AddTask")
-    listed.head.description mustBe s"Added mapping rule 'b' under '${task.data.mappingRule.id}' in transform 'transform'"
+    listed.head.description mustBe
+      s"Added value mapping 'b' (b → http://example.org/b) under '${task.data.mappingRule.id}' in transform 'transform'"
     listed.head.revertedBy mustBe None
     listed.head.revertible mustBe true
     val seq = listed.head.seq
@@ -62,6 +63,13 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     // A change is reverted at most once; an unknown change is not found.
     checkResponseExactStatusCode(client.url(revertUrl(seq)).post(""), CONFLICT)
     checkResponseExactStatusCode(client.url(revertUrl(999)).post(""), NOT_FOUND)
+
+    // A recorded workflow run links its persisted execution report, so no client needs to know the routes
+    TestJournalAccess.record(project.changeJournal, WorkflowExecuted("wf", Some("2026-08-26T09:52:08.126Z"), failed = false))
+    val run = changes().head
+    run.`type` mustBe "WorkflowExecuted"
+    run.link mustBe Some(controllers.workspaceApi.routes.ReportsApi.retrieveReport(projectId, "wf", "2026-08-26T09:52:08.126Z").url)
+    run.revertible mustBe false
   }
 
   it should "track the reviewed watermark and revert batches" in {

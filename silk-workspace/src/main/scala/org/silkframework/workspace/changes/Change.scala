@@ -17,7 +17,7 @@ trait Change {
   /** The kind of change, as served by the API. */
   def changeType: String = getClass.getSimpleName
 
-  /** Short description for display, e.g. "Added mapping rule 'name' under 'root' in transform 'persons'". */
+  /** Short description for display, e.g. "Added value mapping 'name' (name → http://…/name) under 'root' in transform 'persons'". */
   def describe: String
 
   /** The change that undoes this one, or None if it cannot be undone, e.g. a file overwrite of which no copy was kept. */

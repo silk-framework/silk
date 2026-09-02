@@ -32,7 +32,7 @@ describe("Project changes", () => {
             user: "urn:user:alice",
             origin: "mcp:claude-code",
             type: "AddMapping",
-            description: "Added mapping rule 'name' under 'root' in transform 'persons'",
+            description: "Added value mapping 'name' (name → http://xmlns.com/foaf/0.1/name) under 'root' in transform 'persons'",
             revertible: true,
             unreviewed: true,
         },
@@ -54,6 +54,7 @@ describe("Project changes", () => {
             origin: "mcp:claude-code",
             type: "WorkflowExecuted",
             description: "Executed workflow 'workflow'",
+            link: `/api/workspace/reports/report?projectId=${PROJECT_ID}&taskId=workflow&time=2026-08-26T09:49:55.000Z`,
             revertible: false,
             unreviewed: true,
         },
@@ -76,6 +77,9 @@ describe("Project changes", () => {
             expect(wrapper.container.textContent).toContain(change.description);
         });
         expect(wrapper.container.textContent).toContain("mcp:claude-code");
+        // A recorded workflow run links its persisted execution report, as handed out by the server
+        const reportLink = findElement(wrapper, byTestId("change-report-link-1"));
+        expect(reportLink.getAttribute("href")).toBe(changes[2].link);
     });
 
     it("should only offer to revert changes that are revertible and not reverted already", async () => {

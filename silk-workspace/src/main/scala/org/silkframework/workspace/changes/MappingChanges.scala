@@ -1,7 +1,7 @@
 package org.silkframework.workspace.changes
 
 import org.silkframework.config.Task
-import org.silkframework.rule.{ContainerTransformRule, RootMappingRule, RuleTraverser, TransformRule, TransformSpec}
+import org.silkframework.rule.{ContainerTransformRule, ObjectMapping, PatternUriMapping, RootMappingRule, RuleTraverser, TransformRule, TransformSpec, TypeMapping, UriMapping, ValueTransformRule}
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
 import org.silkframework.util.Identifier
 
@@ -14,7 +14,7 @@ import org.silkframework.util.Identifier
 case class AddMapping(taskId: Identifier, parentId: Identifier, rule: TransformRule, index: Option[Int] = None,
                       override val taskLabel: Option[String] = None) extends TaskChange[TransformSpec] {
 
-  override def describe: String = s"Added mapping rule '${rule.labelOrId}' under '$parentId' in transform '$taskName'"
+  override def describe: String = s"Added ${MappingChanges.ruleDisplay(rule)} under '$parentId' in transform '$taskName'"
 
   override def inverse: Option[RemoveMapping] = Some(RemoveMapping(taskId, parentId, rule, index, taskLabel))
 
@@ -145,6 +145,40 @@ object ReorderMappings {
 }
 
 private object MappingChanges {
+
+  /** Names the rule and what it maps for display, e.g. "value mapping 'name' (firstName → http://…/name)". */
+  def ruleDisplay(rule: TransformRule): String = {
+    val kind = rule match {
+      case _: ObjectMapping => "object mapping"
+      case _: TypeMapping => "type mapping"
+      case _: UriMapping => "URI mapping"
+      case _: ValueTransformRule => "value mapping"
+      case _ => "mapping rule"
+    }
+    s"$kind '${rule.labelOrId}'" + essence(rule).map(e => s" ($e)").getOrElse("")
+  }
+
+  /** What the rule maps: its source paths and target property, a type URI or a URI pattern; None if it shows nothing. */
+  private def essence(rule: TransformRule): Option[String] = {
+    val (sources, target) = rule match {
+      case typeRule: TypeMapping => (Seq(typeRule.typeUri.uri), None)
+      case uriRule: PatternUriMapping => (Seq(uriRule.pattern), None)
+      // The derived operator of an object rule generates its URIs; the object's own source path is the essence.
+      case objectRule: ObjectMapping =>
+        (Seq(objectRule.sourcePath.normalizedSerialization), objectRule.target.map(_.propertyUri.uri))
+      case _ => (rule.sourcePaths.map(_.normalizedSerialization), rule.target.map(_.propertyUri.uri))
+    }
+    val sourcePart = sources.filter(_.nonEmpty).distinct match {
+      case Seq() => None
+      case paths => Some((paths.take(3) ++ (if(paths.size > 3) Seq("…") else Seq.empty)).mkString(", "))
+    }
+    (sourcePart, target) match {
+      case (Some(source), Some(tgt)) => Some(s"$source → $tgt")
+      case (Some(source), None) => Some(source)
+      case (None, Some(tgt)) => Some(s"→ $tgt")
+      case (None, None) => None
+    }
+  }
 
   /** The rule a request names; that it is missing is the user's error, unlike at apply time ([[rule]]). */
   def requestedRule(spec: TransformSpec, taskName: String, ruleId: Identifier): RuleTraverser = {

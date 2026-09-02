@@ -678,6 +678,7 @@
             "noChanges": "No changes have been recorded for this project.",
             "reload": "Reload changes",
             "originTooltip": "The client the change came from",
+            "executionReport": "Execution report",
             "revertsTag": "Reverts #{{seq}}",
             "revertedByTag": "Reverted by #{{seq}}",
             "unreviewed": "Unreviewed",

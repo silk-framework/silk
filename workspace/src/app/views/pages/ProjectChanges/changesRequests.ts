@@ -16,6 +16,8 @@ export interface IChangeEntry {
     type: string;
     /** What has been changed, for display. */
     description: string;
+    /** Link to more detail on the change: for a workflow run, its persisted execution report. Relative to the server host. */
+    link?: string;
     /** Whether the change can be reverted at all. */
     revertible: boolean;
     /** The change this one reverted, if it was made by reverting one. */

@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.workspace.WorkspaceFactory
-import org.silkframework.workspace.changes.{ChangeEntry, RevertOutcome}
+import org.silkframework.workspace.changes.{ChangeEntry, RevertOutcome, WorkflowExecuted}
 import play.api.libs.json.{Format, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
@@ -49,7 +49,7 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
     val revertedBy = journal.revertedBy
     val unreviewed = journal.unreviewed.map(_.seq).toSet
     Ok(Json.toJson(ChangeListJson(journal.reviewedUpTo,
-      entries.reverse.map(entry => ChangeEntryJson.of(entry, revertedBy.get(entry.seq), unreviewed.contains(entry.seq))))))
+      entries.reverse.map(entry => ChangeEntryJson.of(projectId, entry, revertedBy.get(entry.seq), unreviewed.contains(entry.seq))))))
   }
 
   @Operation(
@@ -87,7 +87,7 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
              )
              seq: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val journal = WorkspaceFactory().workspace.project(projectId).changeJournal
-    Ok(Json.toJson(ChangeEntryJson.of(journal.revert(seq), revertedBy = None)))
+    Ok(Json.toJson(ChangeEntryJson.of(projectId, journal.revert(seq), revertedBy = None)))
   }
 
   @Operation(
@@ -164,7 +164,7 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
                 projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     val journal = WorkspaceFactory().workspace.project(projectId).changeJournal
     val outcomes = journal.revertAll(request.body.as[RevertRequestJson].seqs)
-    Ok(Json.toJson(RevertResultsJson(outcomes.map(RevertOutcomeJson.of))))
+    Ok(Json.toJson(RevertResultsJson(outcomes.map(RevertOutcomeJson.of(projectId, _)))))
   }
 }
 
@@ -183,6 +183,9 @@ object ChangeJournalApi {
                              `type`: String,
                              @Schema(description = "What has been changed, for display.")
                              description: String,
+                             @Schema(description = "Link to more detail on the change: for a workflow run, its persisted " +
+                               "execution report. Relative to the server host. Absent when there is nothing to link.")
+                             link: Option[String],
                              @Schema(description = "Whether the change can be reverted at all. False for a workflow run, and for a file overwrite or deletion, whose previous content is not kept.")
                              revertible: Boolean,
                              @Schema(description = "The change this one reverted. Present only if the change was made by reverting one.")
@@ -196,10 +199,20 @@ object ChangeJournalApi {
 
     implicit val format: Format[ChangeEntryJson] = Json.format[ChangeEntryJson]
 
-    def of(entry: ChangeEntry, revertedBy: Option[Int], unreviewed: Boolean = false): ChangeEntryJson = {
+    def of(projectId: String, entry: ChangeEntry, revertedBy: Option[Int], unreviewed: Boolean = false): ChangeEntryJson = {
       ChangeEntryJson(entry.seq, entry.timestamp.toString, entry.user, entry.origin, entry.change.changeType,
-        entry.change.describe, entry.change.inverse.isDefined, entry.reverts, revertedBy,
+        entry.change.describe, link(projectId, entry), entry.change.inverse.isDefined, entry.reverts, revertedBy,
         unreviewed = if(unreviewed) Some(true) else None)
+    }
+
+    /** More detail on the change, as far as something links it; built here so no client needs to know the routes. */
+    private def link(projectId: String, entry: ChangeEntry): Option[String] = {
+      entry.change match {
+        case WorkflowExecuted(taskId, Some(executionId), _, _) =>
+          Some(controllers.workspaceApi.routes.ReportsApi.retrieveReport(projectId, taskId.toString, executionId).url)
+        case _ =>
+          None
+      }
     }
   }
 
@@ -252,10 +265,10 @@ object ChangeJournalApi {
 
     implicit val format: Format[RevertOutcomeJson] = Json.format[RevertOutcomeJson]
 
-    def of(outcome: RevertOutcome): RevertOutcomeJson = {
+    def of(projectId: String, outcome: RevertOutcome): RevertOutcomeJson = {
       outcome match {
         case RevertOutcome.Reverted(seq, entry) =>
-          RevertOutcomeJson(seq, "reverted", None, Some(ChangeEntryJson.of(entry, revertedBy = None)))
+          RevertOutcomeJson(seq, "reverted", None, Some(ChangeEntryJson.of(projectId, entry, revertedBy = None)))
         case RevertOutcome.Skipped(seq, reason) =>
           RevertOutcomeJson(seq, "skipped", Some(reason), None)
         case RevertOutcome.Unchanged(seq, reason) =>
@@ -282,6 +295,17 @@ object ChangeJournalApi {
         "reviewedUpTo": 0,
         "changes": [
         {
+          "seq": 4,
+          "timestamp": "2026-08-26T09:52:10.532Z",
+          "user": "urn:user:alice",
+          "origin": "mcp:claude-code",
+          "type": "WorkflowExecuted",
+          "description": "Executed workflow 'workflow'",
+          "link": "/api/workspace/reports/report?projectId=movies&taskId=workflow&time=2026-08-26T09:52:08.126Z",
+          "revertible": false,
+          "unreviewed": true
+        },
+        {
           "seq": 3,
           "timestamp": "2026-08-26T09:51:02.417Z",
           "user": "urn:user:alice",
@@ -296,7 +320,7 @@ object ChangeJournalApi {
           "user": "urn:user:alice",
           "origin": "mcp:claude-code",
           "type": "AddMapping",
-          "description": "Added mapping rule 'name' under 'root' in transform 'persons'",
+          "description": "Added value mapping 'name' (name → http://xmlns.com/foaf/0.1/name) under 'root' in transform 'persons'",
           "revertible": true,
           "revertedBy": 3
         },

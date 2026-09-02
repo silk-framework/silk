@@ -150,7 +150,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     ruleIds(task) shouldBe Seq("name", "age", "city")
     val added = project.changeJournal.all.last
     added.change shouldBe AddMapping("transform", "root", age, Some(1))
-    added.change.describe shouldBe "Added mapping rule 'age' under 'root' in transform 'transform'"
+    added.change.describe shouldBe "Added value mapping 'age' (age → http://example.org/age) under 'root' in transform 'transform'"
 
     // A later change to another rule does not block the revert, as only the added rule is removed
     task.applyChange(UpdateMapping.of(task, "city", city.copy(id = "town")))
@@ -178,6 +178,13 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     val address = ObjectMapping(id = "address", rules = MappingRules(propertyRules = Seq(city)))
     val task = project.addTask[TransformSpec]("transform", transform(name, address))
     AddMapping.of(task, "address", age, Some(0)) shouldBe AddMapping("transform", "address", age, Some(0))
+    // The description carries what the rule maps: source paths and target, a type URI or a URI pattern
+    AddMapping("transform", "root", address).describe shouldBe
+      "Added object mapping 'address' (→ http://www.w3.org/2002/07/owl#sameAs) under 'root' in transform 'transform'"
+    AddMapping("transform", "root", TypeMapping(id = "type", typeUri = "http://example.org/Person")).describe shouldBe
+      "Added type mapping 'type' (http://example.org/Person) under 'root' in transform 'transform'"
+    AddMapping("transform", "root", PatternUriMapping(id = "uri", pattern = "http://example.org/{id}")).describe shouldBe
+      "Added URI mapping 'uri' (http://example.org/{id}) under 'root' in transform 'transform'"
     // Removing a container rule mentions the nested rules it takes with it
     RemoveMapping.of(task, "address").describe shouldBe
       "Removed mapping rule 'address' and its nested rule from transform 'transform'"
@@ -275,7 +282,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     val labeledCity = city.copy(metaData = MetaData(Some("City")))
     task.applyChange(AddMapping.of(task, "root", labeledCity))
     val added = journal.all.last
-    added.change.describe shouldBe "Added mapping rule 'City' under 'root' in transform 'Persons'"
+    added.change.describe shouldBe "Added value mapping 'City' (city → http://example.org/city) under 'root' in transform 'Persons'"
 
     // A whole-task update names the task as the update left it; a revert keeps the label captured with the change
     project.updateTask[TransformSpec]("transform", transform(name, labeledCity), Some(MetaData(Some("People"))))

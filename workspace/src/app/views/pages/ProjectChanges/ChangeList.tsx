@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import {
     Button,
     IconButton,
+    Link,
     Notification,
     SimpleDialog,
     Spacing,
@@ -251,6 +252,19 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                                 </TableCell>
                                 <TableCell alignVertical="middle">
                                     <span title={entry.type}>{entry.description}</span>
+                                    {entry.link && (
+                                        <>
+                                            {" "}
+                                            <Link
+                                                data-test-id={`change-report-link-${entry.seq}`}
+                                                href={entry.link}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                {t("pages.changes.executionReport")}
+                                            </Link>
+                                        </>
+                                    )}
                                     {(entry.unreviewed || entry.reverts != null || entry.revertedBy != null) && (
                                         <TagList>
                                             {entry.unreviewed && (
