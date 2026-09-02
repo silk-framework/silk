@@ -5,6 +5,7 @@ import org.silkframework.runtime.validation.{NotFoundException, ValidationExcept
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.Project
 
+import java.io.IOException
 import java.time.Instant
 
 /**
@@ -130,8 +131,11 @@ class ChangeJournal(project: Project) {
       val currentStore = store
       // The seq comes from the store, under its monitor: a project can have more than one journal while it is
       // reloaded, and its journals share the store.
+      // A write may run with provider rights, e.g. as the loading user when access control is on, so the user of
+      // the request being served is the one who asked for it.
+      val requester = ChangeJournal.requestUserContext.getOrElse(userContext)
       currentStore.synchronized {
-        val entry = ChangeEntry(currentStore.latestSeq(project.id) + 1, Instant.now, userContext.user.map(_.uri),
+        val entry = ChangeEntry(currentStore.latestSeq(project.id) + 1, Instant.now, requester.user.map(_.uri),
           userContext.executionContext.origin, change, reverting.get())
         // A change that writes more than one task records one entry per task; only the first one reverts the entry.
         reverting.remove()
@@ -196,7 +200,8 @@ class ChangeJournal(project: Project) {
               // The project is unchanged, so the older entries can still be reverted.
               case ex: ChangeNotRevertedException =>
                 outcomes += RevertOutcome.Unchanged(seq, ex.getMessage)
-              case ex @ (_: ChangeConflictException | _: ValidationException | _: NotFoundException) =>
+              // An I/O failure, e.g. a file that cannot be deleted, stops the batch with its outcomes reported.
+              case ex @ (_: ChangeConflictException | _: ValidationException | _: NotFoundException | _: IOException) =>
                 outcomes += RevertOutcome.Conflict(seq, ex.getMessage)
                 stopped = true
             }

@@ -3,7 +3,7 @@ package org.silkframework.workspace.resources
 import org.silkframework.runtime.resource.{ForwardingResource, Resource, ResourceManager, WritableResource}
 import org.silkframework.workspace.changes.{Change, ChangeJournal, FileState, ResourceCreated, ResourceDeleted, ResourceOverwritten}
 
-import java.io.{File, InputStream, OutputStream}
+import java.io.{File, IOException, InputStream, OutputStream}
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.io.Codec
 
@@ -92,7 +92,13 @@ private class JournalingResource(protected val underlying: WritableResource, jou
   override def delete(): Unit = {
     val before = FileState.of(underlying)
     underlying.delete()
-    before.foreach(state => record(ResourceDeleted(journalPath, state)))
+    for(state <- before) {
+      // A backend may not report a failed deletion, e.g. a file held open, so a recorded deletion is verified.
+      if(underlying.exists) {
+        throw new IOException(s"Could not delete file '$journalPath'.")
+      }
+      record(ResourceDeleted(journalPath, state))
+    }
   }
 
   /** Compares by the wrapped resource, as wrapping must not change how tasks that hold resources compare. */
