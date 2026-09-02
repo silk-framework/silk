@@ -47,21 +47,28 @@ trait RecordedChange extends Change {
   }
 }
 
+/** A change that names the task it concerns, whether or not it changes the task's data. */
+trait NamesTask {
+
+  def taskId: Identifier
+
+  /** The task's label, captured when the change was created; None when no label was set. */
+  def taskLabel: Option[String]
+
+  /** Names the task for display: the captured label, or the id. */
+  final def taskName: String = taskLabel.getOrElse(taskId.toString)
+}
+
 /**
   * A change of the data of one task. A typed change carries only what it changes and [[apply]] is pure:
   * everything it needs, such as generated identifiers, is resolved before the change is created.
   *
   * @tparam T The task type this change applies to.
   */
-abstract class TaskChange[T <: TaskSpec : ClassTag] extends Change {
-
-  def taskId: Identifier
+abstract class TaskChange[T <: TaskSpec : ClassTag] extends Change with NamesTask {
 
   /** The task's label, captured when the change was created; None when no label was set. */
-  def taskLabel: Option[String] = None
-
-  /** Names the task for display: the captured label, or the id. */
-  final def taskName: String = taskLabel.getOrElse(taskId.toString)
+  override def taskLabel: Option[String] = None
 
   /**
     * Applies this change to the task data.

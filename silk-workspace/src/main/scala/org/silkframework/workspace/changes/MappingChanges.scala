@@ -67,8 +67,7 @@ object RemoveMapping {
 
   /** The removal of an existing rule of the transform, capturing the rule and its position. */
   def of(task: Task[TransformSpec], ruleId: Identifier): RemoveMapping = {
-    val traverser = RuleTraverser(task.data.mappingRule).find(ruleId)
-      .getOrElse(throw new NotFoundException(s"No rule '$ruleId' found in transform '${task.labelOrId}'."))
+    val traverser = MappingChanges.requestedRule(task.data, task.labelOrId, ruleId)
     val parent = traverser.moveUp
       .getOrElse(throw BadUserInputException(s"The root rule of transform '${task.labelOrId}' cannot be removed."))
     val index = parent.operator.children.indexWhere(_.id == ruleId)
@@ -102,8 +101,7 @@ object UpdateMapping {
 
   /** The update of an existing rule of the transform, capturing the current rule. */
   def of(task: Task[TransformSpec], ruleId: Identifier, updated: TransformRule): UpdateMapping = {
-    val current = RuleTraverser(task.data.mappingRule).find(ruleId)
-      .getOrElse(throw new NotFoundException(s"No rule '$ruleId' found in transform '${task.labelOrId}'."))
+    val current = MappingChanges.requestedRule(task.data, task.labelOrId, ruleId)
     UpdateMapping(task.id, current.operator.asInstanceOf[TransformRule], updated, Change.capturedName(task))
   }
 }
@@ -148,11 +146,15 @@ object ReorderMappings {
 
 private object MappingChanges {
 
+  /** The rule a request names; that it is missing is the user's error, unlike at apply time ([[rule]]). */
+  def requestedRule(spec: TransformSpec, taskName: String, ruleId: Identifier): RuleTraverser = {
+    RuleTraverser(spec.mappingRule).find(ruleId)
+      .getOrElse(throw new NotFoundException(s"No rule '$ruleId' found in transform '$taskName'."))
+  }
+
   /** The container rule a request names: it must exist and be able to hold child rules. */
   def requestedContainer(spec: TransformSpec, taskName: String, ruleId: Identifier): ContainerTransformRule = {
-    val traverser = RuleTraverser(spec.mappingRule).find(ruleId)
-      .getOrElse(throw new NotFoundException(s"No rule '$ruleId' found in transform '$taskName'."))
-    traverser.operator match {
+    requestedRule(spec, taskName, ruleId).operator match {
       case container: ContainerTransformRule => container
       case _ => throw BadUserInputException(s"Rule '$ruleId' in transform '$taskName' cannot hold child rules.")
     }

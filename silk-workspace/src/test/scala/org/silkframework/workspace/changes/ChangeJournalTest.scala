@@ -34,6 +34,11 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     "workspace.changes.plugin" -> Some("inMemoryChangeJournal")
   )
 
+  /** An agent's user context; without an origin the write does not queue for review. */
+  private def agentContext(origin: Option[String] = Some("mcp:test")): UserContext = {
+    SimpleUserContext(Some(DefaultUserManager.get("urn:agent")), UserExecutionContext(origin = origin))
+  }
+
   private def rule(name: String): DirectMapping = {
     DirectMapping(id = name, sourcePath = UntypedPath(name), mappingTarget = MappingTarget("http://example.org/" + name))
   }
@@ -107,7 +112,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     project.anyTaskOption("other") shouldBe None
     // The restored task keeps its creation metadata and is stamped as modified by the reverting user
     val created = added.change.asInstanceOf[AddTask].task.metaData
-    val agent = SimpleUserContext(Some(DefaultUserManager.get("urn:agent")), UserExecutionContext())
+    val agent = agentContext(origin = None)
     journal.revert(removed.seq)(agent)
     val restored = project.task[TransformSpec]("other")
     restored.data shouldBe transform(name)
@@ -253,7 +258,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
 
   it should "attribute entries to the user and origin of the request" in {
     val project = retrieveOrCreateProject("journalOrigin")
-    val agent = SimpleUserContext(Some(DefaultUserManager.get("urn:agent")), UserExecutionContext(origin = Some("mcp:test")))
+    val agent = agentContext()
     project.addTask[TransformSpec]("transform", transform(name))(implicitly, agent)
 
     val entry = project.changeJournal.all.last
@@ -281,7 +286,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
   it should "track open workflow run proposals until they are discarded or consumed" in {
     val project = retrieveOrCreateProject("journalProposals")
     val journal = project.changeJournal
-    val agent = SimpleUserContext(Some(DefaultUserManager.get("urn:agent")), UserExecutionContext(origin = Some("mcp:test")))
+    val agent = agentContext()
 
     // A proposal queues for review like any other agent change
     val proposal = journal.propose(ProposedWorkflowRun("wf"))(agent)
@@ -307,7 +312,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
   it should "track the reviewed watermark over the agent entries" in {
     val project = retrieveOrCreateProject("journalWatermark")
     val journal = project.changeJournal
-    val agent = SimpleUserContext(Some(DefaultUserManager.get("urn:agent")), UserExecutionContext(origin = Some("mcp:test")))
+    val agent = agentContext()
     project.addTask[TransformSpec]("byUser", transform(name))
     project.addTask[TransformSpec]("byAgent", transform(age))(implicitly, agent)
     project.addTask[TransformSpec]("alsoAgent", transform(city))(implicitly, agent)

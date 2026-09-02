@@ -518,8 +518,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
           implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
           implicit val updatedRequest: Request[AnyContent] = updateJsonRequest(request, currentRule)
           deserializeCompileTime[TransformRule]() { updatedRule =>
-            task.applyChange(UpdateMapping(task.id, currentRule.operator.asInstanceOf[TransformRule], updatedRule,
-              Change.capturedName(task)))
+            task.applyChange(UpdateMapping.of(task, Identifier(ruleId), updatedRule))
             serializeCompileTime[TransformRule](updatedRule, Some(project))
           }
         }

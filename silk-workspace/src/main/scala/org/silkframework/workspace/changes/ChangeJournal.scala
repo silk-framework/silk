@@ -61,8 +61,15 @@ class ChangeJournal(project: Project) {
   def unreviewed: Seq[ChangeEntry] = {
     val entries = all
     val watermark = reviewedUpTo
-    val reverted = entries.flatMap(_.reverts).toSet
+    val reverted = revertedBy(entries)
     entries.filter(entry => entry.seq > watermark && entry.agentWrite && !reverted.contains(entry.seq))
+  }
+
+  /** The seq of the entry that reverted each reverted entry. */
+  def revertedBy: Map[Int, Int] = revertedBy(all)
+
+  private def revertedBy(entries: Seq[ChangeEntry]): Map[Int, Int] = {
+    entries.flatMap(entry => entry.reverts.map(_ -> entry.seq)).toMap
   }
 
   /**
@@ -92,11 +99,12 @@ class ChangeJournal(project: Project) {
   /** The open proposal to run the task, if any: proposed, not discarded, and not consumed by a later run of the task. */
   def openRunProposal(taskId: Identifier): Option[ChangeEntry] = {
     val entries = all
+    val reverted = revertedBy(entries)
     entries.reverseIterator.find { entry =>
       entry.change match {
         case proposal: ProposedWorkflowRun =>
           proposal.taskId == taskId &&
-            !entries.exists(_.reverts.contains(entry.seq)) &&
+            !reverted.contains(entry.seq) &&
             !entries.exists(later => later.seq > entry.seq && (later.change match {
               case run: WorkflowExecuted => run.taskId == taskId
               case _ => false
@@ -230,7 +238,7 @@ class ChangeJournal(project: Project) {
   private def claimRevert(seq: Int): Change = synchronized {
     val entries = all
     val entry = entries.find(_.seq == seq).getOrElse(throw new NotFoundException(s"No change $seq in project '${project.id}'."))
-    if(revertsInProgress.contains(seq) || entries.exists(_.reverts.contains(seq))) {
+    if(revertsInProgress.contains(seq) || revertedBy(entries).contains(seq)) {
       throw ChangeConflictException(s"Change $seq in project '${project.id}' has been reverted already.")
     }
     val inverse = entry.change.inverse.getOrElse(

@@ -12,9 +12,9 @@ import org.silkframework.workspace.Project
   * @param taskLabel   The workflow's label at run time; None when no label was set.
   */
 case class WorkflowExecuted(taskId: Identifier, executionId: Option[String], failed: Boolean,
-                            taskLabel: Option[String] = None) extends RecordedChange {
+                            taskLabel: Option[String] = None) extends RecordedChange with NamesTask {
 
-  override def describe: String = s"Executed workflow '${taskLabel.getOrElse(taskId.toString)}'" + (if(failed) ", which failed" else "")
+  override def describe: String = s"Executed workflow '$taskName'" + (if(failed) ", which failed" else "")
 
   override def inverse: Option[Change] = None
 }
@@ -25,9 +25,9 @@ case class WorkflowExecuted(taskId: Identifier, executionId: Option[String], fai
   * Reverting the proposal discards it; a later run of the task consumes it
   * ([[ChangeJournal.openRunProposal]]).
   */
-case class ProposedWorkflowRun(taskId: Identifier, taskLabel: Option[String] = None) extends Change {
+case class ProposedWorkflowRun(taskId: Identifier, taskLabel: Option[String] = None) extends Change with NamesTask {
 
-  override def describe: String = s"Proposed to run workflow '${taskLabel.getOrElse(taskId.toString)}'"
+  override def describe: String = s"Proposed to run workflow '$taskName'"
 
   override def inverse: Option[Change] = Some(DiscardedWorkflowRun(taskId, taskLabel))
 
@@ -37,9 +37,9 @@ case class ProposedWorkflowRun(taskId: Identifier, taskLabel: Option[String] = N
 }
 
 /** Discards a proposed workflow run. Recorded by reverting the proposal; it only records itself, as the proposal changed nothing. */
-case class DiscardedWorkflowRun(taskId: Identifier, taskLabel: Option[String] = None) extends Change {
+case class DiscardedWorkflowRun(taskId: Identifier, taskLabel: Option[String] = None) extends Change with NamesTask {
 
-  override def describe: String = s"Discarded the proposed run of workflow '${taskLabel.getOrElse(taskId.toString)}'"
+  override def describe: String = s"Discarded the proposed run of workflow '$taskName'"
 
   override def inverse: Option[Change] = None
 

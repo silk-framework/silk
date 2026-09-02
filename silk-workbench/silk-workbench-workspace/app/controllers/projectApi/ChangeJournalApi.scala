@@ -46,7 +46,7 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
               projectId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val journal = WorkspaceFactory().workspace.project(projectId).changeJournal
     val entries = journal.all
-    val revertedBy = entries.flatMap(entry => entry.reverts.map(_ -> entry.seq)).toMap
+    val revertedBy = journal.revertedBy
     val unreviewed = journal.unreviewed.map(_.seq).toSet
     Ok(Json.toJson(ChangeListJson(journal.reviewedUpTo,
       entries.reverse.map(entry => ChangeEntryJson.of(entry, revertedBy.get(entry.seq), unreviewed.contains(entry.seq))))))
