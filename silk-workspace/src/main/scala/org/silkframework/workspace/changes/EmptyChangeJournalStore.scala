@@ -10,6 +10,8 @@ import org.silkframework.util.Identifier
 )
 case class EmptyChangeJournalStore() extends ChangeJournalStore {
 
+  override def keepsEntries: Boolean = false
+
   override def append(project: Identifier, entry: ChangeEntry): Unit = { }
 
   override def entries(project: Identifier): Seq[ChangeEntry] = Seq.empty

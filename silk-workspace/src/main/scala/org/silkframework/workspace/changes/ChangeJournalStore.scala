@@ -15,6 +15,9 @@ import java.util.logging.Logger
 @PluginType()
 trait ChangeJournalStore extends AnyPlugin {
 
+  /** Whether appended entries are kept; false for a store that discards them, e.g. the disabled journal. */
+  def keepsEntries: Boolean = true
+
   /** Appends an entry to a project's journal. Entries arrive with increasing seq per project. */
   def append(project: Identifier, entry: ChangeEntry): Unit
 
