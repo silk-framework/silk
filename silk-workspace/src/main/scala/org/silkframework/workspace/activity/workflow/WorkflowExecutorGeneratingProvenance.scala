@@ -8,7 +8,8 @@ import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.changes.{Change, WorkflowExecuted}
 import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
 
-import java.util.logging.Logger
+import java.util.logging.{Level, Logger}
+import scala.util.control.NonFatal
 
 /**
   * Executes a workflow child activity and generates provenance data (PROV-O) and writes it into the backend.
@@ -101,10 +102,20 @@ trait WorkflowExecutorGeneratingProvenance extends Activity[WorkflowExecutionRep
     }
   }
 
-  /** Records the run in the project's change journal, where it marks what the changes before it were consumed by. */
+  /**
+    * Records the run in the project's change journal, where it marks what the changes before it were consumed by.
+    * Called from a `finally`, so a failure to record is logged rather than raised: it must not replace the failure
+    * that is on its way out, nor fail a run whose report was stored.
+    */
   private def recordRun(reportId: Option[ReportIdentifier], failed: Boolean)(implicit userContext: UserContext): Unit = {
-    workflowTask.project.changeJournal.record(
-      WorkflowExecuted(workflowTask.id, reportId.map(_.time.toString), failed, Change.capturedName(workflowTask)))
+    try {
+      workflowTask.project.changeJournal.record(
+        WorkflowExecuted(workflowTask.id, reportId.map(_.time.toString), failed, Change.capturedName(workflowTask)))
+    } catch {
+      case NonFatal(ex) =>
+        log.log(Level.WARNING, s"Could not record the run of workflow '${workflowTask.id}' in the change journal " +
+          s"of project '${workflowTask.project.id}'.", ex)
+    }
   }
 }
 
