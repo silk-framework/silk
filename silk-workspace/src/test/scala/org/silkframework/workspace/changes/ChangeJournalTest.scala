@@ -28,7 +28,11 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
   override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   // The jinja engine is not on this module's classpath; the simple engine substitutes '{{scope.name}}' references.
-  override def propertyMap: Map[String, Option[String]] = Map("config.variables.engine" -> Some(SimpleSubstitutionTemplateEngine.id))
+  override def propertyMap: Map[String, Option[String]] = Map(
+    "config.variables.engine" -> Some(SimpleSubstitutionTemplateEngine.id),
+    // No store is configured by default, which records nothing.
+    "workspace.changes.plugin" -> Some("inMemoryChangeJournal")
+  )
 
   private def rule(name: String): DirectMapping = {
     DirectMapping(id = name, sourcePath = UntypedPath(name), mappingTarget = MappingTarget("http://example.org/" + name))

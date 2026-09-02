@@ -85,7 +85,9 @@ class LocalWorkflowExecutorTest extends AnyFlatSpec with Matchers with SinglePro
 
   override def propertyMap: Map[String, Option[String]] = {
     Map(
-      "workspace.reportManager.plugin" -> Some("inMemoryExecutionReportManager")
+      "workspace.reportManager.plugin" -> Some("inMemoryExecutionReportManager"),
+      // No store is configured by default, which records nothing.
+      "workspace.changes.plugin" -> Some("inMemoryChangeJournal")
     )
   }
 }

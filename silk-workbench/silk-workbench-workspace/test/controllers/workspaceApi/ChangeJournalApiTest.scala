@@ -11,16 +11,20 @@ import org.silkframework.runtime.activity.{SimpleUserContext, UserExecutionConte
 import org.silkframework.runtime.templating.{TemplateVariable, VariableScope}
 import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.serialization.json.TemplateVariableJson
+import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.changes.AddMapping
 import org.silkframework.workspace.{ProjectConfig, WorkspaceFactory}
 import play.api.libs.json.Json
 import play.api.routing.Router
 
-class ChangeJournalApiTest extends AnyFlatSpec with IntegrationTestTrait with ApiClient with Matchers {
+class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with IntegrationTestTrait with ApiClient with Matchers {
 
   behavior of "Change journal API"
 
   override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
+
+  // No store is configured by default, which records nothing.
+  override def propertyMap: Map[String, Option[String]] = Map("workspace.changes.plugin" -> Some("inMemoryChangeJournal"))
 
   override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
 

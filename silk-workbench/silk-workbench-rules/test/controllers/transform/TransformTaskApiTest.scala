@@ -16,6 +16,9 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
 
   def printResponses = false
 
+  // No store is configured by default, which records nothing.
+  override def propertyMap = super.propertyMap + ("workspace.changes.plugin" -> Some("inMemoryChangeJournal"))
+
   private val OBJECT_RULE_ID = "objectRule"
   private val ROOT_RULE_ID = "root"
   private val expectedSearchTreeRuleOrder = Seq(
