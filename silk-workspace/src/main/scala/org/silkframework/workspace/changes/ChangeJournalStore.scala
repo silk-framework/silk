@@ -36,16 +36,17 @@ object ChangeJournalStore {
   private val log = Logger.getLogger(getClass.getName)
 
   private val instance: ConfigValue[ChangeJournalStore] = (config: Config) => {
-    if(config.hasPath("workspace.changes")) {
-      implicit val pluginContext: PluginContext = PluginContext.empty
-      val store = PluginRegistry.createFromConfig[ChangeJournalStore]("workspace.changes")
-      log.info("Using configured change journal store " + config.getString("workspace.changes.plugin"))
-      store
-    } else {
-      InMemoryChangeJournalStore()
+    implicit val pluginContext: PluginContext = PluginContext.empty
+    PluginRegistry.createFromConfigOption[ChangeJournalStore]("workspace.changes") match {
+      case Some(store) =>
+        log.info("Using configured change journal store " + store.pluginSpec.id)
+        store
+      case None =>
+        log.info("No change journal store configured at configuration path 'workspace.changes.*'. No changes will be recorded.")
+        EmptyChangeJournalStore()
     }
   }
 
-  /** The configured change journal store; in-memory, if none is configured. */
+  /** The configured change journal store; no changes are recorded, if none is configured. */
   def apply(): ChangeJournalStore = instance()
 }
