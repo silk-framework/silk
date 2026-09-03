@@ -2,7 +2,7 @@ package org.silkframework.workspace.changes
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.silkframework.config.MetaData
+import org.silkframework.config.{CustomTask, FixedNumberOfInputs, InputPorts, MetaData, PlainTask, Port, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity.paths.UntypedPath
@@ -10,6 +10,8 @@ import org.silkframework.plugins.dataset.text.TextFileDataset
 import org.silkframework.rule._
 import org.silkframework.rule.input.PathInput
 import org.silkframework.runtime.activity.{SimpleUserContext, TestUserContextTrait, UserContext, UserExecutionContext}
+import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.types.{IdentifierOptionParameter, PasswordParameter}
 import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterTemplateValue, ParameterValues, PluginContext, PluginRegistry}
 import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, TemplateVariables, VariableScope}
 import org.silkframework.runtime.users.DefaultUserManager
@@ -63,7 +65,8 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
 
     val entries = project.changeJournal.all
     entries.map(_.seq) shouldBe Seq(1, 2, 3)
-    entries.map(_.change.describe) shouldBe Seq("Added transform 'transform'", "Updated transform 'transform'", "Removed transform 'transform'")
+    entries.map(_.change.describe) shouldBe
+      Seq("Added transform 'transform'", "Updated transform 'transform': Mapping rule changed", "Removed transform 'transform'")
     entries.map(_.reverts) shouldBe Seq(None, None, None)
     // The task parameters may be sensitive, so a change never prints the task data
     entries.map(_.change.toString) shouldBe Seq("AddTask(transform)", "ReplaceTask(transform)", "RemoveTask(transform)")
@@ -288,6 +291,44 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     project.updateTask[TransformSpec]("transform", transform(name, labeledCity), Some(MetaData(Some("People"))))
     journal.all.last.change.describe shouldBe "Updated transform 'People', renamed from 'Persons'"
     journal.revert(added.seq).change.describe shouldBe "Removed mapping rule 'City' from transform 'Persons'"
+  }
+
+  it should "describe what a whole-task update changed" in {
+    val project = retrieveOrCreateProject("journalDescribeUpdate")
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
+    def task(data: TaskSpec, metaData: MetaData = MetaData(None), variables: TemplateVariables = TemplateVariables.empty): PlainTask[TaskSpec] = {
+      PlainTask("task", data, metaData, variables)
+    }
+    def describe(before: PlainTask[TaskSpec], after: PlainTask[TaskSpec]): String = ReplaceTask(before, after).describe
+
+    // Parameters are named by their labels with both values; a password is named only
+    describe(task(DescribedTask()), task(DescribedTask(name = "b", password = PasswordParameter("secret")))) shouldBe
+      "Updated Described task 'task': Name 'a' → 'b', Password changed"
+    // A nested object parameter lists its own parameters; an object without a description, such as the mapping rules, is named only
+    describe(task(DescribedTask()), task(DescribedTask(selection = DatasetSelection(IdentifierOptionParameter(Some("input")))))) shouldBe
+      "Updated Described task 'task': Selection / Input '' → 'input'"
+    describe(task(transform(name)), task(transform(name, age))) shouldBe "Updated transform 'task': Mapping rule changed"
+
+    // A dataset adds its own settings to those of its plugin; a resource is shown by name
+    def text(charset: String, file: String = "data.txt"): GenericDatasetSpec = {
+      DatasetSpec(PluginRegistry.create[Dataset]("text", ParameterValues(Map("file" -> ParameterStringValue(file), "charset" -> ParameterStringValue(charset)))))
+    }
+    describe(task(text("UTF-8")), task(text("ISO-8859-1").copy(uriAttribute = Some(Uri("urn:id")), readOnly = true))) shouldBe
+      "Updated Text dataset 'task': Charset 'UTF-8' → 'ISO-8859-1', URI attribute '' → 'urn:id', Read-only 'false' → 'true'"
+    describe(task(text("UTF-8")), task(text("UTF-8", file = "other.txt"))) shouldBe "Updated Text dataset 'task': File 'data.txt' → 'other.txt'"
+
+    // Metadata is named, execution variables show their values like project variables, unless sensitive
+    def limit(value: String, sensitive: Boolean = false): TemplateVariables = {
+      TemplateVariables(Seq(TemplateVariable("limit", value, isSensitive = sensitive, scope = VariableScope.execution)))
+    }
+    describe(task(transform(name)), task(transform(name), MetaData(None, description = Some("d"), tags = Set(Uri("urn:tag"))), limit("10"))) shouldBe
+      "Updated transform 'task': description changed, tags changed, execution variable 'limit' added = '10'"
+    describe(task(transform(name), variables = limit("10")), task(transform(name), variables = limit("100"))) shouldBe
+      "Updated transform 'task': execution variable 'limit' '10' → '100'"
+    describe(task(transform(name), variables = limit("10", sensitive = true)), task(transform(name), variables = limit("100", sensitive = true))) shouldBe
+      "Updated transform 'task': execution variable 'limit' changed"
+    describe(task(transform(name), variables = limit("10")), task(transform(name))) shouldBe
+      "Updated transform 'task': execution variable 'limit' removed"
   }
 
   it should "track open workflow run proposals until they are discarded or consumed" in {
@@ -532,4 +573,15 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     recreated.all shouldBe empty
     recreated.reviewedUpTo shouldBe 0
   }
+}
+
+/** A task with the parameter kinds an update description distinguishes: a value, a password and a nested object. */
+@Plugin(id = "describedTask", label = "Described")
+case class DescribedTask(name: String = "a",
+                         password: PasswordParameter = PasswordParameter.empty,
+                         selection: DatasetSelection = DatasetSelection.empty) extends CustomTask {
+
+  override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
+
+  override def outputPort: Option[Port] = None
 }
