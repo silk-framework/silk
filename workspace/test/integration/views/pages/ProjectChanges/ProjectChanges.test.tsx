@@ -25,6 +25,11 @@ describe("Project changes", () => {
     const revertAllUrl = apiUrl(`/workspace/projects/${PROJECT_ID}/changes/revert`);
     const reviewedUrl = apiUrl(`/workspace/projects/${PROJECT_ID}/changes/reviewed`);
 
+    const transformLink = {
+        id: "details",
+        label: "Transform details page",
+        path: `/workbench/projects/${PROJECT_ID}/transform/persons`,
+    };
     const changes: IChangeEntry[] = [
         {
             seq: 3,
@@ -33,6 +38,7 @@ describe("Project changes", () => {
             origin: "mcp:claude-code",
             type: "AddMapping",
             description: "Added value mapping 'name' (name → http://xmlns.com/foaf/0.1/name) under 'root' in transform 'persons'",
+            links: [transformLink],
             revertible: true,
             unreviewed: true,
         },
@@ -44,6 +50,7 @@ describe("Project changes", () => {
             origin: "mcp:claude-code",
             type: "ReplaceTask",
             description: "Updated task 'persons'",
+            links: [transformLink],
             revertible: true,
             revertedBy: 3,
         },
@@ -54,7 +61,15 @@ describe("Project changes", () => {
             origin: "mcp:claude-code",
             type: "WorkflowExecuted",
             description: "Executed workflow 'workflow'",
-            link: `/api/workspace/reports/report?projectId=${PROJECT_ID}&taskId=workflow&time=2026-08-26T09:49:55.000Z`,
+            links: [
+                { id: "details", label: "Workflow details page", path: `/workbench/projects/${PROJECT_ID}/workflow/workflow` },
+                {
+                    id: "report",
+                    label: "Execution report",
+                    path: `/api/workspace/reports/report?projectId=${PROJECT_ID}&taskId=workflow&time=2026-08-26T09:49:55.000Z`,
+                    openInNewTab: true,
+                },
+            ],
             revertible: false,
             unreviewed: true,
         },
@@ -77,9 +92,14 @@ describe("Project changes", () => {
             expect(wrapper.container.textContent).toContain(change.description);
         });
         expect(wrapper.container.textContent).toContain("mcp:claude-code");
-        // A recorded workflow run links its persisted execution report, as handed out by the server
-        const reportLink = findElement(wrapper, byTestId("change-report-link-1"));
-        expect(reportLink.getAttribute("href")).toBe(changes[2].link);
+        // Each entry shows the links the server hands out, labelled by the server
+        changes.forEach((change) =>
+            change.links.forEach((link) => {
+                const element = findElement(wrapper, byTestId(`change-link-${change.seq}-${link.id}`));
+                expect(element.getAttribute("href")).toBe(link.path);
+                expect(element.textContent).toBe(link.label);
+            }),
+        );
     });
 
     it("should only offer to revert changes that are revertible and not reverted already", async () => {

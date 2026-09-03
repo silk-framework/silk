@@ -1,6 +1,7 @@
 import { projectApi } from "../../../utils/getApiEndpoint";
 import fetch from "../../../services/fetch";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
+import { IItemLink } from "@ducks/shared/typings";
 
 /** A recorded change of a project, see ChangeJournalApi. */
 export interface IChangeEntry {
@@ -16,8 +17,8 @@ export interface IChangeEntry {
     type: string;
     /** What has been changed, for display. */
     description: string;
-    /** Link to more detail on the change: for a workflow run, its persisted execution report. Relative to the server host. */
-    link?: string;
+    /** Links to what the change concerns, labelled by the server: the page of the task, as long as it exists, and for a workflow run its execution report. */
+    links: IItemLink[];
     /** Whether the change can be reverted at all. */
     revertible: boolean;
     /** The change this one reverted, if it was made by reverting one. */

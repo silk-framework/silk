@@ -252,19 +252,20 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                                 </TableCell>
                                 <TableCell alignVertical="middle">
                                     <span title={entry.type}>{entry.description}</span>
-                                    {entry.link && (
-                                        <>
+                                    {/* Every link opens in a new tab, so the review keeps its place */}
+                                    {entry.links.map((link) => (
+                                        <React.Fragment key={link.id}>
                                             {" "}
                                             <Link
-                                                data-test-id={`change-report-link-${entry.seq}`}
-                                                href={entry.link}
+                                                data-test-id={`change-link-${entry.seq}-${link.id}`}
+                                                href={link.path}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                             >
-                                                {t("pages.changes.executionReport")}
+                                                {link.label}
                                             </Link>
-                                        </>
-                                    )}
+                                        </React.Fragment>
+                                    ))}
                                     {(entry.unreviewed || entry.reverts != null || entry.revertedBy != null) && (
                                         <TagList>
                                             {entry.unreviewed && (

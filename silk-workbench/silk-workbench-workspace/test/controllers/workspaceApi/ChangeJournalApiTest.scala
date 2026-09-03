@@ -1,6 +1,7 @@
 package controllers.workspaceApi
 
 import controllers.projectApi.ChangeJournalApi.{ChangeEntryJson, ChangeListJson, RevertResultsJson}
+import controllers.util.{ItemLink, ItemType}
 import controllers.workspaceApi.coreApi.routes.{VariableTemplateApi => TemplateApi}
 import helper.{ApiClient, IntegrationTestTrait}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -52,6 +53,9 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
       s"Added value mapping 'b' (b → http://example.org/b) under '${task.data.mappingRule.id}' in transform 'transform'"
     listed.head.revertedBy mustBe None
     listed.head.revertible mustBe true
+    // Every change that concerns a task links its page, as handed out by the server
+    val taskLink = ItemType.itemDetailsPage(ItemType.transform, projectId, "transform")
+    listed.map(_.links) mustBe Seq(Seq(taskLink), Seq(taskLink))
     val seq = listed.head.seq
 
     val revert = checkResponse(client.url(revertUrl(seq)).post("")).json.as[ChangeEntryJson]
@@ -64,11 +68,12 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     checkResponseExactStatusCode(client.url(revertUrl(seq)).post(""), CONFLICT)
     checkResponseExactStatusCode(client.url(revertUrl(999)).post(""), NOT_FOUND)
 
-    // A recorded workflow run links its persisted execution report, so no client needs to know the routes
+    // A recorded workflow run links its persisted execution report; the workflow itself does not exist here, so no task page
     TestJournalAccess.record(project.changeJournal, WorkflowExecuted("wf", Some("2026-08-26T09:52:08.126Z"), failed = false))
     val run = changes().head
     run.`type` mustBe "WorkflowExecuted"
-    run.link mustBe Some(controllers.workspaceApi.routes.ReportsApi.retrieveReport(projectId, "wf", "2026-08-26T09:52:08.126Z").url)
+    val reportUrl = controllers.workspaceApi.routes.ReportsApi.retrieveReport(projectId, "wf", "2026-08-26T09:52:08.126Z").url
+    run.links mustBe Seq(ItemLink("report", "Execution report", reportUrl, openInNewTab = true))
     run.revertible mustBe false
   }
 
@@ -102,6 +107,9 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     results.last.entry.get.`type` mustBe "RemoveTask"
     project.anyTaskOption("first") mustBe None
     project.anyTaskOption("second") mustBe None
+    // A removed task has no page to link, on the removal and on the entries before it
+    results.last.entry.get.links mustBe empty
+    changes(watermarkProjectId).flatMap(_.links) mustBe empty
 
     // The reverted entries need no review anymore, although the watermark did not move
     val afterRevert = checkResponse(client.url(changesUrl(watermarkProjectId)).get()).json.as[ChangeListJson]

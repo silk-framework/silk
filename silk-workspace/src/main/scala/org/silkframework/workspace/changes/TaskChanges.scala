@@ -9,7 +9,11 @@ import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{Project, ProjectTask}
 
 /** Adds a task to the project. Recorded whenever a task is added. */
-case class AddTask(task: PlainTask[TaskSpec]) extends Change {
+case class AddTask(task: PlainTask[TaskSpec]) extends Change with NamesTask {
+
+  override def taskId: Identifier = task.id
+
+  override def taskLabel: Option[String] = task.metaData.label
 
   override def describe: String = s"Added ${TaskChanges.kind(task.data)} '${task.labelOrId}'"
 
@@ -27,7 +31,11 @@ case class AddTask(task: PlainTask[TaskSpec]) extends Change {
 }
 
 /** Removes a task from the project. Holds the removed task, so the removal can be reverted. */
-case class RemoveTask(task: PlainTask[TaskSpec]) extends Change {
+case class RemoveTask(task: PlainTask[TaskSpec]) extends Change with NamesTask {
+
+  override def taskId: Identifier = task.id
+
+  override def taskLabel: Option[String] = task.metaData.label
 
   override def describe: String = s"Removed ${TaskChanges.kind(task.data)} '${task.labelOrId}'"
 
@@ -45,11 +53,13 @@ case class RemoveTask(task: PlainTask[TaskSpec]) extends Change {
   * Replaces a whole task. Recorded when a task is updated without a typed change, e.g. by a whole-task save.
   * Reverting requires the task to be unchanged since, as the whole task is restored.
   */
-case class ReplaceTask(before: PlainTask[TaskSpec], after: PlainTask[TaskSpec]) extends Change {
+case class ReplaceTask(before: PlainTask[TaskSpec], after: PlainTask[TaskSpec]) extends Change with NamesTask {
 
-  def taskId: Identifier = before.id
+  override def taskId: Identifier = before.id
 
   // Names the task as the update left it; a rename mentions the previous name.
+  override def taskLabel: Option[String] = after.metaData.label
+
   override def describe: String = {
     val renamed = if(after.labelOrId != before.labelOrId) s", renamed from '${before.labelOrId}'" else ""
     s"Updated ${TaskChanges.kind(after.data)} '${after.labelOrId}'$renamed"
