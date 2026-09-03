@@ -2,7 +2,7 @@ package controllers.projectApi
 
 import controllers.core.UserContextActions
 import controllers.projectApi.ChangeJournalApi.{ChangeEntryJson, ChangeListJson, MarkReviewedJson, ReviewedJson, RevertOutcomeJson, RevertRequestJson, RevertResultsJson}
-import controllers.util.{ItemLink, ItemType}
+import controllers.util.ItemLink
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.workspace.changes.{ChangeEntry, NamesTask, RevertOutcome, WorkflowExecuted}
+import org.silkframework.workspace.changes.{ChangeEntry, RevertOutcome}
 import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json.{Format, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
@@ -186,9 +186,11 @@ object ChangeJournalApi {
                              `type`: String,
                              @Schema(description = "What has been changed, for display.")
                              description: String,
-                             @Schema(description = "Links to what the change concerns, each with a label for display and a path " +
-                               "relative to the server host: the page of the task the change concerns, as long as the task " +
-                               "exists, and for a workflow run its persisted execution report. Empty when there is nothing to link.")
+                             @Schema(description = "Links to where the current state behind the change is seen, each with a label " +
+                               "for display and a path relative to the server host: the page of the task the change concerns " +
+                               "as long as the task exists, for a mapping change the rule in the mapping editor while it exists, " +
+                               "for a variable or file change the project page, for an existing file its download and for a " +
+                               "workflow run its persisted execution report. Empty when there is nothing to link.")
                              links: Seq[ItemLink],
                              @Schema(description = "Whether the change can be reverted at all. False for a workflow run, and for a file overwrite or deletion, whose previous content is not kept.")
                              revertible: Boolean,
@@ -206,30 +208,8 @@ object ChangeJournalApi {
     def of(project: Project, entry: ChangeEntry, revertedBy: Option[Int], unreviewed: Boolean = false)
           (implicit userContext: UserContext): ChangeEntryJson = {
       ChangeEntryJson(entry.seq, entry.timestamp.toString, entry.user, entry.origin, entry.change.changeType,
-        entry.change.describe, links(project, entry), entry.change.inverse.isDefined, entry.reverts, revertedBy,
+        entry.change.describe, ChangeLinks.of(project, entry.change), entry.change.inverse.isDefined, entry.reverts, revertedBy,
         unreviewed = if(unreviewed) Some(true) else None)
-    }
-
-    /**
-      * Links to what the change concerns, built here so no client needs to know the routes: the page of the task,
-      * as long as it exists (a removed task has none until the removal is reverted), and for a workflow run its
-      * persisted execution report.
-      */
-    private def links(project: Project, entry: ChangeEntry)(implicit userContext: UserContext): Seq[ItemLink] = {
-      val taskLink = entry.change match {
-        case change: NamesTask =>
-          project.anyTaskOption(change.taskId).map(task => ItemType.itemDetailsPage(ItemType.itemType(task.data), project.id, task.id))
-        case _ =>
-          None
-      }
-      val reportLink = entry.change match {
-        case WorkflowExecuted(taskId, Some(executionId), _, _) =>
-          val url = controllers.workspaceApi.routes.ReportsApi.retrieveReport(project.id, taskId.toString, executionId).url
-          Some(ItemLink("report", "Execution report", url, openInNewTab = true))
-        case _ =>
-          None
-      }
-      taskLink.toSeq ++ reportLink
     }
   }
 
@@ -331,7 +311,7 @@ object ChangeJournalApi {
           "user": "urn:user:alice",
           "type": "RemoveMapping",
           "description": "Removed mapping rule 'name' from transform 'persons'",
-          "links": [{"id": "details", "label": "Transform details page", "path": "/workbench/projects/movies/transform/persons", "openInNewTab": false}],
+          "links": [{"id": "rule", "label": "Mapping rule 'root'", "path": "/workbench/projects/movies/transform/persons?ruleId=root", "openInNewTab": false}],
           "revertible": true,
           "reverts": 2
         },
@@ -369,7 +349,7 @@ object ChangeJournalApi {
         "user": "urn:user:alice",
         "type": "RemoveMapping",
         "description": "Removed mapping rule 'name' from transform 'persons'",
-        "links": [{"id": "details", "label": "Transform details page", "path": "/workbench/projects/movies/transform/persons", "openInNewTab": false}],
+        "links": [{"id": "rule", "label": "Mapping rule 'root'", "path": "/workbench/projects/movies/transform/persons?ruleId=root", "openInNewTab": false}],
         "revertible": true,
         "reverts": 2
       }
@@ -388,7 +368,7 @@ object ChangeJournalApi {
             "user": "urn:user:alice",
             "type": "RemoveMapping",
             "description": "Removed mapping rule 'name' from transform 'persons'",
-            "links": [{"id": "details", "label": "Transform details page", "path": "/workbench/projects/movies/transform/persons", "openInNewTab": false}],
+            "links": [{"id": "rule", "label": "Mapping rule 'root'", "path": "/workbench/projects/movies/transform/persons?ruleId=root", "openInNewTab": false}],
             "revertible": true,
             "reverts": 3
           }

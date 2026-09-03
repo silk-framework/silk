@@ -38,7 +38,7 @@ describe("Project changes", () => {
             origin: "mcp:claude-code",
             type: "AddMapping",
             description: "Added value mapping 'name' (name → http://xmlns.com/foaf/0.1/name) under 'root' in transform 'persons'",
-            links: [transformLink],
+            links: [{ id: "rule", label: "Mapping rule 'name'", path: `${transformLink.path}?ruleId=name` }],
             revertible: true,
             unreviewed: true,
         },

@@ -8,12 +8,12 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.{DirectMapping, MappingRules, MappingTarget, RootMappingRule, TransformSpec}
-import org.silkframework.runtime.activity.{SimpleUserContext, UserExecutionContext}
+import org.silkframework.runtime.activity.{SimpleUserContext, UserContext, UserExecutionContext}
 import org.silkframework.runtime.templating.{TemplateVariable, VariableScope}
 import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.serialization.json.TemplateVariableJson
 import org.silkframework.util.ConfigTestTrait
-import org.silkframework.workspace.changes.{AddMapping, TestJournalAccess, WorkflowExecuted}
+import org.silkframework.workspace.changes.{AddMapping, ChangeJournal, TestJournalAccess, WorkflowExecuted}
 import org.silkframework.workspace.{ProjectConfig, WorkspaceFactory}
 import play.api.libs.json.Json
 import play.api.routing.Router
@@ -53,9 +53,10 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
       s"Added value mapping 'b' (b → http://example.org/b) under '${task.data.mappingRule.id}' in transform 'transform'"
     listed.head.revertedBy mustBe None
     listed.head.revertible mustBe true
-    // Every change that concerns a task links its page, as handed out by the server
+    // A task change links the task page, a mapping change the rule it added, as handed out by the server
     val taskLink = ItemType.itemDetailsPage(ItemType.transform, projectId, "transform")
-    listed.map(_.links) mustBe Seq(Seq(taskLink), Seq(taskLink))
+    def ruleLink(ruleId: String) = ItemLink("rule", s"Mapping rule '$ruleId'", s"${taskLink.path}?ruleId=$ruleId")
+    listed.map(_.links) mustBe Seq(Seq(ruleLink("b")), Seq(taskLink))
     val seq = listed.head.seq
 
     val revert = checkResponse(client.url(revertUrl(seq)).post("")).json.as[ChangeEntryJson]
@@ -63,6 +64,9 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     revert.reverts mustBe Some(seq)
     task.data.mappingRule.rules.propertyRules.map(_.id.toString) mustBe Seq("a")
     changes().find(_.seq == seq).get.revertedBy mustBe Some(revert.seq)
+    // The removal links the parent it happened in; the addition falls back to the task page, as its rule is gone
+    revert.links mustBe Seq(ruleLink(task.data.mappingRule.id))
+    changes().find(_.seq == seq).get.links mustBe Seq(taskLink)
 
     // A change is reverted at most once; an unknown change is not found.
     checkResponseExactStatusCode(client.url(revertUrl(seq)).post(""), CONFLICT)
@@ -126,10 +130,31 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     val listed = changes(variablesProjectId)
     listed.map(_.`type`) mustBe Seq("SetVariable")
     listed.head.description mustBe "Added variable 'base' = 'urn:a'"
+    // The project page holds the variables widget
+    listed.head.links mustBe Seq(ItemType.itemDetailsPage(ItemType.project, variablesProjectId, variablesProjectId))
 
     val revert = checkResponse(client.url(revertUrl(listed.head.seq, variablesProjectId)).post("")).json.as[ChangeEntryJson]
     revert.`type` mustBe "RemoveVariable"
     revert.reverts mustBe Some(listed.head.seq)
     project.templateVariables.all.map.contains("base") mustBe false
+  }
+
+  it should "link a file change to the project page and, while the file exists, to its download" in {
+    val filesProjectId = "changeJournalFilesProject"
+    val project = WorkspaceFactory().workspace.createProject(ProjectConfig(filesProjectId))
+    val file = project.resources.get("data.txt")
+    ChangeJournal.onBehalfOf(implicitly[UserContext]) {
+      file.writeString("content")
+    }
+
+    val created = changes(filesProjectId).head
+    created.`type` mustBe "ResourceCreated"
+    val projectPage = ItemType.itemDetailsPage(ItemType.project, filesProjectId, filesProjectId)
+    val downloadUrl = controllers.workspace.routes.ResourceApi.getFileForDownload(filesProjectId, "data.txt").url
+    created.links mustBe Seq(projectPage, ItemLink("download", "Download file", downloadUrl, openInNewTab = true))
+
+    // Deleted outside of a request, so not recorded: the entry stays, its download is gone
+    file.delete()
+    changes(filesProjectId).head.links mustBe Seq(projectPage)
   }
 }
