@@ -2,7 +2,11 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import {
     Button,
+    ElapsedDateTimeDisplay,
+    ElapsedDateTimeDisplayUnits,
+    Icon,
     IconButton,
+    NotAvailable,
     Notification,
     SimpleDialog,
     Spacing,
@@ -20,6 +24,7 @@ import {
 } from "@eccenca/gui-elements";
 import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
 import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
+import { getDateData } from "../../shared/Metadata/Metadata";
 import Loading from "../../shared/Loading";
 import DeleteModal from "../../shared/modals/DeleteModal";
 import useErrorHandler from "../../../hooks/useErrorHandler";
@@ -199,30 +204,56 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
         }
     };
 
+    /** A value of a detail: the previous one marked as gone, the new one as current; an empty value spelled out. */
+    const detailValue = (text: string, intent: "danger" | "success"): React.ReactNode =>
+        text === "" ? (
+            <NotAvailable label={t("pages.changes.emptyValue")} tooltip={t("pages.changes.emptyValueTooltip")} />
+        ) : (
+            <Tag small emphasis="weak" intent={intent}>
+                {text}
+            </Tag>
+        );
+
     /** A detail as one line: the label, then before and after, one of them for an addition or removal, nothing when the label says it all. */
     const detailLine = (detail: IChangeDetail): React.ReactNode => {
-        const value = (text: string) => <code>{text === "" ? t("pages.changes.emptyValue") : text}</code>;
         if (detail.before != null && detail.after != null) {
             return (
                 <>
-                    {detail.label}: {value(detail.before)} → {value(detail.after)}
+                    {detail.label}: {detailValue(detail.before, "danger")} → {detailValue(detail.after, "success")}
                 </>
             );
         } else if (detail.after != null) {
             return (
                 <>
-                    {detail.label}: {value(detail.after)} {t("pages.changes.detailAdded")}
+                    {detail.label}: {detailValue(detail.after, "success")} {t("pages.changes.detailAdded")}
                 </>
             );
         } else if (detail.before != null) {
             return (
                 <>
-                    {detail.label}: {value(detail.before)} {t("pages.changes.detailRemoved")}
+                    {detail.label}: {detailValue(detail.before, "danger")} {t("pages.changes.detailRemoved")}
                 </>
             );
         } else {
             return detail.label;
         }
+    };
+
+    const translateUnits = (unit: ElapsedDateTimeDisplayUnits) => t("common.units." + unit, unit);
+
+    /** Relative within the last week, the date beyond, as the metadata panel shows it; the exact time on hover. */
+    const timestamp = (isoDate: string): React.ReactNode => {
+        const days = (Date.now() - new Date(isoDate).getTime()) / 1000 / 60 / 60 / 24;
+        return days < 7 ? (
+            <ElapsedDateTimeDisplay
+                dateTime={isoDate}
+                prefix={t("Metadata.prefixAgo")}
+                suffix={t("Metadata.suffixAgo")}
+                translateUnits={translateUnits}
+            />
+        ) : (
+            <span title={new Date(isoDate).toLocaleString()}>{t("Metadata.dateFormat", getDateData(isoDate))}</span>
+        );
     };
 
     const revertTooltip = (entry: IChangeEntry): string => {
@@ -298,19 +329,19 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                     </TableHead>
                     <TableBody>
                         {pageEntries.map((entry) => (
-                            <TableRow key={entry.seq}>
+                            <TableRow key={entry.seq} useZebraStyle={!!entry.unreviewed}>
                                 <TableCell alignVertical="middle">{entry.seq}</TableCell>
-                                <TableCell alignVertical="middle">
-                                    {new Date(entry.timestamp).toLocaleString()}
-                                </TableCell>
+                                <TableCell alignVertical="middle">{timestamp(entry.timestamp)}</TableCell>
                                 <TableCell alignVertical="middle">
                                     {entry.user && <span title={entry.user}>{userDisplayName(entry.user)}</span>}
                                     {entry.origin && (
-                                        <TagList>
-                                            <Tag small htmlTitle={t("pages.changes.originTooltip")}>
-                                                {entry.origin}
-                                            </Tag>
-                                        </TagList>
+                                        <span
+                                            data-test-id={`change-agent-${entry.seq}`}
+                                            title={`${t("pages.changes.originTooltip")}: ${entry.origin}`}
+                                        >
+                                            {" "}
+                                            <Icon name="operation-ai-generate" small />
+                                        </span>
                                     )}
                                 </TableCell>
                                 <TableCell alignVertical="middle">
@@ -323,7 +354,11 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                                     <Spacing size="tiny" />
                                     <div>
                                         <TagList>
-                                            <Tag small intent={kindIntent[changeKind(entry.type)]} htmlTitle={entry.type}>
+                                            <Tag
+                                                small
+                                                intent={kindIntent[changeKind(entry.type)]}
+                                                htmlTitle={entry.type}
+                                            >
                                                 {t(`pages.changes.kind.${changeKind(entry.type)}`)}
                                             </Tag>
                                             {entry.unreviewed && (
@@ -340,7 +375,9 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                                             )}
                                             {entry.revertedBy != null && (
                                                 <Tag small>
-                                                    {t("pages.changes.revertedByTag", { seq: entry.revertedBy })}
+                                                    {t("pages.changes.revertedByTag", {
+                                                        seq: entry.revertedBy,
+                                                    })}
                                                 </Tag>
                                             )}
                                         </TagList>

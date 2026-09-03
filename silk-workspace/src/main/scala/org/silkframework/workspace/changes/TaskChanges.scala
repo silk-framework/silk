@@ -17,7 +17,7 @@ case class AddTask(task: PlainTask[TaskSpec]) extends Change with NamesTask {
 
   override def taskId: Identifier = task.id
 
-  override def taskLabel: Option[String] = task.metaData.label
+  override def taskLabel: Option[String] = Change.capturedName(task)
 
   override def summary: String = s"Added ${TaskChanges.kind(task.data)} '${task.labelOrId}'"
 
@@ -39,7 +39,7 @@ case class RemoveTask(task: PlainTask[TaskSpec]) extends Change with NamesTask {
 
   override def taskId: Identifier = task.id
 
-  override def taskLabel: Option[String] = task.metaData.label
+  override def taskLabel: Option[String] = Change.capturedName(task)
 
   override def summary: String = s"Removed ${TaskChanges.kind(task.data)} '${task.labelOrId}'"
 
@@ -62,7 +62,7 @@ case class ReplaceTask(before: PlainTask[TaskSpec], after: PlainTask[TaskSpec]) 
   override def taskId: Identifier = before.id
 
   // Names the task as the update left it; a rename mentions the previous name.
-  override def taskLabel: Option[String] = after.metaData.label
+  override def taskLabel: Option[String] = Change.capturedName(after)
 
   override def summary: String = {
     val renamed = if(after.labelOrId != before.labelOrId) s", renamed from '${before.labelOrId}'" else ""

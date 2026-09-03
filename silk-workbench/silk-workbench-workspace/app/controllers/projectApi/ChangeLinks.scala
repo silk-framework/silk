@@ -2,7 +2,7 @@ package controllers.projectApi
 
 import controllers.util.{ItemLink, ItemType}
 import org.silkframework.config.TaskSpec
-import org.silkframework.rule.TransformSpec
+import org.silkframework.rule.{TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.changes._
 import org.silkframework.workspace.{Project, ProjectTask}
@@ -34,7 +34,11 @@ object ChangeLinks {
   /** The page of the task, or for a mapping change the rule it concerns, while that rule exists. */
   private def taskLink(project: Project, task: ProjectTask[_ <: TaskSpec], change: NamesTask): ItemLink = {
     val page = ItemType.itemDetailsPage(ItemType.itemType(task.data), project.id, task.id)
-    // An addition or update links the rule itself, a removal or reorder the parent it happened in
+    rule(task, change).map(r => ItemLink("rule", s"Mapping rule '${r.labelOrId}'", s"${page.path}?ruleId=${r.id}")).getOrElse(page)
+  }
+
+  /** The rule a mapping change concerns, while it exists: the added or updated rule, the parent of a removal or reorder. */
+  private def rule(task: ProjectTask[_ <: TaskSpec], change: NamesTask): Option[TransformRule] = {
     val ruleId = change match {
       case added: AddMapping => Some(added.rule.id)
       case updated: UpdateMapping => Some(updated.after.id)
@@ -42,12 +46,11 @@ object ChangeLinks {
       case reordered: ReorderMappings => Some(reordered.parentId)
       case _ => None
     }
-    val rule = for {
+    for {
       id <- ruleId
       transform <- Some(task.data).collect { case spec: TransformSpec => spec }
       (rule, _) <- transform.nestedRuleAndSourcePath(id.toString)
-    } yield ItemLink("rule", s"Mapping rule '${rule.labelOrId}'", s"${page.path}?ruleId=$id")
-    rule.getOrElse(page)
+    } yield rule
   }
 
   /** The persisted execution report of a workflow run, whether or not the workflow still exists. */

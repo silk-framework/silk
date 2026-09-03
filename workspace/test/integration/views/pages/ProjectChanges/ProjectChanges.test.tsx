@@ -37,8 +37,10 @@ describe("Project changes", () => {
             user: "urn:user:alice",
             origin: "mcp:claude-code",
             type: "AddMapping",
-            description: "Added value mapping 'name' (name → http://xmlns.com/foaf/0.1/name) under 'root' in transform 'persons'",
-            summary: "Added value mapping 'name' (name → http://xmlns.com/foaf/0.1/name) under 'root' in transform 'persons'",
+            description:
+                "Added value mapping 'name' (name → http://xmlns.com/foaf/0.1/name) under 'root' in transform 'persons'",
+            summary:
+                "Added value mapping 'name' (name → http://xmlns.com/foaf/0.1/name) under 'root' in transform 'persons'",
             details: [],
             links: [{ id: "rule", label: "Mapping rule 'name'", path: `${transformLink.path}?ruleId=name` }],
             revertible: true,
@@ -68,7 +70,11 @@ describe("Project changes", () => {
             summary: "Executed workflow 'workflow'",
             details: [],
             links: [
-                { id: "details", label: "Workflow details page", path: `/workbench/projects/${PROJECT_ID}/workflow/workflow` },
+                {
+                    id: "details",
+                    label: "Workflow details page",
+                    path: `/workbench/projects/${PROJECT_ID}/workflow/workflow`,
+                },
                 {
                     id: "report",
                     label: "Execution report",
@@ -97,9 +103,13 @@ describe("Project changes", () => {
         changes.forEach((change) => {
             expect(wrapper.container.textContent).toContain(change.summary);
         });
-        expect(wrapper.container.textContent).toContain("mcp:claude-code");
+        // An agent change is marked by an icon carrying the origin
+        expect(findElement(wrapper, byTestId("change-agent-3")).getAttribute("title")).toContain("mcp:claude-code");
         // The details of an update are listed under its summary, one per line, an empty value spelled out
-        expect(findElement(wrapper, byTestId("change-detail-2-0")).textContent).toBe("Output dataset: (empty) → out");
+        const detail = findElement(wrapper, byTestId("change-detail-2-0")).textContent ?? "";
+        expect(detail).toContain("Output dataset");
+        expect(detail).toContain("empty");
+        expect(detail).toContain("out");
         expect(findElement(wrapper, byTestId("change-detail-2-1")).textContent).toBe("Mapping rule changed");
         expect(wrapper.container.querySelector(byTestId("change-detail-3-0"))).toBeNull();
         // Each entry offers the links the server hands out
