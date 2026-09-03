@@ -212,6 +212,8 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         <companionToolbar.Component
                             companionConfig={companion}
                             closeOtherToolbarPanels={closeOtherToolbarPanels}
+                            dmBaseUrl={dmBaseUrl}
+                            dmModuleLinks={dmModuleLinks}
                             isAnotherToolbarPanelOpen={displayNotifications || displayUserMenu}
                         />
                     )}

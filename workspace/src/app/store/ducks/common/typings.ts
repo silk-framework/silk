@@ -326,6 +326,7 @@ export interface IInitFrontend {
     aclEnabled: boolean;
 }
 
+/** InitApi configuration needed to mount and connect the companion frontend. */
 export interface ICompanionFrontendConfig {
     /** Whether the installation and current user's actions allow the companion. */
     enabled: boolean;

@@ -1,4 +1,4 @@
-import { IArtefactItemProperty, ICompanionFrontendConfig } from "@ducks/common/typings";
+import { IArtefactItemProperty, ICompanionFrontendConfig, IDmLink } from "@ducks/common/typings";
 import { IViewActions } from "../../views/plugins/PluginRegistry";
 import { TestableComponent } from "@eccenca/gui-elements";
 import { AccessControlConfig } from "@ducks/workspace/requests";
@@ -6,7 +6,11 @@ import { AccessControlConfig } from "@ducks/workspace/requests";
 /** Host integration parameters for a feature rendered in the global application toolbar. */
 export interface CompanionToolbarProps {
     companionConfig: ICompanionFrontendConfig;
+    dmBaseUrl?: string;
+    dmModuleLinks?: IDmLink[];
+    /** Closes mutually exclusive panels before the companion is opened. */
     closeOtherToolbarPanels: () => void;
+    /** Signals that another global toolbar panel currently owns the panel area. */
     isAnotherToolbarPanelOpen: boolean;
 }
 
