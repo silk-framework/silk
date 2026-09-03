@@ -38,6 +38,8 @@ describe("Project changes", () => {
             origin: "mcp:claude-code",
             type: "AddMapping",
             description: "Added value mapping 'name' (name → http://xmlns.com/foaf/0.1/name) under 'root' in transform 'persons'",
+            summary: "Added value mapping 'name' (name → http://xmlns.com/foaf/0.1/name) under 'root' in transform 'persons'",
+            details: [],
             links: [{ id: "rule", label: "Mapping rule 'name'", path: `${transformLink.path}?ruleId=name` }],
             revertible: true,
             unreviewed: true,
@@ -49,7 +51,9 @@ describe("Project changes", () => {
             user: "urn:user:alice",
             origin: "mcp:claude-code",
             type: "ReplaceTask",
-            description: "Updated task 'persons'",
+            description: "Updated transform 'persons': Output dataset '' → 'out', Mapping rule changed",
+            summary: "Updated transform 'persons'",
+            details: [{ label: "Output dataset", before: "", after: "out" }, { label: "Mapping rule changed" }],
             links: [transformLink],
             revertible: true,
             revertedBy: 3,
@@ -61,6 +65,8 @@ describe("Project changes", () => {
             origin: "mcp:claude-code",
             type: "WorkflowExecuted",
             description: "Executed workflow 'workflow'",
+            summary: "Executed workflow 'workflow'",
+            details: [],
             links: [
                 { id: "details", label: "Workflow details page", path: `/workbench/projects/${PROJECT_ID}/workflow/workflow` },
                 {
@@ -86,18 +92,21 @@ describe("Project changes", () => {
         return wrapper;
     };
 
-    it("should list all changes with their descriptions", async () => {
+    it("should list all changes with their summaries and details", async () => {
         const wrapper = await loadChangeList();
         changes.forEach((change) => {
-            expect(wrapper.container.textContent).toContain(change.description);
+            expect(wrapper.container.textContent).toContain(change.summary);
         });
         expect(wrapper.container.textContent).toContain("mcp:claude-code");
-        // Each entry shows the links the server hands out, labelled by the server
+        // The details of an update are listed under its summary, one per line, an empty value spelled out
+        expect(findElement(wrapper, byTestId("change-detail-2-0")).textContent).toBe("Output dataset: (empty) → out");
+        expect(findElement(wrapper, byTestId("change-detail-2-1")).textContent).toBe("Mapping rule changed");
+        expect(wrapper.container.querySelector(byTestId("change-detail-3-0"))).toBeNull();
+        // Each entry offers the links the server hands out
         changes.forEach((change) =>
             change.links.forEach((link) => {
                 const element = findElement(wrapper, byTestId(`change-link-${change.seq}-${link.id}`));
                 expect(element.getAttribute("href")).toBe(link.path);
-                expect(element.textContent).toBe(link.label);
             }),
         );
     });

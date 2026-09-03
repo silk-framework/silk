@@ -44,7 +44,7 @@ case class AddWorkflowNode(taskId: Identifier, node: WorkflowNode,
                            replaceableInput: Boolean = false, replaceableOutput: Boolean = false,
                            override val taskLabel: Option[String] = None) extends TaskChange[Workflow] {
 
-  override def describe: String = s"Added ${WorkflowNodeChanges.display(node)} to workflow '$taskName'"
+  override def summary: String = s"Added ${WorkflowNodeChanges.display(node)} to workflow '$taskName'"
 
   override def inverse: Option[RemoveWorkflowNode] =
     Some(RemoveWorkflowNode(taskId, node, replaceableInput, replaceableOutput, taskLabel))
@@ -72,7 +72,7 @@ case class RemoveWorkflowNode(taskId: Identifier, node: WorkflowNode,
                               replaceableInput: Boolean = false, replaceableOutput: Boolean = false,
                               override val taskLabel: Option[String] = None) extends TaskChange[Workflow] {
 
-  override def describe: String = s"Removed ${WorkflowNodeChanges.display(node)} from workflow '$taskName'"
+  override def summary: String = s"Removed ${WorkflowNodeChanges.display(node)} from workflow '$taskName'"
 
   override def inverse: Option[AddWorkflowNode] =
     Some(AddWorkflowNode(taskId, node, replaceableInput, replaceableOutput, taskLabel))
@@ -124,7 +124,7 @@ case class ConnectWorkflowNodes(taskId: Identifier, sourceNodeId: String, target
                                 edge: WorkflowEdge, override val taskLabel: Option[String] = None)
   extends TaskChange[Workflow] {
 
-  override def describe: String = s"Connected '$sourceNodeId' to '$targetNodeId'${edge.suffix} in workflow '$taskName'"
+  override def summary: String = s"Connected '$sourceNodeId' to '$targetNodeId'${edge.suffix} in workflow '$taskName'"
 
   override def inverse: Option[DisconnectWorkflowNodes] =
     Some(DisconnectWorkflowNodes(taskId, sourceNodeId, targetNodeId, edge, taskLabel))
@@ -203,7 +203,7 @@ case class DisconnectWorkflowNodes(taskId: Identifier, sourceNodeId: String, tar
                                    edge: WorkflowEdge, override val taskLabel: Option[String] = None)
   extends TaskChange[Workflow] {
 
-  override def describe: String = s"Disconnected '$sourceNodeId' from '$targetNodeId'${edge.suffix} in workflow '$taskName'"
+  override def summary: String = s"Disconnected '$sourceNodeId' from '$targetNodeId'${edge.suffix} in workflow '$taskName'"
 
   override def inverse: Option[ConnectWorkflowNodes] =
     Some(ConnectWorkflowNodes(taskId, sourceNodeId, targetNodeId, edge, taskLabel))

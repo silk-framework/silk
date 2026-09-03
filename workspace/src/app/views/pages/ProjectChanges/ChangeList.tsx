@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import {
     Button,
     IconButton,
-    Link,
     Notification,
     SimpleDialog,
     Spacing,
@@ -20,12 +19,14 @@ import {
     ToolbarSection,
 } from "@eccenca/gui-elements";
 import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
+import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
 import Loading from "../../shared/Loading";
 import DeleteModal from "../../shared/modals/DeleteModal";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { useModalError } from "../../../hooks/useModalError";
 import { ErrorResponse } from "../../../services/fetch/responseInterceptor";
 import {
+    IChangeDetail,
     IChangeEntry,
     IRevertOutcome,
     requestMarkReviewed,
@@ -44,6 +45,42 @@ interface IProps {
 const userDisplayName = (uri: string): string => {
     const idx = Math.max(uri.lastIndexOf("/"), uri.lastIndexOf(":"), uri.lastIndexOf("#"));
     return idx >= 0 && idx < uri.length - 1 ? uri.substring(idx + 1) : uri;
+};
+
+type ChangeKind = "added" | "updated" | "removed" | "run";
+
+/** The kind of change by its type name, e.g. 'AddMapping' adds, 'ResourceDeleted' removes, 'WorkflowExecuted' is a run. */
+const changeKind = (type: string): ChangeKind => {
+    if (type === "WorkflowExecuted" || type.endsWith("WorkflowRun")) {
+        return "run";
+    } else if (type.startsWith("Add") || type === "ResourceCreated") {
+        return "added";
+    } else if (type.startsWith("Remove") || type === "ResourceDeleted" || type === "DisconnectWorkflowNodes") {
+        return "removed";
+    } else {
+        return "updated";
+    }
+};
+
+const kindIntent: Record<ChangeKind, "success" | "danger" | "info" | undefined> = {
+    added: "success",
+    removed: "danger",
+    run: "info",
+    updated: undefined,
+};
+
+/** The icon of a link by its id, as handed out by the server. */
+const linkIcon = (id: string): ValidIconName => {
+    switch (id) {
+        case "rule":
+            return "application-mapping";
+        case "report":
+            return "artefact-report";
+        case "download":
+            return "item-download";
+        default:
+            return "item-viewdetails";
+    }
 };
 
 /** The changes of a project, newest first, with a revert action per entry and review actions for the agent changes. */
@@ -162,6 +199,32 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
         }
     };
 
+    /** A detail as one line: the label, then before and after, one of them for an addition or removal, nothing when the label says it all. */
+    const detailLine = (detail: IChangeDetail): React.ReactNode => {
+        const value = (text: string) => <code>{text === "" ? t("pages.changes.emptyValue") : text}</code>;
+        if (detail.before != null && detail.after != null) {
+            return (
+                <>
+                    {detail.label}: {value(detail.before)} → {value(detail.after)}
+                </>
+            );
+        } else if (detail.after != null) {
+            return (
+                <>
+                    {detail.label}: {value(detail.after)} {t("pages.changes.detailAdded")}
+                </>
+            );
+        } else if (detail.before != null) {
+            return (
+                <>
+                    {detail.label}: {value(detail.before)} {t("pages.changes.detailRemoved")}
+                </>
+            );
+        } else {
+            return detail.label;
+        }
+    };
+
     const revertTooltip = (entry: IChangeEntry): string => {
         if (entry.revertedBy != null) {
             return t("pages.changes.revert.alreadyReverted", { seq: entry.revertedBy });
@@ -223,7 +286,7 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                 </>
             )}
             <TableContainer>
-                <Table columnWidths={["60px", "15%", "20%", "55%", "60px"]}>
+                <Table columnWidths={["50px", "14%", "18%", "56%", "130px"]}>
                     <TableHead>
                         <TableRow>
                             <TableHeader>{t("pages.changes.column.seq")}</TableHeader>
@@ -251,23 +314,18 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                                     )}
                                 </TableCell>
                                 <TableCell alignVertical="middle">
-                                    <span title={entry.type}>{entry.description}</span>
-                                    {/* Every link opens in a new tab, so the review keeps its place */}
-                                    {entry.links.map((link) => (
-                                        <React.Fragment key={link.id}>
-                                            {" "}
-                                            <Link
-                                                data-test-id={`change-link-${entry.seq}-${link.id}`}
-                                                href={link.path}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                            >
-                                                {link.label}
-                                            </Link>
-                                        </React.Fragment>
+                                    <div title={entry.type}>{entry.summary}</div>
+                                    {entry.details.map((detail, index) => (
+                                        <div key={index} data-test-id={`change-detail-${entry.seq}-${index}`}>
+                                            <small>{detailLine(detail)}</small>
+                                        </div>
                                     ))}
-                                    {(entry.unreviewed || entry.reverts != null || entry.revertedBy != null) && (
+                                    <Spacing size="tiny" />
+                                    <div>
                                         <TagList>
+                                            <Tag small intent={kindIntent[changeKind(entry.type)]} htmlTitle={entry.type}>
+                                                {t(`pages.changes.kind.${changeKind(entry.type)}`)}
+                                            </Tag>
                                             {entry.unreviewed && (
                                                 <Tag
                                                     small
@@ -286,9 +344,22 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                                                 </Tag>
                                             )}
                                         </TagList>
-                                    )}
+                                    </div>
                                 </TableCell>
                                 <TableCell alignVertical="middle">
+                                    {/* Every link opens in a new tab, so the review keeps its place */}
+                                    {entry.links.map((link) => (
+                                        <IconButton
+                                            key={link.id}
+                                            data-test-id={`change-link-${entry.seq}-${link.id}`}
+                                            name={linkIcon(link.id)}
+                                            small
+                                            text={link.label}
+                                            href={link.path}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        />
+                                    ))}
                                     <IconButton
                                         data-test-id={`change-revert-btn-${entry.seq}`}
                                         name="operation-undo"

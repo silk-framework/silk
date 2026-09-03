@@ -1,7 +1,7 @@
 package controllers.projectApi
 
 import controllers.core.UserContextActions
-import controllers.projectApi.ChangeJournalApi.{ChangeEntryJson, ChangeListJson, MarkReviewedJson, ReviewedJson, RevertOutcomeJson, RevertRequestJson, RevertResultsJson}
+import controllers.projectApi.ChangeJournalApi.{ChangeDetailJson, ChangeEntryJson, ChangeListJson, MarkReviewedJson, ReviewedJson, RevertOutcomeJson, RevertRequestJson, RevertResultsJson}
 import controllers.util.ItemLink
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.workspace.changes.{ChangeEntry, RevertOutcome}
+import org.silkframework.workspace.changes.{ChangeDetail, ChangeEntry, RevertOutcome}
 import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json.{Format, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
@@ -184,8 +184,13 @@ object ChangeJournalApi {
                              origin: Option[String],
                              @Schema(description = "The kind of change, e.g. 'AddMapping', 'ReplaceTask' or 'SetVariable'.")
                              `type`: String,
-                             @Schema(description = "What has been changed, for display.")
+                             @Schema(description = "What has been changed, in one line: the summary with the details.")
                              description: String,
+                             @Schema(description = "What has been changed, without the details.")
+                             summary: String,
+                             @Schema(description = "What the change changed in detail, where the summary does not tell: the parameters " +
+                               "of a whole-task update with their values. Empty otherwise.")
+                             details: Seq[ChangeDetailJson],
                              @Schema(description = "Links to where the current state behind the change is seen, each with a label " +
                                "for display and a path relative to the server host: the page of the task the change concerns " +
                                "as long as the task exists, for a mapping change the rule in the mapping editor while it exists, " +
@@ -208,9 +213,24 @@ object ChangeJournalApi {
     def of(project: Project, entry: ChangeEntry, revertedBy: Option[Int], unreviewed: Boolean = false)
           (implicit userContext: UserContext): ChangeEntryJson = {
       ChangeEntryJson(entry.seq, entry.timestamp.toString, entry.user, entry.origin, entry.change.changeType,
-        entry.change.describe, ChangeLinks.of(project, entry.change), entry.change.inverse.isDefined, entry.reverts, revertedBy,
-        unreviewed = if(unreviewed) Some(true) else None)
+        entry.change.describe, entry.change.summary, entry.change.details.map(ChangeDetailJson.of), ChangeLinks.of(project, entry.change),
+        entry.change.inverse.isDefined, entry.reverts, revertedBy, unreviewed = if(unreviewed) Some(true) else None)
     }
+  }
+
+  @Schema(description = "One thing a change changed.")
+  case class ChangeDetailJson(@Schema(description = "What changed, e.g. the label of a parameter; without values the whole statement, e.g. 'Password changed'.")
+                              label: String,
+                              @Schema(description = "The value before the change. Absent for an addition, or when there is no value to show.")
+                              before: Option[String],
+                              @Schema(description = "The value after the change. Absent for a removal, or when there is no value to show.")
+                              after: Option[String])
+
+  object ChangeDetailJson {
+
+    implicit val format: Format[ChangeDetailJson] = Json.format[ChangeDetailJson]
+
+    def of(detail: ChangeDetail): ChangeDetailJson = ChangeDetailJson(detail.label, detail.before, detail.after)
   }
 
   @Schema(description = "The changes of a project, newest first.")
@@ -298,6 +318,8 @@ object ChangeJournalApi {
           "origin": "mcp:claude-code",
           "type": "WorkflowExecuted",
           "description": "Executed workflow 'workflow'",
+          "summary": "Executed workflow 'workflow'",
+          "details": [],
           "links": [
             {"id": "details", "label": "Workflow details page", "path": "/workbench/projects/movies/workflow/workflow", "openInNewTab": false},
             {"id": "report", "label": "Execution report", "path": "/api/workspace/reports/report?projectId=movies&taskId=workflow&time=2026-08-26T09:52:08.126Z", "openInNewTab": true}
@@ -311,6 +333,8 @@ object ChangeJournalApi {
           "user": "urn:user:alice",
           "type": "RemoveMapping",
           "description": "Removed mapping rule 'name' from transform 'persons'",
+          "summary": "Removed mapping rule 'name' from transform 'persons'",
+          "details": [],
           "links": [{"id": "rule", "label": "Mapping rule 'root'", "path": "/workbench/projects/movies/transform/persons?ruleId=root", "openInNewTab": false}],
           "revertible": true,
           "reverts": 2
@@ -322,6 +346,8 @@ object ChangeJournalApi {
           "origin": "mcp:claude-code",
           "type": "AddMapping",
           "description": "Added value mapping 'name' (name → http://xmlns.com/foaf/0.1/name) under 'root' in transform 'persons'",
+          "summary": "Added value mapping 'name' (name → http://xmlns.com/foaf/0.1/name) under 'root' in transform 'persons'",
+          "details": [],
           "links": [{"id": "details", "label": "Transform details page", "path": "/workbench/projects/movies/transform/persons", "openInNewTab": false}],
           "revertible": true,
           "revertedBy": 3
@@ -331,9 +357,14 @@ object ChangeJournalApi {
           "timestamp": "2026-08-26T09:49:58.001Z",
           "user": "urn:user:alice",
           "origin": "mcp:claude-code",
-          "type": "AddTask",
-          "description": "Added transform 'persons'",
-          "links": [{"id": "details", "label": "Transform details page", "path": "/workbench/projects/movies/transform/persons", "openInNewTab": false}],
+          "type": "ReplaceTask",
+          "description": "Updated CSV dataset 'employees': Separator ',' → ';', Ignore bad lines 'false' → 'true'",
+          "summary": "Updated CSV dataset 'employees'",
+          "details": [
+            {"label": "Separator", "before": ",", "after": ";"},
+            {"label": "Ignore bad lines", "before": "false", "after": "true"}
+          ],
+          "links": [{"id": "details", "label": "Dataset details page", "path": "/workbench/projects/movies/dataset/employees", "openInNewTab": false}],
           "revertible": true,
           "unreviewed": true
         }
@@ -349,6 +380,8 @@ object ChangeJournalApi {
         "user": "urn:user:alice",
         "type": "RemoveMapping",
         "description": "Removed mapping rule 'name' from transform 'persons'",
+          "summary": "Removed mapping rule 'name' from transform 'persons'",
+          "details": [],
         "links": [{"id": "rule", "label": "Mapping rule 'root'", "path": "/workbench/projects/movies/transform/persons?ruleId=root", "openInNewTab": false}],
         "revertible": true,
         "reverts": 2
@@ -368,6 +401,8 @@ object ChangeJournalApi {
             "user": "urn:user:alice",
             "type": "RemoveMapping",
             "description": "Removed mapping rule 'name' from transform 'persons'",
+          "summary": "Removed mapping rule 'name' from transform 'persons'",
+          "details": [],
             "links": [{"id": "rule", "label": "Mapping rule 'root'", "path": "/workbench/projects/movies/transform/persons?ruleId=root", "openInNewTab": false}],
             "revertible": true,
             "reverts": 3

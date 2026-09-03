@@ -53,6 +53,8 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
       s"Added value mapping 'b' (b → http://example.org/b) under '${task.data.mappingRule.id}' in transform 'transform'"
     listed.head.revertedBy mustBe None
     listed.head.revertible mustBe true
+    listed.head.summary mustBe listed.head.description
+    listed.head.details mustBe empty
     // A task change links the task page, a mapping change the rule it added, as handed out by the server
     val taskLink = ItemType.itemDetailsPage(ItemType.transform, projectId, "transform")
     def ruleLink(ruleId: String) = ItemLink("rule", s"Mapping rule '$ruleId'", s"${taskLink.path}?ruleId=$ruleId")

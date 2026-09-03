@@ -14,7 +14,7 @@ import org.silkframework.workspace.Project
 case class WorkflowExecuted(taskId: Identifier, executionId: Option[String], failed: Boolean,
                             taskLabel: Option[String] = None) extends RecordedChange with NamesTask {
 
-  override def describe: String = s"Executed workflow '$taskName'" + (if(failed) ", which failed" else "")
+  override def summary: String = s"Executed workflow '$taskName'" + (if(failed) ", which failed" else "")
 
   override def inverse: Option[Change] = None
 }
@@ -27,7 +27,7 @@ case class WorkflowExecuted(taskId: Identifier, executionId: Option[String], fai
   */
 case class ProposedWorkflowRun(taskId: Identifier, taskLabel: Option[String] = None) extends Change with NamesTask {
 
-  override def describe: String = s"Proposed to run workflow '$taskName'"
+  override def summary: String = s"Proposed to run workflow '$taskName'"
 
   override def inverse: Option[Change] = Some(DiscardedWorkflowRun(taskId, taskLabel))
 
@@ -39,7 +39,7 @@ case class ProposedWorkflowRun(taskId: Identifier, taskLabel: Option[String] = N
 /** Discards a proposed workflow run. Recorded by reverting the proposal; it only records itself, as the proposal changed nothing. */
 case class DiscardedWorkflowRun(taskId: Identifier, taskLabel: Option[String] = None) extends Change with NamesTask {
 
-  override def describe: String = s"Discarded the proposed run of workflow '$taskName'"
+  override def summary: String = s"Discarded the proposed run of workflow '$taskName'"
 
   override def inverse: Option[Change] = None
 

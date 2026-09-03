@@ -13,7 +13,7 @@ import org.silkframework.workspace.variables.{DeleteVariableModification, Update
 case class SetVariable(before: Option[TemplateVariable], after: TemplateVariable) extends Change {
 
   // The value of a sensitive variable is never printed.
-  override def describe: String = (before, VariableChanges.sensitive(before.toSeq :+ after)) match {
+  override def summary: String = (before, VariableChanges.sensitive(before.toSeq :+ after)) match {
     case (None, true) => s"Added variable '${after.name}'"
     case (None, false) => s"Added variable '${after.name}' = ${VariableChanges.render(after)}"
     case (Some(_), true) => s"Set variable '${after.name}'"
@@ -37,7 +37,7 @@ case class SetVariable(before: Option[TemplateVariable], after: TemplateVariable
 /** Removes a project variable. Holds the variable, so the removal can be reverted; the variable is re-added at the end. */
 case class RemoveVariable(variable: TemplateVariable) extends Change {
 
-  override def describe: String = {
+  override def summary: String = {
     if(variable.isSensitive) s"Removed variable '${variable.name}'"
     else s"Removed variable '${variable.name}' (${VariableChanges.render(variable)})"
   }

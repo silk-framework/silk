@@ -20,7 +20,7 @@ object FileState {
 /** A file was written that did not exist. Reverting deletes it while it is unchanged. */
 case class ResourceCreated(path: String, after: FileState) extends RecordedChange {
 
-  override def describe: String = s"Added file '$path'${ResourceChanges.sizeInfo(after)}"
+  override def summary: String = s"Added file '$path'${ResourceChanges.sizeInfo(after)}"
 
   override def inverse: Option[Change] = Some(DeleteResource(path, after))
 }
@@ -28,7 +28,7 @@ case class ResourceCreated(path: String, after: FileState) extends RecordedChang
 /** An existing file was overwritten or appended to. Its previous content is not kept, so it cannot be reverted. */
 case class ResourceOverwritten(path: String, before: FileState, after: FileState) extends RecordedChange {
 
-  override def describe: String = s"Overwrote file '$path'${ResourceChanges.sizeInfo(before, after)}"
+  override def summary: String = s"Overwrote file '$path'${ResourceChanges.sizeInfo(before, after)}"
 
   override def inverse: Option[Change] = None
 }
@@ -36,7 +36,7 @@ case class ResourceOverwritten(path: String, before: FileState, after: FileState
 /** A file was deleted. Its content is not kept, so it cannot be reverted. */
 case class ResourceDeleted(path: String, before: FileState) extends RecordedChange {
 
-  override def describe: String = s"Deleted file '$path'${ResourceChanges.sizeInfo(before)}"
+  override def summary: String = s"Deleted file '$path'${ResourceChanges.sizeInfo(before)}"
 
   override def inverse: Option[Change] = None
 }
@@ -47,7 +47,7 @@ case class ResourceDeleted(path: String, before: FileState) extends RecordedChan
   */
 case class DeleteResource(path: String, expected: FileState) extends Change {
 
-  override def describe: String = s"Deleted file '$path'"
+  override def summary: String = s"Deleted file '$path'"
 
   override def inverse: Option[Change] = None
 

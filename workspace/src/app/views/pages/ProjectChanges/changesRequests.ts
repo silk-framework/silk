@@ -3,6 +3,16 @@ import fetch from "../../../services/fetch";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { IItemLink } from "@ducks/shared/typings";
 
+/** One thing a change changed: what, and the value before and after where there is one to show. */
+export interface IChangeDetail {
+    /** What changed, e.g. the label of a parameter; without values the whole statement, e.g. "Password changed". */
+    label: string;
+    /** The value before the change; absent for an addition, or when there is no value to show. */
+    before?: string;
+    /** The value after the change; absent for a removal, or when there is no value to show. */
+    after?: string;
+}
+
 /** A recorded change of a project, see ChangeJournalApi. */
 export interface IChangeEntry {
     /** Sequence number of the change, ascending in the order the changes were made. */
@@ -15,8 +25,12 @@ export interface IChangeEntry {
     origin?: string;
     /** The kind of change, e.g. 'AddMapping' or 'ReplaceTask'. */
     type: string;
-    /** What has been changed, for display. */
+    /** What has been changed, in one line: the summary with the details. */
     description: string;
+    /** What has been changed, without the details. */
+    summary: string;
+    /** What the change changed in detail, where the summary does not tell: the parameters of a task update with their values. */
+    details: IChangeDetail[];
     /** Links to what the change concerns, labelled by the server: the page of the task, as long as it exists, and for a workflow run its execution report. */
     links: IItemLink[];
     /** Whether the change can be reverted at all. */

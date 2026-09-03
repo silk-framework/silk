@@ -678,6 +678,15 @@
             "noChanges": "No changes have been recorded for this project.",
             "reload": "Reload changes",
             "originTooltip": "The client the change came from",
+            "emptyValue": "(empty)",
+            "detailAdded": "added",
+            "detailRemoved": "removed",
+            "kind": {
+                "added": "Added",
+                "updated": "Updated",
+                "removed": "Removed",
+                "run": "Run"
+            },
             "revertsTag": "Reverts #{{seq}}",
             "revertedByTag": "Reverted by #{{seq}}",
             "unreviewed": "Unreviewed",

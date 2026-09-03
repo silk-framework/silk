@@ -17,8 +17,18 @@ trait Change {
   /** The kind of change, as served by the API. */
   def changeType: String = getClass.getSimpleName
 
-  /** Short description for display, e.g. "Added value mapping 'name' (name → http://…/name) under 'root' in transform 'persons'". */
-  def describe: String
+  /** One line for display, the summary with the details, e.g. "Updated CSV dataset 'employees': Separator ',' → ';'". */
+  def describe: String = {
+    val shown = details.take(Change.maxDetails).map(_.describe)
+    val more = if(details.size > Change.maxDetails) Seq(s"and ${details.size - Change.maxDetails} more") else Seq.empty
+    if(details.isEmpty) summary else s"$summary: ${(shown ++ more).mkString(", ")}"
+  }
+
+  /** The change without its details, e.g. "Added value mapping 'name' (name → http://…/name) under 'root' in transform 'persons'". */
+  def summary: String
+
+  /** What the change changed where the summary does not tell: the parameters of a whole-task update with their values. */
+  def details: Seq[ChangeDetail] = Seq.empty
 
   /** The change that undoes this one, or None if it cannot be undone, e.g. a file overwrite of which no copy was kept. */
   def inverse: Option[Change]
@@ -33,9 +43,26 @@ trait Change {
 
 object Change {
 
+  /** At most this many details go into [[Change.describe]]. */
+  private val maxDetails = 5
+
   /** The label to capture in a change that does not hold the task itself; None when no label is set. */
   def capturedName(obj: HasMetaData): Option[String] = {
     obj.metaData.label.filter(_.trim.nonEmpty).map(_ => obj.labelOrId)
+  }
+}
+
+/**
+  * One thing a change changed, for display: what, and the value before and after where there is one to show.
+  * Without values the label is the whole statement, e.g. "Password changed".
+  */
+case class ChangeDetail(label: String, before: Option[String] = None, after: Option[String] = None) {
+
+  def describe: String = (before, after) match {
+    case (Some(previous), Some(current)) => s"$label '$previous' → '$current'"
+    case (None, Some(current)) => s"$label '$current' added"
+    case (Some(previous), None) => s"$label '$previous' removed"
+    case (None, None) => label
   }
 }
 

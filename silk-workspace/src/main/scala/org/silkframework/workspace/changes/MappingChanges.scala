@@ -14,7 +14,7 @@ import org.silkframework.util.Identifier
 case class AddMapping(taskId: Identifier, parentId: Identifier, rule: TransformRule, index: Option[Int] = None,
                       override val taskLabel: Option[String] = None) extends TaskChange[TransformSpec] {
 
-  override def describe: String = s"Added ${MappingChanges.ruleDisplay(rule)} under '$parentId' in transform '$taskName'"
+  override def summary: String = s"Added ${MappingChanges.ruleDisplay(rule)} under '$parentId' in transform '$taskName'"
 
   override def inverse: Option[RemoveMapping] = Some(RemoveMapping(taskId, parentId, rule, index, taskLabel))
 
@@ -49,7 +49,7 @@ case class RemoveMapping(taskId: Identifier, parentId: Identifier, rule: Transfo
                          override val taskLabel: Option[String] = None) extends TaskChange[TransformSpec] {
 
   // Removing a container rule takes its nested rules with it, which the reviewer should see.
-  override def describe: String = {
+  override def summary: String = {
     val nested = rule.rules.allRulesRecursive.size
     val suffix = if(nested == 1) " and its nested rule" else if(nested > 1) s" and its $nested nested rules" else ""
     s"Removed mapping rule '${rule.labelOrId}'$suffix from transform '$taskName'"
@@ -84,7 +84,7 @@ case class UpdateMapping(taskId: Identifier, before: TransformRule, after: Trans
                          override val taskLabel: Option[String] = None) extends TaskChange[TransformSpec] {
 
   // Names the rule as the update left it, i.e. a rename shows the new label.
-  override def describe: String = s"Updated mapping rule '${after.labelOrId}' in transform '$taskName'"
+  override def summary: String = s"Updated mapping rule '${after.labelOrId}' in transform '$taskName'"
 
   override def inverse: Option[UpdateMapping] = Some(UpdateMapping(taskId, after, before, taskLabel))
 
@@ -115,7 +115,7 @@ case class ReorderMappings(taskId: Identifier, parentId: Identifier, before: Seq
 
   require(before.sorted == after.sorted, "The new order must name each rule of the current order once.")
 
-  override def describe: String = s"Reordered mapping rules under '$parentId' in transform '$taskName'"
+  override def summary: String = s"Reordered mapping rules under '$parentId' in transform '$taskName'"
 
   override def inverse: Option[ReorderMappings] = Some(ReorderMappings(taskId, parentId, after, before, taskLabel))
 

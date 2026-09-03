@@ -302,8 +302,10 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     def describe(before: PlainTask[TaskSpec], after: PlainTask[TaskSpec]): String = ReplaceTask(before, after).describe
 
     // Parameters are named by their labels with both values; a password is named only
-    describe(task(DescribedTask()), task(DescribedTask(name = "b", password = PasswordParameter("secret")))) shouldBe
-      "Updated Described task 'task': Name 'a' → 'b', Password changed"
+    val passwordUpdate = ReplaceTask(task(DescribedTask()), task(DescribedTask(name = "b", password = PasswordParameter("secret"))))
+    passwordUpdate.summary shouldBe "Updated Described task 'task'"
+    passwordUpdate.details shouldBe Seq(ChangeDetail("Name", Some("a"), Some("b")), ChangeDetail("Password changed"))
+    passwordUpdate.describe shouldBe "Updated Described task 'task': Name 'a' → 'b', Password changed"
     // A nested object parameter lists its own parameters; an object without a description, such as the mapping rules, is named only
     describe(task(DescribedTask()), task(DescribedTask(selection = DatasetSelection(IdentifierOptionParameter(Some("input")))))) shouldBe
       "Updated Described task 'task': Selection / Input '' → 'input'"
@@ -322,13 +324,13 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
       TemplateVariables(Seq(TemplateVariable("limit", value, isSensitive = sensitive, scope = VariableScope.execution)))
     }
     describe(task(transform(name)), task(transform(name), MetaData(None, description = Some("d"), tags = Set(Uri("urn:tag"))), limit("10"))) shouldBe
-      "Updated transform 'task': description changed, tags changed, execution variable 'limit' added = '10'"
+      "Updated transform 'task': description changed, tags changed, execution variable 'limit' '10' added"
     describe(task(transform(name), variables = limit("10")), task(transform(name), variables = limit("100"))) shouldBe
       "Updated transform 'task': execution variable 'limit' '10' → '100'"
     describe(task(transform(name), variables = limit("10", sensitive = true)), task(transform(name), variables = limit("100", sensitive = true))) shouldBe
       "Updated transform 'task': execution variable 'limit' changed"
     describe(task(transform(name), variables = limit("10")), task(transform(name))) shouldBe
-      "Updated transform 'task': execution variable 'limit' removed"
+      "Updated transform 'task': execution variable 'limit' '10' removed"
   }
 
   it should "track open workflow run proposals until they are discarded or consumed" in {
