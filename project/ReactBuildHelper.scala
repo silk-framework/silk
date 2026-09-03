@@ -1,9 +1,6 @@
-import org.apache.commons.io.FileUtils
-
 import java.io.{File, FileInputStream}
 import java.util.Properties
 import java.util.logging.Logger
-import java.util.regex.Pattern
 import scala.annotation.tailrec
 import scala.sys.process.{BasicIO, Process, ProcessLogger}
 
@@ -60,39 +57,6 @@ object ReactBuildHelper {
       println(s"Command line tool $m is missing for building JavaScript artifacts!")
     }
     assert(missing.isEmpty, "Following required command line tools are missing: yarn")
-  }
-
-  /**
-    * Builds React components and copies the generated files.
-    *
-    * @param reactBuildRoot          The root directory of the React build, i.e. where the package.json is located etc.
-    * @param targetArtifactDirectory The directory where the built artifacts are copied to. This directory is deleted
-    *                                prior to copying the files.
-    * @param project                 The name of the project to build, for logging and documentation.
-    */
-  def buildReactComponentsAndCopy(reactBuildRoot: File, targetArtifactDirectory: File, project: String): Unit = BasicIO.synchronized {
-    val buildEnv = sys.env.getOrElse("BUILD_ENV", "development")
-    val productionBuild = buildEnv == "production"
-    val buildTask = if (productionBuild) "webpack-build" else "webpack-dev-build"
-    log.info(s"Building $project React components for $buildEnv, running task $buildTask...")
-    yarnInstall(reactBuildRoot)
-
-    // Run build via webpack only, uncomment source map copy instruction when using this
-    process(yarnCommand :: buildTask :: Nil, reactBuildRoot) // Build main artifact
-
-    FileUtils.deleteDirectory(targetArtifactDirectory)
-    FileUtils.forceMkdir(targetArtifactDirectory)
-    val files = Seq( // React components build artifacts
-      new File(reactBuildRoot, "dist/main.js"),
-      new File(reactBuildRoot, "dist/main.js.map"),
-      new File(reactBuildRoot, "dist/style.css"),
-      new File(reactBuildRoot, "dist/style.css.map")
-    ).filter(f => !f.getName.endsWith(".map") || productionBuild)
-    for (file <- files) {
-      FileUtils.copyFileToDirectory(file, targetArtifactDirectory)
-    }
-    FileUtils.copyDirectoryToDirectory(new File(reactBuildRoot, "dist/fonts"), targetArtifactDirectory)
-    log.info(s"Finished building '$project' React components.")
   }
 
   /**
@@ -186,18 +150,4 @@ object ReactBuildHelper {
     process(command, new File("./"))
   }
 
-  /**
-    * Transpiles JavaScript Code to ES5 JavaScript Code.
-    *
-    * @param reactBuildRoot The root directory of the JavaScript build pipeline, i.e. where the package.json resides.
-    * @param sourceFile     Source JS file
-    * @param targetFile     Target transpiled JS file
-    */
-  def transpileJavaScript(reactBuildRoot: File, sourceFile: File, targetFile: File): Unit = {
-    FileUtils.forceMkdir(targetFile.getParentFile)
-    if(Watcher.staleTargetFiles(WatchConfig(sourceFile.getParentFile, Pattern.quote(sourceFile.getName)), Seq(targetFile))) {
-      println("Transpiling (ES5) " + sourceFile.getCanonicalPath + " to " + targetFile.getCanonicalPath)
-      process(yarnCommand :: "babel" :: sourceFile.getCanonicalPath :: s"--out-file=${targetFile.getCanonicalPath}" :: Nil, reactBuildRoot)
-    }
-  }
 }

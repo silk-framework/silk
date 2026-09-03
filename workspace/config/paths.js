@@ -22,30 +22,45 @@ function ensureSlash(inputPath, needsSlash) {
     }
 }
 
-function buildConfig() {
-    // Search for build config file "silk-ui-build.properties"
-    const configFile = "silk-ui-build.properties"
-    let configProperties = {}
-    let dir = ""
-    for(let count = 0; count < 3; count += 1) {
-        try {
-            const configPath = dir + configFile
-            dir = dir + "../"
-            const fileContent = fs.readFileSync(configPath).toString("utf-8")
-            console.log("Found Silk UI config file at " + configPath)
-            const lines = fileContent.split("\n")
-            lines
-                .map(p => p.trim().split("="))
-                .filter(p => p.length > 1 && !p[0].startsWith("#"))
-                .forEach(([p, v]) => {
-                    configProperties[p] = v
-                })
-            dir = dir + "../"
-        } catch(ex) {
-            // ignore errors
+function parseBuildConfig(fileContent) {
+    const configProperties = {};
+    fileContent.split(/\r?\n/).forEach((rawLine) => {
+        const line = rawLine.trim();
+        if (!line || line.startsWith("#")) {
+            return;
         }
+
+        const separatorIndex = line.indexOf("=");
+        if (separatorIndex <= 0) {
+            return;
+        }
+
+        const key = line.slice(0, separatorIndex).trim();
+        const value = line.slice(separatorIndex + 1).trim();
+        if (key) {
+            configProperties[key] = value;
+        }
+    });
+    return configProperties;
+}
+
+function buildConfig() {
+    const configFile = "silk-ui-build.properties";
+    let directory = appDirectory;
+    for (let count = 0; count < 3; count += 1) {
+        const configPath = path.join(directory, configFile);
+        try {
+            const fileContent = fs.readFileSync(configPath, "utf8");
+            console.log("Found Silk UI config file at " + configPath);
+            return parseBuildConfig(fileContent);
+        } catch (error) {
+            if (error.code !== "ENOENT" && error.code !== "ENOTDIR") {
+                throw error;
+            }
+        }
+        directory = path.dirname(directory);
     }
-    return configProperties
+    return {};
 }
 
 const getPublicUrl = (appPackageJson) => envPublicUrl || require(appPackageJson).homepage;
@@ -87,39 +102,42 @@ const resolveModule = (resolveFn, filePath) => {
     return resolveFn(`${filePath}.js`);
 };
 
-const silkConfig = buildConfig()
+const silkConfig = buildConfig();
 
 const configValue = (key, defaultValue) => {
-    const value = silkConfig[key] ? silkConfig[key] : defaultValue
-    if(value !== defaultValue) {
-        console.log(`Using non-default value for config key '${key}': '${value}'`)
+    const value = silkConfig[key] ? silkConfig[key] : defaultValue;
+    if (value !== defaultValue) {
+        console.log(`Using non-default value for config key '${key}': '${value}'`);
     }
-    return value
-}
+    return value;
+};
+
+const configuredPaths = (value) =>
+    value
+        ? value
+              .split(";")
+              .map((configuredPath) => configuredPath.trim())
+              .filter(Boolean)
+              .map(resolveApp)
+        : [];
 
 // Allow to add additional source paths, e.g. proprietary code that will be bundled together with the core code.
 // Paths are separated by ';' and are relative to the 'workspace' folder.
 const additionalSourcePaths = () => {
-    const pathsString = silkConfig.additionalSources ? silkConfig.additionalSources : process.env.ADDITIONAL_SOURCE_PATHS
-    if(pathsString) {
-        return pathsString.split(";")
-            .map(path => resolveApp(path))
-    } else {
-        return []
-    }
-}
+    const pathsString = silkConfig.additionalSources
+        ? silkConfig.additionalSources
+        : process.env.ADDITIONAL_SOURCE_PATHS;
+    return configuredPaths(pathsString);
+};
 
 // Allow to add additional entry points, e.g. from proprietary code that will be bundled together with the core code.
 // Entries are separated by ';' and are relative to the 'workspace' folder.
 const additionalEntries = () => {
-    const entriesString = silkConfig.additionalEntries ? silkConfig.additionalEntries : process.env.ADDITIONAL_ENTRIES
-    if(entriesString) {
-        return entriesString.split(";")
-            .map(path => resolveApp(path))
-    } else {
-        return []
-    }
-}
+    const entriesString = silkConfig.additionalEntries ? silkConfig.additionalEntries : process.env.ADDITIONAL_ENTRIES;
+    return configuredPaths(entriesString);
+};
+
+const stylesEntry = resolveApp(configValue("stylesEntry", "src/theme/index.scss"));
 
 // config after eject: we're in ./config/
 module.exports = {
@@ -127,13 +145,16 @@ module.exports = {
     appPath: resolveApp("."),
     appBuild: resolveApp("build"),
     watchDIBuild: resolveApp(configValue("watchDIBuild", "../silk-workbench/target/web/public/main")),
-    watchDIAssets: resolveApp(configValue("watchDIAssets", "../silk-workbench/target/web/public/main/lib/silk-workbench-core/new-workspace")),
+    watchDIAssets: resolveApp(
+        configValue("watchDIAssets", "../silk-workbench/target/web/public/main/lib/silk-workbench-core/new-workspace"),
+    ),
     appDIBuild: resolveApp(configValue("appDIBuild", "../silk-workbench/public")),
     appDIAssets: resolveApp("../silk-workbench/silk-workbench-core/public/new-workspace"),
     appDIAssetsUrl: "/core/assets/new-workspace/",
     appPublic: resolveApp("public"),
     appHtml: resolveApp("public/index.html"),
     appIndexJs: resolveModule(resolveApp, "src/index"),
+    stylesEntry,
     appPackageJson: resolveApp("package.json"),
     appSrc: resolveApp("src"),
     appTsConfig: resolveApp("tsconfig.json"),
@@ -146,7 +167,7 @@ module.exports = {
     guiElements: resolveApp("../libs/gui-elements"),
     silkConfig,
     additionalSourcePaths,
-    additionalEntries
+    additionalEntries,
 };
 
 module.exports.moduleFileExtensions = moduleFileExtensions;

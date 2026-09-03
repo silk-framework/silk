@@ -24,6 +24,7 @@ module.exports = {
         ...orgconfig.moduleNameMapper,
         "^react-markdown$": mapFromNodeModules("react-markdown"),
         "^@eccenca/gui-elements$": mapFromNodeModules("@eccenca/gui-elements"),
+        "^@eccenca/gui-elements/config/sassOptions$": mapFromNodeModules("@eccenca/gui-elements/scripts/sassConfig.js"),
         "^@eccenca/gui-elements/(.*)$": `${mapFromNodeModules("@eccenca/gui-elements")}/$1`,
         "^@reduxjs/toolkit$": mapFromNodeModules("@reduxjs/toolkit/dist/cjs/redux-toolkit.development.cjs"),
     },
