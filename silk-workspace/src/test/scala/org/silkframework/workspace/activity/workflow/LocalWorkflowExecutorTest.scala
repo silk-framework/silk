@@ -6,6 +6,7 @@ import org.silkframework.runtime.plugin.{PluginContext, TestPluginContext}
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
+import org.silkframework.workspace.changes.{ChangeConflictException, WorkflowExecuted}
 import org.silkframework.workspace.reports.ExecutionReportManager
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -68,9 +69,25 @@ class LocalWorkflowExecutorTest extends AnyFlatSpec with Matchers with SinglePro
       )
   }
 
+  it should "record the run in the change journal, but not the files it wrote" in {
+    val journal = project.changeJournal
+    val recorded = journal.all.size
+    val workflow = project.task[Workflow]("workflow")
+    workflow.activity[LocalWorkflowExecutorGeneratingProvenance].startBlocking()
+
+    val entries = journal.all.drop(recorded)
+    entries.map(_.change.describe) shouldBe Seq("Executed workflow 'workflow'")
+    val executed = entries.head.change.asInstanceOf[WorkflowExecuted]
+    executed.executionId shouldBe workflow.activity[LocalWorkflowExecutorGeneratingProvenance].value().reportId.map(_.time.toString)
+    executed.failed shouldBe false
+    a[ChangeConflictException] should be thrownBy journal.revert(entries.head.seq)
+  }
+
   override def propertyMap: Map[String, Option[String]] = {
     Map(
-      "workspace.reportManager.plugin" -> Some("inMemoryExecutionReportManager")
+      "workspace.reportManager.plugin" -> Some("inMemoryExecutionReportManager"),
+      // No store is configured by default, which records nothing.
+      "workspace.changes.plugin" -> Some("inMemoryChangeJournal")
     )
   }
 }

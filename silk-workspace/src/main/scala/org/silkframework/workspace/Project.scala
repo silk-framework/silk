@@ -26,7 +26,9 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.access.{AccessControlConfig, ProjectAccessControlManager, ProjectAccessDeniedException}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowValidator}
 import org.silkframework.workspace.activity.{ProjectActivity, ProjectActivityFactory}
+import org.silkframework.workspace.changes.ChangeJournal
 import org.silkframework.workspace.exceptions.{IdentifierAlreadyExistsException, TaskNotFoundException}
+import org.silkframework.workspace.resources.JournalingResourceManager
 
 import java.util.logging.{Level, Logger}
 import scala.collection.mutable
@@ -38,11 +40,11 @@ import scala.util.control.NonFatal
  *
  * @param initialConfig The initial project configuration.
  * @param provider The workspace provider used to read and write this project.
- * @param resources The resource manager for holding project file resources.
+ * @param projectResources The resource manager for holding project file resources.
  * @param loadingUser The user context for loading tasks and variables initially. Should not be used after the project has been loaded.
  *
  */
-class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val resources: ResourceManager, loadingUser: UserContext) extends ProjectTrait {
+class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, projectResources: ResourceManager, loadingUser: UserContext) extends ProjectTrait {
 
   private implicit val logger: Logger = Logger.getLogger(classOf[Project].getName)
 
@@ -50,7 +52,19 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
 
   val tagManager = new TagManager(initialConfig.id, provider)
 
-  val templateVariables: TemplateVariablesManager = new ProjectTemplateVariablesManager(provider.projectVariables(initialConfig.id)(loadingUser), loadingUser)
+  val cacheResources: ResourceManager = provider.projectCache(initialConfig.id)
+
+  @volatile
+  private var cachedConfig: ProjectConfig = initialConfig
+
+  /** The journal of changes to this project, which records every write and can revert it. */
+  val changeJournal: ChangeJournal = new ChangeJournal(this)
+
+  /** The file resources of this project. Every write is recorded in the change journal. */
+  val resources: ResourceManager = new JournalingResourceManager(projectResources, changeJournal)
+
+  val templateVariables: TemplateVariablesManager =
+    new ProjectTemplateVariablesManager(provider.projectVariables(initialConfig.id)(loadingUser), loadingUser, changeJournal)
 
   /** The variables manager for either the project variables or, if a task is given, the execution variables of that task. */
   def variablesManager(taskId: Option[String])(implicit userContext: UserContext): TemplateVariablesManager = {
@@ -59,11 +73,6 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
       case None => templateVariables
     }
   }
-
-  val cacheResources: ResourceManager = provider.projectCache(initialConfig.id)
-
-  @volatile
-  private var cachedConfig: ProjectConfig = initialConfig
 
   @volatile
   private var modules = Seq[Module[_ <: TaskSpec]]()
@@ -292,11 +301,21 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   def addAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty,
                  executionVariables: TemplateVariables = TemplateVariables.empty)
                 (implicit userContext: UserContext): ProjectTask[TaskSpec] = synchronized {
+    addTaskToModule(name, taskData, metaData.asNewMetaData, executionVariables)
+  }
+
+  /** Re-adds a removed task with its creation metadata; like an update, the restore is stamped as a modification. */
+  private[workspace] def restoreTask(task: PlainTask[TaskSpec])(implicit userContext: UserContext): ProjectTask[TaskSpec] = synchronized {
+    addTaskToModule(task.id, task.data, task.metaData.asUpdatedMetaData, task.executionVariables)
+  }
+
+  private def addTaskToModule(name: Identifier, taskData: TaskSpec, metaData: MetaData, executionVariables: TemplateVariables)
+                             (implicit userContext: UserContext): ProjectTask[TaskSpec] = {
     if(allTasks.exists(_.id == name)) {
       throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.id}' with this name.")
     }
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
-      case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData.asNewMetaData, executionVariables)(readWriteUser)
+      case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData, executionVariables)(readWriteUser)
       case None => throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
     }
   }
@@ -316,7 +335,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     module[T].taskOption(name) match {
       case Some(task) =>
         val mergedMetaData = mergeMetaData(task.metaData, metaData)
-        task.update(taskData, Some(mergedMetaData.asUpdatedMetaData), executionVariables)(readWriteUser)
+        task.update(taskData, Some(mergedMetaData.asUpdatedMetaData), executionVariables)
         task
       case None =>
         addTask[T](name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData, executionVariables.getOrElse(TemplateVariables.empty))
@@ -346,7 +365,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
         module.taskOption(name) match {
           case Some(task) =>
             val mergedMetaData = mergeMetaData(task.metaData, metaData)
-            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(mergedMetaData.asUpdatedMetaData), executionVariables)(readWriteUser)
+            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(mergedMetaData.asUpdatedMetaData), executionVariables)
           case None =>
             addAnyTask(name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData, executionVariables.getOrElse(TemplateVariables.empty))
         }
@@ -453,9 +472,10 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   }
 
   /** Returns the user context for read and write operations to the workspace provider. */
-  private def readWriteUser(implicit userContext: UserContext): UserContext = {
+  private[workspace] def readWriteUser(implicit userContext: UserContext): UserContext = {
     if(AccessControlConfig().enabled) {
-      loadingUser
+      // The loading user has the provider rights, the execution context still tells where the request came from.
+      loadingUser.withExecutionContext(userContext.executionContext)
     } else {
       userContext
     }

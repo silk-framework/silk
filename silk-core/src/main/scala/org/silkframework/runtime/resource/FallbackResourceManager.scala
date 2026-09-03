@@ -1,6 +1,6 @@
 package org.silkframework.runtime.resource
 
-import java.io.{InputStream, OutputStream}
+import java.io.{File, InputStream, OutputStream}
 import java.time.Instant
 
 /**
@@ -52,6 +52,17 @@ case class FallbackResourceManager(resourceMgr: ResourceManager, fallbackLoader:
       * Checks if this resource exists.
       */
     override def exists: Boolean = primaryResource.exists || fallbackResource.exists
+
+    /** The file of the resource that is read, so that a caller that needs one is not sent through a stream copy. */
+    override def underlyingFile: Option[File] = {
+      if (primaryResource.exists) {
+        primaryResource.underlyingFile
+      } else if (fallbackResource.exists) {
+        fallbackResource.underlyingFile
+      } else {
+        None
+      }
+    }
 
     override def size: Option[Long] = {
       if (primaryResource.exists) {
