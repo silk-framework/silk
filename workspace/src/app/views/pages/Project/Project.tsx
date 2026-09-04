@@ -43,6 +43,7 @@ import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry"
 import { ProjectAccessControlProps } from "../../plugins/plugin.types";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { ProjectForbiddenNotification } from "../../shared/ProjectForbiddenNotification";
+import { SearchContextContributor } from "../../../contexts/SearchContextContributor";
 
 const Project = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -91,7 +92,7 @@ const Project = () => {
     useEffect(() => {
         // Reset the filters, due to redirecting
         dispatch(workspaceOp.resetFilters());
-    }, [location.pathname]);
+    }, [window.location.pathname]);
 
     const tableSettings = globalTableSettings["workbench"];
 
@@ -125,6 +126,11 @@ const Project = () => {
     }
     return (
         <WorkspaceContent className="eccapp-di__project">
+            <SearchContextContributor
+                enabled={searchInitialized && Boolean(projectId) && !accessForbidden}
+                projectId={projectId}
+                view="project"
+            />
             {pageHeader}
             <ArtefactManagementOptions
                 projectId={projectId}

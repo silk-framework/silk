@@ -30,6 +30,10 @@ import PromptModal from "./PromptModal";
 import ErrorBoundary from "../../../ErrorBoundary";
 import { ProjectTaskTabViewContext } from "./ProjectTaskTabViewContext";
 import { AppDispatch } from "store/configureStore";
+import {
+    useForegroundViewContext,
+    usePageContextContribution,
+} from "../../../contexts/ApplicationContextRegistry";
 
 const getBookmark = () => window.location.pathname.split("/").slice(-1)[0];
 
@@ -75,6 +79,10 @@ interface IProjectTaskTabView {
         projectId?: string;
         // If the views are not shown on the task details page, this must be set
         taskId?: string;
+        /** Stable task type supplied by the caller for foreground modal context. */
+        taskType?: string;
+        taskLabel?: string;
+        projectLabel?: string;
     };
     viewActions?: IViewActions;
     // Modal ID for tracking its open/closed state
@@ -147,6 +155,58 @@ export function ProjectTaskTabView({
         (activeIframePath?.id ?? itemLinkActive)
             ? (selectedTab as IItemLink)
             : (taskViews ?? []).find((v) => v.id === selectedTab);
+    const activeTabContext = React.useMemo(
+        () =>
+            activeTab?.id
+                ? {
+                      id: activeTab.id,
+                      kind: ("path" in activeTab ? "itemLink" : "registeredTaskView") as
+                          | "itemLink"
+                          | "registeredTaskView",
+                      ...(activeTab.label ? { label: activeTab.label } : {}),
+                  }
+                : undefined,
+        [activeTab],
+    );
+    const pageContextContribution = React.useMemo(
+        () =>
+            !handlerRemoveModal && projectId && taskId && activeTabContext
+                ? {
+                      activeTab: activeTabContext,
+                      kind: "activeTaskView" as const,
+                      pluginId: taskViewConfig?.pluginId,
+                      scope: { projectId, taskId },
+                  }
+                : undefined,
+        [activeTabContext, handlerRemoveModal, projectId, taskId, taskViewConfig?.pluginId],
+    );
+    usePageContextContribution(pageContextContribution);
+    const foregroundViewContext = React.useMemo(
+        () =>
+            handlerRemoveModal && projectId && taskId && taskViewConfig?.taskType
+                ? {
+                      activeTab: activeTabContext,
+                      kind: "taskView" as const,
+                      pluginId: taskViewConfig.pluginId,
+                      projectId,
+                      projectLabel: taskViewConfig.projectLabel,
+                      taskId,
+                      taskLabel: taskViewConfig.taskLabel,
+                      taskType: taskViewConfig.taskType,
+                  }
+                : undefined,
+        [
+            activeTabContext,
+            handlerRemoveModal,
+            projectId,
+            taskId,
+            taskViewConfig?.pluginId,
+            taskViewConfig?.projectLabel,
+            taskViewConfig?.taskLabel,
+            taskViewConfig?.taskType,
+        ],
+    );
+    useForegroundViewContext(foregroundViewContext);
 
     React.useEffect(() => {
         if (projectId && taskId) {
