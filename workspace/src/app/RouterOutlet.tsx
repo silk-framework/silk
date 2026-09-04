@@ -13,25 +13,40 @@ interface RouterOutletProps {
 
 export default function RouterOutlet({ routes }: RouterOutletProps) {
     const [t] = useTranslation();
+    const componentOnlyRoutes = routes.filter((route) => route.componentOnly);
+    const layoutRoutes = routes.filter((route) => !route.componentOnly);
+
     return (
         <Suspense fallback={<Loading posGlobal description={t("common.app.loading", "Loading page.")} />}>
             <Switch>
-                {routes.map((route) => {
-                    const Component = route.component as any;
+                {componentOnlyRoutes.map((route) => {
+                    const Component = route.component as React.ComponentType | undefined;
                     return (
                         <Route key={route.path} path={getFullRoutePath(route.path)} exact={route.exact}>
-                            {route.componentOnly && Component ? (
+                            {Component && (
                                 <ApplicationContainer monitorDropzonesFor={["application/reactflow", "Files"]}>
                                     <ApplicationContent>
                                         <Component />
                                     </ApplicationContent>
                                 </ApplicationContainer>
-                            ) : (
-                                <AppLayout>{Component && <Component />}</AppLayout>
                             )}
                         </Route>
                     );
                 })}
+                <Route>
+                    <AppLayout>
+                        <Switch>
+                            {layoutRoutes.map((route) => {
+                                const Component = route.component as React.ComponentType | undefined;
+                                return (
+                                    <Route key={route.path} path={getFullRoutePath(route.path)} exact={route.exact}>
+                                        {Component && <Component />}
+                                    </Route>
+                                );
+                            })}
+                        </Switch>
+                    </AppLayout>
+                </Route>
             </Switch>
         </Suspense>
     );
