@@ -362,7 +362,7 @@ private object WorkflowNodeChanges {
 /**
   * What a whole-workflow update changed, as the editor saves it: the nodes added and removed, the edges connected and
   * disconnected in the words of the typed node changes, a node's task, the replaceable datasets, and a pure move of
-  * nodes or notes as "Editor layout changed". Used by [[TaskChanges.diff]].
+  * nodes or notes as "Editor layout changed". Used by [[TaskDiff]].
   */
 private object WorkflowDiff {
 

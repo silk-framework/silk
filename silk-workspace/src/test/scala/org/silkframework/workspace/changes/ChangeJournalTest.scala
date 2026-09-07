@@ -66,7 +66,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     val entries = project.changeJournal.all
     entries.map(_.seq) shouldBe Seq(1, 2, 3)
     entries.map(_.change.describe) shouldBe
-      Seq("Added transform 'transform'", "Updated transform 'transform': Mapping rule changed", "Removed transform 'transform'")
+      Seq("Added transform 'transform': Mapping rule 'name' added", "Updated transform 'transform': Mapping rule changed", "Removed transform 'transform'")
     entries.map(_.reverts) shouldBe Seq(None, None, None)
     // The task parameters may be sensitive, so a change never prints the task data
     entries.map(_.change.toString) shouldBe Seq("AddTask(transform)", "ReplaceTask(transform)", "RemoveTask(transform)")
@@ -80,7 +80,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     }
     project.addTask[GenericDatasetSpec]("dataset", dataset)
     project.updateTask[GenericDatasetSpec]("dataset", dataset)
-    project.changeJournal.all.map(_.change.describe) shouldBe Seq("Added Text dataset 'dataset'")
+    project.changeJournal.all.map(_.change.describe) shouldBe Seq("Added Text dataset 'dataset': File: 'data.txt'")
 
     // The recording wrapper keeps the value equality of the resources it wraps, also in sub directories
     project.resources.get("data.txt") shouldBe project.resources.get("data.txt")
@@ -280,7 +280,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     val project = retrieveOrCreateProject("journalLabels")
     val journal = project.changeJournal
     val task = project.addTask[TransformSpec]("transform", transform(name), MetaData(Some("Persons")))
-    journal.all.last.change.describe shouldBe "Added transform 'Persons'"
+    journal.all.last.change.describe shouldBe "Added transform 'Persons': Mapping rule 'name' added"
 
     val labeledCity = city.copy(metaData = MetaData(Some("City")))
     task.applyChange(AddMapping.of(task, "root", labeledCity))
@@ -291,6 +291,22 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     project.updateTask[TransformSpec]("transform", transform(name, labeledCity), Some(MetaData(Some("People"))))
     journal.all.last.change.describe shouldBe "Updated transform 'People', renamed from 'Persons'"
     journal.revert(added.seq).change.describe shouldBe "Removed mapping rule 'City' from transform 'Persons'"
+  }
+
+  it should "describe what a new task is set to" in {
+    val project = retrieveOrCreateProject("journalDescribeAddition")
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
+    def added(data: TaskSpec): String = AddTask(PlainTask("task", data)).describe
+
+    // The parameters that differ from their defaults, a password by name, a nested object by its own parameters
+    added(DescribedTask()) shouldBe "Added Described task 'task'"
+    added(DescribedTask(name = "b", password = PasswordParameter("secret"), selection = DatasetSelection(IdentifierOptionParameter(Some("input"))))) shouldBe
+      "Added Described task 'task': Name: 'b', Password set, Selection / Input: 'input'"
+    // A dataset by its resource and its own settings, a transform by its rules
+    val text = DatasetSpec(PluginRegistry.create[Dataset]("text", ParameterValues(Map("file" -> ParameterStringValue("data.txt"), "charset" -> ParameterStringValue("ISO-8859-1")))))
+    added(text.copy(uriAttribute = Some(Uri("urn:id")), readOnly = true)) shouldBe
+      "Added Text dataset 'task': File: 'data.txt', Charset: 'ISO-8859-1', URI attribute: 'urn:id', Read-only"
+    added(transform(name, age)) shouldBe "Added transform 'task': Mapping rule 'name' added, Mapping rule 'age' added"
   }
 
   it should "describe what a whole-task update changed" in {
@@ -389,12 +405,12 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
 
     // The user's own writes do not queue for review
     journal.reviewedUpTo shouldBe 0
-    journal.unreviewed.map(_.change.describe) shouldBe Seq("Added transform 'byAgent'", "Added transform 'alsoAgent'")
+    journal.unreviewed.map(_.change.describe) shouldBe Seq("Added transform 'byAgent': Mapping rule 'age' added", "Added transform 'alsoAgent': Mapping rule 'city' added")
 
     // Reviews only add up; a review beyond the latest change is refused
     journal.markReviewed(2)
     journal.reviewedUpTo shouldBe 2
-    journal.unreviewed.map(_.change.describe) shouldBe Seq("Added transform 'alsoAgent'")
+    journal.unreviewed.map(_.change.describe) shouldBe Seq("Added transform 'alsoAgent': Mapping rule 'city' added")
     journal.markReviewed(1)
     journal.reviewedUpTo shouldBe 2
     a[ChangeConflictException] should be thrownBy journal.markReviewed(99)

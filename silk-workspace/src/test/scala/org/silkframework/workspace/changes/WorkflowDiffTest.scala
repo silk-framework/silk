@@ -38,6 +38,9 @@ class WorkflowDiffTest extends AnyFlatSpec with Matchers {
     details(connected, csv) shouldBe Seq("Removed operator node 'transform'", "Disconnected 'csv' from 'transform'")
     ReplaceTask(PlainTask("flow", csv), PlainTask("flow", connected)).describe shouldBe
       "Updated workflow 'flow': Added operator node 'transform', Connected 'csv' to 'transform'"
+    // A new workflow is described the same way, against the empty one
+    AddTask(PlainTask("flow", connected)).describe shouldBe
+      "Added workflow 'flow': Added operator node 'transform', Added dataset node 'csv', Connected 'csv' to 'transform'"
   }
 
   it should "name the kind of an edge and a node's changed task" in {

@@ -2,9 +2,9 @@ package org.silkframework.workspace.changes
 
 import org.silkframework.config.{CustomTask, PlainTask, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec
-import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.rule.{LinkSpec, RootMappingRule, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.types.ResourceOption
+import org.silkframework.runtime.plugin.types.{PasswordParameter, ResourceOption}
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext, PluginObjectParameterTypeTrait, PluginParameter, StringParameterType}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables}
@@ -20,6 +20,8 @@ case class AddTask(task: PlainTask[TaskSpec]) extends Change with NamesTask {
   override def taskLabel: Option[String] = Change.capturedName(task)
 
   override def summary: String = s"Added ${TaskChanges.kind(task.data)} '${task.labelOrId}'"
+
+  override def details: Seq[ChangeDetail] = TaskDiff.settings(task.data)
 
   override def inverse: Option[RemoveTask] = Some(RemoveTask(task))
 
@@ -69,7 +71,7 @@ case class ReplaceTask(before: PlainTask[TaskSpec], after: PlainTask[TaskSpec]) 
     s"Updated ${TaskChanges.kind(after.data)} '${after.labelOrId}'$renamed"
   }
 
-  override def details: Seq[ChangeDetail] = TaskChanges.diff(before, after)
+  override def details: Seq[ChangeDetail] = TaskDiff(before, after)
 
   override def inverse: Option[ReplaceTask] = Some(ReplaceTask(after, before))
 
@@ -96,13 +98,37 @@ object TaskChanges {
     case _ => "task"
   }
 
+  /** Whether two tasks hold the same data, execution variables and metadata, ignoring timestamps and users. */
+  def same(task1: Task[TaskSpec], task2: Task[TaskSpec]): Boolean = {
+    task1.data == task2.data &&
+      task1.metaData.withoutUserData == task2.metaData.withoutUserData &&
+      task1.executionVariables == task2.executionVariables
+  }
+
+  /** The project task in the state of `expected`; throws a conflict if it is missing or has changed since. */
+  private[changes] def expectState(project: Project, expected: PlainTask[TaskSpec])
+                                  (implicit userContext: UserContext): ProjectTask[TaskSpec] = {
+    val task = project.anyTaskOption(expected.id)
+      .getOrElse(throw ChangeConflictException(s"Task '${expected.labelOrId}' does not exist in project '${project.id}'."))
+    if(!same(task, expected)) {
+      throw ChangeConflictException(s"Task '${expected.labelOrId}' in project '${project.id}' has been changed since.")
+    }
+    task.asInstanceOf[ProjectTask[TaskSpec]]
+  }
+}
+
+/**
+  * What a whole-task update changed, and what a new task is set to, by the parameters of the task. Passwords and
+  * sensitive variables are never printed.
+  */
+private object TaskDiff {
+
   /**
     * What an update changed: parameters by their labels with the previous and the new value, an object parameter
     * such as the mapping rules by name only, a dataset's own settings, a workflow's nodes and edges, the metadata
-    * and the execution variables. Passwords and sensitive variables are never printed. Empty if nothing is detected,
-    * e.g. for a plugin without value equality.
+    * and the execution variables. Empty if nothing is detected, e.g. for a plugin without value equality.
     */
-  def diff(before: Task[TaskSpec], after: Task[TaskSpec]): Seq[ChangeDetail] = {
+  def apply(before: Task[TaskSpec], after: Task[TaskSpec]): Seq[ChangeDetail] = {
     implicit val context: PluginContext = PluginContext.empty
     val data = (before.data, after.data) match {
       case (b: Workflow, a: Workflow) =>
@@ -120,6 +146,55 @@ object TaskChanges {
       Seq("description" -> (before.metaData.description != after.metaData.description),
           "tags" -> (before.metaData.tags != after.metaData.tags)).collect { case (field, true) => ChangeDetail(s"$field changed") }
     data ++ metaData ++ variables(before.executionVariables, after.executionVariables)
+  }
+
+  /**
+    * What a new task is set to, for the reviewer who did not configure it: the parameters that differ from their
+    * defaults with their values, a password by name only, a resource by file name, a nested plugin's own parameters,
+    * a dataset's URI attribute and read-only flag, a transform's mapping rules and a workflow's nodes and edges.
+    */
+  def settings(spec: TaskSpec): Seq[ChangeDetail] = {
+    implicit val context: PluginContext = PluginContext.empty
+    spec match {
+      case workflow: Workflow =>
+        WorkflowDiff(Workflow(), workflow)
+      case dataset: DatasetSpec[_] =>
+        parameters(dataset.plugin) ++
+          dataset.uriAttribute.map(uri => ChangeDetail(s"URI attribute: '${uri.uri}'")) ++
+          (if(dataset.readOnly) Seq(ChangeDetail("Read-only")) else Seq.empty)
+      case transform: TransformSpec =>
+        parameters(transform) ++ MappingRuleDiff.nested(RootMappingRule.empty, transform.mappingRule, "Mapping rule")
+      case plugin: AnyPlugin =>
+        parameters(plugin)
+      case _ =>
+        Seq.empty
+    }
+  }
+
+  /** The parameters of a plugin that are set to something other than their default, as statements: "File: 'data.csv'". */
+  private def parameters(plugin: AnyPlugin, prefix: String = "")(implicit context: PluginContext): Seq[ChangeDetail] = {
+    plugin.pluginSpec.parameters.flatMap { param =>
+      val label = prefix + param.label
+      val value = param(plugin)
+      param.parameterType match {
+        case StringParameterType.PasswordParameterType =>
+          value match {
+            case password: PasswordParameter if password.encryptedValue.nonEmpty => Seq(ChangeDetail(s"$label set"))
+            case _ => Seq.empty
+          }
+        case _: StringParameterType[_] =>
+          val shown = resourceName(value).getOrElse(render(param, plugin))
+          if(shown.isEmpty || param.stringDefaultValue.contains(shown)) Seq.empty
+          else Seq(ChangeDetail(s"$label: '${VariableChanges.shorten(shown)}'"))
+        case objectType: PluginObjectParameterTypeTrait if objectType.pluginDescription.isDefined =>
+          value match {
+            case nested: AnyPlugin => parameters(nested, s"$label / ")
+            case _ => Seq.empty
+          }
+        case _ =>
+          Seq.empty
+      }
+    }
   }
 
   /** The parameters that differ between two plugins, or the plugin type if that differs. */
@@ -188,23 +263,5 @@ object TaskChanges {
       case RemoveVariable(variable) => ChangeDetail(label(variable), before = value(variable))
       case other => ChangeDetail(other.describe)
     }
-  }
-
-  /** Whether two tasks hold the same data, execution variables and metadata, ignoring timestamps and users. */
-  def same(task1: Task[TaskSpec], task2: Task[TaskSpec]): Boolean = {
-    task1.data == task2.data &&
-      task1.metaData.withoutUserData == task2.metaData.withoutUserData &&
-      task1.executionVariables == task2.executionVariables
-  }
-
-  /** The project task in the state of `expected`; throws a conflict if it is missing or has changed since. */
-  private[changes] def expectState(project: Project, expected: PlainTask[TaskSpec])
-                                  (implicit userContext: UserContext): ProjectTask[TaskSpec] = {
-    val task = project.anyTaskOption(expected.id)
-      .getOrElse(throw ChangeConflictException(s"Task '${expected.labelOrId}' does not exist in project '${project.id}'."))
-    if(!same(task, expected)) {
-      throw ChangeConflictException(s"Task '${expected.labelOrId}' in project '${project.id}' has been changed since.")
-    }
-    task.asInstanceOf[ProjectTask[TaskSpec]]
   }
 }

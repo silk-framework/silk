@@ -20,7 +20,7 @@ case class AddMapping(taskId: Identifier, parentId: Identifier, rule: TransformR
   override def summary: String = s"Added ${MappingChanges.ruleDisplay(rule)} under '$parentId' in transform '$taskName'"
 
   // An object rule brings its nested rules along, which the reviewer should see by name.
-  override def details: Seq[ChangeDetail] = rule.rules.allRulesRecursive.map(MappingRuleDiff.nestedRule(_, "added"))
+  override def details: Seq[ChangeDetail] = rule.rules.allRulesRecursive.map(MappingRuleDiff.ruleDetail(_, "added"))
 
   override def inverse: Option[RemoveMapping] = Some(RemoveMapping(taskId, parentId, rule, index, taskLabel))
 
@@ -290,22 +290,27 @@ private object MappingRuleDiff {
       field("Single value", _.isAttribute.toString) ++ field("Backward property", _.isBackwardProperty.toString)
   }
 
-  /** The nested rules a container update added, removed or changed, by name; a nested container counts by its own fields. */
-  private def nested(before: ContainerTransformRule, after: ContainerTransformRule): Seq[ChangeDetail] = {
+  /**
+    * The rules below a container that an update added, removed or changed, by name; a nested container counts by its
+    * own fields. `noun` names them: nested rules of a container rule, mapping rules of a whole transform.
+    */
+  def nested(before: ContainerTransformRule, after: ContainerTransformRule, noun: String = "Nested rule"): Seq[ChangeDetail] = {
     def own(container: ContainerTransformRule): Map[Identifier, TransformRule] = {
       container.rules.allRulesRecursive.map(rule => rule.id -> rule.withChildren(Seq.empty)).toMap
     }
     val (previous, current) = (own(before), own(after))
     after.rules.allRulesRecursive.collect {
-      case rule if !previous.contains(rule.id) => nestedRule(rule, "added")
-      case rule if previous(rule.id) != rule.withChildren(Seq.empty) => nestedRule(rule, "changed")
+      case rule if !previous.contains(rule.id) => ruleDetail(rule, "added", noun)
+      case rule if previous(rule.id) != rule.withChildren(Seq.empty) => ruleDetail(rule, "changed", noun)
     } ++ before.rules.allRulesRecursive.collect {
-      case rule if !current.contains(rule.id) => nestedRule(rule, "removed")
+      case rule if !current.contains(rule.id) => ruleDetail(rule, "removed", noun)
     }
   }
 
-  /** A nested rule by name, e.g. "Nested rule 'city' added". */
-  def nestedRule(rule: TransformRule, what: String): ChangeDetail = ChangeDetail(s"Nested rule '${rule.labelOrId}' $what")
+  /** A rule by name, e.g. "Nested rule 'city' added". */
+  def ruleDetail(rule: TransformRule, what: String, noun: String = "Nested rule"): ChangeDetail = {
+    ChangeDetail(s"$noun '${rule.labelOrId}' $what")
+  }
 
   /**
     * An operator tree as a formula, e.g. "lowerCase(trim(name))": a path as it is, a transformer by its plugin id with
