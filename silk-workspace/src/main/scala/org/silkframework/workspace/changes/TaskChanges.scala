@@ -98,13 +98,15 @@ object TaskChanges {
 
   /**
     * What an update changed: parameters by their labels with the previous and the new value, an object parameter
-    * such as the mapping rules by name only, a dataset's own settings, the metadata and the execution variables.
-    * Passwords and sensitive variables are never printed. Empty if nothing is detected, e.g. for a plugin without
-    * value equality.
+    * such as the mapping rules by name only, a dataset's own settings, a workflow's nodes and edges, the metadata
+    * and the execution variables. Passwords and sensitive variables are never printed. Empty if nothing is detected,
+    * e.g. for a plugin without value equality.
     */
   def diff(before: Task[TaskSpec], after: Task[TaskSpec]): Seq[ChangeDetail] = {
     implicit val context: PluginContext = PluginContext.empty
     val data = (before.data, after.data) match {
+      case (b: Workflow, a: Workflow) =>
+        WorkflowDiff(b, a)
       case (b: DatasetSpec[_], a: DatasetSpec[_]) =>
         plugins(b.plugin, a.plugin) ++
           changed("URI attribute", b.uriAttribute.map(_.uri).getOrElse(""), a.uriAttribute.map(_.uri).getOrElse("")) ++
@@ -168,7 +170,7 @@ object TaskChanges {
   }
 
   private def changed(label: String, previous: String, current: String): Seq[ChangeDetail] = {
-    if(previous != current) Seq(ChangeDetail(label, Some(VariableChanges.shorten(previous)), Some(VariableChanges.shorten(current)))) else Seq.empty
+    ChangeDetail.changed(label, VariableChanges.shorten(previous), VariableChanges.shorten(current))
   }
 
   /** The execution variables that differ, with their values unless sensitive. */

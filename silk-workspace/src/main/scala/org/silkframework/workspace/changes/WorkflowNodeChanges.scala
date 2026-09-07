@@ -358,3 +358,44 @@ private object WorkflowNodeChanges {
     case _ => throw ChangeConflictException(s"Node '${node.nodeId}' in workflow '$taskName' is a dataset and has no error outputs.")
   }
 }
+
+/**
+  * What a whole-workflow update changed, as the editor saves it: the nodes added and removed, the edges connected and
+  * disconnected in the words of the typed node changes, a node's task, the replaceable datasets, and a pure move of
+  * nodes or notes as "Editor layout changed". Used by [[TaskChanges.diff]].
+  */
+private object WorkflowDiff {
+
+  import ChangeDetail.changed
+
+  def apply(before: Workflow, after: Workflow): Seq[ChangeDetail] = {
+    val previous = before.nodes.map(node => node.nodeId -> node).toMap
+    val current = after.nodes.map(node => node.nodeId -> node).toMap
+    val nodes = after.nodes.collect {
+      case node if !previous.contains(node.nodeId) => ChangeDetail(s"Added ${WorkflowNodeChanges.display(node)}")
+      case node if previous(node.nodeId).task != node.task =>
+        ChangeDetail(s"Task of node '${node.nodeId}'", Some(previous(node.nodeId).task.toString), Some(node.task.toString))
+    } ++ before.nodes.collect {
+      case node if !current.contains(node.nodeId) => ChangeDetail(s"Removed ${WorkflowNodeChanges.display(node)}")
+    }
+    val (previousEdges, currentEdges) = (edges(before), edges(after))
+    val edgeDetails = currentEdges.diff(previousEdges).map { case (source, target, edge) =>
+      ChangeDetail(s"Connected '$source' to '$target'${edge.suffix}")
+    } ++ previousEdges.diff(currentEdges).map { case (source, target, edge) =>
+      ChangeDetail(s"Disconnected '$source' from '$target'${edge.suffix}")
+    }
+    val replaceable =
+      changed("Replaceable input datasets", before.replaceableInputs.taskIds.mkString(", "), after.replaceableInputs.taskIds.mkString(", ")) ++
+        changed("Replaceable output datasets", before.replaceableOutputs.taskIds.mkString(", "), after.replaceableOutputs.taskIds.mkString(", "))
+    val content = nodes ++ edgeDetails ++ replaceable
+    def positions(workflow: Workflow) = workflow.nodes.map(node => node.nodeId -> node.position).toMap
+    val moved = positions(before) != positions(after) || before.uiAnnotations != after.uiAnnotations
+    if(content.isEmpty && moved) Seq(ChangeDetail("Editor layout changed")) else content
+  }
+
+  /** The edges of the workflow, each once, as (source, target, edge). */
+  private def edges(workflow: Workflow): Seq[(String, String, WorkflowEdge)] = {
+    val nodes = workflow.nodes
+    for((node, index) <- nodes.zipWithIndex; other <- nodes.drop(index + 1); edge <- WorkflowNodeChanges.edgesBetween(node, other)) yield edge
+  }
+}

@@ -237,6 +237,8 @@ private object MappingChanges {
   */
 private object MappingRuleDiff {
 
+  import ChangeDetail.changed
+
   /** At most this many characters of a formula are shown. */
   private val maxFormulaLength = 200
 
@@ -304,10 +306,6 @@ private object MappingRuleDiff {
 
   /** A nested rule by name, e.g. "Nested rule 'city' added". */
   def nestedRule(rule: TransformRule, what: String): ChangeDetail = ChangeDetail(s"Nested rule '${rule.labelOrId}' $what")
-
-  private def changed(label: String, previous: String, current: String): Seq[ChangeDetail] = {
-    if(previous != current) Seq(ChangeDetail(label, Some(previous), Some(current))) else Seq.empty
-  }
 
   /**
     * An operator tree as a formula, e.g. "lowerCase(trim(name))": a path as it is, a transformer by its plugin id with

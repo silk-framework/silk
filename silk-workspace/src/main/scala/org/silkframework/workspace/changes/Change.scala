@@ -81,6 +81,14 @@ case class ChangeDetail(label: String, before: Option[String] = None, after: Opt
   }
 }
 
+object ChangeDetail {
+
+  /** The detail of a value that differs, or nothing if it does not. */
+  def changed(label: String, previous: String, current: String): Seq[ChangeDetail] = {
+    if(previous != current) Seq(ChangeDetail(label, Some(previous), Some(current))) else Seq.empty
+  }
+}
+
 /** A change recorded from the outcome of a write, e.g. a file write or a workflow run. It holds no content, so it is not applied itself. */
 trait RecordedChange extends Change {
 
