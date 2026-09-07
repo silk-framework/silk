@@ -66,7 +66,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     val entries = project.changeJournal.all
     entries.map(_.seq) shouldBe Seq(1, 2, 3)
     entries.map(_.change.describe) shouldBe
-      Seq("Added transform 'transform': Mapping rule 'name' added", "Updated transform 'transform': Mapping rule changed", "Removed transform 'transform'")
+      Seq("Added transform 'transform': Mapping rule 'name' added", "Updated transform 'transform': Mapping rule 'age' added", "Removed transform 'transform'")
     entries.map(_.reverts) shouldBe Seq(None, None, None)
     // The task parameters may be sensitive, so a change never prints the task data
     entries.map(_.change.toString) shouldBe Seq("AddTask(transform)", "ReplaceTask(transform)", "RemoveTask(transform)")
@@ -325,7 +325,9 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     // A nested object parameter lists its own parameters; an object without a description, such as the mapping rules, is named only
     describe(task(DescribedTask()), task(DescribedTask(selection = DatasetSelection(IdentifierOptionParameter(Some("input")))))) shouldBe
       "Updated Described task 'task': Selection / Input '' → 'input'"
-    describe(task(transform(name)), task(transform(name, age))) shouldBe "Updated transform 'task': Mapping rule changed"
+    describe(task(transform(name)), task(transform(name, age))) shouldBe "Updated transform 'task': Mapping rule 'age' added"
+    describe(task(transform(name, age)), task(transform(name.copy(sourcePath = UntypedPath("fullName"))))) shouldBe
+      "Updated transform 'task': Mapping rule 'name' changed, Mapping rule 'age' removed"
 
     // A dataset adds its own settings to those of its plugin; a resource is shown by name
     def text(charset: String, file: String = "data.txt"): GenericDatasetSpec = {

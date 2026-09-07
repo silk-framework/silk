@@ -124,9 +124,10 @@ object TaskChanges {
 private object TaskDiff {
 
   /**
-    * What an update changed: parameters by their labels with the previous and the new value, an object parameter
-    * such as the mapping rules by name only, a dataset's own settings, a workflow's nodes and edges, the metadata
-    * and the execution variables. Empty if nothing is detected, e.g. for a plugin without value equality.
+    * What an update changed: parameters by their labels with the previous and the new value, the mapping rules of a
+    * transform by name, another object parameter such as the linkage rule by name only, a dataset's own settings, a
+    * workflow's nodes and edges, the metadata and the execution variables. Empty if nothing is detected, e.g. for a
+    * plugin without value equality.
     */
   def apply(before: Task[TaskSpec], after: Task[TaskSpec]): Seq[ChangeDetail] = {
     implicit val context: PluginContext = PluginContext.empty
@@ -162,8 +163,6 @@ private object TaskDiff {
         parameters(dataset.plugin) ++
           dataset.uriAttribute.map(uri => ChangeDetail(s"URI attribute: '${uri.uri}'")) ++
           (if(dataset.readOnly) Seq(ChangeDetail("Read-only")) else Seq.empty)
-      case transform: TransformSpec =>
-        parameters(transform) ++ MappingRuleDiff.nested(RootMappingRule.empty, transform.mappingRule, "Mapping rule")
       case plugin: AnyPlugin =>
         parameters(plugin)
       case _ =>
@@ -192,7 +191,10 @@ private object TaskDiff {
             case _ => Seq.empty
           }
         case _ =>
-          Seq.empty
+          value match {
+            case rules: RootMappingRule => MappingRuleDiff.nested(RootMappingRule.empty, rules, "Mapping rule")
+            case _ => Seq.empty
+          }
       }
     }
   }
@@ -228,7 +230,11 @@ private object TaskDiff {
           case _ => named
         }
       case _ =>
-        named
+        (previous, current) match {
+          // The mapping rules of a transform are compared by name; any other object is named only
+          case (b: RootMappingRule, a: RootMappingRule) => MappingRuleDiff.nested(b, a, "Mapping rule")
+          case _ => named
+        }
     }
   }
 
