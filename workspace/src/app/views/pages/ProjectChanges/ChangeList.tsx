@@ -329,7 +329,10 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                     </TableHead>
                     <TableBody>
                         {pageEntries.map((entry) => (
-                            <TableRow key={entry.seq} useZebraStyle={!!entry.unreviewed}>
+                            <TableRow
+                                key={entry.seq}
+                                className={entry.unreviewed ? "diapp-changes__row--unreviewed" : undefined}
+                            >
                                 <TableCell alignVertical="middle">{entry.seq}</TableCell>
                                 <TableCell alignVertical="middle">{timestamp(entry.timestamp)}</TableCell>
                                 <TableCell alignVertical="middle">
