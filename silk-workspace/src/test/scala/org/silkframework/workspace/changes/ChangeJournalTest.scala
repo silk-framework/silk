@@ -327,7 +327,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
       "Updated Described task 'task': Selection / Input '' → 'input'"
     describe(task(transform(name)), task(transform(name, age))) shouldBe "Updated transform 'task': Mapping rule 'age' added"
     describe(task(transform(name, age)), task(transform(name.copy(sourcePath = UntypedPath("fullName"))))) shouldBe
-      "Updated transform 'task': Mapping rule 'name' changed, Mapping rule 'age' removed"
+      "Updated transform 'task': Mapping rule 'name' / Value path 'name' → 'fullName', Mapping rule 'age' removed"
 
     // A dataset adds its own settings to those of its plugin; a resource is shown by name
     def text(charset: String, file: String = "data.txt"): GenericDatasetSpec = {

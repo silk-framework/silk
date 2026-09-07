@@ -67,12 +67,17 @@ class MappingRuleDiffTest extends AnyFlatSpec with Matchers {
     val address = ObjectMapping(id = "address", sourcePath = UntypedPath("address"), rules = MappingRules(propertyRules = Seq(name)))
     val moved = address.copy(sourcePath = UntypedPath("home"), rules = MappingRules(uriRule = Some(PatternUriMapping("uri", "urn:{id}")),
       propertyRules = Seq(name.copy(sourcePath = UntypedPath("fullName")))))
-    details(address, moved) shouldBe Seq("Value path 'address' → 'home'", "Nested rule 'uri' added", "Nested rule 'name' changed")
-    details(moved, address) shouldBe Seq("Value path 'home' → 'address'", "Nested rule 'name' changed", "Nested rule 'uri' removed")
+    details(address, moved) shouldBe
+      Seq("Value path 'address' → 'home'", "Nested rule 'uri' added", "Nested rule 'name' / Value path 'name' → 'fullName'")
+    details(moved, address) shouldBe
+      Seq("Value path 'home' → 'address'", "Nested rule 'name' / Value path 'fullName' → 'name'", "Nested rule 'uri' removed")
     // A nested container counts by its own fields; a change deeper down is listed for the rule it happened in
     val outer = ObjectMapping(id = "outer", rules = MappingRules(propertyRules = Seq(address)))
     details(outer, outer.copy(rules = MappingRules(propertyRules = Seq(moved)))) shouldBe
-      Seq("Nested rule 'address' changed", "Nested rule 'uri' added", "Nested rule 'name' changed")
+      Seq("Nested rule 'address' / Value path 'address' → 'home'", "Nested rule 'uri' added", "Nested rule 'name' / Value path 'name' → 'fullName'")
+    // A change without a visible field, such as a new operator id, is named only
+    val retagged = address.copy(rules = MappingRules(propertyRules = Seq(name.copy(inputId = Some("other")))))
+    details(address, retagged) shouldBe Seq("Nested rule 'name' changed")
   }
 
   it should "list the type URI, the URI pattern and a changed kind" in {

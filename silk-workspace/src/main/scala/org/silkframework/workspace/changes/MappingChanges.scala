@@ -291,17 +291,24 @@ private object MappingRuleDiff {
   }
 
   /**
-    * The rules below a container that an update added, removed or changed, by name; a nested container counts by its
-    * own fields. `noun` names them: nested rules of a container rule, mapping rules of a whole transform.
+    * The rules below a container that an update added or removed, by name, or changed, by their own field lines
+    * prefixed with the name; a nested container counts by its own fields. `noun` names them: nested rules of a
+    * container rule, mapping rules of a whole transform.
     */
   def nested(before: ContainerTransformRule, after: ContainerTransformRule, noun: String = "Nested rule"): Seq[ChangeDetail] = {
     def own(container: ContainerTransformRule): Map[Identifier, TransformRule] = {
       container.rules.allRulesRecursive.map(rule => rule.id -> rule.withChildren(Seq.empty)).toMap
     }
     val (previous, current) = (own(before), own(after))
-    after.rules.allRulesRecursive.collect {
-      case rule if !previous.contains(rule.id) => ruleDetail(rule, "added", noun)
-      case rule if previous(rule.id) != rule.withChildren(Seq.empty) => ruleDetail(rule, "changed", noun)
+    after.rules.allRulesRecursive.flatMap { rule =>
+      previous.get(rule.id) match {
+        case None => Seq(ruleDetail(rule, "added", noun))
+        case Some(was) if was != current(rule.id) =>
+          // The fields the rule changed in; "changed" alone when none shows, e.g. for new operator ids
+          val fields = apply(was, current(rule.id)).map(field => field.copy(label = s"$noun '${rule.labelOrId}' / ${field.label}"))
+          if(fields.isEmpty) Seq(ruleDetail(rule, "changed", noun)) else fields
+        case _ => Seq.empty
+      }
     } ++ before.rules.allRulesRecursive.collect {
       case rule if !current.contains(rule.id) => ruleDetail(rule, "removed", noun)
     }
