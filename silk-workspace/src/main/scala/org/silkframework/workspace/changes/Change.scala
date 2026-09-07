@@ -33,12 +33,27 @@ trait Change {
   /** The change that undoes this one, or None if it cannot be undone, e.g. a file overwrite of which no copy was kept. */
   def inverse: Option[Change]
 
+  /** Whether this change fulfils the given proposal, e.g. a workflow run the proposal to run it; recorded as [[ChangeEntry.fulfils]]. */
+  def fulfils(proposal: Proposal): Boolean = false
+
   /**
     * Performs this change on the project through the regular write path, which records it in the journal.
     *
     * @throws ChangeConflictException If the project is not in the state this change expects.
     */
   def applyTo(project: Project)(implicit userContext: UserContext): Unit
+}
+
+/**
+  * A change that is recorded instead of being applied, e.g. an agent's request to run a workflow: it waits for the
+  * user's review, and the change that fulfils it links back to it ([[ChangeEntry.fulfils]]). Reverting a proposal
+  * discards it; a fulfilled proposal is final.
+  */
+trait Proposal extends Change {
+
+  final override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
+    throw new IllegalStateException(s"A proposal is not applied as a change: $summary.")
+  }
 }
 
 object Change {

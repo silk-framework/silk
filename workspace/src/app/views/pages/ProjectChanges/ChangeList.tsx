@@ -56,13 +56,18 @@ const userDisplayName = (uri: string): string => {
 
 type ChangeKind = "added" | "updated" | "removed" | "run";
 
-/** The kind of change by its type name, e.g. 'AddMapping' adds, 'ResourceDeleted' removes, 'WorkflowExecuted' is a run. */
+/** The kind of change by its type name, e.g. 'AddMapping' adds, 'ResourceDeleted' removes, 'WorkflowExecuted' and its proposal are runs. */
 const changeKind = (type: string): ChangeKind => {
-    if (type === "WorkflowExecuted" || type.endsWith("WorkflowRun")) {
+    if (type === "WorkflowExecuted" || type === "ProposedWorkflowRun") {
         return "run";
     } else if (type.startsWith("Add") || type === "ResourceCreated") {
         return "added";
-    } else if (type.startsWith("Remove") || type === "ResourceDeleted" || type === "DisconnectWorkflowNodes") {
+    } else if (
+        type.startsWith("Remove") ||
+        type.startsWith("Discarded") ||
+        type === "ResourceDeleted" ||
+        type === "DisconnectWorkflowNodes"
+    ) {
         return "removed";
     } else {
         return "updated";
@@ -316,6 +321,8 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
     const revertBlocker = (entry: IChangeEntry): string | undefined => {
         if (entry.revertedBy != null) {
             return t("pages.changes.revert.alreadyReverted", { seq: entry.revertedBy });
+        } else if (entry.fulfilledBy != null) {
+            return t("pages.changes.revert.fulfilled", { seq: entry.fulfilledBy });
         } else if (!entry.revertible) {
             return t("pages.changes.revert.notRevertible");
         } else {
@@ -486,6 +493,11 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                                                     {t("pages.changes.revertedByTag", {
                                                         seq: entry.revertedBy,
                                                     })}
+                                                </Tag>
+                                            )}
+                                            {entry.fulfilledBy != null && (
+                                                <Tag small>
+                                                    {t("pages.changes.fulfilledTag", { seq: entry.fulfilledBy })}
                                                 </Tag>
                                             )}
                                         </TagList>

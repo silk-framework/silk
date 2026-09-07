@@ -17,9 +17,10 @@ import java.time.Instant
   * @param origin    The client the change came from, e.g. "mcp:<client name>", if known.
   * @param change    The change that was applied.
   * @param reverts   The seq of the entry this change reverts, if it was recorded by reverting one.
+  * @param fulfils   The seq of the proposal this change fulfilled, if it answered an open one, e.g. the run of a proposed workflow run.
   */
 case class ChangeEntry(seq: Int, timestamp: Instant, user: Option[String], origin: Option[String], change: Change,
-                       reverts: Option[Int] = None) {
+                       reverts: Option[Int] = None, fulfils: Option[Int] = None) {
 
   /** Whether the change came in through a client that names itself, e.g. an MCP agent; these queue for user review. */
   def agentWrite: Boolean = origin.isDefined
@@ -57,12 +58,15 @@ class ChangeJournal(project: Project) {
   def reviewedUpTo: Int = store.reviewedUpTo(project.id)
 
   /** The agent entries after the reviewed watermark, oldest first. The user's own writes do not queue for review,
-    * and a reverted entry needs no review anymore: its effect is undone. */
+    * a reverted entry needs no review anymore: its effect is undone, and neither does a run that fulfils an approved
+    * proposal: the approval was its review. */
   def unreviewed: Seq[ChangeEntry] = {
     val entries = all
     val watermark = reviewedUpTo
     val reverted = revertedBy(entries)
-    entries.filter(entry => entry.seq > watermark && entry.agentWrite && !reverted.contains(entry.seq))
+    entries.filter { entry =>
+      entry.seq > watermark && entry.agentWrite && !reverted.contains(entry.seq) && !entry.fulfils.exists(_ <= watermark)
+    }
   }
 
   /** The seq of the entry that reverted each reverted entry. */
@@ -70,6 +74,25 @@ class ChangeJournal(project: Project) {
 
   private def revertedBy(entries: Seq[ChangeEntry]): Map[Int, Int] = {
     entries.flatMap(entry => entry.reverts.map(_ -> entry.seq)).toMap
+  }
+
+  /** The seq of the entry that fulfilled each fulfilled proposal. A fulfilled proposal is final: it cannot be discarded anymore. */
+  def fulfilledBy: Map[Int, Int] = fulfilledBy(all)
+
+  private def fulfilledBy(entries: Seq[ChangeEntry]): Map[Int, Int] = {
+    entries.flatMap(entry => entry.fulfils.map(_ -> entry.seq)).toMap
+  }
+
+  /** The proposals that are neither discarded nor fulfilled, oldest first, with their entries. */
+  private def openProposals(entries: Seq[ChangeEntry]): Seq[(ChangeEntry, Proposal)] = {
+    val reverted = revertedBy(entries)
+    val fulfilled = fulfilledBy(entries)
+    entries.flatMap { entry =>
+      entry.change match {
+        case proposal: Proposal if !reverted.contains(entry.seq) && !fulfilled.contains(entry.seq) => Some(entry -> proposal)
+        case _ => None
+      }
+    }
   }
 
   /**
@@ -92,36 +115,23 @@ class ChangeJournal(project: Project) {
   }
 
   /** Records a proposed irreversible action, e.g. an agent's workflow run that awaits the user's review. */
-  def propose(change: Change)(implicit userContext: UserContext): ChangeEntry = {
-    record(change).getOrElse(throw new IllegalStateException("A proposal cannot be recorded from a derived write."))
+  def propose(proposal: Proposal)(implicit userContext: UserContext): ChangeEntry = {
+    record(proposal).getOrElse(throw new IllegalStateException("A proposal cannot be recorded from a derived write."))
   }
 
-  /** The open proposal to run the task, if any: proposed, not discarded, and not consumed by a later run of the task. */
+  /** The open proposal to run the task, if any: proposed, not discarded, and not fulfilled by a run of the task. */
   def openRunProposal(taskId: Identifier): Option[ChangeEntry] = {
-    val entries = all
-    val reverted = revertedBy(entries)
-    entries.reverseIterator.find { entry =>
-      entry.change match {
-        case proposal: ProposedWorkflowRun =>
-          proposal.taskId == taskId &&
-            !reverted.contains(entry.seq) &&
-            !entries.exists(later => later.seq > entry.seq && (later.change match {
-              case run: WorkflowExecuted => run.taskId == taskId
-              case _ => false
-            }))
-        case _ => false
-      }
-    }
+    openProposals(all).collect { case (entry, ProposedWorkflowRun(`taskId`, _)) => entry }.lastOption
   }
 
   /**
     * The open proposal to run the task, or a newly recorded one if there is none. Finding and recording is one
     * step under the store's monitor, so calls that arrive together share a proposal instead of stacking one each.
     */
-  def proposeRunIfAbsent(taskId: Identifier, change: Change)(implicit userContext: UserContext): ChangeEntry = {
+  def proposeRunIfAbsent(taskId: Identifier, proposal: Proposal)(implicit userContext: UserContext): ChangeEntry = {
     val currentStore = store
     currentStore.synchronized {
-      openRunProposal(taskId).getOrElse(propose(change))
+      openRunProposal(taskId).getOrElse(propose(proposal))
     }
   }
 
@@ -154,8 +164,10 @@ class ChangeJournal(project: Project) {
       // the request being served is the one who asked for it.
       val requester = ChangeJournal.requestUserContext.getOrElse(userContext)
       currentStore.synchronized {
+        // The change answers the latest open proposal it fulfils, e.g. a run the proposal to run its workflow.
+        val fulfils = openProposals(currentStore.entries(project.id)).findLast { case (_, proposal) => change.fulfils(proposal) }
         val entry = ChangeEntry(currentStore.latestSeq(project.id) + 1, Instant.now, requester.user.map(_.uri),
-          userContext.executionContext.origin, change, reverting.get())
+          userContext.executionContext.origin, change, reverting.get(), fulfils.map(_._1.seq))
         // A change that writes more than one task records one entry per task; only the first one reverts the entry.
         reverting.remove()
         currentStore.append(project.id, entry)
@@ -201,6 +213,8 @@ class ChangeJournal(project: Project) {
   def revertAll(seqs: Seq[Int])(implicit userContext: UserContext): Seq[RevertOutcome] = {
     val outcomes = Seq.newBuilder[RevertOutcome]
     var stopped = false
+    // Fixed before the batch: a revert never fulfils a proposal.
+    val fulfilled = fulfilledBy
     for(seq <- seqs.distinct.sorted(Ordering[Int].reverse)) {
       if(stopped) {
         outcomes += RevertOutcome.NotAttempted(seq)
@@ -212,6 +226,8 @@ class ChangeJournal(project: Project) {
             outcomes += RevertOutcome.Skipped(seq, s"Change $seq (${e.change.describe}) cannot be reverted.")
           case Some(_) if revertOf(seq).isDefined =>
             outcomes += RevertOutcome.Skipped(seq, s"Change $seq has been reverted already.")
+          case Some(_) if fulfilled.contains(seq) =>
+            outcomes += RevertOutcome.Skipped(seq, s"Change $seq has been fulfilled by change ${fulfilled(seq)}.")
           case Some(_) =>
             try {
               outcomes += RevertOutcome.Reverted(seq, revert(seq))
@@ -240,6 +256,9 @@ class ChangeJournal(project: Project) {
     val entry = entries.find(_.seq == seq).getOrElse(throw new NotFoundException(s"No change $seq in project '${project.id}'."))
     if(revertsInProgress.contains(seq) || revertedBy(entries).contains(seq)) {
       throw ChangeConflictException(s"Change $seq in project '${project.id}' has been reverted already.")
+    }
+    for(fulfilledBy <- fulfilledBy(entries).get(seq)) {
+      throw ChangeConflictException(s"Change $seq in project '${project.id}' has been fulfilled by change $fulfilledBy.")
     }
     val inverse = entry.change.inverse.getOrElse(
       throw ChangeConflictException(s"Change $seq (${entry.change.describe}) in project '${project.id}' cannot be reverted."))

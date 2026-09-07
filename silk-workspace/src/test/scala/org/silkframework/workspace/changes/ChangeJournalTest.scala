@@ -352,11 +352,31 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     journal.openRunProposal("wf") shouldBe None
     journal.unreviewed shouldBe empty
 
-    // A later run of the task consumes the open proposal
+    // A later run of the task consumes the open proposal; run under the approval, it needs no review of its own
     val again = journal.propose(ProposedWorkflowRun("wf"))(agent)
     journal.openRunProposal("wf") shouldBe Some(again)
-    journal.record(WorkflowExecuted("wf", None, failed = false))(agent)
+    journal.markReviewed(again.seq)
+    val run = journal.record(WorkflowExecuted("wf", None, failed = false))(agent).get
     journal.openRunProposal("wf") shouldBe None
+    journal.unreviewed shouldBe empty
+
+    // The consumed proposal is fulfilled by the run and cannot be discarded anymore
+    journal.fulfilledBy shouldBe Map(again.seq -> run.seq)
+    a[ChangeConflictException] should be thrownBy journal.revert(again.seq)
+    journal.revertAll(Seq(again.seq)).head shouldBe a[RevertOutcome.Skipped]
+
+    // A second run under the same approval queues for review, as does a run whose proposal was not approved
+    val second = journal.record(WorkflowExecuted("wf", None, failed = false))(agent).get
+    journal.unreviewed.map(_.seq) shouldBe Seq(second.seq)
+    val unapproved = journal.propose(ProposedWorkflowRun("wf"))(agent)
+    val early = journal.record(WorkflowExecuted("wf", None, failed = false))(agent).get
+    journal.unreviewed.map(_.seq) shouldBe Seq(second.seq, unapproved.seq, early.seq)
+
+    // A proposal discarded before the run is not fulfilled by it
+    val dropped = journal.propose(ProposedWorkflowRun("wf"))(agent)
+    journal.revert(dropped.seq)
+    journal.record(WorkflowExecuted("wf", None, failed = false))(agent)
+    journal.fulfilledBy shouldBe Map(again.seq -> run.seq, unapproved.seq -> early.seq)
   }
 
   it should "track the reviewed watermark over the agent entries" in {

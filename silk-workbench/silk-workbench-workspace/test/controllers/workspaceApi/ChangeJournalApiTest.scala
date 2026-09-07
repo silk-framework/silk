@@ -13,7 +13,7 @@ import org.silkframework.runtime.templating.{TemplateVariable, VariableScope}
 import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.serialization.json.TemplateVariableJson
 import org.silkframework.util.ConfigTestTrait
-import org.silkframework.workspace.changes.{AddMapping, ChangeJournal, TestJournalAccess, WorkflowExecuted}
+import org.silkframework.workspace.changes.{AddMapping, ChangeJournal, ProposedWorkflowRun, TestJournalAccess, WorkflowExecuted}
 import org.silkframework.workspace.{ProjectConfig, WorkspaceFactory}
 import play.api.libs.json.Json
 import play.api.routing.Router
@@ -75,12 +75,19 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     checkResponseExactStatusCode(client.url(revertUrl(999)).post(""), NOT_FOUND)
 
     // A recorded workflow run links its persisted execution report; the workflow itself does not exist here, so no task page
+    val proposal = project.changeJournal.propose(ProposedWorkflowRun("wf"))
     TestJournalAccess.record(project.changeJournal, WorkflowExecuted("wf", Some("2026-08-26T09:52:08.126Z"), failed = false))
     val run = changes().head
     run.`type` mustBe "WorkflowExecuted"
     val reportUrl = controllers.workspaceApi.routes.ReportsApi.retrieveReport(projectId, "wf", "2026-08-26T09:52:08.126Z").url
     run.links mustBe Seq(ItemLink("report", "Execution report", reportUrl, openInNewTab = true))
     run.revertible mustBe false
+
+    // The run fulfilled the open proposal, which is final from then on
+    val proposed = changes().find(_.seq == proposal.seq).get
+    proposed.fulfilledBy mustBe Some(run.seq)
+    proposed.revertible mustBe false
+    checkResponseExactStatusCode(client.url(revertUrl(proposal.seq)).post(""), CONFLICT)
   }
 
   it should "track the reviewed watermark and revert batches" in {

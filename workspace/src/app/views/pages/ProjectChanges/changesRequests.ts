@@ -39,6 +39,8 @@ export interface IChangeEntry {
     reverts?: number;
     /** The change that reverted this one, if it has been reverted. */
     revertedBy?: number;
+    /** For a proposed workflow run, the run that fulfilled it, if it has been run. */
+    fulfilledBy?: number;
     /** True for an agent change after the reviewed watermark. */
     unreviewed?: boolean;
 }

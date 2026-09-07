@@ -50,9 +50,11 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
     val journal = project.changeJournal
     val entries = journal.all
     val revertedBy = journal.revertedBy
+    val fulfilledBy = journal.fulfilledBy
     val unreviewed = journal.unreviewed.map(_.seq).toSet
     Ok(Json.toJson(ChangeListJson(journal.reviewedUpTo,
-      entries.reverse.map(entry => ChangeEntryJson.of(project, entry, revertedBy.get(entry.seq), unreviewed.contains(entry.seq))))))
+      entries.reverse.map(entry => ChangeEntryJson.of(project, entry, revertedBy.get(entry.seq), fulfilledBy.get(entry.seq),
+        unreviewed.contains(entry.seq))))))
   }
 
   @Operation(
@@ -197,12 +199,14 @@ object ChangeJournalApi {
                                "for a variable or file change the project page, for an existing file its download and for a " +
                                "workflow run its persisted execution report. Empty when there is nothing to link.")
                              links: Seq[ItemLink],
-                             @Schema(description = "Whether the change can be reverted at all. False for a workflow run, and for a file overwrite or deletion, whose previous content is not kept.")
+                             @Schema(description = "Whether the change can be reverted at all. False for a workflow run, for a file overwrite or deletion, whose previous content is not kept, and for a proposed run that has been fulfilled.")
                              revertible: Boolean,
                              @Schema(description = "The change this one reverted. Present only if the change was made by reverting one.")
                              reverts: Option[Int],
                              @Schema(description = "The change that reverted this one. Present only if the change has been reverted.")
                              revertedBy: Option[Int],
+                             @Schema(description = "For a proposed workflow run, the run that fulfilled it. Present only once the proposal has been run; it cannot be reverted from then on.")
+                             fulfilledBy: Option[Int],
                              @Schema(description = "True for an agent change after the reviewed watermark that has not been reverted. Absent otherwise.")
                              unreviewed: Option[Boolean])
 
@@ -210,11 +214,13 @@ object ChangeJournalApi {
 
     implicit val format: Format[ChangeEntryJson] = Json.format[ChangeEntryJson]
 
-    def of(project: Project, entry: ChangeEntry, revertedBy: Option[Int], unreviewed: Boolean = false)
+    /** The JSON of an entry; a freshly recorded entry is neither reverted nor fulfilled yet. */
+    def of(project: Project, entry: ChangeEntry, revertedBy: Option[Int], fulfilledBy: Option[Int] = None, unreviewed: Boolean = false)
           (implicit userContext: UserContext): ChangeEntryJson = {
       ChangeEntryJson(entry.seq, entry.timestamp.toString, entry.user, entry.origin, entry.change.changeType,
         entry.change.describe, entry.change.summary, entry.change.details.map(ChangeDetailJson.of), ChangeLinks.of(project, entry.change),
-        entry.change.inverse.isDefined, entry.reverts, revertedBy, unreviewed = if(unreviewed) Some(true) else None)
+        entry.change.inverse.isDefined && fulfilledBy.isEmpty, entry.reverts, revertedBy, fulfilledBy,
+        unreviewed = if(unreviewed) Some(true) else None)
     }
   }
 
