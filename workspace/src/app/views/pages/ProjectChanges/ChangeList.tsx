@@ -2,10 +2,12 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import {
     Button,
+    ContextMenu,
     ElapsedDateTimeDisplay,
     ElapsedDateTimeDisplayUnits,
     Icon,
     IconButton,
+    MenuItem,
     NotAvailable,
     Notification,
     SimpleDialog,
@@ -88,7 +90,53 @@ const linkIcon = (id: string): ValidIconName => {
     }
 };
 
-/** The changes of a project, newest first, with a revert action per entry and review actions for the agent changes. */
+/** Whether an entry can be reverted now: it has an inverse and has not been reverted yet. */
+const canRevert = (entry: IChangeEntry): boolean => entry.revertible && entry.revertedBy == null;
+
+/**
+ * The entries to revert so that the project returns to its state before change `seq`, newest first. A change, the
+ * revert of it, the revert of that revert and so on form a chain that toggles the change on and off, so per chain the
+ * newest link is reverted when the change is in effect now but was not before `seq`, or the other way round. Links that
+ * cannot be reverted are included, so that the caller can announce them as skipped.
+ */
+const entriesBackTo = (entries: IChangeEntry[], seq: number): IChangeEntry[] => {
+    const revertOf = new Map<number, IChangeEntry>();
+    entries.forEach((entry) => {
+        if (entry.reverts != null) {
+            revertOf.set(entry.reverts, entry);
+        }
+    });
+    const heads: IChangeEntry[] = [];
+    entries
+        .filter((change) => change.reverts == null)
+        .forEach((change) => {
+            let head = change;
+            let toggles = 0;
+            let togglesBefore = 0;
+            for (let next = revertOf.get(head.seq); next; next = revertOf.get(head.seq)) {
+                toggles++;
+                if (next.seq < seq) {
+                    togglesBefore++;
+                }
+                head = next;
+            }
+            const inEffectNow = toggles % 2 === 0;
+            const inEffectBefore = change.seq < seq && togglesBefore % 2 === 0;
+            if (inEffectNow !== inEffectBefore) {
+                heads.push(head);
+            }
+        });
+    return heads.sort((a, b) => b.seq - a.seq);
+};
+
+/** A batch revert awaiting confirmation: the entries in scope, of which the revertible ones are attempted. */
+interface IBatchRevert {
+    title: string;
+    confirmText: string;
+    entries: IChangeEntry[];
+}
+
+/** The changes of a project, newest first, with revert actions per entry and review actions for the agent changes. */
 const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
@@ -98,7 +146,7 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
     const [revertLoading, setRevertLoading] = React.useState<boolean>(false);
     const [revertError, setRevertError] = React.useState<ErrorResponse | undefined>(undefined);
     const [markReviewedOpen, setMarkReviewedOpen] = React.useState<boolean>(false);
-    const [revertUnreviewedOpen, setRevertUnreviewedOpen] = React.useState<boolean>(false);
+    const [batchRevert, setBatchRevert] = React.useState<IBatchRevert | undefined>(undefined);
     const [reviewLoading, setReviewLoading] = React.useState<boolean>(false);
     const [revertAllError, setRevertAllError] = React.useState<ErrorResponse | undefined>(undefined);
     const [revertAllSummary, setRevertAllSummary] = React.useState<
@@ -150,14 +198,13 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
     };
 
     const unreviewedEntries = entries.filter((entry) => entry.unreviewed);
-    // The batch attempts these; the server skips the rest of the unreviewed entries as not revertible.
-    const revertableUnreviewed = unreviewedEntries.filter((entry) => entry.revertible);
+    const latestSeq = Math.max(...entries.map((entry) => entry.seq));
 
     const markReviewed = async () => {
         setReviewLoading(true);
         try {
             // The latest fetched seq, so that entries that arrived after the page rendered are never approved unseen.
-            await requestMarkReviewed(projectId, Math.max(...entries.map((entry) => entry.seq)));
+            await requestMarkReviewed(projectId, latestSeq);
             setMarkReviewedOpen(false);
             await loadChanges();
         } catch (ex) {
@@ -187,14 +234,23 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
         return { intent: conflict || unchanged.length > 0 ? "warning" : "success", text: parts.join(" ") };
     };
 
-    const revertUnreviewed = async () => {
+    const openBatchRevert = (title: string, confirmText: string, scope: IChangeEntry[]) => {
+        setRevertAllError(undefined);
+        setBatchRevert({ title, confirmText, entries: scope });
+    };
+
+    /** Reverts the confirmed batch; the server skips the entries of it that cannot be reverted. */
+    const revertBatch = async () => {
+        if (!batchRevert) {
+            return;
+        }
         setReviewLoading(true);
         try {
             const response = await requestRevertChanges(
                 projectId,
-                unreviewedEntries.map((entry) => entry.seq),
+                batchRevert.entries.map((entry) => entry.seq),
             );
-            setRevertUnreviewedOpen(false);
+            setBatchRevert(undefined);
             await loadChanges();
             setRevertAllSummary(revertAllSummaryText(response.data.results));
         } catch (ex) {
@@ -256,14 +312,60 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
         );
     };
 
-    const revertTooltip = (entry: IChangeEntry): string => {
+    /** Why an entry cannot be reverted, if it cannot. */
+    const revertBlocker = (entry: IChangeEntry): string | undefined => {
         if (entry.revertedBy != null) {
             return t("pages.changes.revert.alreadyReverted", { seq: entry.revertedBy });
         } else if (!entry.revertible) {
             return t("pages.changes.revert.notRevertible");
         } else {
-            return t("pages.changes.revert.action");
+            return undefined;
         }
+    };
+
+    /** The revert actions of an entry, behind a menu so that none is hit by accident: the entry alone, or back to before it. */
+    const revertMenu = (entry: IChangeEntry): React.ReactNode => {
+        const backTo = entriesBackTo(entries, entry.seq);
+        const items = [
+            <MenuItem
+                key="revert"
+                data-test-id={`change-revert-btn-${entry.seq}`}
+                icon="operation-undo"
+                intent="danger"
+                text={t("pages.changes.revert.action")}
+                htmlTitle={revertBlocker(entry)}
+                disabled={!canRevert(entry)}
+                onClick={() => openRevertDialog(entry)}
+            />,
+        ];
+        if (entry.seq !== latestSeq) {
+            items.push(
+                <MenuItem
+                    key="revertBack"
+                    data-test-id={`change-revert-back-btn-${entry.seq}`}
+                    icon="operation-undo"
+                    intent="danger"
+                    text={t("pages.changes.revertBack.action")}
+                    disabled={!backTo.some(canRevert)}
+                    onClick={() =>
+                        openBatchRevert(
+                            t("pages.changes.revertBack.title", { seq: entry.seq }),
+                            t("pages.changes.revertBack.confirmText"),
+                            backTo,
+                        )
+                    }
+                />,
+            );
+        }
+        return (
+            <ContextMenu
+                data-test-id={`change-menu-${entry.seq}`}
+                togglerText={t("common.action.moreOptions", "Show more options")}
+                togglerSize="small"
+            >
+                {items}
+            </ContextMenu>
+        );
     };
 
     if (loading && !entries.length) {
@@ -300,10 +402,13 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                                 data-test-id={"changes-revert-unreviewed-btn"}
                                 disruptive
                                 text={t("pages.changes.revertAll.button")}
-                                onClick={() => {
-                                    setRevertAllError(undefined);
-                                    setRevertUnreviewedOpen(true);
-                                }}
+                                onClick={() =>
+                                    openBatchRevert(
+                                        t("pages.changes.revertAll.title"),
+                                        t("pages.changes.revertAll.confirmText"),
+                                        unreviewedEntries,
+                                    )
+                                }
                             />
                             <Spacing vertical size="small" />
                             <Button
@@ -400,15 +505,7 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                                             rel="noopener noreferrer"
                                         />
                                     ))}
-                                    <IconButton
-                                        data-test-id={`change-revert-btn-${entry.seq}`}
-                                        name="operation-undo"
-                                        small
-                                        disruptive
-                                        disabled={!entry.revertible || entry.revertedBy != null}
-                                        text={revertTooltip(entry)}
-                                        onClick={() => openRevertDialog(entry)}
-                                    />
+                                    {revertMenu(entry)}
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -439,33 +536,30 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                     )}
                 />
             )}
-            {revertUnreviewedOpen && (
+            {batchRevert && (
                 <DeleteModal
-                    data-test-id={"changes-revert-unreviewed-modal"}
+                    data-test-id={"changes-revert-batch-modal"}
                     isOpen={true}
-                    title={t("pages.changes.revertAll.title")}
+                    title={batchRevert.title}
                     alternativeDeleteButtonText={t("common.action.revert")}
                     removeLoading={reviewLoading}
                     errorMessage={revertAllError?.detail}
-                    onConfirm={revertUnreviewed}
-                    onDiscard={() => setRevertUnreviewedOpen(false)}
-                    render={() => (
-                        <div>
-                            <p>{t("pages.changes.revertAll.confirmText")}</p>
-                            <ul>
-                                {revertableUnreviewed.map((entry) => (
-                                    <li key={entry.seq}>{entry.description}</li>
-                                ))}
-                            </ul>
-                            {unreviewedEntries.length > revertableUnreviewed.length && (
-                                <p>
-                                    {t("pages.changes.revertAll.skippedNote", {
-                                        count: unreviewedEntries.length - revertableUnreviewed.length,
-                                    })}
-                                </p>
-                            )}
-                        </div>
-                    )}
+                    onConfirm={revertBatch}
+                    onDiscard={() => setBatchRevert(undefined)}
+                    render={() => {
+                        const skipped = batchRevert.entries.filter((entry) => !canRevert(entry)).length;
+                        return (
+                            <div>
+                                <p>{batchRevert.confirmText}</p>
+                                <ul>
+                                    {batchRevert.entries.filter(canRevert).map((entry) => (
+                                        <li key={entry.seq}>{entry.description}</li>
+                                    ))}
+                                </ul>
+                                {skipped > 0 && <p>{t("pages.changes.revertAll.skippedNote", { count: skipped })}</p>}
+                            </div>
+                        );
+                    }}
                 />
             )}
             {markReviewedOpen && (

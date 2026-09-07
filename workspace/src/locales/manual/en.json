@@ -726,6 +726,11 @@
                 "resultUnchanged": "Change #{{seq}} was not reverted: {{message}}",
                 "resultConflict": "Stopped at change #{{seq}}: {{message}}"
             },
+            "revertBack": {
+                "action": "Revert this and all newer changes",
+                "title": "Revert changes back to before #{{seq}}",
+                "confirmText": "The following changes will be reverted, newest first:"
+            },
             "errors": {
                 "fetchChanges": "Loading the change list failed",
                 "fetchProject": "Loading the project failed",
