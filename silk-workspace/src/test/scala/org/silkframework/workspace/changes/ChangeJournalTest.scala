@@ -181,9 +181,9 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     val address = ObjectMapping(id = "address", rules = MappingRules(propertyRules = Seq(city)))
     val task = project.addTask[TransformSpec]("transform", transform(name, address))
     AddMapping.of(task, "address", age, Some(0)) shouldBe AddMapping("transform", "address", age, Some(0))
-    // The description carries what the rule maps: source paths and target, a type URI or a URI pattern
+    // The description carries what the rule maps: its path or formula and target, a type URI or a URI pattern
     AddMapping("transform", "root", address).describe shouldBe
-      "Added object mapping 'address' (→ http://www.w3.org/2002/07/owl#sameAs) under 'root' in transform 'transform'"
+      "Added object mapping 'address' (→ http://www.w3.org/2002/07/owl#sameAs) under 'root' in transform 'transform': Nested rule 'city' added"
     AddMapping("transform", "root", TypeMapping(id = "type", typeUri = "http://example.org/Person")).describe shouldBe
       "Added type mapping 'type' (http://example.org/Person) under 'root' in transform 'transform'"
     AddMapping("transform", "root", PatternUriMapping(id = "uri", pattern = "http://example.org/{id}")).describe shouldBe

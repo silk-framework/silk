@@ -27,7 +27,7 @@ trait Change {
   /** The change without its details, e.g. "Added value mapping 'name' (name → http://…/name) under 'root' in transform 'persons'". */
   def summary: String
 
-  /** What the change changed where the summary does not tell: the parameters of a whole-task update with their values. */
+  /** What the change changed where the summary does not tell: the parameters of a whole-task update or the fields of a mapping rule update with their values. */
   def details: Seq[ChangeDetail] = Seq.empty
 
   /** The change that undoes this one, or None if it cannot be undone, e.g. a file overwrite of which no copy was kept. */

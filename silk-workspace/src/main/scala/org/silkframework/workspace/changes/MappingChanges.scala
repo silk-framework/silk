@@ -1,7 +1,10 @@
 package org.silkframework.workspace.changes
 
 import org.silkframework.config.Task
-import org.silkframework.rule.{ContainerTransformRule, ObjectMapping, PatternUriMapping, RootMappingRule, RuleTraverser, TransformRule, TransformSpec, TypeMapping, UriMapping, ValueTransformRule}
+import org.silkframework.rule.input.{Input, InputPortInput, PathInput, RuleBlockInput, TransformInput, Transformer}
+import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer}
+import org.silkframework.rule.{ContainerTransformRule, MappingTarget, ObjectMapping, PatternUriMapping, RootMappingRule, RuleTraverser, TransformRule, TransformSpec, TypeMapping, UriMapping, ValueTransformRule}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
 import org.silkframework.util.Identifier
 
@@ -15,6 +18,9 @@ case class AddMapping(taskId: Identifier, parentId: Identifier, rule: TransformR
                       override val taskLabel: Option[String] = None) extends TaskChange[TransformSpec] {
 
   override def summary: String = s"Added ${MappingChanges.ruleDisplay(rule)} under '$parentId' in transform '$taskName'"
+
+  // An object rule brings its nested rules along, which the reviewer should see by name.
+  override def details: Seq[ChangeDetail] = rule.rules.allRulesRecursive.map(MappingRuleDiff.nestedRule(_, "added"))
 
   override def inverse: Option[RemoveMapping] = Some(RemoveMapping(taskId, parentId, rule, index, taskLabel))
 
@@ -86,6 +92,8 @@ case class UpdateMapping(taskId: Identifier, before: TransformRule, after: Trans
   // Names the rule as the update left it, i.e. a rename shows the new label.
   override def summary: String = s"Updated mapping rule '${after.labelOrId}' in transform '$taskName'"
 
+  override def details: Seq[ChangeDetail] = MappingRuleDiff(before, after)
+
   override def inverse: Option[UpdateMapping] = Some(UpdateMapping(taskId, after, before, taskLabel))
 
   override def apply(spec: TransformSpec): TransformSpec = {
@@ -148,33 +156,30 @@ private object MappingChanges {
 
   /** Names the rule and what it maps for display, e.g. "value mapping 'name' (firstName → http://…/name)". */
   def ruleDisplay(rule: TransformRule): String = {
-    val kind = rule match {
-      case _: ObjectMapping => "object mapping"
-      case _: TypeMapping => "type mapping"
-      case _: UriMapping => "URI mapping"
-      case _: ValueTransformRule => "value mapping"
-      case _ => "mapping rule"
-    }
-    s"$kind '${rule.labelOrId}'" + essence(rule).map(e => s" ($e)").getOrElse("")
+    s"${kind(rule)} '${rule.labelOrId}'" + essence(rule).map(e => s" ($e)").getOrElse("")
   }
 
-  /** What the rule maps: its source paths and target property, a type URI or a URI pattern; None if it shows nothing. */
+  /** The kind of rule for display, e.g. "value mapping". */
+  def kind(rule: TransformRule): String = rule match {
+    case _: ObjectMapping => "object mapping"
+    case _: TypeMapping => "type mapping"
+    case _: UriMapping => "URI mapping"
+    case _: ValueTransformRule => "value mapping"
+    case _ => "mapping rule"
+  }
+
+  /** What the rule maps: its formula (a path as it is) and target property, a type URI or a URI pattern; None if it shows nothing. */
   private def essence(rule: TransformRule): Option[String] = {
-    val (sources, target) = rule match {
-      case typeRule: TypeMapping => (Seq(typeRule.typeUri.uri), None)
-      case uriRule: PatternUriMapping => (Seq(uriRule.pattern), None)
+    val (source, target) = rule match {
+      case typeRule: TypeMapping => (typeRule.typeUri.uri, None)
+      case uriRule: PatternUriMapping => (uriRule.pattern, None)
       // The derived operator of an object rule generates its URIs; the object's own source path is the essence.
-      case objectRule: ObjectMapping =>
-        (Seq(objectRule.sourcePath.normalizedSerialization), objectRule.target.map(_.propertyUri.uri))
-      case _ => (rule.sourcePaths.map(_.normalizedSerialization), rule.target.map(_.propertyUri.uri))
+      case objectRule: ObjectMapping => (objectRule.sourcePath.normalizedSerialization, objectRule.target.map(_.propertyUri.uri))
+      case _ => (MappingRuleDiff.formula(rule.operator), rule.target.map(_.propertyUri.uri))
     }
-    val sourcePart = sources.filter(_.nonEmpty).distinct match {
-      case Seq() => None
-      case paths => Some((paths.take(3) ++ (if(paths.size > 3) Seq("…") else Seq.empty)).mkString(", "))
-    }
-    (sourcePart, target) match {
-      case (Some(source), Some(tgt)) => Some(s"$source → $tgt")
-      case (Some(source), None) => Some(source)
+    (Some(source).filter(_.nonEmpty), target) match {
+      case (Some(src), Some(tgt)) => Some(s"$src → $tgt")
+      case (Some(src), None) => Some(src)
       case (None, Some(tgt)) => Some(s"→ $tgt")
       case (None, None) => None
     }
@@ -222,4 +227,117 @@ private object MappingChanges {
   def withRoot(spec: TransformSpec, traverser: RuleTraverser): TransformSpec = {
     spec.copy(mappingRule = traverser.root.operator.asInstanceOf[RootMappingRule])
   }
+}
+
+/**
+  * What a rule update changed, by the fields of the mapping editor: what the rule maps (value path or formula, target
+  * property, data type, URI pattern, type URI), the nested rules of a container by name, then label, description and
+  * id. Empty if only something invisible changed, e.g. the operator ids. Also renders the formula and the nested rules
+  * for the description of an addition.
+  */
+private object MappingRuleDiff {
+
+  /** At most this many characters of a formula are shown. */
+  private val maxFormulaLength = 200
+
+  def apply(before: TransformRule, after: TransformRule): Seq[ChangeDetail] = {
+    val fields = (before, after) match {
+      case _ if MappingChanges.kind(before) != MappingChanges.kind(after) =>
+        changed("Kind", MappingChanges.kind(before), MappingChanges.kind(after))
+      case (b: TypeMapping, a: TypeMapping) => changed("Type", b.typeUri.uri, a.typeUri.uri)
+      case (b: PatternUriMapping, a: PatternUriMapping) => changed("URI pattern", b.pattern, a.pattern)
+      case (b: UriMapping, a: UriMapping) => changed("URI formula", uriText(b), uriText(a))
+      case (b: ContainerTransformRule, a: ContainerTransformRule) =>
+        changed("Value path", sourcePath(b), sourcePath(a)) ++ target(b, a) ++ nested(b, a)
+      case (b: ValueTransformRule, a: ValueTransformRule) =>
+        val value = changed(valueLabel(b, a), formula(b.operator), formula(a.operator))
+        val layout = if(value.isEmpty && b.layout != a.layout) Seq(ChangeDetail("Editor layout changed")) else Seq.empty
+        value ++ layout ++ target(b, a)
+      case _ => Seq.empty
+    }
+    def text(value: Option[String]): String = VariableChanges.shorten(value.getOrElse(""))
+    fields ++ changed("Label", text(before.metaData.label), text(after.metaData.label)) ++
+      changed("Description", text(before.metaData.description), text(after.metaData.description)) ++
+      changed("Id", before.id.toString, after.id.toString)
+  }
+
+  /** A URI rule's pattern, or the formula of a complex one. */
+  private def uriText(rule: UriMapping): String = rule match {
+    case pattern: PatternUriMapping => pattern.pattern
+    case other => formula(other.operator)
+  }
+
+  /** The source path of an object rule; the root has none. */
+  private def sourcePath(rule: ContainerTransformRule): String = rule match {
+    case objectRule: ObjectMapping => objectRule.sourcePath.normalizedSerialization
+    case _ => ""
+  }
+
+  /** "Value path" while both operators are plain paths, as the editor shows them, else "Value formula". */
+  private def valueLabel(before: TransformRule, after: TransformRule): String = (before.operator, after.operator) match {
+    case (_: PathInput, _: PathInput) => "Value path"
+    case _ => "Value formula"
+  }
+
+  /** The target property, data type and flags that differ. */
+  private def target(before: TransformRule, after: TransformRule): Seq[ChangeDetail] = {
+    def field(label: String, value: MappingTarget => String): Seq[ChangeDetail] = {
+      changed(label, before.target.map(value).getOrElse(""), after.target.map(value).getOrElse(""))
+    }
+    field("Target property", _.propertyUri.uri) ++ field("Data type", _.valueType.label) ++
+      field("Single value", _.isAttribute.toString) ++ field("Backward property", _.isBackwardProperty.toString)
+  }
+
+  /** The nested rules a container update added, removed or changed, by name; a nested container counts by its own fields. */
+  private def nested(before: ContainerTransformRule, after: ContainerTransformRule): Seq[ChangeDetail] = {
+    def own(container: ContainerTransformRule): Map[Identifier, TransformRule] = {
+      container.rules.allRulesRecursive.map(rule => rule.id -> rule.withChildren(Seq.empty)).toMap
+    }
+    val (previous, current) = (own(before), own(after))
+    after.rules.allRulesRecursive.collect {
+      case rule if !previous.contains(rule.id) => nestedRule(rule, "added")
+      case rule if previous(rule.id) != rule.withChildren(Seq.empty) => nestedRule(rule, "changed")
+    } ++ before.rules.allRulesRecursive.collect {
+      case rule if !current.contains(rule.id) => nestedRule(rule, "removed")
+    }
+  }
+
+  /** A nested rule by name, e.g. "Nested rule 'city' added". */
+  def nestedRule(rule: TransformRule, what: String): ChangeDetail = ChangeDetail(s"Nested rule '${rule.labelOrId}' $what")
+
+  private def changed(label: String, previous: String, current: String): Seq[ChangeDetail] = {
+    if(previous != current) Seq(ChangeDetail(label, Some(previous), Some(current))) else Seq.empty
+  }
+
+  /**
+    * An operator tree as a formula, e.g. "lowerCase(trim(name))": a path as it is, a transformer by its plugin id with
+    * the parameters that differ from their defaults in brackets, a constant as its quoted value; cut for display.
+    */
+  def formula(input: Input): String = {
+    implicit val context: PluginContext = PluginContext.empty
+    VariableChanges.shorten(expression(input), maxFormulaLength)
+  }
+
+  private def expression(input: Input)(implicit context: PluginContext): String = input match {
+    case PathInput(_, path) => if(path.operators.isEmpty) "(entity)" else path.normalizedSerialization
+    case TransformInput(_, constant: ConstantTransformer, _) => quote(constant.value)
+    case TransformInput(_, constant: ConstantUriTransformer, _) => s"<${constant.value.uri}>"
+    case TransformInput(_, transformer, inputs) =>
+      s"${transformer.pluginSpec.id}${parameters(transformer)}(${inputs.map(input => expression(input)).mkString(", ")})"
+    case RuleBlockInput(_, ruleBlockId, bindings) =>
+      s"$ruleBlockId(${bindings.map(binding => s"${binding.portId} = ${expression(binding.input)}").mkString(", ")})"
+    case InputPortInput(_, portId) => s"port:$portId"
+  }
+
+  /** The parameters of a transformer that differ from their defaults, e.g. "[regex="\s+", replace=" "]"; empty if none. */
+  private def parameters(transformer: Transformer)(implicit context: PluginContext): String = {
+    val set = for {
+      param <- transformer.pluginSpec.parameters
+      value = transformer.templateValues.getOrElse(param.name, param.stringValue(transformer))
+      if !param.stringDefaultValue.contains(value)
+    } yield s"${param.name}=${quote(value)}"
+    if(set.isEmpty) "" else set.mkString("[", ", ", "]")
+  }
+
+  private def quote(value: String): String = "\"" + value.replace("\"", "\\\"") + "\""
 }

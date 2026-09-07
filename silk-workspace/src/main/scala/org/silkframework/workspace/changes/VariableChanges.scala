@@ -65,8 +65,8 @@ private[workspace] object VariableChanges {
   /** Whether any of the variables is sensitive, i.e. its value must not be shown. */
   def sensitive(variables: Seq[TemplateVariable]): Boolean = variables.exists(_.isSensitive)
 
-  /** A value for display, cut to 50 characters. */
-  def shorten(value: String): String = if(value.length > 50) value.take(50) + "…" else value
+  /** A value for display, cut to `max` characters. */
+  def shorten(value: String, max: Int = 50): String = if(value.length > max) value.take(max) + "…" else value
 
   /** The changes that turn `before` into `after`: added and changed variables in the order of `after`, then the removed ones. */
   def diff(before: TemplateVariables, after: TemplateVariables): Seq[Change] = {
