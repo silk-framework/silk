@@ -54,12 +54,21 @@ class ChangeJournal(project: Project) {
   /** The seq up to which the user has reviewed the changes; 0 if never set. */
   def reviewedUpTo: Int = store.reviewedUpTo(project.id)
 
+  /** The entries and the reviewed watermark as of one moment, so that what is derived from them agrees. */
+  def snapshot: (Seq[ChangeEntry], Int) = {
+    val currentStore = store
+    currentStore.synchronized((currentStore.entries(project.id), currentStore.reviewedUpTo(project.id)))
+  }
+
   /** The agent entries after the reviewed watermark, oldest first. The user's own writes do not queue for review,
     * a reverted entry needs no review anymore: its effect is undone, and neither does a run that fulfils an approved
     * proposal: the approval was its review. */
   def unreviewed: Seq[ChangeEntry] = {
-    val entries = all
-    val watermark = reviewedUpTo
+    val (entries, watermark) = snapshot
+    unreviewed(entries, watermark)
+  }
+
+  def unreviewed(entries: Seq[ChangeEntry], watermark: Int): Seq[ChangeEntry] = {
     val reverted = revertedBy(entries)
     entries.filter { entry =>
       entry.seq > watermark && entry.agentWrite && !reverted.contains(entry.seq) && !entry.fulfils.exists(_ <= watermark)
@@ -69,14 +78,14 @@ class ChangeJournal(project: Project) {
   /** The seq of the entry that reverted each reverted entry. */
   def revertedBy: Map[Int, Int] = revertedBy(all)
 
-  private def revertedBy(entries: Seq[ChangeEntry]): Map[Int, Int] = {
+  def revertedBy(entries: Seq[ChangeEntry]): Map[Int, Int] = {
     entries.flatMap(entry => entry.reverts.map(_ -> entry.seq)).toMap
   }
 
   /** The seq of the entry that fulfilled each fulfilled proposal. A fulfilled proposal is final: it cannot be discarded anymore. */
   def fulfilledBy: Map[Int, Int] = fulfilledBy(all)
 
-  private def fulfilledBy(entries: Seq[ChangeEntry]): Map[Int, Int] = {
+  def fulfilledBy(entries: Seq[ChangeEntry]): Map[Int, Int] = {
     entries.flatMap(entry => entry.fulfils.map(_ -> entry.seq)).toMap
   }
 

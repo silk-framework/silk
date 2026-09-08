@@ -48,11 +48,12 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
               projectId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectId)
     val journal = project.changeJournal
-    val entries = journal.all
-    val revertedBy = journal.revertedBy
-    val fulfilledBy = journal.fulfilledBy
-    val unreviewed = journal.unreviewed.map(_.seq).toSet
-    Ok(Json.toJson(ChangeListJson(journal.reviewedUpTo,
+    // Derived from one snapshot, so that a write landing meanwhile cannot skew the flags against the entries.
+    val (entries, reviewedUpTo) = journal.snapshot
+    val revertedBy = journal.revertedBy(entries)
+    val fulfilledBy = journal.fulfilledBy(entries)
+    val unreviewed = journal.unreviewed(entries, reviewedUpTo).map(_.seq).toSet
+    Ok(Json.toJson(ChangeListJson(reviewedUpTo,
       entries.reverse.map(entry => ChangeEntryJson.of(project, entry, revertedBy.get(entry.seq), fulfilledBy.get(entry.seq),
         unreviewed.contains(entry.seq))))))
   }
