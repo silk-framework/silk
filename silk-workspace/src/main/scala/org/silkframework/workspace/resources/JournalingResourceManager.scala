@@ -1,9 +1,10 @@
 package org.silkframework.workspace.resources
 
 import org.silkframework.runtime.resource.{ForwardingResource, Resource, ResourceManager, WritableResource}
+import org.silkframework.runtime.validation.ConflictRequestException
 import org.silkframework.workspace.changes.{Change, ChangeJournal, FileState, ResourceCreated, ResourceDeleted, ResourceOverwritten}
 
-import java.io.{File, IOException, InputStream, OutputStream}
+import java.io.{File, InputStream, OutputStream}
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.io.Codec
 
@@ -92,12 +93,13 @@ private class JournalingResource(protected val underlying: WritableResource, jou
   override def delete(): Unit = {
     val before = FileState.of(underlying)
     underlying.delete()
-    for(state <- before) {
+    // Only a recorded deletion is verified, a deletion outside a request stays best-effort.
+    for(state <- before; user <- ChangeJournal.requestUserContext) {
       // A backend may not report a failed deletion, e.g. a file held open, so a recorded deletion is verified.
       if(underlying.exists) {
-        throw new IOException(s"Could not delete file '$journalPath'.")
+        throw ConflictRequestException(s"Could not delete file '$journalPath', it may be in use.")
       }
-      record(ResourceDeleted(journalPath, state))
+      journal.record(ResourceDeleted(journalPath, state))(user)
     }
   }
 
