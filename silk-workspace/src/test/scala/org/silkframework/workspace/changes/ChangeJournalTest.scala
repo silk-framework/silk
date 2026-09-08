@@ -13,6 +13,7 @@ import org.silkframework.runtime.activity.{SimpleUserContext, TestUserContextTra
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.plugin.types.{IdentifierOptionParameter, PasswordParameter}
 import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterTemplateValue, ParameterValues, PluginContext, PluginRegistry}
+import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, TemplateVariables, VariableScope}
 import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
@@ -600,6 +601,35 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
         Seq("Added file 'folder/nested.txt' (7 B)", "Deleted file 'folder/nested.txt' (7 B)")
       project.resources.listChildren should not contain "folder"
     }
+  }
+
+  it should "roll back a failed creation, but record a failed write that overwrote content" in {
+    val project = retrieveOrCreateProject("journalFailedWrites")
+    val journal = project.changeJournal
+    val file = project.resources.get("partial.txt")
+    def failingWrite(resource: WritableResource): Unit = {
+      resource.write()(out => { out.write("part".getBytes); throw new RuntimeException("failed") })
+    }
+
+    ChangeJournal.onBehalfOf(implicitly[UserContext]) {
+      // A creation that failed part-way leaves nothing behind, so there is nothing to record
+      a[RuntimeException] should be thrownBy failingWrite(file)
+      file.exists shouldBe false
+      journal.all shouldBe empty
+
+      // A write that failed after overwriting content is recorded, as the previous content is lost
+      file.writeString("content")
+      a[RuntimeException] should be thrownBy failingWrite(file)
+      journal.all should have size 2
+      journal.all.head.change shouldBe a[ResourceCreated]
+      journal.all.last.change shouldBe a[ResourceOverwritten]
+    }
+
+    // Outside a request, e.g. in an activity, nothing is recorded and a failed creation is left as it is
+    val output = project.resources.get("output.txt")
+    a[RuntimeException] should be thrownBy failingWrite(output)
+    output.exists shouldBe true
+    journal.all should have size 2
   }
 
   it should "start with an empty journal when a project is re-created after deletion" in {

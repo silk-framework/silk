@@ -7,6 +7,7 @@ import org.silkframework.workspace.changes.{Change, ChangeJournal, FileState, Re
 import java.io.{File, InputStream, OutputStream}
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.io.Codec
+import scala.util.Try
 
 /**
   * The resources of a project, recording every write and deletion made on behalf of a request in its change journal.
@@ -114,14 +115,16 @@ private class JournalingResource(protected val underlying: WritableResource, jou
   /** Runs a write on the wrapped resource and records it. */
   private def recorded[T](write: => T): T = {
     val before = FileState.of(underlying)
-    try {
-      write
-    } finally {
-      recordWrite(before)
+    val result = Try(write)
+    // A request's creation that failed leaves nothing behind; overwritten content is lost, so it is recorded.
+    if(result.isFailure && before.isEmpty && ChangeJournal.requestUserContext.isDefined) {
+      Try(underlying.delete())
     }
+    recordWrite(before)
+    result.get
   }
 
-  /** Records the state a write left the file in. Called even if the write failed, as the file has been written to nevertheless. */
+  /** Records the state a write left the file in. */
   private def recordWrite(before: Option[FileState]): Unit = {
     for(after <- FileState.of(underlying)) {
       record(before match {
