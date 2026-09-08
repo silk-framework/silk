@@ -21,6 +21,7 @@ import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVa
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.activity.{CachedActivity, TaskActivity, TaskActivityFactory}
+import org.silkframework.workspace.changes.{Change, ReplaceTask, TaskChange, TaskChanges}
 
 import java.time.Instant
 import java.util.logging.{Level, Logger}
@@ -127,10 +128,40 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   }
 
   /**
-    * Updates the data of this task.
+    * Updates the data of this task. Recorded in the project's change journal as a whole-task replacement.
     */
   def update(newData: TaskType, newMetaData: Option[MetaData] = None, newExecutionVariables: Option[TemplateVariables] = None)
             (implicit userContext: UserContext): Unit = synchronized {
+    updateAndRecord(newData, newMetaData, newExecutionVariables, changes = Seq.empty)
+  }
+
+  /**
+    * Applies a typed change to the data of this task and records it in the project's change journal.
+    *
+    * @throws org.silkframework.workspace.changes.ChangeConflictException If the task is not in the state the change expects.
+    */
+  def applyChange(change: TaskChange[_ <: TaskSpec])(implicit userContext: UserContext): Unit = {
+    applyChanges(Seq(change))
+  }
+
+  /**
+    * Applies typed changes in order as one write: if any of them is rejected, none is applied.
+    * Each change is recorded in the project's change journal.
+    *
+    * @throws org.silkframework.workspace.changes.ChangeConflictException If the task is not in the state a change expects.
+    */
+  def applyChanges(changes: Seq[TaskChange[_ <: TaskSpec]])(implicit userContext: UserContext): Unit = synchronized {
+    if(changes.nonEmpty) {
+      val newData = changes.foldLeft(data: TaskSpec)((current, change) => change.applyAny(current)).asInstanceOf[TaskType]
+      updateAndRecord(newData, None, None, changes)
+    }
+  }
+
+  /** Writes the task. Records `changes` in the journal, or a whole-task replacement if there are none. */
+  private def updateAndRecord(newData: TaskType, newMetaData: Option[MetaData], newExecutionVariables: Option[TemplateVariables],
+                              changes: Seq[Change])
+                             (implicit userContext: UserContext): Unit = {
+    val before = PlainTask.fromTask(this)
     // Validate
     module.validator.validate(project, PlainTask(id, newData, newMetaData.getOrElse(metaData)))
     // Adapt meta data before saving
@@ -151,8 +182,9 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       case None =>
         executionVariablesValueHolder.all
     }
-    // First persist task
-    persistTask(PlainTask.fromTask(ProjectTask.this).copy(data = newData, metaData = metaDataToPersist, executionVariables = executionVariablesToPersist))
+    // Persisted and restarted as the loading user, who holds the provider rights; the journal records who asked.
+    val providerUser = project.readWriteUser
+    persistTask(PlainTask.fromTask(ProjectTask.this).copy(data = newData, metaData = metaDataToPersist, executionVariables = executionVariablesToPersist))(providerUser)
     // Invalidate plugin usage cache
     _cachedPluginUsages = None
     // Update (in-memory) data
@@ -161,10 +193,18 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     executionVariablesValueHolder.put(executionVariablesToPersist)
     // Restart each activity, don't wait for completion.
     for (activity <- taskActivities if shouldAutoRun(activity)) {
-      activity.control.restart()
+      activity.control.restart()(providerUser)
     }
 
     log.info(s"Updated task '$id' of project ${project.id}." + userContext.logInfo)
+    if(changes.nonEmpty) {
+      changes.foreach(change => project.changeJournal.record(change))
+    } else {
+      val after = PlainTask.fromTask(this)
+      if(!TaskChanges.same(before, after)) {
+        project.changeJournal.record(ReplaceTask(before, after))
+      }
+    }
   }
 
   /**

@@ -1,0 +1,17 @@
+// Unreviewed agent changes: tinted like the warning tag they carry, with an accent at the left edge
+.#{$prefix}--data-table:not(.#{$eccgui}-simpletable--colorless) > tbody > tr.diapp-changes__row--unreviewed {
+    & > td {
+        --#{$eccgui}-color-cell: #{eccgui-color-var("semantic", "warning", "100")};
+    }
+
+    & > td:first-child {
+        box-shadow: inset 3px 0 0 eccgui-color-var("semantic", "warning", "500");
+    }
+
+    &:hover > td {
+        --#{$eccgui}-color-cell: #{eccgui-color-mix(
+                eccgui-color-var("semantic", "warning", "100"),
+                $eccgui-color-tablerow-hover
+            )};
+    }
+}

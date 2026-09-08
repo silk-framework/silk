@@ -33,6 +33,7 @@ import FileWidget from "./FileWidget";
 import NotFound from "../NotFound";
 import { diErrorMessage } from "@ducks/error/typings";
 import ActivityInfoWidget from "./ActivityInfoWidget";
+import ChangesWidget from "./ChangesWidget";
 import { previewSlice } from "@ducks/workspace/previewSlice";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
 import { useSelectFirstResult } from "../../../hooks/useSelectFirstResult";
@@ -206,6 +207,8 @@ const Project = () => {
                     ) : null}
                     <Spacing />
                     <ActivityInfoWidget />
+                    <Spacing />
+                    <ChangesWidget />
                     <Spacing />
                     <FileWidget />
                     <Spacing />

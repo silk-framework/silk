@@ -21,7 +21,6 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.CustomTask
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.{LinkSpec, TransformSpec}
-import org.silkframework.runtime.resource.{FileResource, Resource}
 import org.silkframework.runtime.validation.{NotFoundException, RequestException}
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
 import org.silkframework.workspace.activity.dataset.DatasetUtils
@@ -251,13 +250,13 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
     mimeTypeOpt match {
       case Some(mimeType) =>
         val outputResource = resultValue.resourceManager.get(VariableWorkflowRequestUtils.OUTPUT_FILE_RESOURCE_NAME, mustExist = true)
-        val body = outputResource match {
-          case FileResource(file) =>
+        val body = outputResource.underlyingFile match {
+          case Some(file) =>
             // Stream file resources
             val contentLength = Some(Files.size(file.toPath))
             HttpEntity.Streamed(FileIO.fromPath(file.toPath), contentLength, Some(mimeType))
-          case resource: Resource =>
-            HttpEntity.Strict(ByteString(resource.loadAsBytes), Some(mimeType))
+          case None =>
+            HttpEntity.Strict(ByteString(outputResource.loadAsBytes), Some(mimeType))
         }
         Result(
           header = ResponseHeader(OK, Map.empty),
