@@ -43,9 +43,6 @@ class ChangeJournal(project: Project) {
     override def initialValue: Boolean = false
   }
 
-  // The entries whose inverse is being applied. Their revert is not recorded yet, so nothing else marks them.
-  private var revertsInProgress = Set.empty[Int]
-
   // Resolved per call, so a config reload swaps the store.
   private def store: ChangeJournalStore = ChangeJournalStore()
 
@@ -197,7 +194,7 @@ class ChangeJournal(project: Project) {
       ChangeJournal.onBehalfOf(userContext)(inverse.applyTo(project))
     } finally {
       reverting.remove()
-      synchronized(revertsInProgress -= seq)
+      ChangeJournal.synchronized(ChangeJournal.revertsInProgress -= ((project.id, seq)))
     }
     revertOf(seq).getOrElse(throw ChangeNotRevertedException(s"Change $seq in project '${project.id}' has not been " +
       "reverted: applying its inverse changed nothing that the journal records, so the state it restores is derived, " +
@@ -251,10 +248,10 @@ class ChangeJournal(project: Project) {
     * so that an entry is reverted once even if it is reverted concurrently. The inverse is applied without the lock,
     * as it writes to the project.
     */
-  private def claimRevert(seq: Int): Change = synchronized {
+  private def claimRevert(seq: Int): Change = ChangeJournal.synchronized {
     val entries = all
     val entry = entries.find(_.seq == seq).getOrElse(throw new NotFoundException(s"No change $seq in project '${project.id}'."))
-    if(revertsInProgress.contains(seq) || revertedBy(entries).contains(seq)) {
+    if(ChangeJournal.revertsInProgress.contains((project.id, seq)) || revertedBy(entries).contains(seq)) {
       throw ChangeConflictException(s"Change $seq in project '${project.id}' has been reverted already.")
     }
     for(fulfilledBy <- fulfilledBy(entries).get(seq)) {
@@ -262,7 +259,7 @@ class ChangeJournal(project: Project) {
     }
     val inverse = entry.change.inverse.getOrElse(
       throw ChangeConflictException(s"Change $seq (${entry.change.describe}) in project '${project.id}' cannot be reverted."))
-    revertsInProgress += seq
+    ChangeJournal.revertsInProgress += ((project.id, seq))
     inverse
   }
 
@@ -293,6 +290,10 @@ object RevertOutcome {
 }
 
 object ChangeJournal {
+
+  // The entries whose inverse is being applied, by project: their revert is not recorded yet, so nothing else marks
+  // them. Held here, as a project can have more than one journal while it is reloaded.
+  private var revertsInProgress = Set.empty[(Identifier, Int)]
 
   // The user of the request being served, for writes that carry no user context, such as resource writes.
   private val requestUser = new ThreadLocal[Option[UserContext]] {

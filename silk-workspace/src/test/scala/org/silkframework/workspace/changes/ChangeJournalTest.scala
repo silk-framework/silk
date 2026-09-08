@@ -142,7 +142,9 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     threads.foreach(_.join())
 
     outcomes.count(_.isSuccess) shouldBe 1
-    outcomes.collectFirst { case Failure(ex) => ex }.get shouldBe a[ChangeConflictException]
+    val failure = outcomes.collectFirst { case Failure(ex) => ex }.get
+    failure shouldBe a[ChangeConflictException]
+    failure.getMessage should include ("reverted already")
     journal.all.count(_.reverts.contains(update.seq)) shouldBe 1
     ruleIds(project.task[TransformSpec]("transform")) shouldBe Seq("name")
   }
