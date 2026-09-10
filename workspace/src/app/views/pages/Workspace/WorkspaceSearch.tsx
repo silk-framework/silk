@@ -22,6 +22,7 @@ import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import Filterbar from "./Filterbar";
 import { useSelectFirstResult } from "../../../hooks/useSelectFirstResult";
 import { AppDispatch } from "store/configureStore";
+import { SearchContextContributor } from "../../../contexts/SearchContextContributor";
 
 const WorkspaceSearch = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -52,6 +53,7 @@ const WorkspaceSearch = () => {
 
     return (
         <WorkspaceContent className="eccapp-di__workspace">
+            <SearchContextContributor enabled={searchInitialized} view="workspace" />
             {pageHeader}
             <WorkspaceMain>
                 <Section>

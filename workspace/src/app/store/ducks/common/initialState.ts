@@ -32,6 +32,11 @@ export function initialCommonState(): ICommonState {
             hotKeys: {},
             templatingEnabled: false,
             assistantSupported: false,
+            companion: {
+                enabled: false,
+                apiBasePath: "/dataplatform/api/companion",
+                streamPath: "/dataplatform/companion-websocket",
+            },
             mappingCreatorEnabled: false,
             aclEnabled: false,
         },

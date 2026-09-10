@@ -79,7 +79,10 @@ export default function SearchItem({
         srcLinks: menuItemLinks.map((link) => ({ ...link, id: link.label })),
         pluginId: item.pluginId,
         projectId: item.projectId,
+        projectLabel: item.projectLabel,
         taskId: item.id,
+        taskLabel: item.label,
+        taskType: item.type,
     });
     const contextMenuItems = [
         ...menuItems,

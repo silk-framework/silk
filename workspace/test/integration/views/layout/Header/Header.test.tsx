@@ -18,7 +18,10 @@ import { APP_VIEWHEADER_ID, PageHeader } from "../../../../../src/app/views/shar
 import { fireEvent, RenderResult, waitFor } from "@testing-library/react";
 import { Helmet } from "react-helmet";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../../src/app/views/plugins/PluginRegistry";
-import { BrandingProps } from "../../../../../src/app/views/plugins/plugin.types";
+import {
+    BrandingProps,
+    CompanionToolbarProps,
+} from "../../../../../src/app/views/plugins/plugin.types";
 
 jest.mock("../../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal", () => ({
     CreateArtefactModal: () => null,
@@ -40,6 +43,13 @@ describe("Header", () => {
         applicationCorporationName: "some corp",
         applicationName: "some app",
         applicationSuiteName: "some suite",
+    });
+    pluginRegistry.registerReactPluginComponent<CompanionToolbarProps>({
+        id: SUPPORTED_PLUGINS.DI_COMPANION,
+        label: "Companion test plugin",
+        Component: ({ companionConfig }) => (
+            <div data-test-id="companion-plugin">{companionConfig.apiBasePath}</div>
+        ),
     });
 
     beforeEach(() => {
@@ -86,6 +96,31 @@ describe("Header", () => {
         );
         const helmet = Helmet.peek();
         expect(helmet.title).toBe("My Page Title (artefacttype) at Workbench / My Project — some corp some suite");
+    });
+
+    it("should only mount the companion plugin when enabled for the current user", () => {
+        expect(wrapper.container.querySelector(byTestId("companion-plugin"))).not.toBeInTheDocument();
+
+        wrapper.unmount();
+        wrapper = renderWrapper(
+            <Header onClickApplicationSidebarExpand={() => {}} isApplicationSidebarExpanded={false} />,
+            history,
+            {
+                common: {
+                    initialSettings: {
+                        companion: {
+                            enabled: true,
+                            apiBasePath: "/explore/api/companion",
+                            streamPath: "/explore/companion-websocket",
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(wrapper.container.querySelector(byTestId("companion-plugin"))).toHaveTextContent(
+            "/explore/api/companion",
+        );
     });
 
     it("should delete button works properly", async () => {
