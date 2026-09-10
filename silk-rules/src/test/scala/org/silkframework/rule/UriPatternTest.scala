@@ -1,5 +1,5 @@
 package org.silkframework.rule
-
+
 import org.silkframework.config.Prefixes
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

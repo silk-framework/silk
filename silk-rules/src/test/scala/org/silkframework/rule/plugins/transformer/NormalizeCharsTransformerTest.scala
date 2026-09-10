@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer
 
 
-
+
 import org.silkframework.rule.plugins.transformer.linguistic.NormalizeCharsTransformer
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

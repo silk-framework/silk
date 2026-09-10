@@ -1,5 +1,5 @@
 package org.silkframework.workbench.workspace
-
+
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.runtime.execution.Execution
 

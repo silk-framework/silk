@@ -13,7 +13,7 @@
  */
 
 package org.silkframework.rule.plugins.transformer
-
+
 import org.silkframework.rule.plugins.transformer.normalize.RemoveSpecialCharsTransformer
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

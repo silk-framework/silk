@@ -1,5 +1,5 @@
 package org.silkframework.rule.execution.methods
-
+
 import org.silkframework.entity.paths.UntypedPath
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.distance.numeric
 
 
-
+
 import org.silkframework.test.PluginTest
 import org.silkframework.testutil.approximatelyEqualTo
 

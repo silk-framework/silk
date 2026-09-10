@@ -1,5 +1,5 @@
 package org.silkframework.entity
-
+
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths._
 import org.silkframework.runtime.validation.ValidationException

@@ -1,5 +1,5 @@
 package org.silkframework.plugins.dataset.xml
-
+
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, _}

@@ -1,5 +1,5 @@
 package org.silkframework.workspace.activity.transform
-
+
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule._
 

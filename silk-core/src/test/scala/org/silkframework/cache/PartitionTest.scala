@@ -1,6 +1,6 @@
 package org.silkframework.cache
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 import org.silkframework.entity.{Entity, EntitySchema, Restriction}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.util.Uri

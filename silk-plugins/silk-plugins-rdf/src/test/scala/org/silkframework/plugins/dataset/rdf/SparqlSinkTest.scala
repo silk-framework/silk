@@ -1,5 +1,5 @@
 package org.silkframework.plugins.dataset.rdf
-
+
 import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
 import org.silkframework.entity.ValueType
 import org.silkframework.plugins.dataset.rdf.access.SparqlSink

@@ -1,5 +1,5 @@
 package org.silkframework.util
-
+
 
 import scala.util.Random
 import org.scalatest.flatspec.AnyFlatSpec

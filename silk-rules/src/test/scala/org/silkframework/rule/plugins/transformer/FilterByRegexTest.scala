@@ -13,7 +13,7 @@
  */
 
 package org.silkframework.rule.plugins.transformer
-
+
 import org.silkframework.rule.plugins.transformer.filter.FilterByRegex
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

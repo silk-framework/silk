@@ -13,7 +13,7 @@
  */
 
 package org.silkframework.rule.plugins.distance.tokenbased
-
+
 import org.silkframework.test.PluginTest
 import org.silkframework.testutil.approximatelyEqualTo
 

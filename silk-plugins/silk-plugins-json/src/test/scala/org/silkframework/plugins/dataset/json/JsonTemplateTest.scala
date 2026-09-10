@@ -1,5 +1,5 @@
 package org.silkframework.plugins.dataset.json
-
+
 import org.silkframework.plugins.dataset.json.JsonTemplate.placeholder
 import org.silkframework.runtime.validation.ValidationException
 import org.scalatest.flatspec.AnyFlatSpec

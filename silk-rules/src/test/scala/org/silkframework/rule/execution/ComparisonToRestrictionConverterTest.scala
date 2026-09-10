@@ -1,5 +1,5 @@
 package org.silkframework.rule.execution
-
+
 import org.silkframework.entity.Restriction
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.input.{PathInput, TransformInput}

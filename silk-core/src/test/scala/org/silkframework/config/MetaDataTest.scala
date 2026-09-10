@@ -1,5 +1,5 @@
 package org.silkframework.config
-
+
 import MetaData.labelFromId
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers

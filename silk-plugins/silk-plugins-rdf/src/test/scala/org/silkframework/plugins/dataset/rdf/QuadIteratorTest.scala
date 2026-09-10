@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.rdf
 
 import java.io.StringReader
 import org.apache.jena.rdf.model.ModelFactory
-import org.apache.jena.rdf.model.impl.StatementImpl
+import org.apache.jena.rdf.model.impl.StatementImpl
 import org.silkframework.dataset.rdf.{IteratorFormatter, QuadIterator}
 import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
 import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter

@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.sparql
 
-
+
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 import org.scalatest.flatspec.AnyFlatSpec
