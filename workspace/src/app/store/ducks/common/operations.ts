@@ -293,17 +293,19 @@ const extractDataAttributes = (formData): ArtefactDataParameters => {
 };
 
 /** Extracts the plugin parameters from the form data, i.e. removes the meta data fields and the data attributes.
- * The backend rejects values for parameters that the plugin does not declare. */
-const extractParameterValues = (formData: Record<string, any>): Record<string, any> => {
-    const {
-        label,
-        description,
-        id,
-        tags,
-        [URI_PROPERTY_PARAMETER_ID]: uriProperty,
-        [READ_ONLY_PARAMETER]: readOnly,
-        ...parameters
-    } = formData;
+ * The backend rejects values for parameters that the plugin does not declare.
+ * A field name only counts as meta data if the plugin does not declare a parameter of that name, so a
+ * plugin parameter called e.g. 'description' is not silently dropped from the request. */
+const extractParameterValues = (
+    formData: Record<string, any>,
+    declaredParameters?: Record<string, unknown>,
+): Record<string, any> => {
+    const parameters = { ...formData };
+    ["label", "description", "id", "tags", URI_PROPERTY_PARAMETER_ID, READ_ONLY_PARAMETER].forEach((field) => {
+        if (!declaredParameters || !(field in declaredParameters)) {
+            delete parameters[field];
+        }
+    });
     return parameters;
 };
 
@@ -319,9 +321,10 @@ const fetchCreateTaskAsync = (
 ) => {
     return async (dispatch, getState) => {
         const currentProjectId = commonSel.currentProjectIdSelector(getState());
+        const { cachedArtefactProperties } = commonSel.artefactModalSelector(getState());
         const { label, description, id, tags } = formData;
         const { parameters, variableTemplateParameters } = splitParameterAndVariableTemplateParameters(
-            extractParameterValues(formData),
+            extractParameterValues(formData, cachedArtefactProperties[artefactId]?.properties),
             variableTemplateParameterSet,
         );
         const parameterData = buildStringValuedObject(parameters);
@@ -394,10 +397,12 @@ const fetchUpdateTaskAsync = (
     variableTemplateParameterSet: Set<string>,
     /** Function that is called instead of the task PATCH endpoint. */
     alternativeUpdateFunction?: AlternativeTaskUpdateFunction,
+    /** The parameters the plugin declares; form fields of these names are parameters, not meta data. */
+    declaredParameters?: Record<string, unknown>,
 ) => {
     return async (dispatch) => {
         const { parameters, variableTemplateParameters } = splitParameterAndVariableTemplateParameters(
-            extractParameterValues(formData),
+            extractParameterValues(formData, declaredParameters),
             variableTemplateParameterSet,
         );
         const parameterData = buildStringValuedObject(parameters);

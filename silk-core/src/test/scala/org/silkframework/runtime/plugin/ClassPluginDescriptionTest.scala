@@ -30,6 +30,14 @@ class ClassPluginDescriptionTest extends AnyFlatSpec with Matchers {
     }
   }
 
+  it should "name a wrongly typed parameter value in words, not by its internal type" in {
+    val ex = intercept[InvalidPluginParameterValueException] {
+      pluginDesc(ParameterValues(Map("param1" -> ParameterValues(Map.empty))))
+    }
+    ex.getMessage must include ("an array, null or an empty object")
+    ex.getMessage must not include ("ParameterValues(")
+  }
+
   it should "throw an exception if a parameter value for a parameter that does not exist is provided" in {
     intercept[InvalidPluginParameterValueException] {
       createNoIgnore("param2" -> "123", "param3"-> "some value")

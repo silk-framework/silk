@@ -21,7 +21,7 @@ import org.silkframework.serialization.json.ExecutionReportSerializers.{Executio
 import org.silkframework.serialization.json.ReportDetail
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.WorkflowSerializers._
-import org.silkframework.serialization.json.{JsonFormat, JsonSerialization}
+import org.silkframework.serialization.json.{InputJsonSerializer, JsonFormat, JsonParseException, JsonSerialization}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.transform.VocabularyCacheValue
 import org.silkframework.serialization.json.WorkflowSerializers._
@@ -31,7 +31,7 @@ import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT
 import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT, testWorkflow}
 import org.silkframework.workspace.activity.workflow.{WorkflowExecutionReport, WorkflowTest}
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 
 import scala.reflect.ClassTag
 
@@ -270,6 +270,42 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
     Json.stringify(TransformReportJsonFormat.write(report, ReportDetail.Full)) should include ("stacktrace")
   }
 
+  // A rule that fails usually fails the same way for every entity; ten verbatim repetitions say no more
+  // than the first one plus a count.
+  it should "collapse repeated rule error messages into one entry with an occurrence count" in {
+    implicit val jsonWriteContext: WriteContext[play.api.libs.json.JsValue] =
+      TestWriteContext[play.api.libs.json.JsValue]()
+    val repeated = (44 to 53).map(i =>
+      RuleError(s"urn:entity:$i", Seq(Seq(s"value $i")), "The URI pattern did not generate any URI.", None, None))
+    val distinct = RuleError("urn:entity:99", Seq(Seq("other")), "Not a valid Integer.", None, None)
+    val report = TransformReport(
+      task = PlainTask("transform", TransformSpec.empty),
+      entityCount = 100,
+      entityErrorCount = 51,
+      ruleResults = Map(Identifier("uriR") -> RuleResult(errorCount = 51, sampleErrors = (repeated :+ distinct).toIndexedSeq)),
+      isDone = true)
+
+    val sampleErrors = (TransformReportJsonFormat.write(report, ReportDetail.Compact) \\ "sampleErrors").head.as[JsArray].value
+    sampleErrors should have size 2
+    // The total is still reported by errorCount; the count here says how many samples shared the message.
+    (sampleErrors.head \ "error").as[String] shouldBe "The URI pattern did not generate any URI."
+    (sampleErrors.head \ "entity").as[String] shouldBe "urn:entity:44"
+    (sampleErrors.head \ "sampledOccurrences").as[Int] shouldBe 10
+    // The collapsed entry lists every distinct failing value, so it cannot hide further defective formats.
+    val sampledValues = (sampleErrors.head \ "sampledValues").as[Seq[Seq[Seq[String]]]]
+    sampledValues should have size 10
+    sampledValues.head shouldBe Seq(Seq("value 44"))
+    sampledValues.last shouldBe Seq(Seq("value 53"))
+    // A message seen once carries no count and no value list.
+    (sampleErrors(1) \ "error").as[String] shouldBe "Not a valid Integer."
+    (sampleErrors(1) \ "sampledOccurrences").toOption shouldBe empty
+    (sampleErrors(1) \ "sampledValues").toOption shouldBe empty
+
+    // The verbose report is never collapsed: every sample stays.
+    val full = (TransformReportJsonFormat.write(report, ReportDetail.Full) \\ "sampleErrors").head.as[JsArray].value
+    full should have size 11
+  }
+
   "ExecutionReport (slim)" should "drop output samples of dataset read reports and truncate long sample values" in {
     implicit val jsonWriteContext: WriteContext[play.api.libs.json.JsValue] =
       TestWriteContext[play.api.libs.json.JsValue]()
@@ -438,6 +474,113 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
     }
     ex.getMessage should include("missing required field 'label'")
     ex.getMessage should include("missingLabelPort")
+  }
+
+  // Fixing one missing field per round trip is what makes authoring a rule block expensive.
+  it should "report every missing port field of a rule block at once" in {
+    val json =
+      Json.obj(
+        TASKTYPE -> TASK_TYPE_RULE_BLOCK,
+        PARAMETERS -> Json.obj(
+          "ruleBlockModel" -> Json.obj(
+            "ports" -> Json.arr(
+              Json.obj(ID -> "barePort"),
+              Json.obj(ID -> "missingLabelPort", "displayOrder" -> 2)
+            )
+          )
+        )
+      )
+
+    val ex = the[TaskValidationException] thrownBy {
+      JsonSerialization.fromJson[RuleBlockSpec](json)
+    }
+    // Both fields of the first port and the one of the second, in a single message.
+    ex.getMessage should include("missing required fields 'label', 'displayOrder'")
+    ex.getMessage should include("barePort")
+    ex.getMessage should include("missing required field 'label'")
+    ex.getMessage should include("missingLabelPort")
+  }
+
+  it should "reject an unknown input type by name instead of failing with a MatchError" in {
+    implicit val readContext: ReadContext = ReadContext.empty
+    val ex = the[JsonParseException] thrownBy {
+      InputJsonSerializer.InputJsonFormat.read(Json.obj("type" -> "portInput", ID -> "in1"))
+    }
+    ex.getMessage should include("portInput")
+    ex.getMessage should include("pathInput")
+    ex.getMessage should include("transformInput")
+    ex.getMessage should include("inputPortInput")
+    ex.getMessage should include("ruleBlockInput")
+  }
+
+  it should "default the target valueType of an object mapping to a URI" in {
+    val json =
+      Json.obj(
+        TYPE -> "object",
+        ID -> "vendor",
+        "sourcePath" -> "vendor",
+        "mappingTarget" -> Json.obj(URI -> "https://ex.org/vendor"),
+        "rules" -> Json.obj("typeRules" -> JsArray(), "propertyRules" -> JsArray())
+      )
+
+    val rule = JsonSerialization.fromJson[TransformRule](json).asInstanceOf[ObjectMapping]
+    rule.target.get.valueType shouldBe ValueType.URI
+  }
+
+  it should "default the target valueType of a value mapping to a string" in {
+    val json =
+      Json.obj(
+        TYPE -> "direct",
+        ID -> "name",
+        "sourcePath" -> "name",
+        "mappingTarget" -> Json.obj(URI -> "https://ex.org/name")
+      )
+
+    val rule = JsonSerialization.fromJson[TransformRule](json).asInstanceOf[DirectMapping]
+    rule.target.get.valueType shouldBe ValueType.STRING
+  }
+
+  it should "default the target valueType of a root mapping rule to a URI" in {
+    val json =
+      Json.obj(
+        TYPE -> "root",
+        ID -> "root",
+        "mappingTarget" -> Json.obj(URI -> "https://ex.org/root"),
+        "rules" -> Json.obj("typeRules" -> JsArray(), "propertyRules" -> JsArray())
+      )
+
+    val rule = JsonSerialization.fromJson[RootMappingRule](json)
+    rule.mappingTarget.valueType shouldBe ValueType.URI
+  }
+  it should "default omitted typeRules and propertyRules of a nested rules object to empty" in {
+    val json =
+      Json.obj(
+        TYPE -> "object",
+        ID -> "vendor",
+        "sourcePath" -> "vendor",
+        "mappingTarget" -> Json.obj(URI -> "https://ex.org/vendor"),
+        "rules" -> Json.obj()
+      )
+
+    val rule = JsonSerialization.fromJson[TransformRule](json).asInstanceOf[ObjectMapping]
+    rule.rules.uriRule shouldBe None
+    rule.rules.typeRules shouldBe empty
+    rule.rules.propertyRules shouldBe empty
+  }
+
+  "TransformRuleJsonFormat" should "not derive a rule id that an earlier rule of the same read claimed explicitly" in {
+    implicit val readContext: ReadContext = TestReadContext()
+    def directRule(fields: (String, play.api.libs.json.Json.JsValueWrapper)*) =
+      JsonSerialization.fromJson[TransformRule](Json.obj(fields: _*))
+
+    val explicit = directRule(TYPE -> "direct", ID -> "name", "sourcePath" -> "givenName",
+      "mappingTarget" -> Json.obj(URI -> "https://ex.org/name"))
+    // No id: the default derived from the target's local name is taken, so it must give way.
+    val derived = directRule(TYPE -> "direct", "sourcePath" -> "familyName",
+      "mappingTarget" -> Json.obj(URI -> "https://ex.org/name"))
+
+    explicit.id.toString shouldBe "name"
+    derived.id.toString shouldBe "name1"
   }
 
   def testSerialization[T](obj: T)(implicit format: JsonFormat[T]): Unit = {

@@ -34,6 +34,7 @@ import play.api.libs.json._
 
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
+import scala.util.{Failure, Try}
 
 /**
   * Serializers for JSON.
@@ -412,9 +413,12 @@ object JsonSerializers {
     final val IS_BACKWARD_PROPERTY = "isBackwardProperty"
     final val IS_ATTRIBUTE = "isAttribute"
 
-    override def read(value: JsValue)(implicit readContext: ReadContext): MappingTarget = {
+    override def read(value: JsValue)(implicit readContext: ReadContext): MappingTarget = read(value, ValueType.STRING)
+
+    /** Reads a target whose omitted `valueType` falls back to `defaultValueType` (URI for object and root rules). */
+    def read(value: JsValue, defaultValueType: ValueType)(implicit readContext: ReadContext): MappingTarget = {
       val uri = stringValue(value, URI)
-      val valueType = fromJson[ValueType](mustBeDefined(value, VALUE_TYPE))
+      val valueType = optionalValue(value, VALUE_TYPE).map(fromJson[ValueType]).getOrElse(defaultValueType)
       val isBackwardProperty = booleanValueOption(value, IS_BACKWARD_PROPERTY).getOrElse(false)
       val isAttribute = booleanValueOption(value, IS_ATTRIBUTE).getOrElse(false)
       MappingTarget(Uri.parse(uri, readContext.prefixes), valueType, isBackwardProperty, isAttribute)
@@ -445,14 +449,17 @@ object JsonSerializers {
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): MappingRules = {
       val uriRule = optionalValue(value, URI_RULE).map(UriMappingJsonFormat.read)
-      val typeRules = mustBeJsArray(mustBeDefined(value, TYPE_RULES)) { array =>
-        array.value.map(TypeMappingJsonFormat.read).toSeq
+      // All three parts are optional, as they are in MappingRules itself: an omitted list is empty.
+      val typeRules = optionalValue(value, TYPE_RULES) match {
+        case Some(rules) => mustBeJsArray(rules)(_.value.map(TypeMappingJsonFormat.read).toSeq)
+        case None => Seq.empty
       }
-      val propertyRules = mustBeJsArray(mustBeDefined(value, PROPERTY_RULES)) { array =>
-        array.value.map(TransformRuleJsonFormat.read).toSeq
+      val propertyRules = optionalValue(value, PROPERTY_RULES) match {
+        case Some(rules) => mustBeJsArray(rules)(_.value.map(TransformRuleJsonFormat.read).toSeq)
+        case None => Seq.empty
       }
 
-      MappingRules(uriRule, typeRules, propertyRules)
+      MappingRules.fromSeq(uriRule.toSeq ++ typeRules ++ propertyRules)
     }
 
     /**
@@ -479,7 +486,8 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): RootMappingRule = {
       val mappingRules = fromJson[MappingRules](mustBeDefined(value, RULES_PROPERTY))
       val id = identifier(value, RootMappingRule.defaultId)
-      val mappingTarget = optionalValue(value, MAPPING_TARGET).map(fromJson[MappingTarget]).getOrElse(RootMappingRule.defaultMappingTarget)
+      val mappingTarget = optionalValue(value, MAPPING_TARGET).map(MappingTargetJsonFormat.read(_, ValueType.URI))
+        .getOrElse(RootMappingRule.defaultMappingTarget)
       RootMappingRule(id = id, rules = mappingRules, mappingTarget = mappingTarget, metaData = metaData(value))
     }
 
@@ -717,7 +725,7 @@ object JsonSerializers {
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): ObjectMapping = {
       val children = fromJson[MappingRules](mustBeDefined(value, RULES))
-      val mappingTarget = optionalValue(value, MAPPING_TARGET).map(fromJson[MappingTarget])
+      val mappingTarget = optionalValue(value, MAPPING_TARGET).map(MappingTargetJsonFormat.read(_, ValueType.URI))
       val mappingName = mappingTarget.flatMap(_.propertyUri.localName).getOrElse("ObjectMapping")
       val id = identifier(value, mappingName)
       val sourcePath = silkPath(id, stringValue(value, SOURCE_PATH))
@@ -1100,15 +1108,18 @@ object JsonSerializers {
 
     override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockPort = {
       val portId = stringValueOption(value, ID).map(Identifier.apply).getOrElse(Operator.generateId)
+      val label = stringValueOption(value, LABEL).filter(_.nonEmpty)
+      val displayOrder = numberValueOption(value, DISPLAY_ORDER).map(_.intValue)
+      val missing = Seq(LABEL -> label, DISPLAY_ORDER -> displayOrder).collect { case (field, None) => s"'$field'" }
+      if(missing.nonEmpty) {
+        val fields = if(missing.size > 1) "fields" else "field"
+        throw new TaskValidationException(s"Rule block port '$portId' is missing required $fields ${missing.mkString(", ")} in JSON.")
+      }
       RuleBlockPort(
         id = portId,
-        label = stringValueOption(value, LABEL)
-          .filter(_.nonEmpty)
-          .getOrElse(throw new TaskValidationException(s"Rule block port '$portId' is missing required field '$LABEL' in JSON.")),
+        label = label.get,
         description = stringValueOption(value, DESCRIPTION).getOrElse(""),
-        displayOrder = numberValueOption(value, DISPLAY_ORDER)
-          .map(_.intValue)
-          .getOrElse(throw new TaskValidationException(s"Rule block port '$portId' is missing required field '$DISPLAY_ORDER' in JSON.")),
+        displayOrder = displayOrder.get,
         deprecated = booleanValueOption(value, DEPRECATED).getOrElse(false)
       )
     }
@@ -1161,7 +1172,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): RuleBlockModel = {
       RuleBlockModel(
         ports = arrayValueOption(value, PORTS)
-          .map(_.value.map(fromJson[RuleBlockPort]).toIndexedSeq)
+          .map(array => readAllPorts(array.value.toIndexedSeq))
           .getOrElse(IndexedSeq.empty[RuleBlockPort]),
         inputExamples = arrayValueOption(value, INPUT_EXAMPLES)
           .map(_.value.map(fromJson[RuleBlockInputExample]).toIndexedSeq)
@@ -1170,6 +1181,20 @@ object JsonSerializers {
         layout = optionalValue(value, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout()),
         uiAnnotations = optionalValue(value, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations())
       )
+    }
+
+    /** Reads every port, reporting the problems of all of them at once instead of one per round trip.
+      * Only validation failures are aggregated; any other failure (a parse error, a crash) keeps its type. */
+    private def readAllPorts(ports: IndexedSeq[JsValue])(implicit readContext: ReadContext): IndexedSeq[RuleBlockPort] = {
+      val results = ports.map(port => Try(fromJson[RuleBlockPort](port)))
+      results.collectFirst {
+        case Failure(ex) if !ex.isInstanceOf[TaskValidationException] && !ex.isInstanceOf[ValidationException] => ex
+      }.foreach(ex => throw ex)
+      val errors = results.collect { case Failure(ex) => Option(ex.getMessage).filter(_.nonEmpty).getOrElse(ex.toString) }
+      if(errors.nonEmpty) {
+        throw new TaskValidationException(errors.mkString(" "))
+      }
+      results.map(_.get)
     }
 
     override def write(value: RuleBlockModel)(implicit writeContext: WriteContext[JsValue]): JsValue = {
@@ -1626,6 +1651,9 @@ object InputJsonSerializer {
                 fromJson[InputPortInput](jsObject)
               case RULE_BLOCK_INPUT =>
                 fromJson[RuleBlockInput](jsObject)
+              case unknown =>
+                throw JsonParseException(s"Unknown input type '$unknown'. Expected one of: " +
+                  s"$PATH_INPUT, $TRANSFORM_INPUT, $INPUT_PORT_INPUT, $RULE_BLOCK_INPUT.")
             }
           case _ =>
             throw JsonParseException("Input JSON object has no 'type' attribute! Instead found: " + jsObject.value.keys.mkString(", "))

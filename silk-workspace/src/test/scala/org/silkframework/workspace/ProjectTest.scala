@@ -3,17 +3,20 @@ package org.silkframework.workspace
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.silkframework.config.{CustomTask, InputPorts, MetaData, Port}
+import org.silkframework.config.{CustomTask, InputPorts, MetaData, PlainTask, Port}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.input.{InputPortInput, PathInput, RuleBlockBinding, RuleBlockInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.value.ConstantTransformer
 import org.silkframework.rule.{ComplexMapping, DatasetSelection, MappingRules, RootMappingRule, RuleBlockModel, RuleBlockPort, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.activity.{SimpleUserContext, TestUserContextTrait}
 import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.users.DefaultUserManager
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.{ConfigTestTrait, Identifier}
 import org.silkframework.workspace.WorkspaceTest.RecordingWorkspaceProvider
+import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowOperator}
 import org.silkframework.workspace.exceptions.CircularDependencyException
 
 class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait {
@@ -158,6 +161,99 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
     ruleBlockTask.ownPluginUsages.map(_.pluginId) should contain only "constant"
     transformTask.ownPluginUsages shouldBe empty
     transformTask.pluginUsages.map(_.pluginId) should contain("constant")
+  }
+
+  // The guard used to check inputTasks only, while removeDependentTasks uses the complete referencedTasks.
+  it should "refuse to delete a task that is referenced as an output or through a rule block" in {
+    val project = retrieveOrCreateProject("TaskDeletionGuardTest")
+
+    project.addTask("normalizeLabel", normalizeLabelRuleBlock)
+    project.addAnyTask("sink", ProjectTestTask())
+    project.addTask("transformUsingRuleBlock", transformUsing("normalizeLabel", output = "sink"))
+    project.addTask("otherTransformUsingRuleBlock", transformUsing("normalizeLabel", output = "sink"))
+    project.addTask("pipeline", Workflow(operators = Seq(WorkflowOperator(
+      inputs = Seq.empty, task = "transformUsingRuleBlock", outputs = Seq.empty, errorOutputs = Seq.empty,
+      position = (0, 0), nodeId = "transformUsingRuleBlock", configInputs = Seq.empty, dependencyInputs = Seq.empty))))
+
+    // Deleting the rule block would leave the transforms calling a task that no longer exists.
+    // The rejection names every referencing task and the whole set that removeDependentTasks=true would delete.
+    val ruleBlockError = the[BadUserInputException] thrownBy
+      project.removeAnyTask("normalizeLabel", removeDependentTasks = false)
+    ruleBlockError.getMessage should include("normalizeLabel")
+    ruleBlockError.getMessage should include("tasks otherTransformUsingRuleBlock (in its rules or configuration), " +
+      "transformUsingRuleBlock (in its rules or configuration)")
+    ruleBlockError.getMessage should include("removeDependentTasks=true")
+    ruleBlockError.getMessage should endWith("depend on it: otherTransformUsingRuleBlock, pipeline, transformUsingRuleBlock.")
+
+    // Deleting the dataset the transform writes to is just as breaking as deleting its input.
+    val outputError = the[BadUserInputException] thrownBy project.removeAnyTask("sink", removeDependentTasks = false)
+    outputError.getMessage should include("as output")
+
+    // All are deletable together with their dependents, as they always were.
+    project.removeAnyTask("normalizeLabel", removeDependentTasks = true)
+    project.anyTaskOption("normalizeLabel") shouldBe empty
+    project.anyTaskOption("transformUsingRuleBlock") shouldBe empty
+    project.anyTaskOption("otherTransformUsingRuleBlock") shouldBe empty
+    project.anyTaskOption("pipeline") shouldBe empty
+  }
+
+  // An unconnected node still pins its task to the canvas: deleting the task would leave a dangling node.
+  it should "refuse to delete a task that sits on a workflow canvas without connections" in {
+    val project = retrieveOrCreateProject("UnconnectedNodeDeletionGuardTest")
+    project.addAnyTask("lonelyTask", ProjectTestTask())
+    project.addTask("canvas", Workflow(operators = Seq(WorkflowOperator(
+      inputs = Seq.empty, task = "lonelyTask", outputs = Seq.empty, errorOutputs = Seq.empty,
+      position = (0, 0), nodeId = "lonelyTask", configInputs = Seq.empty, dependencyInputs = Seq.empty))))
+
+    val error = the[BadUserInputException] thrownBy project.removeAnyTask("lonelyTask", removeDependentTasks = false)
+    error.getMessage should include("canvas")
+    error.getMessage should include("as a workflow node without connections")
+  }
+
+  // A cycle cannot be created through the project API, but a project persisted by an older version can carry one.
+  it should "delete a task whose dependents reference each other in a cycle" in {
+    val projectId: Identifier = "ReferenceCycleTest"
+    val config = ProjectConfig(projectId, metaData = MetaData(Some(projectId)))
+    val resources = new InMemoryResourceManager
+    workspaceProvider.putProject(config)
+    workspaceProvider.putTask(projectId, PlainTask[CustomTask]("root", ProjectTestTask()), resources)
+    workspaceProvider.putTask(projectId, PlainTask[Workflow]("a", workflowUsing("root", "b")), resources)
+    workspaceProvider.putTask(projectId, PlainTask[Workflow]("b", workflowUsing("a")), resources)
+    val project = new Project(config, workspaceProvider, resources, userContext)
+
+    val error = the[BadUserInputException] thrownBy project.removeAnyTask("root", removeDependentTasks = false)
+    error.getMessage should endWith("depend on it: a, b.")
+    project.removeAnyTask("root", removeDependentTasks = true) shouldBe Set[Identifier]("root", "a", "b")
+    project.allTasks shouldBe empty
+  }
+
+  private def workflowUsing(tasks: String*): Workflow = {
+    Workflow(operators = tasks.map(task => WorkflowOperator(
+      inputs = Seq.empty, task = task, outputs = Seq.empty, errorOutputs = Seq.empty,
+      position = (0, 0), nodeId = task, configInputs = Seq.empty, dependencyInputs = Seq.empty)))
+  }
+
+  private def normalizeLabelRuleBlock: RuleBlockSpec = {
+    RuleBlockSpec(RuleBlockModel(
+      ports = IndexedSeq(RuleBlockPort(id = Identifier("namePort"), label = "Name", displayOrder = 1)),
+      operator = Some(TransformInput(
+        id = Identifier("normalizeInput"),
+        transformer = ConstantTransformer("normalized"),
+        inputs = IndexedSeq(InputPortInput(id = Identifier("nameInput"), portId = Identifier("namePort")))))))
+  }
+
+  private def transformUsing(ruleBlockId: String, output: String): TransformSpec = {
+    TransformSpec(
+      selection = DatasetSelection("sourceDataset"),
+      output = IdentifierOptionParameter(Some(Identifier(output))),
+      mappingRule = RootMappingRule(MappingRules(ComplexMapping(
+        id = Identifier("ruleBlockMapping"),
+        operator = RuleBlockInput(
+          id = Identifier("ruleBlockUsage"),
+          ruleBlockId = Identifier(ruleBlockId),
+          bindings = IndexedSeq(RuleBlockBinding(
+            portId = Identifier("namePort"),
+            input = PathInput(id = Identifier("namePath"), path = UntypedPath("name")))))))))
   }
 
   override def workspaceProviderId: String = "inMemoryWorkspaceProvider"

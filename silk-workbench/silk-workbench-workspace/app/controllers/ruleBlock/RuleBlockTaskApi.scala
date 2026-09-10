@@ -8,17 +8,13 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.config.PlainTask
-import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.rule.evaluation.DetailedEvaluator
-import org.silkframework.rule.input.{PathInput, RuleBlockBindingExecution, RuleBlockExecution}
-import org.silkframework.rule.{RuleBlockModel, RuleBlockSpec, TaskContext}
+import org.silkframework.rule.evaluation.RuleBlockEvaluation
+import org.silkframework.rule.{RuleBlockModel, RuleBlockSpec}
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonSerializers.RuleBlockContentJsonFormat
 import org.silkframework.serialization.json.LinkingSerializers.ValueJsonFormat
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.Identifier
 import play.api.libs.json.{JsArray, JsValue}
 import play.api.mvc.{Action, InjectedController}
 
@@ -68,44 +64,8 @@ class RuleBlockTaskApi @Inject()() extends InjectedController with UserContextAc
     implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
 
     validateJsonFromJsonFormat[RuleBlockModel] { ruleBlockModel =>
-      val evaluatedValues = evaluateRuleBlockModel(taskId, ruleBlockModel)(pluginContext)
-      Ok(JsArray(evaluatedValues.map(ValueJsonFormat.write)))
-    }
-  }
-
-  private def evaluateRuleBlockModel(taskId: String,
-                                     ruleBlockModel: RuleBlockModel)
-                                    (implicit pluginContext: PluginContext): Seq[org.silkframework.rule.evaluation.Value] = {
-    val validatedTask = PlainTask(Identifier(taskId), RuleBlockSpec(ruleBlockModel))
-    val sortedPorts = ruleBlockModel.ports.sortBy(port => (port.displayOrder, port.id.toString))
-    val mockPaths = sortedPorts.zipWithIndex.map { case (port, index) =>
-      port.id -> s"ruleBlockPort${index + 1}"
-    }.toMap
-    val schema = EntitySchema(
-      typeUri = Uri("urn:rule-block-evaluation"),
-      typedPaths = sortedPorts.flatMap { port =>
-        mockPaths.get(port.id).map(path => UntypedPath.saveApply(path).asStringTypedPath)
-      }
-    )
-    val bindingExecutions = sortedPorts.flatMap { port =>
-      mockPaths.get(port.id).map { path =>
-        RuleBlockBindingExecution(
-          port.id,
-          PathInput(
-            id = Identifier(s"mock_${port.id}"),
-            path = UntypedPath.saveApply(path)
-          ).execution(TaskContext.noInput())
-        )
-      }
-    }
-    val execution = RuleBlockExecution(validatedTask, bindingExecutions, TaskContext.noInput())
-    ruleBlockModel.inputExamples.flatMap { inputExample =>
-      val entity = Entity(
-        uri = Uri(s"urn:rule-block-evaluation/entity/${inputExample.id}"),
-        values = sortedPorts.map(port => inputExample.inputs.getOrElse(port.id, Seq.empty)),
-        schema = schema
-      )
-      execution.rootExecution.toSeq.map(rootExecution => DetailedEvaluator(rootExecution, entity))
+      val evaluated = RuleBlockEvaluation.evaluateInputExamples(Identifier(taskId), ruleBlockModel)(pluginContext)
+      Ok(JsArray(evaluated.map(example => ValueJsonFormat.write(example.value))))
     }
   }
 }

@@ -2,7 +2,7 @@ package org.silkframework.rule
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.rule.input.{InputPortInput, PathInput, TransformInput}
+import org.silkframework.rule.input.{InputPortInput, PathInput, RuleBlockBinding, RuleBlockInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.serialization.XmlSerialization.fromXml
@@ -190,5 +190,27 @@ class RuleBlockSpecTest extends AnyFlatSpec with XmlSerializationHelperTrait {
     }
 
     ex.getMessage must include ("must not contain path inputs")
+  }
+
+  // A binding cannot tell whether it sits in a definition, and it is validated before RuleBlockSpec is,
+  // so it must name the nesting as well instead of blaming the input port alone.
+  it should "name the unsupported nesting when a binding inside a definition is fed by an input port" in {
+    val ex = the[ValidationException] thrownBy {
+      RuleBlockSpec(
+        RuleBlockModel(
+          ports = IndexedSeq(RuleBlockPort(id = "outerPort", label = "Outer", displayOrder = 1)),
+          operator = Some(RuleBlockInput(
+            id = "innerUsage",
+            ruleBlockId = "innerBlock",
+            bindings = IndexedSeq(RuleBlockBinding(
+              portId = "innerPort",
+              input = InputPortInput(id = "portRef", portId = "outerPort")))))
+        )
+      )
+    }
+
+    ex.getMessage must include ("Input ports may only be used inside rule block definitions.")
+    ex.getMessage must include ("innerPort")
+    ex.getMessage must include ("nested rule block usages are not supported")
   }
 }

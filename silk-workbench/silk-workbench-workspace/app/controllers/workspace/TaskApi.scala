@@ -302,6 +302,10 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
         description = "If the task has been deleted or there is no task with that identifier."
       ),
       new ApiResponse(
+        responseCode = "400",
+        description = "If other tasks reference the task and removeDependentTasks is false. The message names them and every task that removeDependentTasks=true would delete."
+      ),
+      new ApiResponse(
         responseCode = "404",
         description = "If the project does not exist."
       )
@@ -325,10 +329,11 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
                 taskName: String,
                 @Parameter(
                   name = "removeDependentTasks",
-                  description = "If true, all tasks that directly or indirectly reference this task are removed as well.",
-                  required = true,
+                  description = "If true, all tasks that directly or indirectly reference this task are removed as well. " +
+                    "Otherwise the deletion is rejected while other tasks reference it.",
+                  required = false,
                   in = ParameterIn.QUERY,
-                  schema = new Schema(implementation = classOf[Boolean])
+                  schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
                 )
                 removeDependentTasks: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
