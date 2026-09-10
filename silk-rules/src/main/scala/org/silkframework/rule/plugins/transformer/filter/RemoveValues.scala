@@ -31,15 +31,18 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
     new PluginReference(
       id = RemoveDuplicates.pluginId,
       description = "The two plugins filter on different grounds. Remove values drops a value because of what it is; Remove duplicates drops a value because it already appeared earlier in the sequence."
+    ),
+    new PluginReference(
+      id = FilterByRegex.pluginId,
+      description = "Every value Remove values can exclude has to appear in the blacklist by name. Filter by regex can exclude many values through one pattern, without naming any of them."
     )
   )
 )
 case class RemoveValues(blacklist: String) extends InlineTransformer {
   val filterValues = blacklist.split(",").map(_.toLowerCase).toSet
 
-  override def apply(values: Seq[Seq[String]]) = {
+  override def apply(values: Seq[Seq[String]]): Seq[String] =
     values.head.filterNot(v => filterValues.contains(v.toLowerCase))
-  }
 }
 
 object RemoveValues {

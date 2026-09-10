@@ -55,7 +55,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
     ),
     new PluginReference(
       id = FilterByRegex.pluginId,
-      description = "The Regex selection plugin keeps the checked value out of the output and instead returns a pattern-list-shaped result filled with the provided output value where a pattern matches. The Filter by regex plugin keeps or drops values from the input sequence based on full-string matching."
+      description = "The Regex selection plugin keeps the checked value out of the output and instead returns a pattern-list-shaped result filled with the provided output value where a pattern matches. The Filter by regex plugin keeps or drops values from the input sequence based on regex matching."
     )
   )
 )
