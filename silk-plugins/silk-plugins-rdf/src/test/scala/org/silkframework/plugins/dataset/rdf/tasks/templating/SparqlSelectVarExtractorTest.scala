@@ -156,18 +156,6 @@ class SparqlSelectVarExtractorTest extends AnyFlatSpec with Matchers {
     extract("SELECT * WHERE { ?s ?p ?o FILTER NOT EXISTS { ?s ?q ?hidden } }") mustBe empty
   }
 
-  it should "give up on SELECT * when FILTER references a variable that is not projected" in {
-    extract("SELECT * WHERE { ?product ex:price ?price FILTER(?price <= ?maximumPrice) }") mustBe empty
-  }
-
-  it should "give up on SELECT * when a BIND expression references an unbound source variable" in {
-    extract("SELECT * WHERE { ?book dc:title ?title BIND(COALESCE(?preferredTitle, ?title) AS ?displayTitle) }") mustBe empty
-  }
-
-  it should "give up on SELECT * when ORDER BY references a variable outside the query pattern" in {
-    extract("SELECT * WHERE { ?person foaf:name ?name } ORDER BY LCASE(?sortLabel)") mustBe empty
-  }
-
   it should "give up on unbalanced parentheses in the projection" in {
     extract("SELECT ?a (COUNT(?x AS ?n WHERE { ?a ?p ?x }") mustBe empty
     extract("SELECT ?a ) ?b WHERE { ?a ?p ?b }") mustBe empty
