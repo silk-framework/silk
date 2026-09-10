@@ -11,6 +11,7 @@ import {
     ToolbarSection,
     FlexibleLayoutContainer,
     FlexibleLayoutItem,
+    FieldItem,
 } from "@eccenca/gui-elements";
 import { withHistoryHOC } from "../HierarchicalMapping/utils/withHistoryHOC";
 import silkStore from "../api/silkStore";
@@ -99,15 +100,17 @@ class WorkflowReportManager extends React.Component {
         return (
             <Toolbar>
                 <ToolbarSection canGrow>
-                    <select
-                        name="reports"
-                        id="reports"
-                        value={this.state.selectedReport}
-                        onChange={(e) => this.updateSelectedReport(e.target.value)}
-                        style={{ width: "100%", padding: "7px" }}
-                    >
-                        {this.state.availableReports.map((e) => this.renderReportItem(e))}
-                    </select>
+                    <FieldItem labelProps={{ text: "Report log date", hidden: true }}>
+                        <select
+                            name="reports"
+                            id="reports"
+                            value={this.state.selectedReport}
+                            onChange={(e) => this.updateSelectedReport(e.target.value)}
+                            style={{ width: "100%", padding: "7px" }}
+                        >
+                            {this.state.availableReports.map((e) => this.renderReportItem(e))}
+                        </select>
+                    </FieldItem>
                 </ToolbarSection>
                 <ToolbarSection>
                     <Spacing vertical size="tiny" />
