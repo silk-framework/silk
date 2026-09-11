@@ -16,6 +16,7 @@ package org.silkframework.rule.plugins.transformer.combine
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.InlineTransformer
+import org.silkframework.rule.plugins.transformer.value.InputHashTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
 @Plugin(
@@ -26,11 +27,20 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginRefere
   relatedPlugins = Array(
     new PluginReference(
       id = ConcatPairwiseTransformer.pluginId,
-      description = "Concatenate takes the Cartesian product of all inputs and produces one string per combination. Concatenate pairwise aligns values by position and produces one string per position, truncating to the shortest input."
+      description = "Concatenate takes the Cartesian product of all inputs and produces one string per combination. " +
+        "Concatenate pairwise aligns values by position and produces one string per position, truncating to the shortest input."
     ),
     new PluginReference(
       id = ConcatMultipleValuesTransformer.pluginId,
-      description = "Passing multiple values to a single input of Concatenate does not combine them — it multiplies the output. Concatenate multiple values is the plugin that collapses multiple values within an input into one string, producing exactly one result per input."
+      description = "Passing multiple values to a single input of Concatenate does not combine them — it multiplies the output. " +
+        "Concatenate multiple values is the plugin that collapses multiple values within an input into one string, " +
+        "producing exactly one result per input."
+    ),
+    new PluginReference(
+      id = InputHashTransformer.pluginId,
+      description = "Concatenate returns one string only when each input provides exactly one value; an input with " +
+        "more than one value instead returns the Cartesian product as separate results. Combined input hash always " +
+        "returns exactly one hash value, no matter how many values or ports are connected."
     )
   )
 )
@@ -134,9 +144,7 @@ case class ConcatTransformer(
     }
   }
 
-  private def evaluate(strings: Seq[String]) = {
-    strings.mkString(parsedGlue)
-  }
+  private def evaluate(strings: Seq[String]): String = strings.mkString(parsedGlue)
 }
 
 object ConcatTransformer {
@@ -146,7 +154,7 @@ object ConcatTransformer {
   final val glueDescription  = "Separator to be inserted between two concatenated strings. The text can contain escaped characters \\n, \\t and" +
     " \\\\ that are replaced by a newline, tab or backslash respectively."
 
-  /** Converts escape sequences into their actual character. Supports: "\\", "\n" nad "\t" */
+  /** Converts escape sequences into their actual character. Supports: "\\", "\n" and "\t" */
   def parseGlue(glue: String): String = {
     if(glue.contains("\\")) {
       var lastCharEscapingBackSlash = false
