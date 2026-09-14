@@ -607,6 +607,18 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
     a[ValidationException] should be thrownBy TransformRuleJsonFormat.readStrict(pattern)
   }
 
+  it should "name a missing operator and an unknown rule type instead of failing internally" in {
+    implicit val readContext: ReadContext = ReadContext.empty
+    val target = Json.obj(URI -> "https://ex.org/name")
+    for (ruleType <- Seq("complex", "complexUri")) {
+      val ex = the[JsonParseException] thrownBy JsonSerialization.fromJson[TransformRule](Json.obj(TYPE -> ruleType, ID -> "r", "mappingTarget" -> target))
+      ex.getMessage should include ("'operator' not found")
+    }
+    val unknown = the[JsonParseException] thrownBy JsonSerialization.fromJson[TransformRule](Json.obj(TYPE -> "Direct", ID -> "r"))
+    unknown.getMessage should include ("Unknown mapping rule type 'Direct'")
+    unknown.getMessage should include ("direct")
+  }
+
   def testSerialization[T](obj: T)(implicit format: JsonFormat[T]): Unit = {
     val objJson = JsonSerialization.toJson(obj)
     val objRoundTrip = JsonSerialization.fromJson[T](objJson)

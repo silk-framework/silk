@@ -628,7 +628,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): ComplexUriMapping = {
       ComplexUriMapping(
         id = identifier(value, "uri"),
-        operator = fromJson[Input]((value \ OPERATOR).get),
+        operator = fromJson[Input](requiredValue(value, OPERATOR)),
         metaData(value),
         layout = optionalValue(value, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout()),
         uiAnnotations = optionalValue(value, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations()),
@@ -771,6 +771,9 @@ object JsonSerializers {
           fromJson[ObjectMapping](jsValue)
         case "complex" =>
           readAndConvertComplexTransformRule(jsValue)
+        case unknown =>
+          throw JsonParseException(s"Unknown mapping rule type '$unknown'. Expected one of: " +
+            "root, type, uri, complexUri, direct, object, complex.")
       }
     }
 
@@ -831,7 +834,7 @@ object JsonSerializers {
       val id = identifier(jsValue, mappingName)
       ComplexMapping(
         id = id,
-        operator = fromJson[Input]((jsValue \ OPERATOR).get),
+        operator = fromJson[Input](requiredValue(jsValue, OPERATOR)),
         target = mappingTarget,
         metaData(jsValue),
         layout = optionalValue(jsValue, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout()),
