@@ -3,8 +3,6 @@ package org.silkframework.rule.plugins.transformer.sequence
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.util.indexable.instances.seq
-import org.silkframework.util.indexable.syntax._
 
 /**
   * For each input sequence, take the element at the specified index — a negative index counts from the end —
@@ -65,6 +63,13 @@ case class GetValueByIndexTransformer(
         case Some(v) =>
           Seq(v)
       }
+    }
+  }
+
+  private implicit class SeqOps[A](private val vs: Seq[A]) {
+    def getAt(idx: Int): Option[A] = {
+      val effectiveIndex = if (idx >= 0) idx else vs.length + idx
+      vs.lift(effectiveIndex)
     }
   }
 }
