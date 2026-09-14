@@ -12,7 +12,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginRegistry}
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, TemplateVariables, VariableScope}
-import org.silkframework.runtime.validation.TaskValidationException
+import org.silkframework.runtime.validation.{TaskValidationException, ValidationException}
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.execution.report.{EntitySample, SampleEntities, SampleEntitiesSchema}
 import org.silkframework.rule.execution.TransformReport
@@ -581,6 +581,30 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
 
     explicit.id.toString shouldBe "name"
     derived.id.toString shouldBe "name1"
+  }
+
+  it should "reject a target-less 'complex' property rule instead of reading it as the URI rule" in {
+    implicit val readContext: ReadContext = TestReadContext()
+    val complexWithoutTarget = Json.obj(TYPE -> "complex", ID -> "lowerName",
+      "operator" -> Json.obj(TYPE -> "transformInput", ID -> "lc", "function" -> "lowerCase", "parameters" -> Json.obj(),
+        "inputs" -> Json.arr(Json.obj(TYPE -> "pathInput", ID -> "p", "path" -> "name"))))
+
+    // The lenient read stays: the workbench's rule editor submits URI rules in this form.
+    JsonSerialization.fromJson[TransformRule](complexWithoutTarget) shouldBe a[ComplexUriMapping]
+    val strict = the[ValidationException] thrownBy TransformRuleJsonFormat.readStrict(complexWithoutTarget)
+    strict.getMessage should include ("'lowerName' of type 'complex' has no mappingTarget")
+    strict.getMessage should include ("'complexUri'")
+    val nested = the[ValidationException] thrownBy JsonSerialization.fromJson[MappingRules](
+      Json.obj("propertyRules" -> Json.arr(complexWithoutTarget)))
+    nested.getMessage should include ("has no mappingTarget")
+    // Without a given id the message names no rule at all instead of the derived 'ValueMapping'.
+    val anonymous = the[ValidationException] thrownBy TransformRuleJsonFormat.readStrict(complexWithoutTarget - ID)
+    anonymous.getMessage should startWith ("Mapping rule of type 'complex'")
+    // A pattern-shaped operator would become a 'uri' rule; it is rejected the same way.
+    val pattern = complexWithoutTarget + ("operator" -> Json.obj(TYPE -> "transformInput", ID -> "c", "function" -> "concat", "parameters" -> Json.obj(),
+      "inputs" -> Json.arr(Json.obj(TYPE -> "pathInput", ID -> "p", "path" -> "name"))))
+    JsonSerialization.fromJson[TransformRule](pattern) shouldBe a[PatternUriMapping]
+    a[ValidationException] should be thrownBy TransformRuleJsonFormat.readStrict(pattern)
   }
 
   def testSerialization[T](obj: T)(implicit format: JsonFormat[T]): Unit = {
