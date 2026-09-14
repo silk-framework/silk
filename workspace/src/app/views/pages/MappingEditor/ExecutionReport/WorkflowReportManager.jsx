@@ -3,6 +3,7 @@ import // FIXME: should be transcoded to a tsx file
 React from "react";
 import PropTypes from "prop-types";
 import { URI } from "ecc-utils";
+import { withTranslation } from "react-i18next";
 import {
     IconButton,
     Notification,
@@ -87,12 +88,7 @@ class WorkflowReportManager extends React.Component {
     }
 
     renderNoReport() {
-        return (
-            <Notification>
-                There are no execution reports available for this workflow. Please execute the workflow in order to
-                create an execution report.
-            </Notification>
-        );
+        return <Notification>{this.props.t("ExecutionReport.workflowReportManager.noReports")}</Notification>;
     }
 
     renderReportChooser() {
@@ -100,7 +96,12 @@ class WorkflowReportManager extends React.Component {
         return (
             <Toolbar>
                 <ToolbarSection canGrow>
-                    <FieldItem labelProps={{ text: "Report log date", hidden: true }}>
+                    <FieldItem
+                        labelProps={{
+                            text: this.props.t("ExecutionReport.workflowReportManager.reportLogDate"),
+                            hidden: true,
+                        }}
+                    >
                         <select
                             name="reports"
                             id="reports"
@@ -180,10 +181,11 @@ WorkflowReportManager.propTypes = {
     diStore: PropTypes.shape({
         listExecutionReports: PropTypes.func,
     }), // DI store object that provides the business layer API to DI related services
+    t: PropTypes.func.isRequired, // translation function injected by withTranslation
 };
 
 WorkflowReportManager.defaultProps = {
     diStore: silkStore,
 };
 
-export default withHistoryHOC(WorkflowReportManager);
+export default withTranslation()(withHistoryHOC(WorkflowReportManager));
