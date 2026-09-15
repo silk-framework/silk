@@ -183,10 +183,10 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with Matchers {
     checkResponse(response)
   }
 
-  // The rejection is a client error that names the blast radius, not an internal server error.
+  // The rejection names the blast radius and is a conflict with the current state, not an internal server error.
   "refuse to delete a dataset while a transform reads it" in {
     val response = checkResponseCode(
-      client.url(s"$baseUrl/workspace/projects/$project/tasks/$datasetId").delete(), BAD_REQUEST)
+      client.url(s"$baseUrl/workspace/projects/$project/tasks/$datasetId").delete(), Status.CONFLICT)
     response.body must include (s"referenced by task $transformId (as input)")
     response.body must include (s"depend on it: $transformId.")
     workspaceProject(project).anyTaskOption(datasetId) mustBe defined

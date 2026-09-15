@@ -302,7 +302,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
         description = "If the task has been deleted or there is no task with that identifier."
       ),
       new ApiResponse(
-        responseCode = "400",
+        responseCode = "409",
         description = "If other tasks reference the task and removeDependentTasks is false. The message names them and every task that removeDependentTasks=true would delete."
       ),
       new ApiResponse(

@@ -21,7 +21,7 @@ import org.silkframework.runtime.activity.{HasValue, UserContext}
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TaskResolver}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.templating.{TemplateVariables, TemplateVariablesManager}
-import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
+import org.silkframework.runtime.validation.{ConflictRequestException, NotFoundException}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.access.{AccessControlConfig, ProjectAccessControlManager, ProjectAccessDeniedException}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowValidator}
@@ -379,7 +379,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     * @param taskName The name of the task
     * @param removeDependentTasks Also remove tasks that directly or indirectly reference the named task
     * @return The ids of all removed tasks, including the dependent ones.
-    * @throws BadUserInputException If the task to be removed is referenced by another task and removeDependentTasks is false.
+    * @throws ConflictRequestException If the task to be removed is referenced by another task and removeDependentTasks is false.
     */
   def removeAnyTask(taskName: Identifier, removeDependentTasks: Boolean)
                    (implicit userContext: UserContext): Set[Identifier] = synchronized {
@@ -390,8 +390,8 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
         val referencingTasks = tasks.filter(_.data.referencedTasks.contains(taskName)).sortBy(_.id.toString)
         val dependentTasks = withIndirectDependents(tasks, taskName, referencingTasks.map(_.id))
         if(dependentTasks.nonEmpty && !removeDependentTasks) {
-          // A client error: the caller decides whether to cascade, so the REST endpoints answer 400, not 500.
-          throw BadUserInputException(deletionRejectedMessage(taskName, referencingTasks, dependentTasks))
+          // The caller decides whether to cascade, so the REST endpoints answer 409, not 500.
+          throw ConflictRequestException(deletionRejectedMessage(taskName, referencingTasks, dependentTasks))
         }
         // Farthest dependents first, so no task references a task that is already gone.
         for(dependentTask <- dependentTasks.reverse; dependentModule <- modules if dependentModule.taskOption(dependentTask).isDefined) {

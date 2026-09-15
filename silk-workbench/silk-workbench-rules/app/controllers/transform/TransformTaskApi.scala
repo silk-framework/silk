@@ -161,7 +161,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
         responseCode = "200"
       ),
       new ApiResponse(
-        responseCode = "400",
+        responseCode = "409",
         description = "If other tasks reference the task and removeDependentTasks is false. The message names them and every task that removeDependentTasks=true would delete."
       )
     )
