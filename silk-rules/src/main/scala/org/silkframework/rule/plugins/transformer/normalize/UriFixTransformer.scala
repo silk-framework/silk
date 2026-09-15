@@ -47,7 +47,7 @@ import java.net.{MalformedURLException, URI, URISyntaxException, URL, URLDecoder
     output = Array("http://www.broken%20domain.com/broken%20weird%20path%20%C3%A4%C3%B6%C3%BC/nice/path/andNowSomeFragment#fragment%C3%A4%C3%B6%C3%BC")
   ),
   new TransformExample(
-    description = "Hash signs are only encoded if they don't denote a fragment.",
+    description = "Hash signs that denote a fragment remain unencoded",
     input1 = Array("http://domain/##path#"),
     output = Array("http://domain/#%23path%23")
   ),
