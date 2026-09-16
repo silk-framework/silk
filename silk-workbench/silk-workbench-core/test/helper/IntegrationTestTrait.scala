@@ -59,14 +59,11 @@ trait IntegrationTestTrait extends TaskApiClient
   override implicit lazy val app: Application = {
     var builder = GuiceApplicationBuilder()
     builder = builder.configure(playConfig)
-    // Binds the router instead of instantiating it up front, which would build a second application
+    // Eager singleton: an unscoped binding would create a new router (and controllers) per request
     for(routerClass <- routes) {
-      builder = builder.overrides(bind[Router].to(routerClass))
+      builder = builder.overrides(bind[Router].to(routerClass).eagerly())
     }
-    val application = builder.build()
-    // The router is created lazily, but the reverse routes used by the tests depend on the prefixes it sets
-    application.injector.instanceOf[Router]
-    application
+    builder.build()
   }
 
   /** Fetch the workspace */
