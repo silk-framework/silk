@@ -46,21 +46,40 @@ class LogBufferTest extends AnyFlatSpec with Matchers {
     logBuffer.store.get.last(10, all).lines.map(_.message) mustBe Seq("before reset", "after reset")
   }
 
-  it should "report non-additive application loggers" in {
+  it should "report non-additive application loggers, also when configured after a reset" in {
     val context = newContext()
     context.getLogger("org.silkframework.silent").setAdditive(false)
     context.getLogger("com.other.silent").setAdditive(false)
     val logBuffer = new LogBuffer(enabled, context)
     logBuffer.start()
     logBuffer.nonAdditiveLoggers mustBe Seq("org.silkframework.silent")
+    // A reset makes every logger additive again, the external configuration is applied afterwards
+    context.reset()
+    logBuffer.nonAdditiveLoggers mustBe empty
+    context.getLogger("org.silkframework.silent2").setAdditive(false)
+    logBuffer.nonAdditiveLoggers mustBe Seq("org.silkframework.silent2")
   }
 
-  it should "capture nothing while disabled" in {
+  it should "replace the appender of another instance instead of adopting it" in {
     val context = newContext()
-    val logBuffer = new LogBuffer(enabled.copy(enabled = false), context)
+    val first = new LogBuffer(enabled, context)
+    first.start()
+    val second = new LogBuffer(enabled, context)
+    second.start()
+    context.getLogger("org.silkframework.test").info("second")
+    second.store.get.last(10, all).lines.map(_.message) mustBe Seq("second")
+    first.store.get.last(10, all).lines mustBe empty
+    second.stop()
+    rootAppender(context) mustBe None
+  }
+
+  it should "capture nothing and not touch the logger context while disabled" in {
+    val context = newContext()
+    val logBuffer = new LogBuffer(enabled.copy(enabled = false), throw new IllegalStateException("must not be resolved"))
     logBuffer.start()
     logBuffer.store mustBe None
     logBuffer.isAttached mustBe false
+    logBuffer.nonAdditiveLoggers mustBe empty
     rootAppender(context) mustBe None
   }
 

@@ -16,18 +16,20 @@ import scala.jdk.CollectionConverters.ListHasAsScala
   * LoggerContext.reset(), which removes every appender. The reset keeps reset resistant listeners and notifies them,
   * which is used to put the appender back.
   *
-  * @param config  The buffer settings. Changes need a restart.
-  * @param context The logger context to attach to.
+  * @param config        The buffer settings. Changes need a restart.
+  * @param loggerContext The logger context to attach to. Only resolved while enabled.
   */
-class LogBuffer(val config: LogBufferConfig, context: LoggerContext) {
+class LogBuffer(val config: LogBufferConfig, loggerContext: => LoggerContext) {
 
   private val log = java.util.logging.Logger.getLogger(getClass.getName)
 
+  private lazy val context = loggerContext
+
   private val buffer: Option[LogRingBuffer] = if (config.enabled) Some(new LogRingBuffer(config.capacity)) else None
 
-  @volatile private var attached = false
+  private val appender: Option[LogBufferAppender] = buffer.map(new LogBufferAppender(_, config))
 
-  @volatile private var nonAdditive: Seq[String] = Seq.empty
+  @volatile private var attached = false
 
   /** The store to read lines from, if capturing is enabled. */
   def store: Option[LogStore] = buffer
@@ -36,7 +38,7 @@ class LogBuffer(val config: LogBufferConfig, context: LoggerContext) {
   def isAttached: Boolean = attached
 
   /** Application loggers configured with additivity=false, whose output never reaches the root logger. */
-  def nonAdditiveLoggers: Seq[String] = nonAdditive
+  def nonAdditiveLoggers: Seq[String] = if (attached) detectNonAdditiveLoggers() else Seq.empty
 
   /** Attaches the appender and keeps it attached across resets. Does nothing while disabled. */
   def start(): Unit = {
@@ -45,46 +47,52 @@ class LogBuffer(val config: LogBufferConfig, context: LoggerContext) {
       context.addListener(Reattach)
       log.info(s"Log buffer enabled: retaining up to ${config.capacity} lines of at most ${config.maxMessageChars} " +
         s"characters, at level ${config.level} or above")
+      warnAboutNonAdditiveLoggers()
     }
   }
 
   /** Detaches the appender and stops re-attaching it. */
   def stop(): Unit = synchronized {
     context.removeListener(Reattach)
-    context.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).detachAppender(LogBufferAppender.name)
+    appender.foreach(a => rootLogger.detachAppender(a))
     attached = false
   }
 
-  /** Idempotent, since a reset may race with a fresh attach. */
+  /** Idempotent, since a reset may race with a fresh attach. Replaces a foreign appender of the same name. */
   private def attach(): Unit = synchronized {
-    for (ring <- buffer) {
-      val root = context.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME)
-      if (root.getAppender(LogBufferAppender.name) == null) {
-        val appender = new LogBufferAppender(ring, config)
-        appender.setContext(context)
-        appender.start()
-        root.addAppender(appender)
+    for (a <- appender) {
+      val root = rootLogger
+      if (root.getAppender(LogBufferAppender.name) ne a) {
+        root.detachAppender(LogBufferAppender.name)
+        a.setContext(context)
+        a.start()
+        root.addAppender(a)
       }
       attached = true
-      nonAdditive = detectNonAdditiveLoggers()
     }
   }
+
+  private def rootLogger: Logger = context.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME)
 
   /**
     * Finds application loggers whose output never reaches the root logger and therefore not the buffer.
     * Attaching to them as well would double-capture additive configurations, so the condition is only reported.
+    * Computed on demand, since a reset makes every logger additive before the new configuration is applied.
     */
   private def detectNonAdditiveLoggers(): Seq[String] = {
-    val found = context.getLoggerList.asScala.iterator
+    context.getLoggerList.asScala.iterator
       .filter(!_.isAdditive)
       .map(_.getName)
       .filter(name => LogBuffer.expectedLoggerPrefixes.exists(prefix => name == prefix || name.startsWith(prefix + ".")))
       .toSeq
+  }
+
+  private def warnAboutNonAdditiveLoggers(): Unit = {
+    val found = detectNonAdditiveLoggers()
     if (found.nonEmpty) {
       log.warning(s"Loggers ${found.mkString(", ")} are configured with additivity=false, so their output does not " +
         "reach the root logger and will be missing from the log retrieval API")
     }
-    found
   }
 
   private object Reattach extends LoggerContextListener {

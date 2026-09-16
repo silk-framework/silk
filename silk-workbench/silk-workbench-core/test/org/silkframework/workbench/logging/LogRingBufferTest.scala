@@ -3,6 +3,8 @@ package org.silkframework.workbench.logging
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 
+import java.util.concurrent.atomic.AtomicLong
+
 class LogRingBufferTest extends AnyFlatSpec with Matchers {
 
   behavior of "LogRingBuffer"
@@ -84,6 +86,23 @@ class LogRingBufferTest extends AnyFlatSpec with Matchers {
     buffer.last(5, all) mustBe LogPage(Seq.empty, -1, truncated = false)
     buffer.since(-1, 5, all) mustBe LogPage(Seq.empty, -1, truncated = false)
     buffer.since(10, 5, all).nextCursor mustBe 10
+  }
+
+  it should "stop at a line that is still being written and pick it up on the next poll" in {
+    val buffer = new LogRingBuffer(4)
+    fill(buffer, 2)
+    // Reserves sequence 2 without storing its line, as a preempted writer would
+    val cursor = classOf[LogRingBuffer].getDeclaredField("writeCursor")
+    cursor.setAccessible(true)
+    cursor.get(buffer).asInstanceOf[AtomicLong].incrementAndGet()
+    add(buffer, "line 3")
+    val page = buffer.since(-1, 10, all)
+    page.lines.map(_.message) mustBe Seq("line 0", "line 1")
+    page.nextCursor mustBe 1
+    page.truncated mustBe true
+    val lastPage = buffer.last(10, all)
+    lastPage.lines.map(_.message) mustBe Seq("line 0", "line 1", "line 3")
+    lastPage.nextCursor mustBe 1
   }
 
   it should "reject a capacity below one" in {

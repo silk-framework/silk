@@ -1,6 +1,6 @@
 package controllers.workspaceApi.coreApi
 
-import controllers.workspaceApi.coreApi.logs.{LogBufferStatus, LogTailResponse}
+import controllers.workspaceApi.coreApi.logApi.{LogBufferStatus, LogTailResponse}
 import helper.IntegrationTestTrait
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers

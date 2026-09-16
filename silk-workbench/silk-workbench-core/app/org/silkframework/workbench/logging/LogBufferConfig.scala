@@ -1,9 +1,9 @@
 package org.silkframework.workbench.logging
 
-import ch.qos.logback.classic.Level
 import com.typesafe.config.Config
 import org.silkframework.config.ConfigValue
 
+import java.util.Locale
 import scala.jdk.CollectionConverters.ListHasAsScala
 
 /**
@@ -32,7 +32,7 @@ object LogBufferConfig extends ConfigValue[LogBufferConfig] {
     val loaded = LogBufferConfig(
       enabled = c.getBoolean("enabled"),
       capacity = c.getInt("capacity"),
-      level = c.getString("level").trim.toUpperCase,
+      level = c.getString("level").trim.toUpperCase(Locale.ROOT),
       maxMessageChars = c.getInt("maxMessageChars"),
       excludedLoggers = c.getStringList("excludedLoggers").asScala.toSeq.map(_.trim).filter(_.nonEmpty)
     )
@@ -47,8 +47,7 @@ object LogBufferConfig extends ConfigValue[LogBufferConfig] {
     if (c.maxMessageChars < 1) {
       throw new IllegalArgumentException(s"$prefix.maxMessageChars must be at least 1, was ${c.maxMessageChars}")
     }
-    // toLevel falls back silently, so an unknown value would otherwise capture at the wrong level
-    if (Level.toLevel(c.level, null) == null || !validLevels.contains(c.level)) {
+    if (!validLevels.contains(c.level)) {
       throw new IllegalArgumentException(s"$prefix.level must be one of ${validLevels.mkString(", ")}, was '${c.level}'")
     }
   }

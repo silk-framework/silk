@@ -1,6 +1,6 @@
 package controllers.workspaceApi.coreApi
 
-import controllers.workspaceApi.coreApi.logs.{LogBufferStatus, LogLineJson, LogQuery, LogTailResponse}
+import controllers.workspaceApi.coreApi.logApi.{LogBufferStatus, LogLineJson, LogQuery, LogTailResponse}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
