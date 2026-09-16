@@ -421,6 +421,15 @@ export function CreateArtefactModal() {
         [cachedArtefactProperties],
     );
 
+    /** The parameters the current plugin declares; form fields of these names are parameters, not meta data. */
+    const declaredPluginParameters = (): Record<string, unknown> | undefined => {
+        if (updateExistingTask) {
+            return updateExistingTask.taskPluginDetails.properties;
+        }
+        const key = selectedArtefactKey.current;
+        return key ? (cachedArtefactProperties[key] as IPluginDetails | undefined)?.properties : undefined;
+    };
+
     const handleCreate = React.useCallback(
         async (e) => {
             if ((e as KeyboardEvent).key === "Enter") {
@@ -450,6 +459,7 @@ export function CreateArtefactModal() {
                                 dataParameters,
                                 templateParameters.current,
                                 updateExistingTask?.alternativeUpdateFunction,
+                                updateExistingTask.taskPluginDetails.properties,
                             ),
                         );
                         updateExistingTask.successHandler?.({
@@ -826,7 +836,7 @@ export function CreateArtefactModal() {
             setAutoConfigPending(true);
             resetModalError();
             const { parameters, variableTemplateParameters } = commonOp.splitParameterAndVariableTemplateParameters(
-                commonOp.extractParameterValues(form.getValues()),
+                commonOp.extractParameterValues(form.getValues(), declaredPluginParameters()),
                 templateParameters.current,
             );
             const parameterData = commonOp.buildStringValuedObject(parameters);
@@ -908,7 +918,7 @@ export function CreateArtefactModal() {
                         if (!project) return;
                         const { parameters, variableTemplateParameters } =
                             commonOp.splitParameterAndVariableTemplateParameters(
-                                commonOp.extractParameterValues(form.getValues()),
+                                commonOp.extractParameterValues(form.getValues(), declaredPluginParameters()),
                                 templateParameters.current,
                             );
                         const parameterData = commonOp.buildStringValuedObject(parameters);

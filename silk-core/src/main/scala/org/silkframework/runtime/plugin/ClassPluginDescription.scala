@@ -91,17 +91,6 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier,
 
   override def toString: String = s"Plugin '$label' defined by class '${pluginClass.getName}'"
 
-  /**
-    * Throws an exception if a parameter value is provided that does not exist on this plugin.
-    */
-  private def validateParameters(parameterValues: ParameterValues): Unit = {
-    val invalidParameters = parameterValues.values.keySet -- parameters.map(_.name)
-    if (invalidParameters.nonEmpty) {
-      throw new InvalidPluginParameterValueException(s"The following parameters cannot be set on plugin '$label' because they are no valid parameters:" +
-        s" ${invalidParameters.mkString(", ")}. Valid parameters are: ${parameters.map(_.name).mkString(", ")}")
-    }
-  }
-
 }
 
 /**

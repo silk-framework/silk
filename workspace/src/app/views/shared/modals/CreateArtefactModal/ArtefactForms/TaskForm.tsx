@@ -579,8 +579,8 @@ export function TaskForm({
     );
 
     const datasetConfigValues = React.useCallback(() => {
-        return commonOp.buildStringValuedObject(commonOp.extractParameterValues(getValues()));
-    }, []);
+        return commonOp.buildStringValuedObject(commonOp.extractParameterValues(getValues(), artefact.properties));
+    }, [artefact.properties]);
 
     return doChange ? (
         <Loading />
