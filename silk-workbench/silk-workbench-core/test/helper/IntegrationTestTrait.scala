@@ -450,12 +450,6 @@ trait IntegrationTestTrait extends TaskApiClient
     runTaskActivity(projectId, workflowId, executorName)
   }
 
-  def activitiesLog(): WSResponse = {
-    val request = client.url(s"$baseUrl/workspace/activities/log")
-    val response = request.get()
-    checkResponse(response)
-  }
-
   /**
     * Retrieves a file from the resources directory.
     */

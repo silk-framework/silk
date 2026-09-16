@@ -25,7 +25,7 @@ import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.{EmptyResourceManager, FileResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.StringUtils._
-import org.silkframework.util.{CollectLogs, Identifier}
+import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, Workflow}
 import org.silkframework.workspace.resources.SharedFileRepository
 import org.silkframework.workspace.{InMemoryWorkspaceProvider, Project, ProjectMarshallerRegistry, Workspace}
@@ -230,14 +230,7 @@ object Silk {
    */
   def main(args: Array[String]): Unit = {
     configMgr()
-    val logs = CollectLogs() {
-      execute()
-    }
-
-    if (logs.isEmpty) {
-      logger.info("Finished execution successfully")
-    } else {
-      logger.warning("The following warnings haven been generated during the execution:\n- " + logs.map(_.getMessage).mkString("\n- "))
-    }
+    execute()
+    logger.info("Finished execution")
   }
 }
