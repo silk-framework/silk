@@ -17,7 +17,9 @@ export const filtersSlice = createSlice({
             const { ...filters } = action.payload;
             Object.keys(filters).forEach((field) => {
                 const value = action.payload[field];
-                if (!value) {
+                if (field === "textQuery") {
+                    state.appliedFilters.textQuery = typeof value === "string" ? value : "";
+                } else if (!value) {
                     delete state.appliedFilters[field];
                 } else {
                     state.appliedFilters[field] = value;

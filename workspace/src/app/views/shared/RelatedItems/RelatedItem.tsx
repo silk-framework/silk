@@ -41,6 +41,8 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
         pluginId: relatedItem.pluginId,
         projectId: relatedItem.projectId,
         taskId: relatedItem.id,
+        taskLabel: relatedItem.label,
+        taskType: relatedItem.type,
     });
 
     // Go to details page of related item

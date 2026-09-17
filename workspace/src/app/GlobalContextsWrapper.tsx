@@ -7,6 +7,7 @@ import {
     useStoreGlobalTableSettings,
 } from "./hooks/useStoreGlobalTableSettings";
 import { ModalContext, useModalContext } from "@eccenca/gui-elements/src/components/Dialog/ModalContext";
+import { ApplicationContextRegistryProvider } from "./contexts/ApplicationContextRegistry";
 
 /** Wraps globally used contexts around the application component. */
 export const GlobalContextsWrapper = ({ children }) => {
@@ -20,7 +21,9 @@ export const GlobalContextsWrapper = ({ children }) => {
                 updateGlobalTableSettings,
             }}
         >
-            <ModalContext.Provider value={{ openModalStack, setModalOpen }}>{children}</ModalContext.Provider>
+            <ModalContext.Provider value={{ openModalStack, setModalOpen }}>
+                <ApplicationContextRegistryProvider>{children}</ApplicationContextRegistryProvider>
+            </ModalContext.Provider>
         </GlobalTableContext.Provider>
     );
 };
