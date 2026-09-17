@@ -20,6 +20,8 @@ class LogBufferAppender(buffer: LogRingBuffer, config: LogBufferConfig) extends 
 
   private val failureReported = new AtomicBoolean(false)
 
+  private val excludedPrefixes = config.excludedLoggers.map(_ + ".")
+
   setName(LogBufferAppender.name)
 
   override protected def append(event: ILoggingEvent): Unit = {
@@ -43,9 +45,9 @@ class LogBufferAppender(buffer: LogRingBuffer, config: LogBufferConfig) extends 
     }
   }
 
-  /** Excluding 'audit' also excludes 'audit.graph', matching how logger names nest. */
+  /** Excluding 'audit' also excludes 'audit.graph', matching how logger names nest. Allocation free, since it runs per event. */
   private def isExcluded(loggerName: String): Boolean = {
-    config.excludedLoggers.exists(excluded => loggerName == excluded || loggerName.startsWith(excluded + "."))
+    config.excludedLoggers.contains(loggerName) || excludedPrefixes.exists(loggerName.startsWith)
   }
 
   private def truncate(text: String): String = {

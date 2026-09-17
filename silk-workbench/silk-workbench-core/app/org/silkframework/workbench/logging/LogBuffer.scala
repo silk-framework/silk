@@ -46,8 +46,9 @@ class LogBuffer(val config: LogBufferConfig, loggerContext: => LoggerContext) {
   /** Attaches the appender and keeps it attached across resets. Does nothing while disabled. */
   def start(): Unit = {
     if (buffer.isDefined) {
-      attach()
+      // Listener first, so a reset in between cannot leave the appender detached
       context.addListener(Reattach)
+      attach()
       log.info(s"Log buffer enabled: retaining up to ${config.capacity} lines of at most ${config.maxMessageChars} " +
         s"characters, at level ${config.level} or above")
     }

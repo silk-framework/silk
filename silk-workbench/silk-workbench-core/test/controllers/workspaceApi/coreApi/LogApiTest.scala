@@ -94,6 +94,9 @@ class LogApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers wit
     val page = tail("?since=0")
     page.firstSequence must be > 0L
     page.dropped must be > 0L
+    // -1 is the cursor an empty buffer hands out, so everything before firstSequence counts as dropped
+    val fromStart = tail("?since=-1")
+    fromStart.dropped mustBe fromStart.firstSequence
   }
 
   it should "reject an invalid level" in {

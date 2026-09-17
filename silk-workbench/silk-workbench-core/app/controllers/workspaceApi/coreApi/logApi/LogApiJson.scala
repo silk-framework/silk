@@ -74,7 +74,7 @@ case class LogBufferStatus(@Schema(description = "Whether capturing is switched 
                            enabled: Boolean,
                            @Schema(description = "Whether the appender is currently installed on the root logger.")
                            attached: Boolean,
-                           @Schema(description = "Minimum level captured, independent of the configured logger levels.", example = "INFO")
+                           @Schema(description = "Minimum level captured, applied on top of the configured logger levels.", example = "INFO")
                            captureLevel: String,
                            @Schema(description = "Maximum number of retained lines.")
                            capacity: Int,

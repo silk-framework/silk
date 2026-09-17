@@ -91,11 +91,12 @@ class LogApi @Inject()(logBuffer: LogBuffer) extends InjectedController {
               contains: List[String]): Action[AnyContent] = Action {
     val store = availableStore()
     val query = LogQuery(level, logger, contains, limit)
+    // Read before the page, so an eviction during the scan cannot overstate 'dropped'
+    val firstSequence = store.firstSequence
     val page = since match {
       case Some(sinceSequence) => store.since(sinceSequence, query.limit, query.matches)
       case None => store.last(query.limit, query.matches)
     }
-    val firstSequence = store.firstSequence
     Ok(Json.toJson(LogTailResponse(
       serverTime = System.currentTimeMillis(),
       instanceId = logBuffer.instanceId,
@@ -141,7 +142,7 @@ class LogApi @Inject()(logBuffer: LogBuffer) extends InjectedController {
 
   /** Lines lost between what the client last saw and what is still buffered. Without it, a gap looks like a quiet period. */
   private def droppedSince(since: Option[Long], firstSequence: Long): Long = {
-    since.filter(_ >= 0).map(s => math.max(0L, firstSequence - s - 1)).getOrElse(0L)
+    since.map(s => math.max(0L, firstSequence - s - 1)).getOrElse(0L)
   }
 
   private def availableStore(): LogStore = {
@@ -165,7 +166,7 @@ object LogApi {
       "| ---------- | ------ |\n" +
       "| Per instance | Each instance keeps its own buffer and answers only with its own lines. |\n" +
       "| Bounded history | Only the most recent lines are kept, see `logging.buffer.capacity`. |\n" +
-      "| Level | Only lines at or above `logging.buffer.level` are captured, regardless of the logger levels. |\n" +
+      "| Level | Only lines at or above `logging.buffer.level` are captured, on top of the logger levels, so lowering it alone does not add lines. |\n" +
       "| Excluded loggers | Loggers listed in `logging.buffer.excludedLoggers` are never captured. |\n\n" +
       "Use the `logs/status` endpoint to see the current settings and whether capturing is active at all."
 }
