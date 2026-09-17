@@ -34,7 +34,7 @@ export function NewFileItem({ file, progress, onAbort, onRemove }: IProps) {
                     !error &&
                     progress < 1 && (
                         <Button outlined onClick={() => onAbort(file.id)}>
-                            {t("FileUploader.abortOnly", "Abort Upload")}
+                            {t("FileUploader.cancelUpload", "Cancel upload")}
                         </Button>
                     )
                 }

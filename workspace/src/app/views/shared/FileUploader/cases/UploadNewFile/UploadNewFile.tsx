@@ -1,4 +1,7 @@
 import { DragDrop } from "@uppy/react";
+import "@uppy/core/dist/style.css";
+import "@uppy/drag-drop/dist/style.css";
+import "@uppy/progress-bar/dist/style.css";
 import React, { useEffect, useState } from "react";
 import Uppy, { UppyFile } from "@uppy/core";
 import { Button, Icon, Notification, Spacing } from "@eccenca/gui-elements";
@@ -9,8 +12,6 @@ import { useForceUpdate } from "../../../../../hooks/useForceUpdate";
 import { RetryFileItem } from "./RetryFileItem";
 import { UploadedFileItem } from "./UploadedFileItem";
 import { FileRemoveModal } from "../../../modals/FileRemoveModal";
-
-import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements/src/configuration/constants";
 
 interface IProps {
     // Uppy instance
