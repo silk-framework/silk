@@ -31,7 +31,8 @@ import org.silkframework.workspace.resources.SharedFileRepository
 import org.silkframework.workspace.{InMemoryWorkspaceProvider, Project, ProjectMarshallerRegistry, Workspace}
 
 import java.io.File
-import java.util.logging.{Level, Logger}
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.logging.{Handler, Level, LogRecord, Logger}
 import javax.inject.Inject
 import scala.math.max
 import scala.xml.XML
@@ -230,7 +231,28 @@ object Silk {
    */
   def main(args: Array[String]): Unit = {
     configMgr()
-    execute()
-    logger.info("Finished execution")
+    val warnings = new WarningCounter
+    val silkLogger = Logger.getLogger("org.silkframework")
+    silkLogger.addHandler(warnings)
+    try execute() finally silkLogger.removeHandler(warnings)
+    if (warnings.count == 0) {
+      logger.info("Finished execution successfully")
+    } else {
+      logger.warning(s"Finished execution with ${warnings.count} warnings, see above")
+    }
+  }
+
+  /** Counts warnings and errors during a run, so that the last line tells whether the log needs reading. */
+  private class WarningCounter extends Handler {
+    private val counter = new AtomicInteger
+    setLevel(Level.WARNING)
+
+    def count: Int = counter.get
+
+    override def publish(record: LogRecord): Unit = if (isLoggable(record)) counter.incrementAndGet()
+
+    override def flush(): Unit = ()
+
+    override def close(): Unit = ()
   }
 }
