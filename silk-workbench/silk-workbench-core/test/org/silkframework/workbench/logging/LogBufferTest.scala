@@ -68,6 +68,8 @@ class LogBufferTest extends AnyFlatSpec with Matchers {
     first.start()
     val second = new LogBuffer(enabled, context)
     second.start()
+    first.isAttached mustBe false
+    second.isAttached mustBe true
     context.getLogger("org.silkframework.test").info("second")
     second.store.get.last(10, all).lines.map(_.message) mustBe Seq("second")
     first.store.get.last(10, all).lines mustBe empty

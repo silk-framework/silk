@@ -31,19 +31,17 @@ class LogBuffer(val config: LogBufferConfig, loggerContext: => LoggerContext) {
 
   private val appender: Option[LogBufferAppender] = buffer.map(new LogBufferAppender(_, config))
 
-  @volatile private var attached = false
-
   /** Identifies the sequence space of this buffer: the host name with a suffix that differs on every start. */
   lazy val instanceId: String = s"${LogBuffer.hostName}-${Random.nextInt(65535)}"
 
   /** The store to read lines from, if capturing is enabled. */
   def store: Option[LogStore] = buffer
 
-  /** True, if the appender is currently installed on the root logger. */
-  def isAttached: Boolean = attached
+  /** True, if the appender of this buffer is the one currently installed on the root logger. */
+  def isAttached: Boolean = appender.exists(a => rootLogger.getAppender(LogBufferAppender.name) eq a)
 
   /** Application loggers configured with additivity=false, whose output never reaches the root logger. */
-  def nonAdditiveLoggers: Seq[String] = if (attached) detectNonAdditiveLoggers() else Seq.empty
+  def nonAdditiveLoggers: Seq[String] = if (isAttached) detectNonAdditiveLoggers() else Seq.empty
 
   /** Attaches the appender and keeps it attached across resets. Does nothing while disabled. */
   def start(): Unit = {
@@ -52,7 +50,6 @@ class LogBuffer(val config: LogBufferConfig, loggerContext: => LoggerContext) {
       context.addListener(Reattach)
       log.info(s"Log buffer enabled: retaining up to ${config.capacity} lines of at most ${config.maxMessageChars} " +
         s"characters, at level ${config.level} or above")
-      warnAboutNonAdditiveLoggers()
     }
   }
 
@@ -62,7 +59,6 @@ class LogBuffer(val config: LogBufferConfig, loggerContext: => LoggerContext) {
       context.removeListener(Reattach)
       rootLogger.detachAppender(a)
     }
-    attached = false
   }
 
   /** Idempotent, since a reset may race with a fresh attach. Replaces a foreign appender of the same name. */
@@ -75,7 +71,6 @@ class LogBuffer(val config: LogBufferConfig, loggerContext: => LoggerContext) {
         a.start()
         root.addAppender(a)
       }
-      attached = true
     }
   }
 
@@ -94,26 +89,15 @@ class LogBuffer(val config: LogBufferConfig, loggerContext: => LoggerContext) {
       .toSeq
   }
 
-  private def warnAboutNonAdditiveLoggers(): Unit = {
-    val found = detectNonAdditiveLoggers()
-    if (found.nonEmpty) {
-      log.warning(s"Loggers ${found.mkString(", ")} are configured with additivity=false, so their output does not " +
-        "reach the root logger and will be missing from the log retrieval API")
-    }
-  }
-
   private object Reattach extends LoggerContextListener {
     override def isResetResistant: Boolean = true
 
     override def onReset(context: LoggerContext): Unit = {
       // The reset just removed every appender, including ours
-      attached = false
       attach()
     }
 
-    override def onStop(context: LoggerContext): Unit = {
-      attached = false
-    }
+    override def onStop(context: LoggerContext): Unit = {}
 
     override def onStart(context: LoggerContext): Unit = {}
 
