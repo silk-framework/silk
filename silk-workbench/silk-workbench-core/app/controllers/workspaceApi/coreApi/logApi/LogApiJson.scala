@@ -55,7 +55,9 @@ case class LogTailResponse(@Schema(description = "Epoch millis the response was 
                            firstSequence: Long,
                            @Schema(description = "Highest sequence examined. Pass it as the next 'since' value to poll for new lines.")
                            lastSequence: Long,
-                           @Schema(description = "True, if the limit cut the result short and more lines can be fetched right away.")
+                           @Schema(description = "True, if the limit stopped the scan before every buffered line was examined, so more matching lines may exist. " +
+                             "With 'since' the unexamined lines are newer, continue with 'lastSequence'. " +
+                             "Without 'since' they are older than the returned ones and can be read by paging forward from 'since' = 'firstSequence' - 1.")
                            truncated: Boolean,
                            @Schema(description = "Lines evicted between the requested 'since' and what is still buffered. Anything above zero means the client fell behind.")
                            dropped: Long,
