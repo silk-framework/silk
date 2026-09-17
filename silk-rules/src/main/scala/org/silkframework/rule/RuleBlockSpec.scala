@@ -62,6 +62,12 @@ case class RuleBlockSpec(@Param(label = "Rule block model",
     variables.toSeq
   }
 
+  override def modifiedVariables: Seq[TemplateVariableName] = {
+    val variables = mutable.Buffer[TemplateVariableName]()
+    operator.foreach(iterateAllTransformersFromOperator(_, _.modifiedVariables.foreach(variables.append)))
+    variables.toSeq
+  }
+
   private def validate(): Unit = {
     val definedPortIds = ports.map(_.id).toSet
     val duplicatePortIds = ports.map(_.id).groupBy(identity).collect {

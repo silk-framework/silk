@@ -153,6 +153,12 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
     variables.toSeq
   }
 
+  override def modifiedVariables: Seq[TemplateVariableName] = {
+    val variables = mutable.Buffer[TemplateVariableName]()
+    rule.operator foreach (operator => iterateAllTransformersFromSimilarityOperator(operator, _.modifiedVariables.foreach(variables.append)))
+    variables.toSeq
+  }
+
   private lazy val referencedRuleBlocks: Set[Identifier] =
     rule.operator.map(referencedRuleBlocksFromSimilarityOperator).getOrElse(Set.empty)
 

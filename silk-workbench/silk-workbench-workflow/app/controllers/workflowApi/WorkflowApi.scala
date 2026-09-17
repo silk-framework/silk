@@ -22,11 +22,11 @@ import org.silkframework.config.CustomTask
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.resource.{FileResource, Resource}
-import org.silkframework.runtime.validation.{NotFoundException, RequestException}
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, RequestException}
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
 import org.silkframework.workspace.activity.dataset.DatasetUtils
 import org.silkframework.workspace.activity.workflow.ReconfigureTasks.ReconfigurablePluginDescription
-import org.silkframework.workspace.activity.workflow.Workflow
+import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowExecutionVariables}
 import play.api.http.HttpEntity
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
@@ -515,6 +515,57 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
                    workflowId: String): Action[AnyContent] = RequestUserContextAction { request =>implicit userContext =>
     val (project, workflow) = projectAndTask[Workflow](projectId, workflowId)
     Ok(Json.toJson(WorkflowInfo.fromWorkflow(workflow, project)))
+  }
+
+  @Operation(
+    summary = "Execution variables of a workflow",
+    description = "Lists the execution variables that a run of the workflow needs. Only the execution variables defined on the workflow itself seed a run, " +
+      "so a variable that is referenced at execution time from within the workflow (by its operators, the tasks those reference and sub-workflows, recursively) " +
+      "is reported as required unless the workflow defines a default for it or a 'Set execution variable' operator or transformer sets it during the run. " +
+      "Required variables have to be provided when the run is started, e.g., via the 'executionVariables' payload key. " +
+      "Variables defined on the workflow that are never referenced are listed as well, so that the full set of overridable variables is known. " +
+      "Values and templates of sensitive defaults are omitted. Variables referenced from templates that are resolved when a task is loaded, " +
+      "e.g., parameter templates, are not run-time requirements and are not reported.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The execution variables sorted by name.",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            schema = new Schema(implementation = classOf[WorkflowExecutionVariablesJson]),
+            examples = Array(new ExampleObject(WorkflowApiDoc.workflowExecutionVariablesExample))
+          ))
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "If the specified task is not a workflow."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or workflow has not been found."
+      )
+    ))
+  def workflowExecutionVariables(@Parameter(
+                                   name = "projectId",
+                                   description = "The project identifier",
+                                   required = true,
+                                   in = ParameterIn.PATH,
+                                   schema = new Schema(implementation = classOf[String])
+                                 )
+                                 projectId: String,
+                                 @Parameter(
+                                   name = "workflowId",
+                                   description = "The workflow identifier",
+                                   required = true,
+                                   in = ParameterIn.PATH,
+                                   schema = new Schema(implementation = classOf[String])
+                                 )
+                                 workflowId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+    val (project, task) = projectAndAnyTask(projectId, workflowId)
+    val workflowTask = project.taskOption[Workflow](workflowId).getOrElse(
+      throw new BadUserInputException(s"Task '$workflowId' is not a workflow, but a ${task.taskType.getSimpleName}."))
+    Ok(Json.toJson(WorkflowExecutionVariablesJson.fromRequirements(WorkflowExecutionVariables(workflowTask, project))))
   }
 
   /** Returns a list of potential tasks that can be used in the workflow with their port configuration.

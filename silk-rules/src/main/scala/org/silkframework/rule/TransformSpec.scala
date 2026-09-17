@@ -123,6 +123,12 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     variables.toSeq
   }
 
+  override def modifiedVariables: Seq[TemplateVariableName] = {
+    val variables = mutable.Buffer[TemplateVariableName]()
+    iterateAllTransformersFromRule(mappingRule, _.modifiedVariables.foreach(variables.append))
+    variables.toSeq
+  }
+
   private lazy val referencedRuleBlocks: Set[Identifier] = referencedRuleBlocksFromRule(mappingRule)
 
   private def iterateAllTransformersFromRule(rule: TransformRule, f: Transformer => Unit): Unit = {

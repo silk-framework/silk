@@ -141,6 +141,55 @@ val 1,val 2"""
       }
     """
 
+  final val workflowExecutionVariablesExample =
+    """
+      {
+        "variables": [
+          {
+            "name": "baseUrl",
+            "required": false,
+            "default": {
+              "name": "baseUrl",
+              "value": "https://example.org",
+              "description": "Base URL of the service",
+              "isSensitive": false,
+              "scope": "execution"
+            },
+            "definedOn": [],
+            "referencedBy": [
+              { "id": "fetchTemplate", "label": "Fetch", "taskType": "task" }
+            ],
+            "setDuringExecution": false,
+            "setBy": []
+          },
+          {
+            "name": "greeting",
+            "required": true,
+            "definedOn": [
+              { "id": "subWorkflow", "label": "Sub workflow", "taskType": "workflow" }
+            ],
+            "referencedBy": [
+              { "id": "greetingTemplate", "label": "Build greeting", "taskType": "task" }
+            ],
+            "setDuringExecution": false,
+            "setBy": []
+          },
+          {
+            "name": "tmp",
+            "required": false,
+            "definedOn": [],
+            "referencedBy": [
+              { "id": "useTmp", "label": "Use tmp", "taskType": "task" }
+            ],
+            "setDuringExecution": true,
+            "setBy": [
+              { "id": "setTmp", "label": "Set tmp", "taskType": "task" }
+            ]
+          }
+        ]
+      }
+    """
+
   final val portsResponseDescription =
     """A workflow node port config can be configured on three different levels.
 The most specific one is the config by node ID, i.e. of a specific node in the workflow graph.

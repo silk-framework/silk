@@ -57,6 +57,14 @@ trait Transformer extends AnyPlugin {
   def referencedVariables: Seq[TemplateVariableName] = {
     Seq.empty
   }
+
+  /**
+   * All variables that this transformer sets during its execution, e.g., the 'Set execution variable' transformer.
+   * This list is just a hint and not guaranteed to be complete.
+   */
+  def modifiedVariables: Seq[TemplateVariableName] = {
+    Seq.empty
+  }
 }
 
 object Transformer extends PluginFactory[Transformer]
