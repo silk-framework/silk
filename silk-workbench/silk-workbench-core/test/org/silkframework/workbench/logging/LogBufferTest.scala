@@ -5,6 +5,8 @@ import ch.qos.logback.classic.LoggerContext
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 
+import scala.util.matching.Regex
+
 class LogBufferTest extends AnyFlatSpec with Matchers {
 
   behavior of "LogBuffer"
@@ -71,6 +73,12 @@ class LogBufferTest extends AnyFlatSpec with Matchers {
     first.store.get.last(10, all).lines mustBe empty
     second.stop()
     rootAppender(context) mustBe None
+  }
+
+  it should "identify each instance by the host name and a distinct suffix" in {
+    val ids = Seq.fill(2)(new LogBuffer(enabled, newContext()).instanceId)
+    ids.foreach(_ must fullyMatch regex s"${Regex.quote(LogBuffer.hostName)}-\\d+")
+    ids.distinct.size mustBe 2
   }
 
   it should "capture nothing and not touch the logger context while disabled" in {

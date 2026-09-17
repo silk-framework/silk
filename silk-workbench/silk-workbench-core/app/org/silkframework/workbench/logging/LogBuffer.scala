@@ -5,9 +5,11 @@ import ch.qos.logback.classic.{Level, Logger, LoggerContext}
 import org.slf4j.LoggerFactory
 import play.api.inject.{ApplicationLifecycle, SimpleModule, bind}
 
+import java.net.InetAddress
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 import scala.jdk.CollectionConverters.ListHasAsScala
+import scala.util.{Random, Try}
 
 /**
   * Keeps the [[LogBufferAppender]] attached to the Logback root logger.
@@ -30,6 +32,9 @@ class LogBuffer(val config: LogBufferConfig, loggerContext: => LoggerContext) {
   private val appender: Option[LogBufferAppender] = buffer.map(new LogBufferAppender(_, config))
 
   @volatile private var attached = false
+
+  /** Identifies the sequence space of this buffer: the host name with a suffix that differs on every start. */
+  lazy val instanceId: String = s"${LogBuffer.hostName}-${Random.nextInt(65535)}"
 
   /** The store to read lines from, if capturing is enabled. */
   def store: Option[LogStore] = buffer
@@ -115,6 +120,11 @@ class LogBuffer(val config: LogBufferConfig, loggerContext: => LoggerContext) {
 }
 
 object LogBuffer {
+
+  /** The container or host name, or the product name if neither is known. The variable is preferred, since the lookup can stall on reverse DNS. */
+  lazy val hostName: String = {
+    sys.env.get("HOSTNAME").filter(_.nonEmpty).orElse(Try(InetAddress.getLocalHost.getHostName).toOption).getOrElse("dataintegration")
+  }
 
   /** Logger names whose output an administrator expects in the buffer. */
   private val expectedLoggerPrefixes = Seq("org.silkframework", "com.eccenca", "controllers", "oauth")

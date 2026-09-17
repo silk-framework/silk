@@ -12,9 +12,7 @@ import org.silkframework.workbench.utils.ErrorResult.ErrorResultFormat
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
-import java.net.InetAddress
 import javax.inject.Inject
-import scala.util.Try
 
 /**
   * Retrieval of the most recent log lines of this instance.
@@ -52,7 +50,8 @@ class LogApi @Inject()(logBuffer: LogBuffer) extends InjectedController {
     ))
   def logTail(@Parameter(
                 name = "since",
-                description = "Return only lines with a higher sequence than this. Pass the 'lastSequence' of the previous response to poll for new lines.",
+                description = "Return only lines with a higher sequence than this. Pass the 'lastSequence' of the previous response to poll for new lines. " +
+                  "Only valid for the 'instanceId' of that response. If a later response carries a different 'instanceId', discard the cursor and poll without 'since'.",
                 required = false,
                 in = ParameterIn.QUERY,
                 schema = new Schema(implementation = classOf[Long])
@@ -99,7 +98,7 @@ class LogApi @Inject()(logBuffer: LogBuffer) extends InjectedController {
     val firstSequence = store.firstSequence
     Ok(Json.toJson(LogTailResponse(
       serverTime = System.currentTimeMillis(),
-      instanceId = LogApi.instanceId,
+      instanceId = logBuffer.instanceId,
       firstSequence = firstSequence,
       lastSequence = page.nextCursor,
       truncated = page.truncated,
@@ -134,7 +133,7 @@ class LogApi @Inject()(logBuffer: LogBuffer) extends InjectedController {
       size = store.map(_.size).getOrElse(0),
       firstSequence = store.map(_.firstSequence).getOrElse(0L),
       lastSequence = store.map(_.lastSequence).getOrElse(-1L),
-      instanceId = LogApi.instanceId,
+      instanceId = logBuffer.instanceId,
       excludedLoggers = config.excludedLoggers,
       nonAdditiveLoggers = logBuffer.nonAdditiveLoggers
     )))
@@ -154,9 +153,6 @@ class LogApi @Inject()(logBuffer: LogBuffer) extends InjectedController {
 }
 
 object LogApi {
-
-  /** Identifies the answering instance, e.g. the container name. */
-  lazy val instanceId: String = Try(InetAddress.getLocalHost.getHostName).getOrElse("unknown")
 
   // No type ascription, so the value stays a compile-time constant usable in the annotation
   final val tailDescription =

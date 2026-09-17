@@ -5,6 +5,7 @@ import helper.IntegrationTestTrait
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.util.ConfigTestTrait
+import org.silkframework.workbench.logging.LogBuffer
 import org.slf4j.LoggerFactory
 import play.api.libs.ws.WSResponse
 
@@ -72,6 +73,13 @@ class LogApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers wit
     next.lastSequence must be > current.lastSequence
     next.dropped mustBe 0
     tail(s"?since=${next.lastSequence}&contains=marker-C").lines mustBe empty
+  }
+
+  it should "report an instance id with a per-start suffix" in {
+    val instanceId = tail().instanceId
+    instanceId must fullyMatch regex ".+-\\d+"
+    instanceId must startWith(LogBuffer.hostName + "-")
+    checkResponse(client.url(logsUrl + "/status").get()).json.as[LogBufferStatus].instanceId mustBe instanceId
   }
 
   it should "keep the newest lines when the limit cuts the result" in {

@@ -49,7 +49,7 @@ object LogLineJson {
 @Schema(description = "The most recent log lines of the answering instance.")
 case class LogTailResponse(@Schema(description = "Epoch millis the response was assembled at.")
                            serverTime: Long,
-                           @Schema(description = "Instance that answered. Each instance keeps its own buffer.", example = "dataintegration-7d9f-x2k")
+                           @Schema(description = "Instance that answered. Each instance keeps its own buffer. Changes on every start, so a different value means the sequences started over.", example = "dataintegration-7d9f-x2k-1234")
                            instanceId: String,
                            @Schema(description = "Oldest sequence still buffered.")
                            firstSequence: Long,
@@ -86,7 +86,7 @@ case class LogBufferStatus(@Schema(description = "Whether capturing is switched 
                            firstSequence: Long,
                            @Schema(description = "Newest sequence retained, or -1 while nothing has been captured.")
                            lastSequence: Long,
-                           @Schema(description = "Instance that answered.")
+                           @Schema(description = "Instance that answered. Changes on every start.")
                            instanceId: String,
                            @ArraySchema(schema = new Schema(description = "Loggers that are never captured.", implementation = classOf[String]))
                            excludedLoggers: Seq[String],
