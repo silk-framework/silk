@@ -32,7 +32,7 @@ case class TemplateVariableJson(@Schema(
                                 )
                                 description: Option[String],
                                 @Schema(
-                                  description = "True, if this is a sensitive variable that should not be exposed to the user.",
+                                  description = "True, if this is a sensitive variable that should not be exposed to the user. Its value is only available to templates of other sensitive variables and to password parameters.",
                                   example = "false",
                                   requiredMode = RequiredMode.REQUIRED
                                 )

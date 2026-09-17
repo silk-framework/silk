@@ -373,6 +373,23 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     response.body should not include secretValue
   }
 
+  it should "not disclose sensitive variables through non-sensitive variables of the same scope" in {
+    val projectName = "variables-test-sensitive-sibling"
+    val secretValue = "very-secret-sibling"
+    WorkspaceFactory().workspace.createProject(ProjectConfig(projectName))
+    val password = projectVariable("password", secretValue, isSensitive = true)
+    val derived = TemplateVariable("dbUrl", "", Some("jdbc://u:{{project.password}}@host"), None, isSensitive = false, VariableScope.project)
+
+    // The write path must reject a non-sensitive variable that references a sensitive sibling
+    an[RequestFailedException] should be thrownBy putVariables(projectName, TemplateVariables(Seq(password, derived)))
+    getVariables(projectName).variables shouldBe empty
+
+    // A sensitive variable may reference it and stays masked when retrieved
+    putVariables(projectName, TemplateVariables(Seq(password, derived.copy(isSensitive = true))))
+    val response = checkResponse(createRequest(TemplateApi.allVariables(None)).get())
+    response.body should not include secretValue
+  }
+
   it should "reject invalid-scope execution variables without persisting them" in {
     val projectName = "variables-test-invalid-scope"
     val taskName = "invalidScopeTask"

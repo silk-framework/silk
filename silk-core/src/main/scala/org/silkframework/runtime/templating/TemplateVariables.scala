@@ -29,7 +29,10 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
 
   /**
     * Resolves all templates and fills the template values accordingly.
+    * A template may reference the preceding variables of this set. Sensitive ones are only available to sensitive variables,
+    * so that a sensitive value cannot leak into a variable that is not marked as sensitive.
     *
+    * @param additionalVariables Variables of the parent scopes. Callers are expected to pass them without sensitive variables.
     * @throws TemplateVariablesEvaluationException If at least one template variable could not be resolved.
     */
   def resolved(additionalVariables: TemplateVariables = TemplateVariables.empty): TemplateVariables = {
@@ -39,7 +42,7 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
       variable.template match {
         case Some(template) =>
           try {
-            val value = TemplateVariables(additionalVariables.variables ++ resolvedVariables).resolveTemplateValue(template)
+            val value = TemplateVariables(additionalVariables.variables ++ TemplateVariables.referenceable(variable, resolvedVariables.toSeq)).resolveTemplateValue(template)
             resolvedVariables.append(variable.copy(value = value))
           } catch {
             case ex: TemplateEvaluationException =>
@@ -68,7 +71,7 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
       variable.template match {
         case Some(template) =>
           try {
-            val value = TemplateVariables(additionalVariables.variables ++ resolvedVariables).resolveTemplateValue(template)
+            val value = TemplateVariables(additionalVariables.variables ++ TemplateVariables.referenceable(variable, resolvedVariables.toSeq)).resolveTemplateValue(template)
             resolvedVariables.append(variable.copy(value = value))
           } catch {
             case _: TemplateEvaluationException =>
@@ -132,6 +135,14 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
 object TemplateVariables {
 
   def empty: TemplateVariables = TemplateVariables(Seq.empty)
+
+  /**
+    * The preceding variables of the same scope that a variable may reference in its template.
+    * Sensitive variables are only available to sensitive variables, so that their values cannot leak into non-sensitive ones.
+    */
+  def referenceable(variable: TemplateVariable, preceding: Seq[TemplateVariable]): Seq[TemplateVariable] = {
+    if (variable.isSensitive) preceding else preceding.filterNot(_.isSensitive)
+  }
 
   /**
     * XML serialization format.
