@@ -56,10 +56,12 @@ class LogBuffer(val config: LogBufferConfig, loggerContext: => LoggerContext) {
     }
   }
 
-  /** Detaches the appender and stops re-attaching it. */
+  /** Detaches the appender and stops re-attaching it. Does nothing while disabled. */
   def stop(): Unit = synchronized {
-    context.removeListener(Reattach)
-    appender.foreach(a => rootLogger.detachAppender(a))
+    for (a <- appender) {
+      context.removeListener(Reattach)
+      rootLogger.detachAppender(a)
+    }
     attached = false
   }
 

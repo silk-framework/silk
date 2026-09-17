@@ -88,6 +88,7 @@ class LogBufferTest extends AnyFlatSpec with Matchers {
     logBuffer.store mustBe None
     logBuffer.isAttached mustBe false
     logBuffer.nonAdditiveLoggers mustBe empty
+    logBuffer.stop()
     rootAppender(context) mustBe None
   }
 
