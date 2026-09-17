@@ -56,6 +56,15 @@ object TemplateVariableJson {
     TemplateVariableJson(variable.name, Some(variable.value), variable.template, variable.description, variable.isSensitive, variable.scope.toString)
   }
 
+  /** Like [[apply]], but omits the value and template of sensitive variables. */
+  def masked(variable: TemplateVariable): TemplateVariableJson = {
+    if (variable.isSensitive) {
+      TemplateVariableJson(variable.name, None, None, variable.description, isSensitive = true, variable.scope.toString)
+    } else {
+      apply(variable)
+    }
+  }
+
   implicit val templateVariableFormat: OFormat[TemplateVariableJson] = Json.format[TemplateVariableJson]
 }
 

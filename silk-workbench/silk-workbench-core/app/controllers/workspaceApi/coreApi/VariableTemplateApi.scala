@@ -5,19 +5,18 @@ import controllers.core.util.ControllerUtilsTrait
 import controllers.util.TaskLink
 import controllers.workspaceApi.coreApi.VariableTemplateApi.VariableDependencies
 import controllers.workspaceApi.coreApi.doc.VariableTemplateApiDoc
-import controllers.workspaceApi.coreApi.variableTemplate.{AutoCompleteVariableTemplateRequest, ValidateVariableTemplateRequest}
+import controllers.workspaceApi.coreApi.variableTemplate.{AllVariablesJson, AutoCompleteVariableTemplateRequest, ResolvedVariablesJson, ValidateVariableTemplateRequest}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.templating.exceptions._
 import org.silkframework.runtime.templating.operations.{DeleteVariableModification, UpdateVariableModification, UpdateVariablesModification}
-import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables, TemplateVariablesManager, VariableScope}
+import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables, VariableScope}
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.serialization.json.{JsonHelpers, TemplateVariableErrorJson, TemplateVariableJson, TemplateVariablesJson}
+import org.silkframework.serialization.json.{JsonHelpers, TemplateVariableJson, TemplateVariablesJson}
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.libs.json.{JsValue, Json, OFormat}
@@ -79,7 +78,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
     if (transitive && task.isEmpty) {
       throw new BadUserInputException("The 'transitive' parameter can only be used together with the 'task' parameter.")
     }
-    var (variables, errors) = resolvedVariablesJson(project.variablesManager(task))
+    var (variables, errors) = ResolvedVariablesJson(project.variablesManager(task), masked = false)
     if (transitive) {
       val subTasks = project.anyTask(task.get).data match {
         case workflow: Workflow => workflow.subTasksRecursive(project)
@@ -88,7 +87,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
       // A variable of the enclosing workflow shadows sub-task variables of the same name.
       val seenNames = mutable.Set.from(variables.map(_.name))
       for (subTask <- subTasks) {
-        val (subVariables, subErrors) = resolvedVariablesJson(subTask.executionVariablesValueHolder)
+        val (subVariables, subErrors) = ResolvedVariablesJson(subTask.executionVariablesValueHolder, masked = false)
         val newVariables = subVariables.filterNot(variable => seenNames.contains(variable.name))
         seenNames ++= newVariables.map(_.name)
         variables ++= newVariables
@@ -99,20 +98,45 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
     Ok(Json.toJson(variablesJson))
   }
 
-  /**
-   * Resolves the variables of one manager and converts them to JSON.
-   * If the evaluation fails, the stored values are kept and the issues are returned as errors.
-   */
-  private def resolvedVariablesJson(manager: TemplateVariablesManager)
-                                   (implicit userContext: UserContext): (Seq[TemplateVariableJson], Seq[TemplateVariableErrorJson]) = {
-    val allVariables = manager.all
-    try {
-      (allVariables.resolved(manager.parentVariables.withoutSensitiveVariables()).variables.map(TemplateVariableJson(_)), Seq.empty)
-    } catch {
-      case ex: TemplateVariablesEvaluationException =>
-        (allVariables.variables.map(TemplateVariableJson(_)),
-          ex.issues.map(issue => TemplateVariableErrorJson(issue.variable.name, issue.ex.getMessage)))
+  @Operation(
+    summary = "Retrieve all variables",
+    description = "Retrieves the global variables, the variables of all projects the user has access to and the execution variables of all their tasks in one request. Values and templates of sensitive variables are omitted.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The variables grouped by project and task.",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(
+            implementation = classOf[AllVariablesJson]
+          )
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "If an unknown scope has been requested."
+      )
+    )
+  )
+  def allVariables(@Parameter(
+                     name = "scope",
+                     description = "Comma-separated list of the scopes to include: 'global', 'project' and/or 'execution'. Defaults to all scopes. The sections of scopes that are not requested are omitted from the response.",
+                     required = false,
+                     in = ParameterIn.QUERY,
+                     schema = new Schema(implementation = classOf[String])
+                   )
+                   scope: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val scopeNames = scope.map(_.split(',').toSeq.map(_.trim).filter(_.nonEmpty)).filter(_.nonEmpty)
+    val scopes = scopeNames match {
+      case Some(names) =>
+        names.map { name =>
+          VariableScope.all.find(_.toString == name).getOrElse(
+            throw new BadUserInputException(s"Unknown variable scope '$name'. Supported scopes: ${VariableScope.all.mkString(", ")}"))
+        }.toSet
+      case None =>
+        VariableScope.all.toSet
     }
+    Ok(Json.toJson(AllVariablesJson.collect(scopes)))
   }
 
   @Operation(

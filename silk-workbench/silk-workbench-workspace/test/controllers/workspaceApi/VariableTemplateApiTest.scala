@@ -6,10 +6,10 @@ import org.silkframework.serialization.json.{TemplateVariableJson, TemplateVaria
 import helper.{ApiClient, IntegrationTestTrait, RequestFailedException}
 import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, TemplateVariableName, TemplateVariables, VariableScope}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowOperator, WorkflowOperatorsParameter}
-import org.silkframework.workspace.{Project, ProjectConfig, WorkspaceFactory}
+import org.silkframework.workspace.{Project, ProjectConfig, TaskLoadingError, WorkspaceFactory}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import controllers.workspaceApi.coreApi.routes.{VariableTemplateApi => TemplateApi}
-import controllers.workspaceApi.coreApi.variableTemplate.{AutoCompleteVariableTemplateRequest, ValidateVariableTemplateRequest, VariableTemplateValidationResponse}
+import controllers.workspaceApi.coreApi.variableTemplate.{AllVariablesJson, AutoCompleteVariableTemplateRequest, ValidateVariableTemplateRequest, VariableTemplateValidationResponse}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -32,7 +32,8 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
 
   // All templates in this suite are plain substitutions, so the simple engine suffices.
   override def propertyMap: Map[String, Option[String]] = Map(
-    "config.variables.engine" -> Some(SimpleSubstitutionTemplateEngine.id)
+    "config.variables.engine" -> Some(SimpleSubstitutionTemplateEngine.id),
+    "config.variables.global.allVariablesGlobal" -> Some("globalValue")
   )
 
   override def beforeAll(): Unit = {
@@ -755,6 +756,70 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     getVariables(projectName, Some(taskName), transitive = true).variables.map(_.name) shouldBe Seq("greeting")
   }
 
+  it should "list the variables of all projects and their tasks with sensitive values masked" in {
+    val projectName = "variables-test-all"
+    val taskName = "allVariablesTask"
+    val secretValue = "very-secret-all-variables"
+    createProjectWithVariablesTask(projectName, taskName,
+      projectVariables = Seq(projectVariable("year", "2002"), projectVariable("password", secretValue, isSensitive = true)),
+      taskParameters = Map("title" -> "T", "year" -> "2002"),
+      taskExecutionVariables = TemplateVariables(Seq(executionVariable("greeting", "Hello"),
+        TemplateVariable("derived", "", Some("{{execution.greeting}} World"), None, isSensitive = false, VariableScope.execution))))
+    // A task without execution variables and a task that failed to load
+    WorkspaceFactory().workspace.project(projectName).addTask("plainAllVariablesTask", VariablesTestTask("T", 2002))
+    WorkspaceFactory().workspace.provider.retainExternalTaskLoadingError(projectName,
+      TaskLoadingError(Some(Identifier(projectName)), Identifier("brokenTask"), new RuntimeException("boom"), Some("Broken task"), None, None, None))
+    // A project without any variables is still listed
+    val emptyProjectName = "variables-test-all-empty"
+    WorkspaceFactory().workspace.createProject(ProjectConfig(emptyProjectName))
+
+    val response = checkResponse(createRequest(TemplateApi.allVariables(None)).get())
+    response.body should not include secretValue
+    val all = Json.fromJson[AllVariablesJson](response.json).get
+
+    all.global.getOrElse(fail("Global variables are missing")).variables.map(v => (v.name, v.value)) should contain(("allVariablesGlobal", Some("globalValue")))
+
+    val projectJson = all.projects.find(_.id == projectName).getOrElse(fail(s"Project $projectName is missing"))
+    projectJson.variables.map(_.map(v => (v.name, v.value, v.isSensitive))) shouldBe
+      Some(Seq(("year", Some("2002"), false), ("password", None, true)))
+    projectJson.errors shouldBe None
+    projectJson.loadingErrors.map(_.map(e => (e.id, e.label, e.message))) shouldBe Some(Seq(("brokenTask", Some("Broken task"), "boom")))
+    val tasks = projectJson.tasks.getOrElse(fail("Tasks are missing"))
+    tasks.map(_.id) should contain theSameElementsAs Seq(taskName, "plainAllVariablesTask")
+    val task = tasks.find(_.id == taskName).get
+    task.taskType shouldBe "task"
+    // Templates are resolved
+    task.variables.map(v => (v.name, v.value)) shouldBe Seq(("greeting", Some("Hello")), ("derived", Some("Hello World")))
+    task.errors shouldBe None
+    tasks.find(_.id == "plainAllVariablesTask").get.variables shouldBe empty
+
+    val emptyProject = all.projects.find(_.id == emptyProjectName).getOrElse(fail(s"Project $emptyProjectName is missing"))
+    emptyProject.variables shouldBe Some(Seq.empty)
+    emptyProject.tasks shouldBe Some(Seq.empty)
+    emptyProject.loadingErrors shouldBe None
+  }
+
+  it should "only list the requested scopes when retrieving all variables" in {
+    val projectName = "variables-test-all-scopes"
+    createProjectWithVariablesTask(projectName, "scopesTask",
+      taskExecutionVariables = TemplateVariables(Seq(executionVariable("greeting", "Hello"))))
+
+    val executionOnly = getAllVariables(scope = Some("execution"))
+    executionOnly.global shouldBe None
+    val executionProject = executionOnly.projects.find(_.id == projectName).get
+    executionProject.variables shouldBe None
+    executionProject.tasks.map(_.map(_.id)) shouldBe Some(Seq("scopesTask"))
+
+    val globalAndProject = getAllVariables(scope = Some("global, project"))
+    globalAndProject.global shouldBe defined
+    val projectJson = globalAndProject.projects.find(_.id == projectName).get
+    projectJson.variables.map(_.map(_.name)) shouldBe Some(Seq("year"))
+    projectJson.tasks shouldBe None
+
+    val ex = the[RequestFailedException] thrownBy getAllVariables(scope = Some("unknown"))
+    ex.response.status shouldBe 400
+  }
+
   private def projectVariable(name: String, value: String, isSensitive: Boolean = false): TemplateVariable =
     TemplateVariable(name, value, None, None, isSensitive, VariableScope.project)
 
@@ -791,6 +856,11 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
       ParameterValues(taskParameters.view.mapValues(ParameterTemplateValue(_)).toMap))
     project.addTask(taskName, plugin, executionVariables = taskExecutionVariables)
     project
+  }
+
+  def getAllVariables(scope: Option[String] = None): AllVariablesJson = {
+    val json = checkResponse(createRequest(TemplateApi.allVariables(scope)).get()).json
+    Json.fromJson[AllVariablesJson](json).get
   }
 
   def getVariables(projectId: String, task: Option[String] = None, transitive: Boolean = false): TemplateVariables = {
