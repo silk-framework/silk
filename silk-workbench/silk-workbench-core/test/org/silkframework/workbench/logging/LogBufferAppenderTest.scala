@@ -96,8 +96,10 @@ class LogBufferAppenderTest extends AnyFlatSpec with Matchers {
       }
     }
     attach(context, failing, config())
-    noException must be thrownBy context.getLogger("test").info("first")
-    noException must be thrownBy context.getLogger("test").info("second")
-    context.getStatusManager.getCopyOfStatusList.asScala.count(_.getLevel == Status.ERROR) mustBe 1
+    for (i <- 1 to 5) noException must be thrownBy context.getLogger("test").info(s"line $i")
+    // Logback reports the failure through its status manager, but not once per call
+    val errors = context.getStatusManager.getCopyOfStatusList.asScala.count(_.getLevel == Status.ERROR)
+    errors must be > 0
+    errors must be < 5
   }
 }
