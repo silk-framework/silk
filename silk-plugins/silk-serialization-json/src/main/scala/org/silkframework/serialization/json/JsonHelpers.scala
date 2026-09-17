@@ -187,7 +187,10 @@ object JsonHelpers {
   def identifier(json: JsValue, defaultId: String)(implicit readContext: ReadContext): Identifier = {
     optionalValue(json, ID) match {
       case Some(JsString(id)) =>
-        id
+        // Registered, so a later read without an id cannot derive the same name.
+        val explicitId = Identifier(id)
+        readContext.identifierGenerator.add(explicitId)
+        explicitId
       case Some(_) =>
         throw JsonParseException("Value for attribute '" + ID + "' is not a String!")
       case None =>

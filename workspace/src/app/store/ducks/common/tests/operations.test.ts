@@ -54,4 +54,20 @@ describe("commonOps", () => {
             objectParameter: { label: "nested label" },
         });
     });
+
+    test("extractParameterValues should keep a meta data field name that the plugin declares as a parameter", () => {
+        const formValues = {
+            label: "Some label",
+            description: "A plugin parameter value, not the task description",
+            id: "someId",
+            tags: { selectedItems: [] },
+            file: "some file",
+        };
+        // The plugin declares a parameter named 'description', so only the other meta data fields are stripped.
+        const declaredParameters = { description: {}, file: {} };
+        expect(commonOps.extractParameterValues(formValues, declaredParameters)).toStrictEqual({
+            description: "A plugin parameter value, not the task description",
+            file: "some file",
+        });
+    });
 });

@@ -1,10 +1,13 @@
 package org.silkframework.workspace
 
-import org.silkframework.config.{MetaData, TaskSpec}
+import org.silkframework.config.{CustomTask, MetaData, TaskSpec}
+import org.silkframework.dataset.{Dataset, DatasetSpec}
+import org.silkframework.rule.{LinkSpec, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariables}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.TaskCleanupPlugin.CleanUpAfterTaskDeletionFunction
+import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.exceptions.TaskNotFoundException
 
 import java.util.logging.{Level, Logger}
@@ -78,7 +81,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
   def task(name: Identifier)
           (implicit userContext: UserContext): ProjectTask[TaskData] = {
     assertLoaded()
-    cachedTasks.getOrElse(name, throw TaskNotFoundException(project.id, name, taskType.getSimpleName))
+    cachedTasks.getOrElse(name, throw TaskNotFoundException(project.id, name, Module.taskTypeName(taskType)))
   }
 
   def taskOption(name: Identifier)
@@ -174,5 +177,18 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
    */
   private object TaskOrdering extends Ordering[Identifier] {
     def compare(a:Identifier, b:Identifier): Int = a.toString.compareTo(b.toString)
+  }
+}
+
+object Module {
+
+  /** Task types as task JSON names them (JsonSerializers.TASK_TYPE_*, which this module cannot import). */
+  private val taskTypeNames: Seq[(Class[_], String)] = Seq(
+    classOf[DatasetSpec[Dataset]] -> "Dataset", classOf[TransformSpec] -> "Transform", classOf[LinkSpec] -> "Linking",
+    classOf[RuleBlockSpec] -> "RuleBlock", classOf[Workflow] -> "Workflow", classOf[CustomTask] -> "CustomTask")
+
+  /** The API name of a task type, so a message names what a caller sent rather than the Scala class. */
+  def taskTypeName(taskType: Class[_]): String = {
+    taskTypeNames.collectFirst { case (cls, name) if cls.isAssignableFrom(taskType) => name }.getOrElse(taskType.getSimpleName)
   }
 }

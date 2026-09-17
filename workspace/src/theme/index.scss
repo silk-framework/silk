@@ -12,11 +12,11 @@ $eccgui-selector-text-spot-highlight: "[id^=parameter_doc_]";
 // no explicit style definitions outside the gui elements
 
 // basic elements
-@import "~@eccenca/gui-elements";
+@import "@eccenca/gui-elements/src/index.scss";
 // other extensions
-@import "~@eccenca/gui-elements/src/extensions";
+@import "@eccenca/gui-elements/src/extensions";
 // extensions for cmem context
-@import "~@eccenca/gui-elements/src/cmem";
+@import "@eccenca/gui-elements/src/cmem";
 
 /**
  * Additional styles for the application notifications

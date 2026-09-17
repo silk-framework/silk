@@ -1526,6 +1526,10 @@
             "entity": "Entity",
             "values": "Values",
             "issue": "Issue"
+        },
+        "workflowReportManager": {
+            "noReports": "There are no execution reports available for this workflow. Please execute the workflow in order to create an execution report.",
+            "reportLogDate": "Report log date"
         }
     },
     "Editor": {
