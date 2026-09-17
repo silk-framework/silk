@@ -88,7 +88,7 @@ class LogRingBufferTest extends AnyFlatSpec with Matchers {
     buffer.since(10, 5, all).nextCursor mustBe 10
   }
 
-  it should "stop at a line that is still being written and pick it up on the next poll" in {
+  it should "skip a line that is still being written" in {
     val buffer = new LogRingBuffer(4)
     fill(buffer, 2)
     // Reserves sequence 2 without storing its line, as a preempted writer would
@@ -96,13 +96,8 @@ class LogRingBufferTest extends AnyFlatSpec with Matchers {
     cursor.setAccessible(true)
     cursor.get(buffer).asInstanceOf[AtomicLong].incrementAndGet()
     add(buffer, "line 3")
-    val page = buffer.since(-1, 10, all)
-    page.lines.map(_.message) mustBe Seq("line 0", "line 1")
-    page.nextCursor mustBe 1
-    page.truncated mustBe true
-    val lastPage = buffer.last(10, all)
-    lastPage.lines.map(_.message) mustBe Seq("line 0", "line 1", "line 3")
-    lastPage.nextCursor mustBe 1
+    buffer.since(-1, 10, all).lines.map(_.message) mustBe Seq("line 0", "line 1", "line 3")
+    buffer.last(10, all).lines.map(_.message) mustBe Seq("line 0", "line 1", "line 3")
   }
 
   it should "reject a capacity below one" in {

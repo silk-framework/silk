@@ -6,8 +6,8 @@ import scala.collection.mutable.ArrayBuffer
 /**
   * Lock-free ring of the most recent log lines.
   *
-  * Sits on the logging hot path: add never blocks, allocates only the line and never throws. A reader stops at a line
-  * that is being written at that moment, so that the next poll picks it up.
+  * Sits on the logging hot path: add never blocks, allocates only the line and never throws. A reader skips a line
+  * that is being written at that moment, so a poll can miss it. For a diagnostic buffer that is a good trade.
   *
   * The slot of a sequence is sequence % capacity. A slot is only live if the line it holds still carries the sequence
   * being looked for, which detects overwritten lines without any bookkeeping. Memory is bounded by construction:
@@ -35,21 +35,14 @@ class LogRingBuffer(val capacity: Int) extends LogStore {
 
   override def since(sinceExclusive: Long, limit: Int, filter: LogLine => Boolean): LogPage = {
     val newest = lastSequence
-    val from = math.max(sinceExclusive + 1, firstSequence)
     val matching = new ArrayBuffer[LogLine]()
-    var examined = math.max(sinceExclusive, from - 1)
-    var sequence = from
-    var inFlight = false
-    while (sequence <= newest && matching.size < limit && !inFlight) {
-      val line = slots.get(slotOf(sequence))
-      inFlight = isInFlight(line, sequence)
-      if (!inFlight) {
-        if (line.sequence == sequence && filter(line)) matching += line
-        examined = sequence
-        sequence += 1
-      }
+    var sequence = math.max(sinceExclusive + 1, firstSequence)
+    while (sequence <= newest && matching.size < limit) {
+      val line = liveLine(sequence)
+      if (line != null && filter(line)) matching += line
+      sequence += 1
     }
-    LogPage(matching.toSeq, examined, truncated = sequence <= newest)
+    LogPage(matching.toSeq, sequence - 1, truncated = sequence <= newest)
   }
 
   override def last(limit: Int, filter: LogLine => Boolean): LogPage = {
@@ -57,18 +50,13 @@ class LogRingBuffer(val capacity: Int) extends LogStore {
     val oldest = firstSequence
     val matching = new ArrayBuffer[LogLine]()
     // Walks backwards, so that the limit keeps the newest lines
-    var cursor = newest
     var sequence = newest
     while (sequence >= oldest && matching.size < limit) {
-      val line = slots.get(slotOf(sequence))
-      if (isInFlight(line, sequence)) {
-        cursor = sequence - 1 // polling from here returns the line once it is stored
-      } else if (line.sequence == sequence && filter(line)) {
-        matching += line
-      }
+      val line = liveLine(sequence)
+      if (line != null && filter(line)) matching += line
       sequence -= 1
     }
-    LogPage(matching.reverse.toSeq, cursor, truncated = sequence >= oldest)
+    LogPage(matching.reverse.toSeq, newest, truncated = sequence >= oldest)
   }
 
   /** The ring holds exactly the last 'capacity' sequences, so this is pure arithmetic. */
@@ -78,8 +66,11 @@ class LogRingBuffer(val capacity: Int) extends LogStore {
 
   override def size: Int = math.max(0, lastSequence - firstSequence + 1).toInt
 
-  /** True, if the sequence has been handed out, but its line is not stored yet. A newer line means it was overwritten. */
-  private def isInFlight(line: LogLine, sequence: Long): Boolean = line == null || line.sequence < sequence
+  /** The line of a sequence, or null if it is overwritten or not stored yet. */
+  private def liveLine(sequence: Long): LogLine = {
+    val line = slots.get(slotOf(sequence))
+    if (line != null && line.sequence == sequence) line else null
+  }
 
   private def slotOf(sequence: Long): Int = java.lang.Math.floorMod(sequence, capacity.toLong).toInt
 }
