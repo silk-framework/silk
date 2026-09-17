@@ -1,11 +1,10 @@
 package controllers.workflowApi.workflow
 
+import controllers.workspaceApi.coreApi.variableTemplate.TaskReferenceJson
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
-import org.silkframework.config.TaskSpec
 import org.silkframework.serialization.json.TemplateVariableJson
 import org.silkframework.workspace.activity.workflow.WorkflowExecutionVariables.ExecutionVariableRequirement
-import org.silkframework.workspace.{ProjectTask, WorkbenchLinks}
 import play.api.libs.json.{Format, Json}
 
 @Schema(description = "The execution variables that a workflow run needs.")
@@ -71,22 +70,5 @@ object WorkflowExecutionVariableJson {
       setDuringExecution = requirement.setDuringExecution,
       setBy = requirement.setBy.map(TaskReferenceJson.fromTask)
     )
-  }
-}
-
-@Schema(description = "A reference to a task.")
-case class TaskReferenceJson(@Schema(description = "The task identifier.", requiredMode = RequiredMode.REQUIRED)
-                             id: String,
-                             @Schema(description = "The task label.", requiredMode = RequiredMode.NOT_REQUIRED)
-                             label: Option[String],
-                             @Schema(description = "The task type, e.g., 'dataset', 'transform', 'linking', 'workflow' or 'task'.", requiredMode = RequiredMode.REQUIRED)
-                             taskType: String)
-
-object TaskReferenceJson {
-
-  implicit val taskReferenceFormat: Format[TaskReferenceJson] = Json.format[TaskReferenceJson]
-
-  def fromTask(task: ProjectTask[_ <: TaskSpec]): TaskReferenceJson = {
-    TaskReferenceJson(task.id, task.metaData.label, WorkbenchLinks.taskType(task))
   }
 }

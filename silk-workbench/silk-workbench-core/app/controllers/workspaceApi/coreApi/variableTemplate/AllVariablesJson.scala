@@ -112,7 +112,7 @@ case class TaskVariablesJson(@Schema(description = "The task identifier.", requi
                              id: String,
                              @Schema(description = "The task label.", requiredMode = RequiredMode.NOT_REQUIRED)
                              label: Option[String],
-                             @Schema(description = "The task type, e.g., 'dataset', 'transform', 'linking', 'workflow' or 'task'.", requiredMode = RequiredMode.REQUIRED)
+                             @Schema(description = TaskReferenceJson.taskTypeDescription, requiredMode = RequiredMode.REQUIRED)
                              taskType: String,
                              @ArraySchema(
                                schema = new Schema(
