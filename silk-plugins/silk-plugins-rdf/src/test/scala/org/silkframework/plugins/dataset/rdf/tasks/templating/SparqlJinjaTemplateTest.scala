@@ -5,7 +5,7 @@ import org.scalatest.matchers.must.Matchers
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.plugins.templating.jinja.JinjaTemplateEngine
-import org.silkframework.runtime.templating.{TemplateVariableValue, VariableScope}
+import org.silkframework.runtime.templating.{TemplateVariableName, TemplateVariableValue, VariableScope}
 import org.silkframework.runtime.templating.exceptions.{TemplateEvaluationException, UnboundVariablesException}
 import org.silkframework.runtime.validation.ValidationException
 
@@ -192,6 +192,16 @@ class SparqlJinjaTemplateTest extends AnyFlatSpec with Matchers {
     val rendered = template.generate(Some(entity), TaskProperties(Map.empty, Map.empty)).head
     rendered must include("<urn:a:1>")
     rendered must include("<urn:a:2>")
+  }
+
+  it should "report the referenced template variables, but not the input and output task references" in {
+    val template = SparqlTemplate.create(JinjaTemplateEngine.id,
+      """SELECT * WHERE { GRAPH <{{ execution.graph }}> { <{{ input.entity.s }}> <{{ project.prop }}> ?o } FILTER(?o = "{{ label }}") }""",
+      defaultScope = VariableScope.execution)
+    template.referencedVariables must contain theSameElementsAs Seq(
+      new TemplateVariableName("graph", VariableScope.execution),
+      new TemplateVariableName("prop", VariableScope.project),
+      new TemplateVariableName("label", VariableScope.execution))
   }
 
   private def generate(template: String,

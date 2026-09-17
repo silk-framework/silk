@@ -4,6 +4,7 @@ package org.silkframework.plugins.dataset.rdf
 import org.apache.jena.update.UpdateFactory
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.runtime.templating.{TemplateVariableName, VariableScope}
 import org.silkframework.config._
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
@@ -161,6 +162,12 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
     val firstBatch = batched.head
     firstBatch must include("# trailing comment;")
     an [Exception] must be thrownBy UpdateFactory.create(firstBatch + "\n" + firstBatch)
+  }
+
+  it should "report the template variables referenced by the update template" in {
+    val task = SparqlUpdateCustomTask("""INSERT DATA { GRAPH <{{ execution.graph }}> { <{{ input.entity.s }}> <urn:p> "{{ project.label }}" } } ;""")
+    task.referencedVariables must contain theSameElementsAs Seq(
+      new TemplateVariableName("graph", VariableScope.execution), new TemplateVariableName("label", VariableScope.project))
   }
 
   private def sparqlUpdateTask(template: String,
