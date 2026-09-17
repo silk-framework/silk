@@ -22,7 +22,7 @@ import org.silkframework.config.CustomTask
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.resource.{FileResource, Resource}
-import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, RequestException}
+import org.silkframework.runtime.validation.{NotFoundException, RequestException}
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
 import org.silkframework.workspace.activity.dataset.DatasetUtils
 import org.silkframework.workspace.activity.workflow.ReconfigureTasks.ReconfigurablePluginDescription
@@ -538,12 +538,8 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
           ))
       ),
       new ApiResponse(
-        responseCode = "400",
-        description = "If the specified task is not a workflow."
-      ),
-      new ApiResponse(
         responseCode = "404",
-        description = "If the specified project or workflow has not been found."
+        description = "If the specified project or workflow has not been found. A task of another type counts as not found."
       )
     ))
   def workflowExecutionVariables(@Parameter(
@@ -562,9 +558,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
                                    schema = new Schema(implementation = classOf[String])
                                  )
                                  workflowId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
-    val (project, task) = projectAndAnyTask(projectId, workflowId)
-    val workflowTask = project.taskOption[Workflow](workflowId).getOrElse(
-      throw new BadUserInputException(s"Task '$workflowId' is not a workflow, but a ${task.taskType.getSimpleName}."))
+    val (project, workflowTask) = projectAndTask[Workflow](projectId, workflowId)
     Ok(Json.toJson(WorkflowExecutionVariablesJson.fromRequirements(WorkflowExecutionVariables(workflowTask, project))))
   }
 

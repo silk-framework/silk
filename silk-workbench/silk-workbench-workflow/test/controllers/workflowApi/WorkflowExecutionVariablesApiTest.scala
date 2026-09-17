@@ -108,11 +108,12 @@ class WorkflowExecutionVariablesApiTest extends AnyFlatSpec with IntegrationTest
     subOnly.referencedBy.map(_.id) shouldBe Seq("needsSubOnly")
   }
 
-  it should "reject tasks that are not workflows and report missing tasks and projects" in {
+  it should "report tasks that are not workflows, missing tasks and missing projects as not found" in {
+    // A task of another type is not found, consistent with the workflow info route
     val notAWorkflow = the[RequestFailedException] thrownBy {
       checkResponse(createRequest(controllers.workflowApi.routes.WorkflowApi.workflowExecutionVariables(projectName, "needsGreeting")).get())
     }
-    notAWorkflow.response.status shouldBe 400
+    notAWorkflow.response.status shouldBe 404
 
     val missingTask = the[RequestFailedException] thrownBy {
       checkResponse(createRequest(controllers.workflowApi.routes.WorkflowApi.workflowExecutionVariables(projectName, "doesNotExist")).get())
