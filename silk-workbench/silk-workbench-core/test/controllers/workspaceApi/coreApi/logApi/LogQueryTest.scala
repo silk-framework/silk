@@ -51,6 +51,7 @@ class LogQueryTest extends AnyFlatSpec with Matchers {
     terms.matches(line(message = "failed to load PROJECT x")) mustBe true
     terms.matches(line(message = "failed", throwable = Some("Exception: Project X missing"))) mustBe true
     terms.matches(line(message = "failed")) mustBe false
+    terms.matches(line(message = "fail")) mustBe false
   }
 
   it should "ignore blank contains terms" in {

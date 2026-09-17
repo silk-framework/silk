@@ -11,7 +11,7 @@ import java.util.Locale
   *
   * @param minLevel       Minimum level a line has to be logged at.
   * @param loggerPrefixes Logger name prefixes, of which one has to match.
-  * @param contains       Lower-cased substrings, all of which have to appear in the message or the rendered exception.
+  * @param contains       Substrings, all of which have to appear in the message or the rendered exception, ignoring case.
   * @param limit          Maximum number of lines to return, already clamped.
   */
 case class LogQuery(minLevel: Level,
@@ -32,10 +32,15 @@ case class LogQuery(minLevel: Level,
   }
 
   private def matchesContains(line: LogLine): Boolean = {
-    contains.isEmpty || {
-      val text = (line.message + "\n" + line.throwable.getOrElse("")).toLowerCase(Locale.ROOT)
-      contains.forall(text.contains)
-    }
+    contains.forall(term => containsIgnoreCase(line.message, term) || line.throwable.exists(containsIgnoreCase(_, term)))
+  }
+
+  /** Case-insensitive substring test that does not copy the text, since it runs on every examined line. */
+  private def containsIgnoreCase(text: String, term: String): Boolean = {
+    val last = text.length - term.length
+    var start = 0
+    while (start <= last && !text.regionMatches(true, start, term, 0, term.length)) start += 1
+    start <= last
   }
 }
 
@@ -55,7 +60,7 @@ object LogQuery {
     LogQuery(
       minLevel = parseLevel(level),
       loggerPrefixes = clean(logger),
-      contains = clean(contains).map(_.toLowerCase(Locale.ROOT)),
+      contains = clean(contains),
       limit = limit.map(l => math.max(1, math.min(l, maxLimit))).getOrElse(defaultLimit)
     )
   }
