@@ -109,19 +109,23 @@ class WorkflowExecutionVariablesApiTest extends AnyFlatSpec with IntegrationTest
   }
 
   it should "report tasks that are not workflows, missing tasks and missing projects as not found" in {
+    val errorProjectName = "execution-variables-api-errors"
+    val project = WorkspaceFactory().workspace.createProject(ProjectConfig(errorProjectName))
+    project.addTask("notAWorkflow", VariablesTestTask("T", 2002))
+
     // A task of another type is not found, consistent with the workflow info route
     val notAWorkflow = the[RequestFailedException] thrownBy {
-      checkResponse(createRequest(controllers.workflowApi.routes.WorkflowApi.workflowExecutionVariables(projectName, "needsGreeting")).get())
+      checkResponse(createRequest(controllers.workflowApi.routes.WorkflowApi.workflowExecutionVariables(errorProjectName, "notAWorkflow")).get())
     }
     notAWorkflow.response.status shouldBe 404
 
     val missingTask = the[RequestFailedException] thrownBy {
-      checkResponse(createRequest(controllers.workflowApi.routes.WorkflowApi.workflowExecutionVariables(projectName, "doesNotExist")).get())
+      checkResponse(createRequest(controllers.workflowApi.routes.WorkflowApi.workflowExecutionVariables(errorProjectName, "doesNotExist")).get())
     }
     missingTask.response.status shouldBe 404
 
     val missingProject = the[RequestFailedException] thrownBy {
-      checkResponse(createRequest(controllers.workflowApi.routes.WorkflowApi.workflowExecutionVariables("doesNotExist", "wf")).get())
+      checkResponse(createRequest(controllers.workflowApi.routes.WorkflowApi.workflowExecutionVariables("doesNotExist", "anyWorkflow")).get())
     }
     missingProject.response.status shouldBe 404
   }
