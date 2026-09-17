@@ -147,15 +147,14 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
     resources.toSeq
   }
 
-  override def referencedVariables: Seq[TemplateVariableName] = {
-    val variables = mutable.Buffer[TemplateVariableName]()
-    rule.operator foreach (operator => iterateAllTransformersFromSimilarityOperator(operator, _.referencedVariables.foreach(variables.append)))
-    variables.toSeq
-  }
+  override def referencedVariables: Seq[TemplateVariableName] = collectFromTransformers(_.referencedVariables)
 
-  override def modifiedVariables: Seq[TemplateVariableName] = {
+  override def modifiedVariables: Seq[TemplateVariableName] = collectFromTransformers(_.modifiedVariables)
+
+  /** Collects variables from all transformers in the linkage rule tree. */
+  private def collectFromTransformers(f: Transformer => Seq[TemplateVariableName]): Seq[TemplateVariableName] = {
     val variables = mutable.Buffer[TemplateVariableName]()
-    rule.operator foreach (operator => iterateAllTransformersFromSimilarityOperator(operator, _.modifiedVariables.foreach(variables.append)))
+    rule.operator foreach (operator => iterateAllTransformersFromSimilarityOperator(operator, transformer => variables ++= f(transformer)))
     variables.toSeq
   }
 
