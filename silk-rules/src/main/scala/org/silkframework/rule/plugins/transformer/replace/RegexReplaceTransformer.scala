@@ -17,6 +17,7 @@ package org.silkframework.rule.plugins.transformer.replace
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.rule.plugins.transformer.extraction.RegexExtractionTransformer
+import org.silkframework.rule.plugins.transformer.filter.FilterByRegex
 import org.silkframework.rule.plugins.transformer.selection.RegexSelectTransformer
 import org.silkframework.rule.plugins.transformer.validation.ValidateRegex
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
@@ -46,6 +47,10 @@ import scala.util.matching.Regex
     new PluginReference(
       id = ReplaceTransformer.pluginId,
       description = "The Replace plugin swaps one fixed substring for another everywhere it occurs. The Regex replace plugin does the same global substitution, but what counts as a hit is described by a regular expression."
+    ),
+    new PluginReference(
+      id = FilterByRegex.pluginId,
+      description = "Filter by regex decides which values make it into the output, but never alters what a kept value contains. Regex replace keeps every value without exception; what changes is the content itself."
     ),
   )
 )
