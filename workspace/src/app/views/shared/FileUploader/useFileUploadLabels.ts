@@ -18,10 +18,33 @@ export const useFileUploadLabels = (): FileUploadLabels => {
         selectedFile: (file) => t("FileUploader.selectedFile", { fileName: file.name }),
         stopUploads: t("FileUploader.stopUploads"),
         uploadCancelled: t("FileUploader.uploadCancelled"),
-        formatError: ({ kind, error, file }) =>
-            kind === "validation"
+        formatError: ({ kind, error, file, restriction }) => {
+            if (kind === "restriction") {
+                switch (restriction.code) {
+                    case "maxFileSize":
+                        return t("FileUploader.restrictions.maxFileSize", {
+                            fileName: file?.name ?? "",
+                            maxFileSize: restriction.maxFileSize,
+                        });
+                    case "fileType":
+                        return t("FileUploader.restrictions.fileType", {
+                            fileName: file?.name ?? "",
+                            types: restriction.acceptedFileTypes.join(", "),
+                        });
+                    case "maxNumberOfFiles":
+                        return t("FileUploader.restrictions.maxNumberOfFiles", {
+                            maximum: restriction.maxNumberOfFiles,
+                        });
+                    case "duplicate":
+                        return t("FileUploader.restrictions.duplicate", { fileName: file?.name ?? "" });
+                    case "unknown":
+                        return t("FileUploader.restrictions.unknown");
+                }
+            }
+            return kind === "validation"
                 ? t("FileUploader.resourceCheckError", { error: error.message })
-                : t("FileUploader.uploadError", { errorDetails: error.message, fileName: file?.name ?? "" }),
+                : t("FileUploader.uploadError", { errorDetails: error.message, fileName: file?.name ?? "" });
+        },
         uploadProgress: t("FileUploader.uploadProgress"),
         uploadedFile: (file) => t("FileUploader.successfullyUploaded", { uploadedName: file.name }),
     };

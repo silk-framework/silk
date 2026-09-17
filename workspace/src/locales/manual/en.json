@@ -185,6 +185,13 @@
         "removeFile": "Remove",
         "removedFile": "{{fileName}} removed",
         "resourceCheckError": "The selected files could not be checked: {{error}}",
+        "restrictions": {
+            "maxFileSize": "{{fileName}} exceeds the maximum file size of {{maxFileSize}} bytes.",
+            "fileType": "{{fileName}} is not an accepted file type. Allowed: {{types}}.",
+            "maxNumberOfFiles": "Select at most {{maximum}} incomplete files at a time.",
+            "duplicate": "{{fileName}} is already selected.",
+            "unknown": "The selected file or files cannot be added."
+        },
         "retry": "Retry",
         "retryAbortMessage": "The upload of {{fileName}} was cancelled",
         "retryMessage": "Something going wrong during upload process for {{fileName}}",

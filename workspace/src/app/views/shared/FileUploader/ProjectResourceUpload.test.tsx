@@ -165,7 +165,7 @@ describe("ProjectResourceUpload with the real FileUpload", () => {
     it("preserves single-file limits and size restrictions before resource checks", async () => {
         renderUpload({ allowMultiple: false, maxFileUploadSizeBytes: 2 });
         select("too-large.ttl");
-        expect(screen.getByRole("alert")).toBeInTheDocument();
+        expect(screen.getByRole("alert")).toHaveTextContent("too-large.ttl exceeds the maximum file size of 2 bytes.");
         expect(resourceExists).not.toHaveBeenCalled();
         expect(ControlledXMLHttpRequest.requests).toHaveLength(0);
     });
