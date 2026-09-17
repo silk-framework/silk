@@ -32,7 +32,7 @@ class LogBuffer(val config: LogBufferConfig, loggerContext: => LoggerContext) {
   private val appender: Option[LogBufferAppender] = buffer.map(new LogBufferAppender(_, config))
 
   /** Identifies the sequence space of this buffer: the host name with a suffix that differs on every start. */
-  lazy val instanceId: String = s"${LogBuffer.hostName}-${Random.nextInt(65535)}"
+  lazy val instanceId: String = s"${LogBuffer.hostName}-${Random.nextLong().toHexString}"
 
   /** The store to read lines from, if capturing is enabled. */
   def store: Option[LogStore] = buffer

@@ -79,7 +79,7 @@ class LogBufferTest extends AnyFlatSpec with Matchers {
 
   it should "identify each instance by the host name and a distinct suffix" in {
     val ids = Seq.fill(2)(new LogBuffer(enabled, newContext()).instanceId)
-    ids.foreach(_ must fullyMatch regex s"${Regex.quote(LogBuffer.hostName)}-\\d+")
+    ids.foreach(_ must fullyMatch regex s"${Regex.quote(LogBuffer.hostName)}-[0-9a-f]+")
     ids.distinct.size mustBe 2
   }
 

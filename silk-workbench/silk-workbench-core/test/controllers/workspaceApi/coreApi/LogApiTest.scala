@@ -77,7 +77,7 @@ class LogApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers wit
 
   it should "report an instance id with a per-start suffix" in {
     val instanceId = tail().instanceId
-    instanceId must fullyMatch regex ".+-\\d+"
+    instanceId must fullyMatch regex ".+-[0-9a-f]+"
     instanceId must startWith(LogBuffer.hostName + "-")
     checkResponse(client.url(logsUrl + "/status").get()).json.as[LogBufferStatus].instanceId mustBe instanceId
   }

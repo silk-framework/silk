@@ -49,7 +49,7 @@ object LogLineJson {
 @Schema(description = "The most recent log lines of the answering instance.")
 case class LogTailResponse(@Schema(description = "Epoch millis the response was assembled at.")
                            serverTime: Long,
-                           @Schema(description = "Instance that answered. Each instance keeps its own buffer. Changes on every start, so a different value means the sequences started over.", example = "dataintegration-7d9f-x2k-1234")
+                           @Schema(description = "Instance that answered. Each instance keeps its own buffer. Changes on every start, so a different value means the sequences started over.", example = "dataintegration-7d9f-x2k-5e3a9c1f2b7d4e60")
                            instanceId: String,
                            @Schema(description = "Oldest sequence still buffered.")
                            firstSequence: Long,
