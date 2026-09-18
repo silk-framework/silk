@@ -126,12 +126,15 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                      schema = new Schema(implementation = classOf[String])
                    )
                    scope: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    val scopeNames = scope.map(_.split(',').toSeq.map(_.trim).filter(_.nonEmpty)).filter(_.nonEmpty)
-    val scopes = scopeNames match {
+    val supportedScopes = s"Supported scopes: ${VariableScope.all.mkString(", ")}"
+    val scopes = scope match {
       case Some(names) =>
-        names.map { name =>
-          VariableScope.all.find(_.toString == name).getOrElse(
-            throw new BadUserInputException(s"Unknown variable scope '$name'. Supported scopes: ${VariableScope.all.mkString(", ")}"))
+        val scopeNames = names.split(',').toSeq.map(_.trim).filter(_.nonEmpty)
+        if (scopeNames.isEmpty) {
+          throw new BadUserInputException(s"The scope parameter is given but names no scope. $supportedScopes")
+        }
+        scopeNames.map { name =>
+          VariableScope.all.find(_.toString == name).getOrElse(throw new BadUserInputException(s"Unknown variable scope '$name'. $supportedScopes"))
         }.toSet
       case None =>
         VariableScope.all.toSet

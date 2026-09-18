@@ -949,6 +949,12 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
 
     val ex = the[RequestFailedException] thrownBy getAllVariables(scope = Some("unknown"))
     ex.response.status shouldBe 400
+    // A scope parameter that names no scope is an error too, not a request for all scopes
+    for (empty <- Seq("", ",", " , ")) {
+      val emptyEx = the[RequestFailedException] thrownBy getAllVariables(scope = Some(empty))
+      emptyEx.response.status shouldBe 400
+      emptyEx.response.body should include("The scope parameter is given but names no scope.")
+    }
   }
 
   private def projectVariable(name: String, value: String, isSensitive: Boolean = false): TemplateVariable =
