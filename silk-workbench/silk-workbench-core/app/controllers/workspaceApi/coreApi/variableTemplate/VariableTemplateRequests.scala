@@ -58,15 +58,15 @@ case class ValidateVariableTemplateRequest(templateString: String,
     for(missingVariable <- missingKnownScopedVariable(variables)) {
       return invalidVariable(missingVariable)
     }
+    val isWithheldSensitive = withheldSensitiveVariable()
     try {
       val evaluatedTemplate = variables.resolveTemplateValue(templateString, evaluationConfig)
       valid(Some(evaluatedTemplate))
     } catch {
-      case ex: UnboundVariablesException if variableName.isDefined && withheldSensitiveVariables(ex.missingVars).nonEmpty =>
-        // Same rule and message as saving the variable, see TemplateVariables.resolveTemplate.
-        // A parameter template follows the password-parameter rule instead and reports the withheld variable as not defined, as in lenient mode.
-        val withheld = withheldSensitiveVariables(ex.missingVars)
-        invalid(SensitiveVariableReferenceException.message(withheld, ex.missingVars.filterNot(withheld.contains)))
+      case ex: UnboundVariablesException if ex.missingVars.exists(isWithheldSensitive) =>
+        // Same rule and message as saving the variable, see TemplateVariables.resolveTemplate
+        val (withheld, otherMissing) = ex.missingVars.partition(isWithheldSensitive)
+        invalid(SensitiveVariableReferenceException.message(withheld, otherMissing))
       case ex: UnboundVariablesException if variableName.isDefined && ex.missingVars.size == 1 =>
         // Check if the variable is unbound because it is defined after the current one
         Try(collectVariables(ignoreVariableName = true).resolveTemplateValue(templateString, evaluationConfig)) match {
@@ -89,15 +89,17 @@ case class ValidateVariableTemplateRequest(templateString: String,
     }
   }
 
-  /** The missing variables that are sensitive variables of the validated scope, withheld from a non-sensitive template. */
-  private def withheldSensitiveVariables(missing: Seq[TemplateVariableName])(implicit user: UserContext): Seq[TemplateVariableName] = {
-    if (includeSensitiveVariables.getOrElse(false)) {
-      Seq.empty
-    } else {
-      project.toSeq.flatMap { projectName =>
-        val validatedVariables = WorkspaceFactory().workspace.project(projectName).variablesManager(task).all
-        missing.filter(validatedVariables.isSensitiveMember)
-      }
+  /**
+    * Tells whether a missing variable is a sensitive variable of the validated scope, withheld from the template of a
+    * non-sensitive variable. Only when a variable is validated: a parameter template follows the password-parameter rule
+    * instead and reports the withheld variable as not defined, as in lenient mode.
+    */
+  private def withheldSensitiveVariable()(implicit user: UserContext): TemplateVariableName => Boolean = {
+    project match {
+      case Some(projectName) if variableName.isDefined && !includeSensitiveVariables.getOrElse(false) =>
+        WorkspaceFactory().workspace.project(projectName).variablesManager(task).all.isSensitiveMember
+      case _ =>
+        _ => false
     }
   }
 

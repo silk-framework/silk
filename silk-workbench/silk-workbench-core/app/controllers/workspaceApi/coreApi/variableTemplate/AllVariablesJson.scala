@@ -7,7 +7,7 @@ import org.silkframework.runtime.templating.exceptions.TemplateVariablesEvaluati
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariable, TemplateVariables, TemplateVariablesManager, VariableScope}
 import org.silkframework.serialization.json.{TemplateVariableErrorJson, TemplateVariableJson, TemplateVariablesJson}
-import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
+import org.silkframework.workspace.{Project, ProjectTask, TaskExecutionVariablesManager, WorkspaceFactory}
 import play.api.libs.json.{Json, OFormat}
 
 @Schema(description = "The variables of all projects the user has access to, including the execution variables of their tasks.")
@@ -95,7 +95,7 @@ object ProjectVariablesJson {
     val (tasks, loadingErrors) =
       if (scopes.contains(VariableScope.execution)) {
         // The parents of all execution variables of the project, merged once instead of per task
-        val parentVariables = (GlobalTemplateVariables.all merge project.templateVariables.all).withoutSensitiveVariables()
+        val parentVariables = TaskExecutionVariablesManager.templateParentVariables(project.templateVariables.all)
         val tasks = project.allTasks.map { task =>
           val (variables, errors) = ResolvedVariablesJson(task.executionVariables, parentVariables, masked = true)
           TaskVariablesJson.fromTask(task, variables, Some(errors).filter(_.nonEmpty))
