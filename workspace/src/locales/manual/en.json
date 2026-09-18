@@ -264,6 +264,9 @@
         "workspacePrefixesTitle": "Explore prefixes"
     },
     "ProjectImportModal": {
+        "analysisError": "The project cannot be imported. Details: {{details}}",
+        "detailsLoadError": "Failed to retrieve project import details. {{details}}",
+        "importFailed": "Project could not be imported.",
         "importBtn": "Import project",
         "importSummary": "Imported project summary",
         "importUnderFreshIdBtn": "Import as new project",
