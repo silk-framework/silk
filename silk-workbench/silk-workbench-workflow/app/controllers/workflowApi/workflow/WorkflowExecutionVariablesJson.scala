@@ -1,10 +1,13 @@
 package controllers.workflowApi.workflow
 
-import controllers.workspaceApi.coreApi.variableTemplate.TaskReferenceJson
+import controllers.workspaceApi.coreApi.variableTemplate.{ResolvedVariablesJson, TaskReferenceJson}
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.serialization.json.TemplateVariableJson
+import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.workflow.WorkflowExecutionVariables.ExecutionVariableRequirement
+import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.libs.json.{Format, Json}
 
 @Schema(description = "The execution variables that a workflow run needs.")
@@ -20,8 +23,12 @@ object WorkflowExecutionVariablesJson {
 
   implicit val workflowExecutionVariablesFormat: Format[WorkflowExecutionVariablesJson] = Json.format[WorkflowExecutionVariablesJson]
 
-  def fromRequirements(requirements: Seq[ExecutionVariableRequirement]): WorkflowExecutionVariablesJson = {
-    WorkflowExecutionVariablesJson(requirements.map(WorkflowExecutionVariableJson.fromRequirement))
+  def fromRequirements(requirements: Seq[ExecutionVariableRequirement], workflowTask: ProjectTask[Workflow])
+                      (implicit userContext: UserContext): WorkflowExecutionVariablesJson = {
+    // The defaults are resolved and masked like all variables of the allVariables endpoint, so stored values never leak
+    val (defaults, _) = ResolvedVariablesJson(workflowTask.executionVariablesValueHolder, masked = true)
+    val defaultsByName = defaults.map(default => default.name -> default).toMap
+    WorkflowExecutionVariablesJson(requirements.map(requirement => WorkflowExecutionVariableJson.fromRequirement(requirement, defaultsByName.get(requirement.name))))
   }
 }
 
@@ -60,11 +67,11 @@ object WorkflowExecutionVariableJson {
 
   implicit val workflowExecutionVariableFormat: Format[WorkflowExecutionVariableJson] = Json.format[WorkflowExecutionVariableJson]
 
-  def fromRequirement(requirement: ExecutionVariableRequirement): WorkflowExecutionVariableJson = {
+  def fromRequirement(requirement: ExecutionVariableRequirement, default: Option[TemplateVariableJson]): WorkflowExecutionVariableJson = {
     WorkflowExecutionVariableJson(
       name = requirement.name,
       required = requirement.required,
-      default = requirement.default.map(TemplateVariableJson.masked),
+      default = default,
       definedOn = requirement.definedOn.map(TaskReferenceJson.fromTask),
       referencedBy = requirement.referencedBy.map(TaskReferenceJson.fromTask),
       setDuringExecution = requirement.setDuringExecution,

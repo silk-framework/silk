@@ -1,6 +1,7 @@
 package controllers.workspaceApi
 
 import controllers.autoCompletion.AutoSuggestAutoCompletionResponse
+import controllers.workspace.workspaceRequests.CopyTasksRequest
 import controllers.workspaceApi.coreApi.VariableTemplateApi.VariableDependencies
 import org.silkframework.serialization.json.{TemplateVariableJson, TemplateVariablesJson}
 import helper.{ApiClient, IntegrationTestTrait, RequestFailedException}
@@ -15,7 +16,8 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.{CustomTask, InputPorts, Port}
 import org.silkframework.runtime.plugin.{ClassPluginDescription, ParameterTemplateValue, ParameterValues, PluginContext, PluginRegistry}
-import org.silkframework.runtime.templating.exceptions.{CannotDeleteUsedVariableException, InvalidScopeException}
+import org.silkframework.runtime.templating.exceptions.{CannotDeleteUsedVariableException, InvalidScopeException, TemplateVariablesEvaluationException}
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.{ConfigTestTrait, Identifier}
 
 import scala.concurrent.Await
@@ -379,15 +381,93 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     WorkspaceFactory().workspace.createProject(ProjectConfig(projectName))
     val password = projectVariable("password", secretValue, isSensitive = true)
     val derived = TemplateVariable("dbUrl", "", Some("jdbc://u:{{project.password}}@host"), None, isSensitive = false, VariableScope.project)
+    val sensitivityMessage = "'project.password' is sensitive and can only be referenced from a sensitive variable."
 
-    // The write path must reject a non-sensitive variable that references a sensitive sibling
-    an[RequestFailedException] should be thrownBy putVariables(projectName, TemplateVariables(Seq(password, derived)))
+    // The write paths must reject a non-sensitive variable that references a sensitive sibling and name the rule
+    val putAll = the[RequestFailedException] thrownBy putVariables(projectName, TemplateVariables(Seq(password, derived)))
+    putAll.response.status shouldBe 400
+    putAll.response.body should include(sensitivityMessage)
     getVariables(projectName).variables shouldBe empty
+    putVariable(projectName, password)
+    val putOne = the[RequestFailedException] thrownBy putVariable(projectName, derived)
+    putOne.response.status shouldBe 400
+    putOne.response.body should include(sensitivityMessage)
+    getVariables(projectName).variables.map(_.name) shouldBe Seq("password")
+    // The live validation of the variable editor gives the same message
+    val validation = validateTemplate(ValidateVariableTemplateRequest(derived.template.get, Some(projectName), variableName = Some(derived.name)))
+    validation.valid shouldBe false
+    validation.parseError.map(_.message) shouldBe Some(sensitivityMessage)
+
+    // Saving a task with such execution variables is rejected as well, on creation and on update
+    val project = WorkspaceFactory().workspace.project(projectName)
+    val executionPassword = TemplateVariable("password", secretValue, None, None, isSensitive = true, VariableScope.execution)
+    val executionDerived = TemplateVariable("dbUrl", "", Some("jdbc://u:{{execution.password}}@host"), None, isSensitive = false, VariableScope.execution)
+    val addTask = the[TemplateVariablesEvaluationException] thrownBy
+      project.addTask("derivedTask", VariablesTestTask("T", 2002), executionVariables = TemplateVariables(Seq(executionPassword, executionDerived)))
+    addTask.getMessage shouldBe "Variable 'dbUrl': 'execution.password' is sensitive and can only be referenced from a sensitive variable."
+    project.addTask("derivedTask", VariablesTestTask("T", 2002), executionVariables = TemplateVariables(Seq(executionPassword)))
+    an[TemplateVariablesEvaluationException] should be thrownBy
+      project.task[CustomTask]("derivedTask").update(VariablesTestTask("T", 2002), newExecutionVariables = Some(TemplateVariables(Seq(executionPassword, executionDerived))))
+    project.anyTask("derivedTask").executionVariables.variables.map(_.name) shouldBe Seq("password")
 
     // A sensitive variable may reference it and stays masked when retrieved
     putVariables(projectName, TemplateVariables(Seq(password, derived.copy(isSensitive = true))))
     val response = checkResponse(createRequest(TemplateApi.allVariables(None)).get())
     response.body should not include secretValue
+  }
+
+  it should "withhold and reject a non-sensitive variable that was derived from a sensitive sibling before the rule existed" in {
+    val projectName = "variables-test-sensitive-sibling-legacy"
+    val secretValue = "very-secret-legacy"
+    val project = WorkspaceFactory().workspace.createProject(ProjectConfig(projectName))
+    val password = projectVariable("password", secretValue, isSensitive = true)
+    val derived = TemplateVariable("dbUrl", s"jdbc://u:$secretValue@host", Some("jdbc://u:{{project.password}}@host"), None, isSensitive = false, VariableScope.project)
+    // Stored without the write path, like a value resolved before the rule existed
+    project.templateVariables.put(TemplateVariables(Seq(password, derived, projectVariable("year", "2002"))))
+
+    // The stored value is not disclosed by the masking endpoint, the error names the rule
+    val response = checkResponse(createRequest(TemplateApi.allVariables(Some("project"))).get())
+    response.body should not include secretValue
+    val projectJson = Json.fromJson[AllVariablesJson](response.json).get.projects.find(_.id == projectName).get
+    projectJson.variables.map(_.map(v => (v.name, v.value))) shouldBe Some(Seq(("password", None), ("dbUrl", None), ("year", Some("2002"))))
+    projectJson.errors.map(_.map(_.variableName)) shouldBe Some(Seq("dbUrl"))
+    projectJson.errors.get.head.message should include("'project.password' is sensitive")
+
+    // Any change to the scope is rejected until the variable is made sensitive or the reference removed
+    val unrelated = the[RequestFailedException] thrownBy putVariable(projectName, projectVariable("year", "2003"))
+    unrelated.response.status shouldBe 400
+    unrelated.response.body should include("Variable 'dbUrl': 'project.password' is sensitive")
+    getVariable(projectName, "year").value shouldBe "2002"
+    putVariable(projectName, derived.copy(isSensitive = true))
+    putVariable(projectName, projectVariable("year", "2003"))
+    getVariable(projectName, "year").value shouldBe "2003"
+  }
+
+  it should "copy the variables a task needs and report a target project whose variables cannot be resolved" in {
+    val sourceName = "variables-test-copy-source"
+    val taskName = "copiedVariablesTask"
+    // The task's parameter template references 'year', whose template in turn references 'base'
+    createProjectWithVariablesTask(sourceName, taskName, projectVariables = Seq(projectVariable("base", "20"),
+      TemplateVariable("year", "", Some("{{project.base}}02"), None, isSensitive = false, VariableScope.project)))
+    def copyTo(targetName: String): Unit = {
+      CopyTasksRequest(dryRun = Some(false), overwriteTasks = Some(true), targetProject = targetName).copyTask(sourceName, taskName)
+    }
+
+    // Both variables are copied along, the transitively referenced one in front
+    val targetName = "variables-test-copy-target"
+    WorkspaceFactory().workspace.createProject(ProjectConfig(targetName))
+    copyTo(targetName)
+    getVariables(targetName).variables.map(v => (v.name, v.value)) shouldBe Seq(("base", "20"), ("year", "2002"))
+
+    // A target variable that cannot be resolved is reported instead of retrying until a limit is hit
+    val legacyTargetName = "variables-test-copy-legacy-target"
+    val legacyTarget = WorkspaceFactory().workspace.createProject(ProjectConfig(legacyTargetName))
+    legacyTarget.templateVariables.put(TemplateVariables(Seq(
+      projectVariable("password", "secret", isSensitive = true),
+      TemplateVariable("dbUrl", "jdbc://secret@host", Some("jdbc://{{project.password}}@host"), None, isSensitive = false, VariableScope.project))))
+    val ex = the[BadUserInputException] thrownBy copyTo(legacyTargetName)
+    ex.getMessage should include(s"variables of project '$legacyTargetName'")
+    ex.getMessage should include("Variable 'dbUrl': 'project.password' is sensitive")
   }
 
   it should "reject invalid-scope execution variables without persisting them" in {

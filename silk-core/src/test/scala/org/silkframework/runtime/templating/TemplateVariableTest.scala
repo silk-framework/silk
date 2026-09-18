@@ -2,7 +2,7 @@ package org.silkframework.runtime.templating
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.silkframework.runtime.templating.exceptions.TemplateVariablesEvaluationException
+import org.silkframework.runtime.templating.exceptions.{SensitiveVariableReferenceException, TemplateVariablesEvaluationException, UnboundVariablesException}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.ConfigTestTrait
 
@@ -34,9 +34,19 @@ class TemplateVariableTest extends AnyFlatSpec with Matchers with ConfigTestTrai
     val variables = TemplateVariables(Seq(
       TemplateVariable("password", "secret", None, None, isSensitive = true, VariableScope.project),
       TemplateVariable("dbUrl", "", Some("jdbc://{{project.password}}@host"), None, isSensitive = false, VariableScope.project)))
-    an[TemplateVariablesEvaluationException] should be thrownBy variables.resolved()
+    // The referenced variable is defined, so the error names the sensitivity rule instead of an undefined variable
+    val ex = the[TemplateVariablesEvaluationException] thrownBy variables.resolved()
+    ex.issues.map(_.ex.getClass) shouldBe Seq(classOf[SensitiveVariableReferenceException])
+    ex.getMessage shouldBe "Variable 'dbUrl': 'project.password' is sensitive and can only be referenced from a sensitive variable."
     // The lenient variant keeps the stored value
     variables.resolvedKeepingUnresolved().map("dbUrl").value shouldBe ""
+  }
+
+  it should "report a reference to a variable that is not defined as undefined" in {
+    val variables = TemplateVariables(Seq(
+      TemplateVariable("dbUrl", "", Some("jdbc://{{project.password}}@host"), None, isSensitive = false, VariableScope.project)))
+    val ex = the[TemplateVariablesEvaluationException] thrownBy variables.resolved()
+    ex.issues.map(_.ex.getClass) shouldBe Seq(classOf[UnboundVariablesException])
   }
 
   it should "resolve a sensitive variable against a sensitive variable of the same scope" in {

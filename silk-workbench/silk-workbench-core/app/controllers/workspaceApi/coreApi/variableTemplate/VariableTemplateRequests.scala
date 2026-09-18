@@ -2,8 +2,8 @@ package controllers.workspaceApi.coreApi.variableTemplate
 
 import controllers.autoCompletion._
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.templating.exceptions.{TemplateEvaluationException, TemplateSyntaxException, UnboundVariablesException}
-import org.silkframework.runtime.templating.{EvaluationConfig, GlobalTemplateVariables, GlobalTemplateVariablesConfig, TemplateVariables, VariableScope}
+import org.silkframework.runtime.templating.exceptions.{SensitiveVariableReferenceException, TemplateEvaluationException, TemplateSyntaxException, UnboundVariablesException}
+import org.silkframework.runtime.templating.{EvaluationConfig, GlobalTemplateVariables, GlobalTemplateVariablesConfig, TemplateVariableName, TemplateVariables, VariableScope}
 import org.silkframework.util.StringUtils
 import org.silkframework.workspace.WorkspaceFactory
 import play.api.libs.json.{Format, Json}
@@ -62,6 +62,9 @@ case class ValidateVariableTemplateRequest(templateString: String,
       val evaluatedTemplate = variables.resolveTemplateValue(templateString, evaluationConfig)
       valid(Some(evaluatedTemplate))
     } catch {
+      case ex: UnboundVariablesException if ex.missingVars.size == 1 && withheldSensitiveVariable(ex.missingVars.head) =>
+        // Same rule and message as saving the variable, see TemplateVariables.resolveTemplate
+        invalid(new SensitiveVariableReferenceException(ex.missingVars).getMessage)
       case ex: UnboundVariablesException if variableName.isDefined && ex.missingVars.size == 1 =>
         // Check if the variable is unbound because it is defined after the current one
         Try(collectVariables(ignoreVariableName = true).resolveTemplateValue(templateString, evaluationConfig)) match {
@@ -82,6 +85,13 @@ case class ValidateVariableTemplateRequest(templateString: String,
       case NonFatal(ex) =>
         invalid(ex.getMessage)
     }
+  }
+
+  /** True if the missing variable is a sensitive variable of the validated scope that was withheld from a non-sensitive template. */
+  private def withheldSensitiveVariable(missing: TemplateVariableName)(implicit user: UserContext): Boolean = {
+    val validatedScope = if (task.isDefined) VariableScope.execution else VariableScope.project
+    project.isDefined && !includeSensitiveVariables.getOrElse(false) && missing.scope == validatedScope &&
+      collectVariables(ignoreVariableName = true, includeSensitiveVariables = true).variables.exists(v => v.isSensitive && v.scopedName == missing.scopedName)
   }
 
   /**

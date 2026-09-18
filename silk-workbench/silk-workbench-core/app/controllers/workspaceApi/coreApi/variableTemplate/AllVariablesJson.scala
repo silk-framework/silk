@@ -148,21 +148,25 @@ object TaskLoadingErrorJson {
 /**
   * Converts the variables of one manager to JSON.
   * Templates are resolved against the non-sensitive parent variables. If the evaluation fails,
-  * the stored values are kept and the issues are returned as errors.
+  * the stored values are kept and the issues are returned as errors. When masking, the stored values of the
+  * failed variables are omitted, since a value that its template can no longer produce may hold a sensitive value.
   */
 object ResolvedVariablesJson {
 
   def apply(manager: TemplateVariablesManager, masked: Boolean)
            (implicit userContext: UserContext): (Seq[TemplateVariableJson], Seq[TemplateVariableErrorJson]) = {
-    val toJson: TemplateVariable => TemplateVariableJson =
-      if (masked) TemplateVariableJson.masked else variable => TemplateVariableJson(variable)
+    val toJson: TemplateVariable => TemplateVariableJson = if (masked) TemplateVariableJson.masked else TemplateVariableJson(_)
     val allVariables = manager.all
     try {
       (allVariables.resolved(manager.parentVariables.withoutSensitiveVariables()).variables.map(toJson), Seq.empty)
     } catch {
       case ex: TemplateVariablesEvaluationException =>
-        (allVariables.variables.map(toJson),
-          ex.issues.map(issue => TemplateVariableErrorJson(issue.variable.name, issue.ex.getMessage)))
+        val failed = ex.issues.map(_.variable.name).toSet
+        val variables = allVariables.variables.map { variable =>
+          val json = toJson(variable)
+          if (masked && failed.contains(variable.name)) json.copy(value = None) else json
+        }
+        (variables, ex.issues.map(issue => TemplateVariableErrorJson(issue.variable.name, issue.ex.getMessage)))
     }
   }
 }

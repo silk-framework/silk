@@ -559,7 +559,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
                                  )
                                  workflowId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val (project, workflowTask) = projectAndTask[Workflow](projectId, workflowId)
-    Ok(Json.toJson(WorkflowExecutionVariablesJson.fromRequirements(WorkflowExecutionVariables(workflowTask, project))))
+    Ok(Json.toJson(WorkflowExecutionVariablesJson.fromRequirements(WorkflowExecutionVariables(workflowTask, project), workflowTask)))
   }
 
   /** Returns a list of potential tasks that can be used in the workflow with their port configuration.

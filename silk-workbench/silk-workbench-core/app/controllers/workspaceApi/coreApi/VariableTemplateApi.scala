@@ -527,8 +527,8 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
    * Resolves variables with dependency order checking.
    * If a variable references a variable of the same scope that is defined after it,
    * a CannotReorderVariablesException is thrown. Failures unrelated to the ordering
-   * (e.g. templates referencing sensitive variables, which are only available to sensitive variables)
-   * keep the variable's stored value instead.
+   * (e.g. templates referencing sensitive parent variables, which are not available here)
+   * keep the variable's stored value instead. A reference to a sensitive sibling is rejected.
    */
   private def resolveWithDependencyCheck(variables: TemplateVariables, parentVars: TemplateVariables, scope: VariableScope): TemplateVariables = {
     val resolvedVariables = mutable.Buffer[TemplateVariable]()
@@ -537,21 +537,17 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
       variable.template match {
         case Some(template) =>
           try {
-            val value = TemplateVariables(parentVars.variables ++ TemplateVariables.referenceable(variable, resolvedVariables.toSeq)).resolveTemplateValue(template)
-            resolvedVariables.append(variable.copy(value = value))
+            resolvedVariables.append(variable.copy(value = variables.resolveTemplate(variable, template, parentVars, resolvedVariables.toSeq)))
           } catch {
-            case ex: TemplateEvaluationException =>
-              ex match {
-                case unbound: UnboundVariablesException =>
-                  // A sensitive variable that a non-sensitive variable references is not an ordering problem
-                  val missingSiblings = unbound.missingVars.filter { missing =>
-                    missing.scope == scope && (variable.isSensitive || !variables.map.get(missing.name).exists(_.isSensitive))
-                  }
-                  if (missingSiblings.nonEmpty) {
-                    dependencyErrors.put(variable.name, missingSiblings.map(_.name))
-                  }
-                case _ =>
+            case ex: SensitiveVariableReferenceException =>
+              throw ex // Never tolerated, the stored value would keep the sensitive value
+            case unbound: UnboundVariablesException =>
+              val missingSiblings = unbound.missingVars.filter(_.scope == scope)
+              if (missingSiblings.nonEmpty) {
+                dependencyErrors.put(variable.name, missingSiblings.map(_.name))
               }
+              resolvedVariables.append(variable) // Keep the stored value
+            case _: TemplateEvaluationException =>
               resolvedVariables.append(variable) // Keep the stored value
           }
         case None =>

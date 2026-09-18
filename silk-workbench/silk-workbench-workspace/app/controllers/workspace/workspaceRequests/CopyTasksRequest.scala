@@ -208,28 +208,26 @@ object CopyTasksRequest {
 
     /**
      * Tries to resolve template variables while adding missing variables from the source project.
+     * Fails if the variables cannot be resolved although nothing is missing from the source project.
      */
     private def resolveAndAddMissingVariables(variables: TemplateVariables): TemplateVariables = {
       var currentVariables = variables
       var resolvedVariables: Option[TemplateVariables] = None
-      var iteration = 0
       while(resolvedVariables.isEmpty) {
         try {
-          resolvedVariables = Some(currentVariables.resolved(GlobalTemplateVariables.all))
+          // Sensitive global variables are not available to project variables, as everywhere else
+          resolvedVariables = Some(currentVariables.resolved(GlobalTemplateVariables.all.withoutSensitiveVariables()))
         } catch {
           case ex: TemplateVariablesEvaluationException =>
-            // We only try a number of times in case of loops
-            iteration += 1
-            if(iteration > 10) {
-              throw new RuntimeException("Cannot copy all dependent variables after 10 iterations", ex)
+            val missingVarNames = ex.issues.collect {
+              case TemplateVariableEvaluationException(_, unboundEx: UnboundVariablesException) => unboundEx.missingVars
+            }.flatten.distinct.filter(name => name.scope == VariableScope.project && !currentVariables.map.contains(name.name))
+            if(missingVarNames.isEmpty) {
+              throw BadUserInputException(s"Cannot resolve the variables of project '${targetProject.id}': ${ex.getMessage}", Some(ex))
             }
             // Add all missing variables before trying again
-            ex.issues.collect {
-              case TemplateVariableEvaluationException(_, unboundEx: UnboundVariablesException) =>
-                for(missingVarName <- unboundEx.missingVars if missingVarName.scope == VariableScope.project && !currentVariables.map.contains(missingVarName.name)) {
-                  val missingVar = sourceProject.templateVariables.get(missingVarName.name)
-                  currentVariables = currentVariables.withFirst(missingVar)
-                }
+            for(missingVarName <- missingVarNames) {
+              currentVariables = currentVariables.withFirst(sourceProject.templateVariables.get(missingVarName.name))
             }
         }
       }
