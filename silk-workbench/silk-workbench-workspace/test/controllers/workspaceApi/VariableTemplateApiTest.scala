@@ -484,8 +484,15 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
       projectVariable("password", "secret", isSensitive = true),
       TemplateVariable("dbUrl", "jdbc://secret@host", Some("jdbc://{{project.password}}@host"), None, isSensitive = false, VariableScope.project))))
     val ex = the[BadUserInputException] thrownBy copyTo(legacyTargetName)
-    ex.getMessage should include(s"variables of project '$legacyTargetName'")
+    ex.getMessage should include(s"variables of project '$legacyTargetName' after copying 'year', 'base' from project '$sourceName'")
     ex.getMessage should include("Variable 'dbUrl': 'project.password' is sensitive")
+
+    // A referenced variable that the source project lacks is a client error, not a 404
+    val danglingTaskName = "danglingVariablesTask"
+    WorkspaceFactory().workspace.project(sourceName).addTask(danglingTaskName, VariablesTestTask("T", 2002, variableReference = "project.missing"))
+    val dangling = the[BadUserInputException] thrownBy
+      CopyTasksRequest(dryRun = Some(false), overwriteTasks = Some(true), targetProject = targetName).copyTask(sourceName, danglingTaskName)
+    dangling.getMessage shouldBe s"The copied tasks reference the variable 'project.missing', which is not defined in project '$sourceName'."
   }
 
   it should "reject invalid-scope execution variables without persisting them" in {
