@@ -41,13 +41,6 @@ case class WorkflowExecutionVariableJson(@Schema(description = "The variable nam
                                          default: Option[TemplateVariableJson],
                                          @ArraySchema(
                                            schema = new Schema(
-                                             description = "Sub-tasks that define a default of that name. Those defaults do not apply to the workflow run.",
-                                             requiredMode = RequiredMode.REQUIRED,
-                                             implementation = classOf[TaskReferenceJson]
-                                           ))
-                                         definedOn: Seq[TaskReferenceJson],
-                                         @ArraySchema(
-                                           schema = new Schema(
                                              description = "Tasks whose templates reference the variable at execution time.",
                                              requiredMode = RequiredMode.REQUIRED,
                                              implementation = classOf[TaskReferenceJson]
@@ -70,7 +63,6 @@ object WorkflowExecutionVariableJson {
       name = requirement.name,
       required = requirement.required,
       default = default,
-      definedOn = requirement.definedOn.map(TaskReferenceJson.fromTask),
       referencedBy = requirement.referencedBy.map(TaskReferenceJson.fromTask),
       setBy = requirement.setBy.map(TaskReferenceJson.fromTask)
     )

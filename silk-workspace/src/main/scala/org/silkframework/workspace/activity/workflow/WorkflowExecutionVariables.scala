@@ -16,7 +16,7 @@ import scala.collection.mutable
   * time from within the workflow's execution closure therefore has to be defined on the workflow itself, provided
   * when the run is started, or set by a 'Set execution variable' plugin before the referencing node runs, i.e. by a
   * node that precedes it in the workflow graph. Setters in parallel or disconnected branches run in no guaranteed order.
-  * Execution variables defined on sub-tasks are ignored during a workflow run and are only reported as hints.
+  * Execution variables defined on sub-tasks are ignored during a workflow run.
   * The analysis is exact for the variables that the tasks report as referenced.
   */
 object WorkflowExecutionVariables {
@@ -28,14 +28,12 @@ object WorkflowExecutionVariables {
     * @param required     True, if the variable has to be provided when the run is started: some node references it without
     *                     a default on the workflow or a setter among its preceding nodes.
     * @param default      The default defined on the workflow itself, if any.
-    * @param definedOn    Sub-tasks that define a default of that name. Those defaults do not apply to the run.
     * @param referencedBy Tasks whose templates reference the variable at execution time.
     * @param setBy        Tasks that set the variable during the run, regardless of where.
     */
   case class ExecutionVariableRequirement(name: String,
                                           required: Boolean,
                                           default: Option[TemplateVariable],
-                                          definedOn: Seq[ProjectTask[_ <: TaskSpec]],
                                           referencedBy: Seq[ProjectTask[_ <: TaskSpec]],
                                           setBy: Seq[ProjectTask[_ <: TaskSpec]])
 
@@ -49,15 +47,12 @@ object WorkflowExecutionVariables {
     analysis.analyseWorkflow(workflowTask.data, setBefore = Set.empty)
 
     val defaults = workflowTask.executionVariables.map
-    val definedOn = analysis.subTasks.values.flatMap(task => task.executionVariables.variables.map(v => (v.name, task))).toSeq.groupMap(_._1)(_._2)
-
     val names = (defaults.keys ++ analysis.referencedBy.keys ++ analysis.setBy.keys).toSeq.distinct.sorted
     for (name <- names) yield {
       ExecutionVariableRequirement(
         name = name,
         required = analysis.unsatisfied.contains(name) && !defaults.contains(name),
         default = defaults.get(name),
-        definedOn = definedOn.getOrElse(name, Seq.empty),
         referencedBy = analysis.referencedBy.get(name).map(_.toSeq).getOrElse(Seq.empty),
         setBy = analysis.setBy.get(name).map(_.toSeq).getOrElse(Seq.empty)
       )
@@ -73,7 +68,6 @@ object WorkflowExecutionVariables {
     val referencedBy = mutable.LinkedHashMap[String, mutable.LinkedHashSet[ProjectTask[_ <: TaskSpec]]]()
     val setBy = mutable.LinkedHashMap[String, mutable.LinkedHashSet[ProjectTask[_ <: TaskSpec]]]()
     val unsatisfied = mutable.Set[String]()
-    val subTasks = mutable.LinkedHashMap[Identifier, ProjectTask[_ <: TaskSpec]]()
 
     /**
       * Analyses the nodes of a workflow. Returns the variables that its nodes set, which are set for the nodes after it.
@@ -87,7 +81,6 @@ object WorkflowExecutionVariables {
         val setBeforeNode = setBefore ++ precedingNodes.flatMap(preceding => setByNode.getOrElse(preceding.nodeId, Set.empty))
         val setByThisNode = task.data match {
           case subWorkflow: Workflow =>
-            subTasks.put(task.id, task)
             analyseWorkflow(subWorkflow, setBeforeNode)
           case _ =>
             analyseNode(executedWith(task), setBeforeNode)
@@ -100,7 +93,6 @@ object WorkflowExecutionVariables {
     /** Records the variables that the tasks of a node reference and set. Returns the set ones. */
     private def analyseNode(tasks: Seq[ProjectTask[_ <: TaskSpec]], setBefore: Set[String]): Set[String] = {
       for (task <- tasks) {
-        subTasks.put(task.id, task)
         for (variable <- executionVariables(task.data.referencedVariables)) {
           referencedBy.getOrElseUpdate(variable, mutable.LinkedHashSet()).add(task)
           if (!setBefore.contains(variable)) {

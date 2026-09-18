@@ -155,7 +155,6 @@ val 1,val 2"""
               "isSensitive": false,
               "scope": "execution"
             },
-            "definedOn": [],
             "referencedBy": [
               { "id": "fetchTemplate", "label": "Fetch", "taskType": "task" }
             ],
@@ -164,9 +163,6 @@ val 1,val 2"""
           {
             "name": "greeting",
             "required": true,
-            "definedOn": [
-              { "id": "subWorkflow", "label": "Sub workflow", "taskType": "workflow" }
-            ],
             "referencedBy": [
               { "id": "greetingTemplate", "label": "Build greeting", "taskType": "task" }
             ],
@@ -175,7 +171,6 @@ val 1,val 2"""
           {
             "name": "tmp",
             "required": false,
-            "definedOn": [],
             "referencedBy": [
               { "id": "useTmp", "label": "Use tmp", "taskType": "task" }
             ],

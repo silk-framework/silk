@@ -90,7 +90,6 @@ class WorkflowExecutionVariablesApiTest extends AnyFlatSpec with IntegrationTest
     greeting.default shouldBe None
     greeting.referencedBy.map(_.id) shouldBe Seq("needsGreeting")
     greeting.referencedBy.map(_.taskType) shouldBe Seq("task")
-    greeting.definedOn shouldBe empty
     greeting.setBy shouldBe empty
 
     val baseUrl = byName("baseUrl")
@@ -128,9 +127,10 @@ class WorkflowExecutionVariablesApiTest extends AnyFlatSpec with IntegrationTest
     secret.default.map(_.isSensitive) shouldBe Some(true)
     secret.default.flatMap(_.value) shouldBe None
 
+    // The default on the sub-workflow does not apply to the run
     val subOnly = byName("subOnly")
     subOnly.required shouldBe true
-    subOnly.definedOn.map(t => (t.id, t.taskType)) shouldBe Seq(("subWf", "workflow"))
+    subOnly.default shouldBe None
     subOnly.referencedBy.map(_.id) shouldBe Seq("needsSubOnly")
   }
 
