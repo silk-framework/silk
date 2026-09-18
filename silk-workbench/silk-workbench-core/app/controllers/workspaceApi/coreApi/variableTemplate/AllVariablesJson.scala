@@ -4,9 +4,10 @@ import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.templating.exceptions.TemplateVariablesEvaluationException
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariable, TemplateVariablesManager, VariableScope}
+import org.silkframework.config.TaskSpec
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariable, TemplateVariables, TemplateVariablesManager, VariableScope}
 import org.silkframework.serialization.json.{TemplateVariableErrorJson, TemplateVariableJson, TemplateVariablesJson}
-import org.silkframework.workspace.{Project, WorkbenchLinks, WorkspaceFactory}
+import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{Json, OFormat}
 
 @Schema(description = "The variables of all projects the user has access to, including the execution variables of their tasks.")
@@ -92,9 +93,11 @@ object ProjectVariablesJson {
       }
     val (tasks, loadingErrors) =
       if (scopes.contains(VariableScope.execution)) {
+        // The parents of all execution variables of the project, merged once instead of per task
+        val parentVariables = (GlobalTemplateVariables.all merge project.templateVariables.all).withoutSensitiveVariables()
         val tasks = project.allTasks.map { task =>
-          val (variables, errors) = ResolvedVariablesJson(task.executionVariablesValueHolder, masked = true)
-          TaskVariablesJson(task.id, task.metaData.label, WorkbenchLinks.taskType(task), variables, Some(errors).filter(_.nonEmpty))
+          val (variables, errors) = ResolvedVariablesJson(task.executionVariables, parentVariables, masked = true)
+          TaskVariablesJson.fromTask(task, variables, Some(errors).filter(_.nonEmpty))
         }
         val loadingErrors = project.loadingErrors.map { error =>
           TaskLoadingErrorJson(error.taskId, error.label, Option(error.throwable.getMessage).getOrElse(error.throwable.getClass.getSimpleName))
@@ -131,6 +134,11 @@ case class TaskVariablesJson(@Schema(description = "The task identifier.", requi
 
 object TaskVariablesJson {
   implicit val taskVariablesFormat: OFormat[TaskVariablesJson] = Json.format[TaskVariablesJson]
+
+  def fromTask(task: ProjectTask[_ <: TaskSpec], variables: Seq[TemplateVariableJson], errors: Option[Seq[TemplateVariableErrorJson]]): TaskVariablesJson = {
+    val reference = TaskReferenceJson.fromTask(task)
+    TaskVariablesJson(reference.id, reference.label, reference.taskType, variables, errors)
+  }
 }
 
 @Schema(description = "A task that could not be loaded.")
@@ -146,27 +154,41 @@ object TaskLoadingErrorJson {
 }
 
 /**
-  * Converts the variables of one manager to JSON.
+  * Converts the variables of one scope to JSON.
   * Templates are resolved against the non-sensitive parent variables. If the evaluation fails,
   * the stored values are kept and the issues are returned as errors. When masking, the stored values of the
-  * failed variables are omitted, since a value that its template can no longer produce may hold a sensitive value.
+  * failed variables are omitted, since a value that its template can no longer produce may hold a sensitive value,
+  * and the error message of a sensitive variable is replaced, since it may quote the template.
   */
 object ResolvedVariablesJson {
 
+  /** The error message reported for a sensitive variable when masking. */
+  final val maskedErrorMessage = "The template of this sensitive variable could not be evaluated."
+
   def apply(manager: TemplateVariablesManager, masked: Boolean)
            (implicit userContext: UserContext): (Seq[TemplateVariableJson], Seq[TemplateVariableErrorJson]) = {
+    apply(manager.all, manager.parentVariables.withoutSensitiveVariables(), masked)
+  }
+
+  /**
+    * @param parentVariables The variables of the parent scopes, without sensitive ones.
+    */
+  def apply(variables: TemplateVariables, parentVariables: TemplateVariables, masked: Boolean): (Seq[TemplateVariableJson], Seq[TemplateVariableErrorJson]) = {
     val toJson: TemplateVariable => TemplateVariableJson = if (masked) TemplateVariableJson.masked else TemplateVariableJson(_)
-    val allVariables = manager.all
     try {
-      (allVariables.resolved(manager.parentVariables.withoutSensitiveVariables()).variables.map(toJson), Seq.empty)
+      (variables.resolved(parentVariables).variables.map(toJson), Seq.empty)
     } catch {
       case ex: TemplateVariablesEvaluationException =>
         val failed = ex.issues.map(_.variable.name).toSet
-        val variables = allVariables.variables.map { variable =>
+        val variablesJson = variables.variables.map { variable =>
           val json = toJson(variable)
           if (masked && failed.contains(variable.name)) json.copy(value = None) else json
         }
-        (variables, ex.issues.map(issue => TemplateVariableErrorJson(issue.variable.name, issue.ex.getMessage)))
+        val errors = ex.issues.map { issue =>
+          val message = if (masked && issue.variable.isSensitive) maskedErrorMessage else issue.ex.getMessage
+          TemplateVariableErrorJson(issue.variable.name, message)
+        }
+        (variablesJson, errors)
     }
   }
 }

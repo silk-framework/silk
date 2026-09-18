@@ -10,7 +10,7 @@ import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowOperator
 import org.silkframework.workspace.{Project, ProjectConfig, TaskLoadingError, WorkspaceFactory}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import controllers.workspaceApi.coreApi.routes.{VariableTemplateApi => TemplateApi}
-import controllers.workspaceApi.coreApi.variableTemplate.{AllVariablesJson, AutoCompleteVariableTemplateRequest, ValidateVariableTemplateRequest, VariableTemplateValidationResponse}
+import controllers.workspaceApi.coreApi.variableTemplate.{AllVariablesJson, AutoCompleteVariableTemplateRequest, ResolvedVariablesJson, ValidateVariableTemplateRequest, VariableTemplateValidationResponse}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -438,6 +438,15 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     projectJson.variables.map(_.map(v => (v.name, v.value))) shouldBe Some(Seq(("password", None), ("dbUrl", None), ("year", Some("2002"))))
     projectJson.errors.map(_.map(_.variableName)) shouldBe Some(Seq("dbUrl"))
     projectJson.errors.get.head.message should include("'project.password' is sensitive")
+
+    // The error of a sensitive variable is not reported verbatim, since it may quote the template
+    project.templateVariables.put(TemplateVariables(Seq(password, derived,
+      TemplateVariable("token", "", Some("{{project.vaultSecretName}}"), None, isSensitive = true, VariableScope.project))))
+    val tokenResponse = checkResponse(createRequest(TemplateApi.allVariables(Some("project"))).get())
+    tokenResponse.body should not include "vaultSecretName"
+    val tokenErrors = Json.fromJson[AllVariablesJson](tokenResponse.json).get.projects.find(_.id == projectName).get.errors.get
+    tokenErrors.map(e => (e.variableName, e.message)) should contain(("token", ResolvedVariablesJson.maskedErrorMessage))
+    project.templateVariables.put(TemplateVariables(Seq(password, derived, projectVariable("year", "2002"))))
 
     // Any change to the scope is rejected until the variable is made sensitive or the reference removed
     val unrelated = the[RequestFailedException] thrownBy putVariable(projectName, projectVariable("year", "2003"))
