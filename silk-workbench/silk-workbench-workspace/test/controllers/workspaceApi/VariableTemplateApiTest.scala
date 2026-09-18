@@ -459,6 +459,14 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     copyTo(targetName)
     getVariables(targetName).variables.map(v => (v.name, v.value)) shouldBe Seq(("base", "20"), ("year", "2002"))
 
+    // The same when the task reports the variable as referenced instead of failing on it
+    val reportingTaskName = "reportingVariablesTask"
+    WorkspaceFactory().workspace.project(sourceName).addTask(reportingTaskName, VariablesTestTask("T", 2002, variableReference = "project.year"))
+    val reportedTargetName = "variables-test-copy-reported-target"
+    WorkspaceFactory().workspace.createProject(ProjectConfig(reportedTargetName))
+    CopyTasksRequest(dryRun = Some(false), overwriteTasks = Some(true), targetProject = reportedTargetName).copyTask(sourceName, reportingTaskName)
+    getVariables(reportedTargetName).variables.map(v => (v.name, v.value)) shouldBe Seq(("base", "20"), ("year", "2002"))
+
     // A target variable that cannot be resolved is reported instead of retrying until a limit is hit
     val legacyTargetName = "variables-test-copy-legacy-target"
     val legacyTarget = WorkspaceFactory().workspace.createProject(ProjectConfig(legacyTargetName))

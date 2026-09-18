@@ -182,15 +182,8 @@ object CopyTasksRequest {
     private def copyMissingVariables[T](task: TaskSpec, copiedVariables: mutable.Set[TemplateVariableName])(f: => T): T = {
       // Copy all variables that are known to be referenced by a task
       for(variableName <- task.referencedVariables if variableName.scope == VariableScope.project && !copiedVariables.contains(variableName)) {
-        val sourceVariable = sourceProject.templateVariables.get(variableName.name)
-        // Only copy the variable if it is not already defined in the target project with the same value
-        targetProject.templateVariables.all.map.get(sourceVariable.name) match {
-          case Some(_) =>
-            // The variable exists already, so we won't copy it
-          case None =>
-            targetProject.templateVariables.put(targetProject.templateVariables.all.withFirst(sourceVariable))
-            copiedVariables += variableName
-        }
+        copyVariable(variableName.name)
+        copiedVariables += variableName
       }
       // The referenced variables are not necessarily complete, so we need to add variables that are found by an UnboundVariablesException
       try {
@@ -198,11 +191,21 @@ object CopyTasksRequest {
       } catch {
         case InvalidPluginParameterValueException(_, unboundEx: UnboundVariablesException) =>
           for(missingVar <- unboundEx.missingVars if missingVar.scope == VariableScope.project) {
-            val sourceVariable = sourceProject.templateVariables.get(missingVar.name)
-            val newVariables = resolveAndAddMissingVariables(targetProject.templateVariables.all.withLast(sourceVariable))
-            targetProject.templateVariables.put(newVariables)
+            copyVariable(missingVar.name)
           }
           f
+      }
+    }
+
+    /**
+     * Copies a variable of the source project to the target project along with the variables its template needs,
+     * unless the target project defines a variable of that name already.
+     */
+    private def copyVariable(name: String): Unit = {
+      val targetVariables = targetProject.templateVariables.all
+      if(!targetVariables.map.contains(name)) {
+        val sourceVariable = sourceProject.templateVariables.get(name)
+        targetProject.templateVariables.put(resolveAndAddMissingVariables(targetVariables.withLast(sourceVariable)))
       }
     }
 
