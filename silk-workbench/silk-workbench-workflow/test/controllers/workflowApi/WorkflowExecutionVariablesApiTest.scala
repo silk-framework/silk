@@ -65,6 +65,9 @@ class WorkflowExecutionVariablesApiTest extends AnyFlatSpec with IntegrationTest
     project.addTask("needsSubOnly", VariablesTestTask("T", 2002, variableReference = "execution.subOnly"))
     project.addTask[Workflow]("subWf", workflowOf(node("needsSubOnly")),
       executionVariables = TemplateVariables(Seq(executionVariable("subOnly", "sub"))))
+    // A setter connected to the reader by an output edge only; it has an incoming edge, so the sort puts it after the reader
+    project.addTask("needsOneSided", VariablesTestTask("T", 2002, variableReference = "execution.oneSided"))
+    project.addTask("setOneSided", SetExecutionVariableOperator(variableName = "oneSided"))
     // A transform whose input is a task referencing a variable: the input does not run with the transform
     project.addTask("needsBatch", VariablesTestTask("T", 2002, variableReference = "execution.batch"))
     project.addTask("mapping", TransformSpec(selection = DatasetSelection("needsBatch"), mappingRule = RootMappingRule(MappingRules.empty)))
@@ -73,7 +76,8 @@ class WorkflowExecutionVariablesApiTest extends AnyFlatSpec with IntegrationTest
       workflowOf(node("needsGreeting"), node("needsBaseUrl"), node("setTmp"), node("needsTmp", after = "setTmp"),
         node("setFromTransformer"), node("needsFromTransformer", after = "setFromTransformer"), node("needsProjectVar"),
         node("needsLate"), node("setLate", after = "needsLate"), node("needsApart"), node("setApart"),
-        node("setterWf"), node("needsInner", after = "setterWf"), node("subWf"), node("mapping")),
+        node("setterWf"), node("needsInner", after = "setterWf"), node("subWf"), node("mapping"),
+        node("needsOneSided"), node("setOneSided", after = "needsGreeting").copy(outputs = Seq("needsOneSided"))),
       executionVariables = TemplateVariables(Seq(
         executionVariable("baseUrl", "https://example.org"),
         executionVariable("unused", "x"),
@@ -82,7 +86,7 @@ class WorkflowExecutionVariablesApiTest extends AnyFlatSpec with IntegrationTest
     val response = checkResponse(createRequest(controllers.workflowApi.routes.WorkflowApi.workflowExecutionVariables(projectName, "wf")).get())
     response.body should not include "s3cret-value"
     val result = Json.fromJson[WorkflowExecutionVariablesJson](response.json).get
-    result.variables.map(_.name) shouldBe Seq("apart", "baseUrl", "fromTransformer", "greeting", "inner", "late", "secret", "subOnly", "tmp", "unused")
+    result.variables.map(_.name) shouldBe Seq("apart", "baseUrl", "fromTransformer", "greeting", "inner", "late", "oneSided", "secret", "subOnly", "tmp", "unused")
     val byName = result.variables.map(v => v.name -> v).toMap
 
     val greeting = byName("greeting")
@@ -117,6 +121,11 @@ class WorkflowExecutionVariablesApiTest extends AnyFlatSpec with IntegrationTest
     val inner = byName("inner")
     inner.required shouldBe false
     inner.setBy.map(_.id) shouldBe Seq("setInner")
+
+    // The reader sorts before the setter, but the setter precedes it in the graph
+    val oneSided = byName("oneSided")
+    oneSided.required shouldBe false
+    oneSided.setBy.map(_.id) shouldBe Seq("setOneSided")
 
     val unused = byName("unused")
     unused.required shouldBe false

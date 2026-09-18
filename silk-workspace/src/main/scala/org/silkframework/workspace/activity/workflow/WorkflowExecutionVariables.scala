@@ -68,28 +68,26 @@ object WorkflowExecutionVariables {
     val unsatisfied = mutable.Set[String]()
 
     /**
-      * Analyses the nodes of a workflow. Returns the variables that its nodes set, which are set for the nodes after it.
+      * Analyses the nodes of a workflow.
       *
       * @param setBefore The variables that are set before the workflow runs.
       */
-    def analyseWorkflow(workflow: Workflow, setBefore: Set[String]): Set[String] = {
-      val setByNode = mutable.Map[String, Set[String]]()
+    def analyseWorkflow(workflow: Workflow, setBefore: Set[String]): Unit = {
       for (node <- workflow.topologicalSortedNodes; task <- project.anyTaskOption(node.task)) {
+        // From the preceding nodes, not the processing order: the sort follows input edges only, the graph also output edges.
         val precedingNodes = workflow.dependencyNodesById(node.nodeId).precedingNodesRecursively
-        val setBeforeNode = setBefore ++ precedingNodes.flatMap(preceding => setByNode.getOrElse(preceding.nodeId, Set.empty))
-        val setByThisNode = task.data match {
+        val setBeforeNode = setBefore ++ precedingNodes.flatMap(preceding => setByNode(preceding.workflowNode))
+        task.data match {
           case subWorkflow: Workflow =>
             analyseWorkflow(subWorkflow, setBeforeNode)
           case _ =>
             analyseNode(executedWith(task), setBeforeNode)
         }
-        setByNode.put(node.nodeId, setByThisNode)
       }
-      setByNode.values.flatten.toSet
     }
 
-    /** Records the variables that the tasks of a node reference and set. Returns the set ones. */
-    private def analyseNode(tasks: Seq[ProjectTask[_ <: TaskSpec]], setBefore: Set[String]): Set[String] = {
+    /** Records the variables that the tasks of a node reference and set. */
+    private def analyseNode(tasks: Seq[ProjectTask[_ <: TaskSpec]], setBefore: Set[String]): Unit = {
       for (task <- tasks) {
         for (variable <- executionVariables(task.data.referencedVariables)) {
           referencedBy.getOrElseUpdate(variable, mutable.LinkedHashSet()).add(task)
@@ -101,7 +99,21 @@ object WorkflowExecutionVariables {
           setBy.getOrElseUpdate(variable, mutable.LinkedHashSet()).add(task)
         }
       }
-      tasks.flatMap(task => executionVariables(task.data.modifiedVariables)).toSet
+    }
+
+    /** The variables that a node sets during the run: those of its task and the rule blocks it uses, for a sub-workflow those of all its nodes. */
+    private def setByNode(node: WorkflowNode): Set[String] = {
+      project.anyTaskOption(node.task) match {
+        case Some(task) =>
+          task.data match {
+            case subWorkflow: Workflow =>
+              subWorkflow.nodes.flatMap(setByNode).toSet
+            case _ =>
+              executedWith(task).flatMap(executed => executionVariables(executed.data.modifiedVariables)).toSet
+          }
+        case None =>
+          Set.empty
+      }
     }
 
     /** The task of a node and the rule blocks its rules use, recursively. Data inputs and outputs do not run with the node. */
