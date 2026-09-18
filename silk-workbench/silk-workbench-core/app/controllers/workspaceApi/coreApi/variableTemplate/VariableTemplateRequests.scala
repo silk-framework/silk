@@ -62,9 +62,9 @@ case class ValidateVariableTemplateRequest(templateString: String,
       val evaluatedTemplate = variables.resolveTemplateValue(templateString, evaluationConfig)
       valid(Some(evaluatedTemplate))
     } catch {
-      case ex: UnboundVariablesException if ex.missingVars.size == 1 && withheldSensitiveVariable(ex.missingVars.head) =>
+      case ex: UnboundVariablesException if withheldSensitiveVariables(ex.missingVars).nonEmpty =>
         // Same rule and message as saving the variable, see TemplateVariables.resolveTemplate
-        invalid(new SensitiveVariableReferenceException(ex.missingVars).getMessage)
+        invalid(SensitiveVariableReferenceException.message(withheldSensitiveVariables(ex.missingVars)))
       case ex: UnboundVariablesException if variableName.isDefined && ex.missingVars.size == 1 =>
         // Check if the variable is unbound because it is defined after the current one
         Try(collectVariables(ignoreVariableName = true).resolveTemplateValue(templateString, evaluationConfig)) match {
@@ -87,11 +87,16 @@ case class ValidateVariableTemplateRequest(templateString: String,
     }
   }
 
-  /** True if the missing variable is a sensitive variable of the validated scope that was withheld from a non-sensitive template. */
-  private def withheldSensitiveVariable(missing: TemplateVariableName)(implicit user: UserContext): Boolean = {
-    val validatedScope = if (task.isDefined) VariableScope.execution else VariableScope.project
-    project.isDefined && !includeSensitiveVariables.getOrElse(false) && missing.scope == validatedScope &&
-      collectVariables(ignoreVariableName = true, includeSensitiveVariables = true).variables.exists(v => v.isSensitive && v.scopedName == missing.scopedName)
+  /** The missing variables that are sensitive variables of the validated scope, withheld from a non-sensitive template. */
+  private def withheldSensitiveVariables(missing: Seq[TemplateVariableName])(implicit user: UserContext): Seq[TemplateVariableName] = {
+    if (includeSensitiveVariables.getOrElse(false)) {
+      Seq.empty
+    } else {
+      project.toSeq.flatMap { projectName =>
+        val validatedVariables = WorkspaceFactory().workspace.project(projectName).variablesManager(task).all
+        missing.filter(validatedVariables.isSensitiveMember)
+      }
+    }
   }
 
   /**

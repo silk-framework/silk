@@ -100,7 +100,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
 
   @Operation(
     summary = "Retrieve all variables",
-    description = "Retrieves the global variables, the variables of all projects the user has access to and the execution variables of all their tasks in one request. Values and templates of sensitive variables are omitted.",
+    description = "Retrieves the global variables, the variables of all projects the user has access to and the execution variables of all their tasks in one request. Values and templates of sensitive variables are omitted, as are the values of variables whose template fails to evaluate (see the errors).",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -534,24 +534,20 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
     val resolvedVariables = mutable.Buffer[TemplateVariable]()
     val dependencyErrors = mutable.LinkedHashMap[String, Seq[String]]()
     for (variable <- variables.variables) {
-      variable.template match {
-        case Some(template) =>
-          try {
-            resolvedVariables.append(variable.copy(value = variables.resolveTemplate(variable, template, parentVars, resolvedVariables.toSeq)))
-          } catch {
-            case ex: SensitiveVariableReferenceException =>
-              throw ex // Never tolerated, the stored value would keep the sensitive value
-            case unbound: UnboundVariablesException =>
-              val missingSiblings = unbound.missingVars.filter(_.scope == scope)
-              if (missingSiblings.nonEmpty) {
-                dependencyErrors.put(variable.name, missingSiblings.map(_.name))
-              }
-              resolvedVariables.append(variable) // Keep the stored value
-            case _: TemplateEvaluationException =>
-              resolvedVariables.append(variable) // Keep the stored value
+      try {
+        resolvedVariables.append(variable.copy(value = variables.resolveTemplate(variable, parentVars, resolvedVariables.toSeq)))
+      } catch {
+        case ex: SensitiveVariableReferenceException =>
+          // Never tolerated, the stored value would keep the sensitive value. Reported like the update paths, naming the variable
+          throw TemplateVariablesEvaluationException(Seq(TemplateVariableEvaluationException(variable, ex)))
+        case unbound: UnboundVariablesException =>
+          val missingSiblings = unbound.missingVars.filter(_.scope == scope)
+          if (missingSiblings.nonEmpty) {
+            dependencyErrors.put(variable.name, missingSiblings.map(_.name))
           }
-        case None =>
-          resolvedVariables.append(variable)
+          resolvedVariables.append(variable) // Keep the stored value
+        case _: TemplateEvaluationException =>
+          resolvedVariables.append(variable) // Keep the stored value
       }
     }
     if (dependencyErrors.nonEmpty) {

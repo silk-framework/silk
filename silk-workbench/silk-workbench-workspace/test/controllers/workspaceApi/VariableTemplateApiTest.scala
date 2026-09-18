@@ -397,6 +397,12 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     val validation = validateTemplate(ValidateVariableTemplateRequest(derived.template.get, Some(projectName), variableName = Some(derived.name)))
     validation.valid shouldBe false
     validation.parseError.map(_.message) shouldBe Some(sensitivityMessage)
+    // Also for several withheld variables, and a truly undefined one does not hide them
+    putVariable(projectName, projectVariable("user", "u", isSensitive = true))
+    val validation2 = validateTemplate(ValidateVariableTemplateRequest("{{project.user}}:{{project.password}}@{{project.host}}", Some(projectName), variableName = Some(derived.name)))
+    validation2.parseError.map(_.message) shouldBe
+      Some("The following variables are sensitive and can only be referenced from a sensitive variable: 'project.user', 'project.password'")
+    removeVariable(projectName, "user")
 
     // Saving a task with such execution variables is rejected as well, on creation and on update
     val project = WorkspaceFactory().workspace.project(projectName)
@@ -438,6 +444,10 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     unrelated.response.status shouldBe 400
     unrelated.response.body should include("Variable 'dbUrl': 'project.password' is sensitive")
     getVariable(projectName, "year").value shouldBe "2002"
+    // Reordering names the variable as well, instead of reporting an ordering problem or keeping the stored value
+    val reorder = reorderVariablesError(projectName, Seq("year", "password", "dbUrl")).get
+    reorder.toString should include("Variable 'dbUrl': 'project.password' is sensitive")
+    getVariables(projectName).variables.map(_.name) shouldBe Seq("password", "dbUrl", "year")
     putVariable(projectName, derived.copy(isSensitive = true))
     putVariable(projectName, projectVariable("year", "2003"))
     getVariable(projectName, "year").value shouldBe "2003"

@@ -39,16 +39,11 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
     val resolvedVariables = mutable.Buffer[TemplateVariable]()
     val errors = mutable.Buffer[TemplateVariableEvaluationException]()
     for(variable <- variables) {
-      variable.template match {
-        case Some(template) =>
-          try {
-            resolvedVariables.append(variable.copy(value = resolveTemplate(variable, template, additionalVariables, resolvedVariables.toSeq)))
-          } catch {
-            case ex: TemplateEvaluationException =>
-              errors.append(TemplateVariableEvaluationException(variable, ex))
-          }
-        case None =>
-          resolvedVariables.append(variable)
+      try {
+        resolvedVariables.append(variable.copy(value = resolveTemplate(variable, additionalVariables, resolvedVariables.toSeq)))
+      } catch {
+        case ex: TemplateEvaluationException =>
+          errors.append(TemplateVariableEvaluationException(variable, ex))
       }
     }
     if(errors.isEmpty) {
@@ -72,40 +67,42 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
                                 rejectSensitiveReferences: Boolean = false): TemplateVariables = {
     val resolvedVariables = mutable.Buffer[TemplateVariable]()
     for (variable <- variables) {
-      variable.template match {
-        case Some(template) =>
-          try {
-            resolvedVariables.append(variable.copy(value = resolveTemplate(variable, template, additionalVariables, resolvedVariables.toSeq)))
-          } catch {
-            case ex: SensitiveVariableReferenceException if rejectSensitiveReferences =>
-              throw TemplateVariablesEvaluationException(Seq(TemplateVariableEvaluationException(variable, ex)))
-            case _: TemplateEvaluationException =>
-              resolvedVariables.append(variable) // Keep the stored value
-          }
-        case None =>
-          resolvedVariables.append(variable)
+      try {
+        resolvedVariables.append(variable.copy(value = resolveTemplate(variable, additionalVariables, resolvedVariables.toSeq)))
+      } catch {
+        case ex: SensitiveVariableReferenceException if rejectSensitiveReferences =>
+          throw TemplateVariablesEvaluationException(Seq(TemplateVariableEvaluationException(variable, ex)))
+        case _: TemplateEvaluationException =>
+          resolvedVariables.append(variable) // Keep the stored value
       }
     }
     TemplateVariables(resolvedVariables.toSeq)
   }
 
   /**
-    * Resolves the template of one of these variables against the parent variables and the preceding variables of this set.
+    * Resolves the value of a member of this set: its template evaluated against the parent variables and the preceding
+    * variables of this set, or its stored value if it has no template.
     * A reference to a sensitive sibling from a variable that is not sensitive is rejected as such, not as an undefined variable.
     *
     * @throws TemplateEvaluationException If the template could not be evaluated.
     */
-  def resolveTemplate(variable: TemplateVariable, template: String, additionalVariables: TemplateVariables, preceding: Seq[TemplateVariable]): String = {
-    try {
-      TemplateVariables(additionalVariables.variables ++ TemplateVariables.referenceable(variable, preceding)).resolveTemplateValue(template)
-    } catch {
-      case ex: UnboundVariablesException if !variable.isSensitive =>
-        val sensitiveSiblings = ex.missingVars.filter(isSensitiveMember)
-        if (sensitiveSiblings.nonEmpty) throw new SensitiveVariableReferenceException(sensitiveSiblings, Some(ex)) else throw ex
+  def resolveTemplate(variable: TemplateVariable, additionalVariables: TemplateVariables, preceding: Seq[TemplateVariable]): String = {
+    variable.template match {
+      case Some(template) =>
+        try {
+          TemplateVariables(additionalVariables.variables ++ TemplateVariables.referenceable(variable, preceding)).resolveTemplateValue(template)
+        } catch {
+          case ex: UnboundVariablesException if !variable.isSensitive =>
+            val sensitiveSiblings = ex.missingVars.filter(isSensitiveMember)
+            if (sensitiveSiblings.nonEmpty) throw new SensitiveVariableReferenceException(sensitiveSiblings) else throw ex
+        }
+      case None =>
+        variable.value
     }
   }
 
-  private def isSensitiveMember(name: TemplateVariableName): Boolean = {
+  /** True if this set contains a sensitive variable of that name and scope. */
+  def isSensitiveMember(name: TemplateVariableName): Boolean = {
     map.get(name.name).exists(member => member.isSensitive && member.scope == name.scope)
   }
 

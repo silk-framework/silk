@@ -37,7 +37,7 @@ case class WorkflowExecutionVariableJson(@Schema(description = "The variable nam
                                          name: String,
                                          @Schema(description = "True, if the variable is referenced at execution time, but neither defined on the workflow nor set during the run. It has to be provided when the run is started.", requiredMode = RequiredMode.REQUIRED)
                                          required: Boolean,
-                                         @Schema(description = "The default defined on the workflow itself. Values and templates of sensitive variables are omitted.", requiredMode = RequiredMode.NOT_REQUIRED, implementation = classOf[TemplateVariableJson])
+                                         @Schema(description = "The default defined on the workflow itself. Values and templates of sensitive variables are omitted, as is the value of a default whose template fails to evaluate.", requiredMode = RequiredMode.NOT_REQUIRED, implementation = classOf[TemplateVariableJson])
                                          default: Option[TemplateVariableJson],
                                          @ArraySchema(
                                            schema = new Schema(

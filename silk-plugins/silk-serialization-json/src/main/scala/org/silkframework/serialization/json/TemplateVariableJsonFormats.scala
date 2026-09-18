@@ -15,7 +15,7 @@ case class TemplateVariableJson(@Schema(
                                 )
                                 name: String,
                                 @Schema(
-                                  description = "The value of the variable.",
+                                  description = "The value of the variable. Omitted where sensitive values are masked: for sensitive variables and for variables whose template fails to evaluate.",
                                   example = "example value",
                                   requiredMode = RequiredMode.NOT_REQUIRED
                                 )
