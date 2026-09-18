@@ -215,6 +215,14 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     error should not be empty
     error.get.variable shouldBe "year"
     error.get.dependentVariables shouldBe Seq("movie1", "movie2")
+
+    // Bodies that do not match the expected JSON are rejected, not reported as server errors
+    val noScope = the[RequestFailedException] thrownBy checkResponse(createRequest(TemplateApi.putVariable(projectName, "movie2", None))
+      .put(Json.obj("name" -> "movie2", "value" -> "x")))
+    noScope.response.status shouldBe 400
+    val noArray = the[RequestFailedException] thrownBy checkResponse(createRequest(TemplateApi.reorderVariables(projectName, None))
+      .post(Json.obj("names" -> Seq("year"))))
+    noArray.response.status shouldBe 400
   }
 
   it should "allow to reorder variables (simple)" in {

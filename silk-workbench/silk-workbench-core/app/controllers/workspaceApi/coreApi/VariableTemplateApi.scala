@@ -294,7 +294,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                   )
                   task: Option[String]): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    val variable = Json.fromJson[TemplateVariableJson](request.body).get.convert
+    val variable = JsonHelpers.fromJsonValidated[TemplateVariableJson](request.body).convert
     if(variable.name != variableName) {
       throw new BadUserInputException(s"Variable name provided in the URL ($variableName) does not match variable name in the request body (${variable.name})")
     }
@@ -447,7 +447,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                       )
                       task: Option[String]): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
       val project = WorkspaceFactory().workspace.project(projectName)
-      val variableNames = ArraySeq.unsafeWrapArray(Json.fromJson[Array[String]](request.body).get)
+      val variableNames = ArraySeq.unsafeWrapArray(JsonHelpers.fromJsonValidated[Array[String]](request.body))
       val manager = project.variablesManager(task)
       val currentVariables = manager.all
 
