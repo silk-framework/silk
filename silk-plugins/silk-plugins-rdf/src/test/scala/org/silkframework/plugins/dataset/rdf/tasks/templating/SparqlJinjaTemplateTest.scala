@@ -196,7 +196,7 @@ class SparqlJinjaTemplateTest extends AnyFlatSpec with Matchers {
 
   it should "report the referenced template variables, but not the input and output task references" in {
     val template = SparqlTemplate.create(JinjaTemplateEngine.id,
-      """SELECT * WHERE { GRAPH <{{ execution.graph }}> { <{{ input.entity.s }}> <{{ project.prop }}> ?o } FILTER(?o = "{{ label }}") }""",
+      """SELECT * WHERE { GRAPH <{{ execution.graph }}> { <{{ input.entity.s }}> <{{ project.prop }}> ?o } FILTER(?o = "{{ label }}" && ?o != "{{ output.config.graph }}") }""",
       defaultScope = VariableScope.execution)
     template.referencedVariables must contain theSameElementsAs Seq(
       new TemplateVariableName("graph", VariableScope.execution),
