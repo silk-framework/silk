@@ -100,7 +100,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
 
   @Operation(
     summary = "Retrieve all variables",
-    description = "Retrieves the global variables, the variables of all projects the user has access to and the execution variables of all their tasks in one request. Values and templates of sensitive variables are omitted, as are the values of variables whose template fails to evaluate (see the errors).",
+    description = "Retrieves the global variables, the variables of all projects the user has access to (or of one project) and the execution variables of all their tasks in one request. Values and templates of sensitive variables are omitted, as are the values of variables whose template fails to evaluate (see the errors).",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -115,6 +115,10 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
       new ApiResponse(
         responseCode = "400",
         description = "If an unknown scope has been requested."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the requested project has not been found."
       )
     )
   )
@@ -125,7 +129,15 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                      in = ParameterIn.QUERY,
                      schema = new Schema(implementation = classOf[String])
                    )
-                   scope: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                   scope: Option[String],
+                   @Parameter(
+                     name = "project",
+                     description = "Restricts the response to this project. Defaults to all projects the user has access to.",
+                     required = false,
+                     in = ParameterIn.QUERY,
+                     schema = new Schema(implementation = classOf[String])
+                   )
+                   project: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val supportedScopes = s"Supported scopes: ${VariableScope.all.mkString(", ")}"
     val scopes = scope match {
       case Some(names) =>
@@ -139,7 +151,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
       case None =>
         VariableScope.all.toSet
     }
-    Ok(Json.toJson(AllVariablesJson.collect(scopes)))
+    Ok(Json.toJson(AllVariablesJson.collect(scopes, project)))
   }
 
   @Operation(

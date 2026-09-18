@@ -418,7 +418,7 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
 
     // A sensitive variable may reference it and stays masked when retrieved
     putVariables(projectName, TemplateVariables(Seq(password, derived.copy(isSensitive = true))))
-    val response = checkResponse(createRequest(TemplateApi.allVariables(None)).get())
+    val response = checkResponse(createRequest(TemplateApi.allVariables(None, None)).get())
     response.body should not include secretValue
   }
 
@@ -432,7 +432,7 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     project.templateVariables.put(TemplateVariables(Seq(password, derived, projectVariable("year", "2002"))))
 
     // The stored value is not disclosed by the masking endpoint, the error names the rule
-    val response = checkResponse(createRequest(TemplateApi.allVariables(Some("project"))).get())
+    val response = checkResponse(createRequest(TemplateApi.allVariables(Some("project"), None)).get())
     response.body should not include secretValue
     val projectJson = Json.fromJson[AllVariablesJson](response.json).get.projects.find(_.id == projectName).get
     projectJson.variables.map(_.map(v => (v.name, v.value))) shouldBe Some(Seq(("password", None), ("dbUrl", None), ("year", Some("2002"))))
@@ -442,7 +442,7 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     // The error of a sensitive variable is not reported verbatim, since it may quote the template
     project.templateVariables.put(TemplateVariables(Seq(password, derived,
       TemplateVariable("token", "", Some("{{project.vaultSecretName}}"), None, isSensitive = true, VariableScope.project))))
-    val tokenResponse = checkResponse(createRequest(TemplateApi.allVariables(Some("project"))).get())
+    val tokenResponse = checkResponse(createRequest(TemplateApi.allVariables(Some("project"), None)).get())
     tokenResponse.body should not include "vaultSecretName"
     val tokenErrors = Json.fromJson[AllVariablesJson](tokenResponse.json).get.projects.find(_.id == projectName).get.errors.get
     tokenErrors.map(e => (e.variableName, e.message)) should contain(("token", ResolvedVariablesJson.maskedErrorMessage))
@@ -904,7 +904,7 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     val emptyProjectName = "variables-test-all-empty"
     WorkspaceFactory().workspace.createProject(ProjectConfig(emptyProjectName))
 
-    val response = checkResponse(createRequest(TemplateApi.allVariables(None)).get())
+    val response = checkResponse(createRequest(TemplateApi.allVariables(None, None)).get())
     response.body should not include secretValue
     val all = Json.fromJson[AllVariablesJson](response.json).get
 
@@ -955,6 +955,13 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
       emptyEx.response.status shouldBe 400
       emptyEx.response.body should include("The scope parameter is given but names no scope.")
     }
+
+    // The project filter restricts the response to one project
+    val single = getAllVariables(scope = Some("project"), project = Some(projectName))
+    single.projects.map(_.id) shouldBe Seq(projectName)
+    single.projects.head.variables.map(_.map(_.name)) shouldBe Some(Seq("year"))
+    val missingProject = the[RequestFailedException] thrownBy getAllVariables(project = Some("doesNotExist"))
+    missingProject.response.status shouldBe 404
   }
 
   private def projectVariable(name: String, value: String, isSensitive: Boolean = false): TemplateVariable =
@@ -995,8 +1002,8 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     project
   }
 
-  def getAllVariables(scope: Option[String] = None): AllVariablesJson = {
-    val json = checkResponse(createRequest(TemplateApi.allVariables(scope)).get()).json
+  def getAllVariables(scope: Option[String] = None, project: Option[String] = None): AllVariablesJson = {
+    val json = checkResponse(createRequest(TemplateApi.allVariables(scope, project)).get()).json
     Json.fromJson[AllVariablesJson](json).get
   }
 

@@ -30,17 +30,18 @@ object AllVariablesJson {
   implicit val allVariablesFormat: OFormat[AllVariablesJson] = Json.format[AllVariablesJson]
 
   /**
-    * Collects the variables of the requested scopes across all projects the user has access to.
+    * Collects the variables of the requested scopes across all projects the user has access to, or of one project.
     * Sensitive variables are masked.
     */
-  def collect(scopes: Set[VariableScope])(implicit userContext: UserContext): AllVariablesJson = {
+  def collect(scopes: Set[VariableScope], projectId: Option[String] = None)(implicit userContext: UserContext): AllVariablesJson = {
     val global =
       if (scopes.contains(VariableScope.global)) {
         Some(TemplateVariablesJson(GlobalTemplateVariables.all.variables.map(TemplateVariableJson.masked)))
       } else {
         None
       }
-    val projects = WorkspaceFactory().workspace.userProjects.map(ProjectVariablesJson.collect(_, scopes))
+    val workspace = WorkspaceFactory().workspace
+    val projects = projectId.map(id => Seq(workspace.project(id))).getOrElse(workspace.userProjects).map(ProjectVariablesJson.collect(_, scopes))
     AllVariablesJson(global, projects)
   }
 }
