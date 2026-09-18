@@ -7,7 +7,7 @@ import useCopyButton from "../../../../../hooks/useCopyButton";
 import { useTranslation, TFunction } from "react-i18next";
 import { ErrorHandlerRegisterFuncType } from "../../../../../hooks/useErrorHandler";
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
-import type { UseFormReturn } from "react-hook-form/dist/types";
+import type { UseFormReturn } from "react-hook-form";
 
 const IDENTIFIER = "id";
 

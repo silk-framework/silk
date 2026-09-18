@@ -2,25 +2,22 @@ import React, { useEffect, useState } from "react";
 import DeleteModal from "./DeleteModal";
 import { projectFileResourceDependents, requestRemoveProjectResource } from "@ducks/workspace/requests";
 import { useTranslation } from "react-i18next";
-import { UppyFile } from "@uppy/core";
 import { ITaskLink } from "@ducks/workspace/typings";
 import { Link } from "@eccenca/gui-elements";
 import { taskUrl } from "@ducks/router/operations";
-import { fileValue } from "@ducks/shared/typings";
+import { FileBaseInfo, fileValue } from "@ducks/shared/typings";
 import { ErrorResponse } from "../../../services/fetch/responseInterceptor";
 import { useModalError } from "../../../hooks/useModalError";
 
-type UppyFileOrResource = UppyFile | { name: string; fullPath?: string; id: string };
-
 interface IProps {
     /** The file to delete. */
-    file: UppyFileOrResource;
+    file: FileBaseInfo & { id: string };
 
     /** The project the file is in. */
     projectId: string;
 
     /** Callback when the file has been deleted or the dialog has been closed without deleting. */
-    onConfirm(fileId?: string | number);
+    onConfirm(fileId?: string): void;
 
     /** Alternative title to the default title. */
     alternativeTitle?: string;
@@ -103,7 +100,7 @@ export function FileRemoveModal({
             onDiscard={closeDeleteModal}
             onConfirm={deleteFile}
             render={renderDeleteModal}
-            title={alternativeTitle ?? t("widget.FileWidget.deleteFile", "Delete File")}
+            title={alternativeTitle ?? t("widget.FileWidget.deleteFile")}
             errorMessage={error && error.detail}
             alternativeCancelButtonLabel={alternativeCancelButtonLabel}
         />

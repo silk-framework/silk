@@ -74,6 +74,10 @@ describe("Workspace webpack configuration invariants", () => {
             path.join(paths.guiElements, "src/extensions/react-flow/versionsupport.ts"),
         );
         expect(resolve("@ducks/workspace")).toBe(path.join(paths.appSrc, "app/store/ducks/workspace/index.ts"));
+        for (const name of ["@uppy/core", "@uppy/react", "@uppy/xhr-upload"]) {
+            const packageRoot = path.dirname(require.resolve(`${name}/package.json`, { paths: [paths.guiElements] }));
+            expect(resolve(name)).toBe(path.join(packageRoot, "lib/index.d.ts"));
+        }
     });
 
     it("constructs DI entries and transpiled source roots directly", () => {

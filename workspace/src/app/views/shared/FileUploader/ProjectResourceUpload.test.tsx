@@ -1,6 +1,6 @@
 import React from "react";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import i18next from "i18next";
+import { createTestI18n } from "../../../../test/createTestI18n";
 import { I18nextProvider } from "react-i18next";
 import { SimpleDialog } from "@eccenca/gui-elements";
 import { completeRequest, ControlledXMLHttpRequest } from "@eccenca/gui-elements/src/components/FileUpload/testHelpers";
@@ -11,7 +11,7 @@ import ProjectResourceUpload, { ProjectResourceUploadHandle } from "./ProjectRes
 
 jest.mock("@ducks/workspace/requests", () => ({ requestIfResourceExists: jest.fn() }));
 const resourceExists = requestIfResourceExists as jest.MockedFunction<typeof requestIfResourceExists>;
-const i18n = i18next.createInstance();
+const i18n = createTestI18n();
 void i18n.init({
     lng: "en",
     resources: { en: { translation: translations } },

@@ -4,15 +4,9 @@ Yarn binary.
 
 ## Local gui-elements development
 
-Webpack and TypeScript resolve `@eccenca/gui-elements` to the local submodule source.
-Keep the TypeScript `paths` mappings in `tsconfig.json` aligned with the Webpack aliases,
-including existing `@eccenca/gui-elements/src/*` imports. This prevents source types from
-being mixed with generated `dist/types` declarations after building gui-elements; it is
-safe to keep `dist/` present while running `yarn watch`.
-
-These mappings apply only to local development/type checking. The published gui-elements
-package continues to expose its built JavaScript and declarations. DI's `workspacePlugins`
-has equivalent mappings for its standalone type checks and editor diagnostics.
+Workspace uses `@eccenca/gui-elements` directly from the local `../libs/gui-elements` source.
+Run `yarn watch` from this directory when developing the workspace or shared components;
+a separate gui-elements build is not required.
 
 ## Available Scripts
 

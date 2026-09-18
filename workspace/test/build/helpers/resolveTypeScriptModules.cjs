@@ -37,4 +37,11 @@ const resolved = Object.fromEntries(
             ?.resolvedFileName,
     ]),
 );
+const uploadSource = path.join(
+    path.dirname(resolved["@eccenca/gui-elements"]),
+    "src/components/FileUpload/FileUpload.tsx",
+);
+for (const name of ["@uppy/core", "@uppy/react", "@uppy/xhr-upload"]) {
+    resolved[name] = ts.resolveModuleName(name, uploadSource, parsed.options, host).resolvedModule?.resolvedFileName;
+}
 process.stdout.write(JSON.stringify(resolved));
