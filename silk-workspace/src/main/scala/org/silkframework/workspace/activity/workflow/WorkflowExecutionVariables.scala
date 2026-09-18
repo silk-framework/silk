@@ -3,7 +3,7 @@ package org.silkframework.workspace.activity.workflow
 import org.silkframework.config.TaskSpec
 import org.silkframework.rule.RuleBlockSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariableName, VariableScope}
+import org.silkframework.runtime.templating.{TemplateVariableName, VariableScope}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
 
@@ -27,13 +27,11 @@ object WorkflowExecutionVariables {
     * @param name         The local name of the variable in the execution scope.
     * @param required     True, if the variable has to be provided when the run is started: some node references it without
     *                     a default on the workflow or a setter among its preceding nodes.
-    * @param default      The default defined on the workflow itself, if any.
     * @param referencedBy Tasks whose templates reference the variable at execution time.
     * @param setBy        Tasks that set the variable during the run, regardless of where.
     */
   case class ExecutionVariableRequirement(name: String,
                                           required: Boolean,
-                                          default: Option[TemplateVariable],
                                           referencedBy: Seq[ProjectTask[_ <: TaskSpec]],
                                           setBy: Seq[ProjectTask[_ <: TaskSpec]])
 
@@ -46,13 +44,13 @@ object WorkflowExecutionVariables {
     val analysis = new Analysis(project)
     analysis.analyseWorkflow(workflowTask.data, setBefore = Set.empty)
 
-    val defaults = workflowTask.executionVariables.map
-    val names = (defaults.keys ++ analysis.referencedBy.keys ++ analysis.setBy.keys).toSeq.distinct.sorted
+    // Variables defined on the workflow are listed even if never referenced, so that the full set of overridable variables is known
+    val defaults = workflowTask.executionVariables.map.keySet
+    val names = (defaults ++ analysis.referencedBy.keys ++ analysis.setBy.keys).toSeq.distinct.sorted
     for (name <- names) yield {
       ExecutionVariableRequirement(
         name = name,
         required = analysis.unsatisfied.contains(name) && !defaults.contains(name),
-        default = defaults.get(name),
         referencedBy = analysis.referencedBy.get(name).map(_.toSeq).getOrElse(Seq.empty),
         setBy = analysis.setBy.get(name).map(_.toSeq).getOrElse(Seq.empty)
       )
