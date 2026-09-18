@@ -35,7 +35,7 @@ object WorkflowExecutionVariablesJson {
 @Schema(description = "A single execution variable of a workflow run.")
 case class WorkflowExecutionVariableJson(@Schema(description = "The variable name, addressed as 'execution.<name>' in templates.", requiredMode = RequiredMode.REQUIRED)
                                          name: String,
-                                         @Schema(description = "True, if the variable is referenced at execution time, but neither defined on the workflow nor set during the run. It has to be provided when the run is started.", requiredMode = RequiredMode.REQUIRED)
+                                         @Schema(description = "True, if the variable is referenced at execution time, but neither defined on the workflow nor set by a preceding node of every referencing node. It has to be provided when the run is started.", requiredMode = RequiredMode.REQUIRED)
                                          required: Boolean,
                                          @Schema(description = "The default defined on the workflow itself. Values and templates of sensitive variables are omitted, as is the value of a default whose template fails to evaluate.", requiredMode = RequiredMode.NOT_REQUIRED, implementation = classOf[TemplateVariableJson])
                                          default: Option[TemplateVariableJson],
@@ -53,11 +53,9 @@ case class WorkflowExecutionVariableJson(@Schema(description = "The variable nam
                                              implementation = classOf[TaskReferenceJson]
                                            ))
                                          referencedBy: Seq[TaskReferenceJson],
-                                         @Schema(description = "True, if a 'Set execution variable' operator or transformer in the workflow sets the variable during the run.", requiredMode = RequiredMode.REQUIRED)
-                                         setDuringExecution: Boolean,
                                          @ArraySchema(
                                            schema = new Schema(
-                                             description = "Tasks that set the variable during the run.",
+                                             description = "Tasks that set the variable during the run, wherever they are placed. A variable that is set after or beside every referencing node is still required.",
                                              requiredMode = RequiredMode.REQUIRED,
                                              implementation = classOf[TaskReferenceJson]
                                            ))
@@ -74,7 +72,6 @@ object WorkflowExecutionVariableJson {
       default = default,
       definedOn = requirement.definedOn.map(TaskReferenceJson.fromTask),
       referencedBy = requirement.referencedBy.map(TaskReferenceJson.fromTask),
-      setDuringExecution = requirement.setDuringExecution,
       setBy = requirement.setBy.map(TaskReferenceJson.fromTask)
     )
   }

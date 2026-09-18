@@ -10,7 +10,7 @@ import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.plugins.operations.SetExecutionVariableOperator
 import org.silkframework.rule.input.{PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.variable.SetExecutionVariableTransformer
-import org.silkframework.rule.{ComplexMapping, MappingRules, RootMappingRule, TransformSpec}
+import org.silkframework.rule.{ComplexMapping, DatasetSelection, MappingRules, RootMappingRule, TransformSpec}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables, VariableScope}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowOperator, WorkflowOperatorsParameter}
@@ -52,13 +52,28 @@ class WorkflowExecutionVariablesApiTest extends AnyFlatSpec with IntegrationTest
     project.addTask("setFromTransformer", TransformSpec(mappingRule = RootMappingRule(MappingRules(propertyRules = Seq(
       ComplexMapping("setRule", TransformInput(transformer = SetExecutionVariableTransformer("fromTransformer"),
         inputs = IndexedSeq(PathInput(path = UntypedPath.parse("value"))))))))))
+    // Setters that do not precede the referencing node: after it, or in a disconnected branch
+    project.addTask("needsLate", VariablesTestTask("T", 2002, variableReference = "execution.late"))
+    project.addTask("setLate", SetExecutionVariableOperator(variableName = "late"))
+    project.addTask("needsApart", VariablesTestTask("T", 2002, variableReference = "execution.apart"))
+    project.addTask("setApart", SetExecutionVariableOperator(variableName = "apart"))
+    // A setter inside a sub-workflow counts for the nodes after the sub-workflow
+    project.addTask("setInner", SetExecutionVariableOperator(variableName = "inner"))
+    project.addTask[Workflow]("setterWf", workflowOf(node("setInner")))
+    project.addTask("needsInner", VariablesTestTask("T", 2002, variableReference = "execution.inner"))
     // A sub-workflow defines a default that its own task references; that default does not apply to the run
     project.addTask("needsSubOnly", VariablesTestTask("T", 2002, variableReference = "execution.subOnly"))
-    project.addTask[Workflow]("subWf", workflowReferencing("needsSubOnly"),
+    project.addTask[Workflow]("subWf", workflowOf(node("needsSubOnly")),
       executionVariables = TemplateVariables(Seq(executionVariable("subOnly", "sub"))))
+    // A transform whose input is a task referencing a variable: the input does not run with the transform
+    project.addTask("needsBatch", VariablesTestTask("T", 2002, variableReference = "execution.batch"))
+    project.addTask("mapping", TransformSpec(selection = DatasetSelection("needsBatch"), mappingRule = RootMappingRule(MappingRules.empty)))
     // The workflow itself: a referenced default, an unreferenced default and a sensitive default
     project.addTask[Workflow]("wf",
-      workflowReferencing("needsGreeting", "needsBaseUrl", "needsTmp", "setTmp", "needsFromTransformer", "setFromTransformer", "needsProjectVar", "subWf"),
+      workflowOf(node("needsGreeting"), node("needsBaseUrl"), node("setTmp"), node("needsTmp", after = "setTmp"),
+        node("setFromTransformer"), node("needsFromTransformer", after = "setFromTransformer"), node("needsProjectVar"),
+        node("needsLate"), node("setLate", after = "needsLate"), node("needsApart"), node("setApart"),
+        node("setterWf"), node("needsInner", after = "setterWf"), node("subWf"), node("mapping")),
       executionVariables = TemplateVariables(Seq(
         executionVariable("baseUrl", "https://example.org"),
         executionVariable("unused", "x"),
@@ -67,7 +82,7 @@ class WorkflowExecutionVariablesApiTest extends AnyFlatSpec with IntegrationTest
     val response = checkResponse(createRequest(controllers.workflowApi.routes.WorkflowApi.workflowExecutionVariables(projectName, "wf")).get())
     response.body should not include "s3cret-value"
     val result = Json.fromJson[WorkflowExecutionVariablesJson](response.json).get
-    result.variables.map(_.name) shouldBe Seq("baseUrl", "fromTransformer", "greeting", "secret", "subOnly", "tmp", "unused")
+    result.variables.map(_.name) shouldBe Seq("apart", "baseUrl", "fromTransformer", "greeting", "inner", "late", "secret", "subOnly", "tmp", "unused")
     val byName = result.variables.map(v => v.name -> v).toMap
 
     val greeting = byName("greeting")
@@ -76,7 +91,7 @@ class WorkflowExecutionVariablesApiTest extends AnyFlatSpec with IntegrationTest
     greeting.referencedBy.map(_.id) shouldBe Seq("needsGreeting")
     greeting.referencedBy.map(_.taskType) shouldBe Seq("task")
     greeting.definedOn shouldBe empty
-    greeting.setDuringExecution shouldBe false
+    greeting.setBy shouldBe empty
 
     val baseUrl = byName("baseUrl")
     baseUrl.required shouldBe false
@@ -85,13 +100,24 @@ class WorkflowExecutionVariablesApiTest extends AnyFlatSpec with IntegrationTest
 
     val tmp = byName("tmp")
     tmp.required shouldBe false
-    tmp.setDuringExecution shouldBe true
     tmp.setBy.map(_.id) shouldBe Seq("setTmp")
     tmp.referencedBy.map(_.id) shouldBe Seq("needsTmp")
 
     val fromTransformer = byName("fromTransformer")
     fromTransformer.required shouldBe false
     fromTransformer.setBy.map(t => (t.id, t.taskType)) shouldBe Seq(("setFromTransformer", "transform"))
+
+    // Set during the run, but not before the referencing node
+    val late = byName("late")
+    late.required shouldBe true
+    late.setBy.map(_.id) shouldBe Seq("setLate")
+    val apart = byName("apart")
+    apart.required shouldBe true
+    apart.setBy.map(_.id) shouldBe Seq("setApart")
+
+    val inner = byName("inner")
+    inner.required shouldBe false
+    inner.setBy.map(_.id) shouldBe Seq("setInner")
 
     val unused = byName("unused")
     unused.required shouldBe false
@@ -134,12 +160,13 @@ class WorkflowExecutionVariablesApiTest extends AnyFlatSpec with IntegrationTest
     TemplateVariable(name, value, None, None, isSensitive = false, VariableScope.execution)
   }
 
-  /** A workflow whose operators reference the given tasks. */
-  private def workflowReferencing(taskIds: String*): Workflow = {
-    val operators = taskIds.zipWithIndex.map { case (taskId, index) =>
-      WorkflowOperator(inputs = Seq.empty, task = taskId, outputs = Seq.empty, errorOutputs = Seq.empty,
-        position = (0, 0), nodeId = s"${taskId}_$index", configInputs = Seq.empty, dependencyInputs = Seq.empty)
-    }
+  private def workflowOf(operators: WorkflowOperator*): Workflow = {
     Workflow(operators = WorkflowOperatorsParameter(operators))
+  }
+
+  /** A node for the given task, identified by the task id, optionally running after another node via a dependency edge. */
+  private def node(taskId: String, after: String = ""): WorkflowOperator = {
+    WorkflowOperator(inputs = Seq.empty, task = taskId, outputs = Seq.empty, errorOutputs = Seq.empty,
+      position = (0, 0), nodeId = taskId, configInputs = Seq.empty, dependencyInputs = Option(after).filter(_.nonEmpty).toSeq)
   }
 }

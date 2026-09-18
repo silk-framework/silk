@@ -520,12 +520,14 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
   @Operation(
     summary = "Execution variables of a workflow",
     description = "Lists the execution variables that a run of the workflow needs. Only the execution variables defined on the workflow itself seed a run, " +
-      "so a variable that is referenced at execution time from within the workflow (by its operators, the tasks those reference and sub-workflows, recursively) " +
-      "is reported as required unless the workflow defines a default for it or a 'Set execution variable' operator or transformer sets it during the run. " +
+      "so a variable that is referenced at execution time from within the workflow (by its nodes, the rule blocks those use and sub-workflows, recursively) " +
+      "is reported as required unless the workflow defines a default for it or a 'Set execution variable' operator or transformer sets it in a node " +
+      "that precedes every referencing node in the workflow graph. Setters in parallel or disconnected branches run in no guaranteed order and do not count. " +
       "Required variables have to be provided when the run is started, e.g., via the 'executionVariables' payload key. " +
       "Variables defined on the workflow that are never referenced are listed as well, so that the full set of overridable variables is known. " +
       "Values and templates of sensitive defaults are omitted. Variables referenced from templates that are resolved when a task is loaded, " +
-      "e.g., parameter templates, are not run-time requirements and are not reported.",
+      "e.g., parameter templates, are not run-time requirements and are not reported. " +
+      "The analysis is exact for the variables that the tasks report as referenced; a plugin that evaluates templates without reporting them is not covered.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",

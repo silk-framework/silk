@@ -159,7 +159,6 @@ val 1,val 2"""
             "referencedBy": [
               { "id": "fetchTemplate", "label": "Fetch", "taskType": "task" }
             ],
-            "setDuringExecution": false,
             "setBy": []
           },
           {
@@ -171,7 +170,6 @@ val 1,val 2"""
             "referencedBy": [
               { "id": "greetingTemplate", "label": "Build greeting", "taskType": "task" }
             ],
-            "setDuringExecution": false,
             "setBy": []
           },
           {
@@ -181,7 +179,6 @@ val 1,val 2"""
             "referencedBy": [
               { "id": "useTmp", "label": "Use tmp", "taskType": "task" }
             ],
-            "setDuringExecution": true,
             "setBy": [
               { "id": "setTmp", "label": "Set tmp", "taskType": "task" }
             ]
