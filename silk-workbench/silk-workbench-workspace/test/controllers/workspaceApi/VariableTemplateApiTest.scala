@@ -415,6 +415,18 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
       val parameterValidation = validateTemplate(ValidateVariableTemplateRequest("{{project.password}}", Some(projectName), ignoreUnboundVariables = lenient))
       parameterValidation.parseError.map(_.message) shouldBe Some("'project.password' is not defined.")
     }
+    // A sensitive variable may reference its sensitive siblings, so its live validation and completion see them like the save does
+    val token = TemplateVariable("token", "", Some("{{project.user}}:{{project.password}}"), None, isSensitive = true, VariableScope.project)
+    putVariable(projectName, token)
+    val sensitiveValidation = validateTemplate(ValidateVariableTemplateRequest(token.template.get, Some(projectName), variableName = Some(token.name)))
+    sensitiveValidation.parseError shouldBe None
+    sensitiveValidation.evaluatedTemplate shouldBe Some(s"u:$secretValue")
+    autoCompleteTemplate(projectName, variableName = Some(token.name)) should contain allOf("project.password", "project.user")
+    autoCompleteTemplate(projectName, variableName = Some(derived.name)) should contain noneOf("project.password", "project.user")
+    // A sensitive sibling defined after it is reported as such, not as withheld
+    val laterValidation = validateTemplate(ValidateVariableTemplateRequest("{{project.token}}", Some(projectName), variableName = Some("user")))
+    laterValidation.parseError.map(_.message) shouldBe Some("'project.token' cannot be used because it's defined after 'user'.")
+    removeVariable(projectName, "token")
     removeVariable(projectName, "user")
 
     // Saving a task with such execution variables keeps the provided value instead of resolving the secret into it
