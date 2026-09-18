@@ -66,6 +66,8 @@ object WorkflowExecutionVariables {
     val referencedBy = mutable.LinkedHashMap[String, mutable.LinkedHashSet[ProjectTask[_ <: TaskSpec]]]()
     val setBy = mutable.LinkedHashMap[String, mutable.LinkedHashSet[ProjectTask[_ <: TaskSpec]]]()
     val unsatisfied = mutable.Set[String]()
+    // The variables set by a node's task, computed once per task: nodes share most of their predecessors
+    private val setByTask = mutable.Map[Identifier, Set[String]]()
 
     /**
       * Analyses the nodes of a workflow.
@@ -103,17 +105,19 @@ object WorkflowExecutionVariables {
 
     /** The variables that a node sets during the run: those of its task and the rule blocks it uses, for a sub-workflow those of all its nodes. */
     private def setByNode(node: WorkflowNode): Set[String] = {
-      project.anyTaskOption(node.task) match {
-        case Some(task) =>
-          task.data match {
-            case subWorkflow: Workflow =>
-              subWorkflow.nodes.flatMap(setByNode).toSet
-            case _ =>
-              executedWith(task).flatMap(executed => executionVariables(executed.data.modifiedVariables)).toSet
-          }
-        case None =>
-          Set.empty
-      }
+      setByTask.getOrElseUpdate(node.task, {
+        project.anyTaskOption(node.task) match {
+          case Some(task) =>
+            task.data match {
+              case subWorkflow: Workflow =>
+                subWorkflow.nodes.flatMap(setByNode).toSet
+              case _ =>
+                executedWith(task).flatMap(executed => executionVariables(executed.data.modifiedVariables)).toSet
+            }
+          case None =>
+            Set.empty
+        }
+      })
     }
 
     /** The task of a node and the rule blocks its rules use, recursively. Data inputs and outputs do not run with the node. */
