@@ -2,46 +2,70 @@ package controllers.workflowApi.doc
 
 object WorkflowApiDoc {
 
-  final val variableWorkflowResultPostDescription =
-    """Executes a workflow with parameters from the request query string or form URL encoded body.
-Compatible with all workflows that contain a single variable dataset that is used as input dataset and a single
-variable dataset as output – each dataset can be used several times in the same workflow.
+  // Shared between the synchronous and the asynchronous variant, which only differ in how the output type is chosen and what is returned.
+  private final val variableWorkflowCompatibility =
+    """Compatible with all workflows that contain at most one replaceable (variable) input dataset and at most one replaceable output dataset.
+Both are optional and each of them may be used several times in the same workflow."""
 
-**Input entity:** A single entity is built from the provided request parameters and injected into the variable source dataset.
-There must be at least one form or query parameter specified in the request. If empty entities as input
-must be supported, a POST request with empty JSON or XML object/element should be used, see below.
-For some data types (JSON, XML and CSV), the POST body can contain arbitrary content that the data source
-is expected to have. This goes beyond the simple query or form parameter input, where only exactly one input entity would be generated.
-The corresponding content type must be specified in these cases.
+  private final val variableWorkflowInputSection =
+    """**Input entity:** If the workflow has a replaceable input dataset, a single entity is built from the provided request parameters and injected into it.
+There must be at least one form or query parameter specified in the request. The reserved control parameters 'output:type', 'config-*' and 'variable-*'
+are never part of the input entity. If empty entities as input must be supported, a POST request with an empty JSON or XML object/element should be used.
+For the text formats JSON, XML and CSV, the POST body can instead contain arbitrary content of the corresponding dataset type, e.g. several entities; the content type must be set accordingly.
+Binary formats (e.g. Excel, binary files) and the formats of other file-based dataset plugins must be uploaded as a file via multipart/form-data, see the request body.
+If the workflow has no replaceable input dataset, the input content is ignored; execution variables and the content type check still apply."""
+
+  private final val variableWorkflowConfigSection =
+    """**Dataset configuration:** Query parameters with the prefixes 'config-dataSourceConfig-' and 'config-dataSinkConfig-' override parameters of the
+replaceable input and output dataset, e.g. 'config-dataSourceConfig-separator=;' sets the separator of a CSV input.
+'config-general-autoConfig=true' enables auto-configuration of the source dataset, e.g. to detect a non-comma separator of a CSV input."""
+
+  private final val variableWorkflowExecutionVariablesSection =
+    """**Execution variables:** Execution variables can be provided as query parameters with the reserved prefix 'variable-', e.g. 'variable-myVar=some value',
+independent of the request content type, and for JSON payloads additionally under the reserved top-level key 'executionVariables' as a flat name/value map.
+The provided values override the default values of the workflow's execution variables. Variables that no task of the workflow declares are accepted as well.
+Missing required execution variables are not checked by the request; a task that references an unset variable fails during the workflow execution."""
+
+  // Concatenated with '+' so that the value stays a compile-time constant usable in annotations.
+  final val variableWorkflowResultPostDescription =
+    """Executes a workflow with parameters from the request query string or form URL encoded body and waits for its completion.
+
+""" + variableWorkflowCompatibility + "\n\n" + variableWorkflowInputSection + """
 
 **Output:** The output data type is specified via the ACCEPT header. The result is returned as the requested mime type,
 the content is the file content of the corresponding dataset, e.g. XML, CSV etc.
+Alternatively, the 'output:type' query parameter selects the output type by dataset plugin id and takes precedence over the ACCEPT header.
+If the workflow has no replaceable output dataset, both are ignored and no content is returned.
 
-**Auto-configuration:** It is possible to enable auto-configuration for the source dataset, e.g. if the source data does not adhere to the default dataset config (non-comma separator in CSV etc.).
-The query parameter 'config-general-autoConfig' must be set to true to enable auto-config.
+""" + variableWorkflowConfigSection + "\n\n" + variableWorkflowExecutionVariablesSection
 
-**Execution variables:** Execution variables can be provided as query parameters with the reserved prefix 'variable-', e.g. 'variable-myVar=some value'.
-This works independent of the request content type. These parameters are never part of the input entity."""
+  final val variableWorkflowAsyncRetentionNote =
+    """**Retention of executions:** Only a limited number of execution instances per workflow is kept (config key 'org.silkframework.runtime.activity.concurrentExecutions', default 20).
+When the limit is reached, the oldest finished instance is dropped together with its result.
+Consumed results should therefore be removed by the client via the 'Remove a workflow execution instance' endpoint of the Workflows API, passing 'instanceId' as 'executionId'."""
 
   final val variableWorkflowResultPostDescriptionAsync =
-    """Executes a workflow with parameters from the request query string or form URL encoded body.
-This endpoint will start the workflow execution, but not wait for its completion.
-It will return the activity identifiers, which can be used to check the execution status using the Activity API.
-Once the workflow execution completed, the result can be retrieved using the 'Parameterized workflow execution result (asynchronous)' endpoint.
-Compatible with all workflows that contain a single variable dataset that is used as input dataset and a single
-variable dataset as output – each dataset can be used several times in the same workflow.
+    """Executes a workflow with parameters from the request query string or form URL encoded body, without waiting for its completion.
+It returns the id of the executing activity ('activityId') and the id of this particular execution ('instanceId').
+The execution status can be polled with the 'Get activity status' endpoint of the Activities API,
+passing the workflow id as 'task', 'activityId' as 'activity' and 'instanceId' as 'instance'.
+Once the execution has finished, its result can be retrieved via the 'Parameterized workflow execution result (asynchronous)' endpoint, passing 'instanceId' as query parameter.
+Failures of the execution are reported by the activity status and by the result endpoint, not by this endpoint.
 
-**Input entity:** A single entity is built from the provided request parameters and injected into the variable source dataset.
-There must be at least one form or query parameter specified in the request. If empty entities as input
-must be supported, a POST request with empty JSON or XML object/element should be used, see below.
-For some data types (JSON, XML and CSV), the POST body can contain arbitrary content that the data source
-is expected to have. This goes beyond the simple query or form parameter input, where only exactly one input entity would be generated.
-The corresponding content type must be specified in these cases.
+""" + variableWorkflowCompatibility + "\n\n" + variableWorkflowInputSection + """
 
-**Output:** The output data type is specified via the 'output:type' query parameter.
+**Output:** The output type of the replaceable output dataset is selected with the 'output:type' query parameter or, if it is missing, with the ACCEPT header.
+The result endpoint serves the file content of that dataset.
 
-**Execution variables:** Execution variables can be provided as query parameters with the reserved prefix 'variable-', e.g. 'variable-myVar=some value'.
-This works independent of the request content type. These parameters are never part of the input entity."""
+""" + variableWorkflowConfigSection + "\n\n" + variableWorkflowExecutionVariablesSection + "\n\n" + variableWorkflowAsyncRetentionNote
+
+  final val variableWorkflowRequestBodyDescription =
+    """The contents of the replaceable input dataset.
+For JSON payloads, the top-level key 'executionVariables' is reserved for execution-variable overrides: it must be a flat name/value string map and never becomes part of the input entity."""
+
+  final val outputTypeParameterDescription =
+    "The id of the file-based dataset plugin that writes the output of the replaceable output dataset, e.g. 'json', 'xml', 'csv', 'file' (N-Triples), 'excel' or 'binaryFile'. " +
+      "Takes precedence over the ACCEPT header, which is used if this parameter is missing. Ignored if the workflow has no replaceable output dataset."
 
   final val variableWorkflowResultGetDescription =
     """For a GET request the parameter and values are provided via the query string of the URL.

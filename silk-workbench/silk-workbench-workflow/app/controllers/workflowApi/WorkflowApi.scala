@@ -21,8 +21,10 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.CustomTask
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.runtime.activity.{Status => ActivityStatus}
 import org.silkframework.runtime.resource.{FileResource, Resource}
 import org.silkframework.runtime.validation.{NotFoundException, RequestException}
+import org.silkframework.util.Identifier
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
 import org.silkframework.workspace.activity.dataset.DatasetUtils
 import org.silkframework.workspace.activity.workflow.ReconfigureTasks.ReconfigurablePluginDescription
@@ -34,6 +36,7 @@ import play.api.mvc._
 import java.net.HttpURLConnection
 import java.nio.file.Files
 import javax.inject.Inject
+import scala.util.Try
 
 @Tag(name = "Workflows", description = "Workflow specific operations, such as execution of workflows with payloads.")
 class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTrait with UserContextActions {
@@ -43,6 +46,15 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
   @Operation(
     summary = "Parameterized workflow execution result",
     description = WorkflowApiDoc.variableWorkflowResultGetDescription,
+    parameters = Array(
+      new Parameter(
+        name = VariableWorkflowRequestUtils.QUERY_PARAM_OUTPUT_TYPE,
+        description = WorkflowApiDoc.outputTypeParameterDescription,
+        required = false,
+        in = ParameterIn.QUERY,
+        schema = new Schema(implementation = classOf[String], example = "csv")
+      )
+    ),
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -78,7 +90,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       ),
       new ApiResponse(
         responseCode = "400",
-        description = " Invalid request, e.g. no request parameters provided or the same execution variable is defined both under the reserved 'executionVariables' key of a JSON body and as a 'variable-' query parameter."
+        description = "Invalid request, e.g. no request parameters provided, 'output:type' is not a file-based dataset plugin id, or an execution variable is defined both in the JSON body and as a query parameter."
       ),
       new ApiResponse(
         responseCode = "404",
@@ -115,6 +127,15 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
   @Operation(
     summary = "Parameterized workflow execution result",
     description = WorkflowApiDoc.variableWorkflowResultPostDescription,
+    parameters = Array(
+      new Parameter(
+        name = VariableWorkflowRequestUtils.QUERY_PARAM_OUTPUT_TYPE,
+        description = WorkflowApiDoc.outputTypeParameterDescription,
+        required = false,
+        in = ParameterIn.QUERY,
+        schema = new Schema(implementation = classOf[String], example = "csv")
+      )
+    ),
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -150,7 +171,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       ),
       new ApiResponse(
         responseCode = "400",
-        description = " Invalid request, e.g. no request parameters provided or the same execution variable is defined both under the reserved 'executionVariables' key of a JSON body and as a 'variable-' query parameter."
+        description = "Invalid request, e.g. no request parameters provided, 'output:type' is not a file-based dataset plugin id, or an execution variable is defined both in the JSON body and as a query parameter."
       ),
       new ApiResponse(
         responseCode = "404",
@@ -159,6 +180,10 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       new ApiResponse(
         responseCode = "406",
         description = "If no response in any of the requested mime types could be produced."
+      ),
+      new ApiResponse(
+        responseCode = "415",
+        description = "If the content type of the request body is not supported."
       ),
       new ApiResponse(
         responseCode = "500",
@@ -170,7 +195,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       )
   ))
   @RequestBody(
-    description = "The contents of the variable data source. For JSON payloads, the top-level key 'executionVariables' is reserved: when present, it must be a flat name/value string map and is used as execution-variable overrides for the run — any other value shape is rejected. It never becomes part of the input entity. Independent of the payload content type, execution variables can also be provided as query parameters with the reserved prefix 'variable-', e.g. 'variable-myVar=some value'; these are never part of the input entity either.",
+    description = WorkflowApiDoc.variableWorkflowRequestBodyDescription,
     required = false,
     content = Array(
       new Content(
@@ -181,6 +206,11 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
             description = "Multiple values are provided for an input property by having the same parameter multiple times in the request body.",
             value = WorkflowApiDoc.variableWorkflowRequestFormsExample
         ))
+      ),
+      new Content(
+        mediaType = "multipart/form-data",
+        schema = new Schema(`type` = "object", description = "The first uploaded file is used as the input of the replaceable input dataset. Its content type determines the input format, " +
+          "e.g. application/octet-stream for a binary file dataset or application/x-plugin-<PLUGIN_ID> for another file-based dataset plugin.")
       ),
       new Content(
         mediaType = "application/json",
@@ -269,13 +299,13 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
   }
 
   @Operation(
-    summary = "Parameterized workflow execution result (asynchronous)",
+    summary = "Parameterized workflow execution (asynchronous)",
     description = WorkflowApiDoc.variableWorkflowResultPostDescriptionAsync,
     parameters = Array(
       new Parameter(
         name = VariableWorkflowRequestUtils.QUERY_PARAM_OUTPUT_TYPE,
-        description = "The type of the output dataset",
-        required = true,
+        description = WorkflowApiDoc.outputTypeParameterDescription,
+        required = false,
         in = ParameterIn.QUERY,
         schema = new Schema(implementation = classOf[String], example = "csv")
       )
@@ -283,7 +313,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
     responses = Array(
       new ApiResponse(
         responseCode = "201",
-        description = "If the workflow has been started successfully.",
+        description = "If the workflow execution has been started successfully. Contains the activity id and the instance id of the started execution.",
         content = Array(
           new Content(
             mediaType = "application/json",
@@ -293,7 +323,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       ),
       new ApiResponse(
         responseCode = "400",
-        description = " Invalid request, e.g. no request parameters provided or the same execution variable is defined both under the reserved 'executionVariables' key of a JSON body and as a 'variable-' query parameter."
+        description = "Invalid request, e.g. no request parameters provided, 'output:type' is not a file-based dataset plugin id, or an execution variable is defined both in the JSON body and as a query parameter."
       ),
       new ApiResponse(
         responseCode = "404",
@@ -301,11 +331,15 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       ),
       new ApiResponse(
         responseCode = "406",
-        description = "If no response in any of the requested mime types could be produced."
+        description = "If no output type is given and no response in any of the mime types of the ACCEPT header could be produced."
+      ),
+      new ApiResponse(
+        responseCode = "415",
+        description = "If the content type of the request body is not supported."
       ),
       new ApiResponse(
         responseCode = "500",
-        description = "The workflow execution has failed."
+        description = "If preparing the workflow execution has failed."
       ),
       new ApiResponse(
         responseCode = "503",
@@ -313,7 +347,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       )
     ))
   @RequestBody(
-    description = "The contents of the variable data source. For JSON payloads, the top-level key 'executionVariables' is reserved: when present, it must be a flat name/value string map and is used as execution-variable overrides for the run — any other value shape is rejected. It never becomes part of the input entity. Independent of the payload content type, execution variables can also be provided as query parameters with the reserved prefix 'variable-', e.g. 'variable-myVar=some value'; these are never part of the input entity either.",
+    description = WorkflowApiDoc.variableWorkflowRequestBodyDescription,
     required = false,
     content = Array(
       new Content(
@@ -324,6 +358,11 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
             description = "Multiple values are provided for an input property by having the same parameter multiple times in the request body.",
             value = WorkflowApiDoc.variableWorkflowRequestFormsExample
           ))
+      ),
+      new Content(
+        mediaType = "multipart/form-data",
+        schema = new Schema(`type` = "object", description = "The first uploaded file is used as the input of the replaceable input dataset. Its content type determines the input format, " +
+          "e.g. application/octet-stream for a binary file dataset or application/x-plugin-<PLUGIN_ID> for another file-based dataset plugin.")
       ),
       new Content(
         mediaType = "application/json",
@@ -380,7 +419,9 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
 
   @Operation(
     summary = "Parameterized workflow execution result (asynchronous)",
-    description = "Returns the result of a workflow execution.",
+    description = "Returns the result of a workflow execution that has been started with the 'Parameterized workflow execution (asynchronous)' endpoint. " +
+      "The response body is the file content of the replaceable output dataset in the output type chosen when starting the execution. " +
+      "Retrieving the result does not remove the execution instance.\n\n" + WorkflowApiDoc.variableWorkflowAsyncRetentionNote,
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -392,11 +433,11 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       ),
       new ApiResponse(
         responseCode = "404",
-        description = "If the workflow is still running and did not produce a result yet."
+        description = "If the specified project, workflow or execution instance has not been found, or if the workflow is still running and did not produce a result yet."
       ),
       new ApiResponse(
         responseCode = "500",
-        description = "If the workflow has not completed successfully."
+        description = "If the workflow execution has failed or has been cancelled."
       )
     )
   )
@@ -418,28 +459,40 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
                                   workflowTaskName: String,
                                   @Parameter(
                                     name = "instanceId",
-                                    description = "The activity instance identifier",
+                                    description = "The activity instance identifier, as returned by the 'Parameterized workflow execution (asynchronous)' endpoint.",
                                     required = true,
-                                    in = ParameterIn.PATH,
+                                    in = ParameterIn.QUERY,
                                     schema = new Schema(implementation = classOf[String])
                                   )
                                   instanceId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
 
     // Make sure that the activity has been successful
-    val activity = workflowTask.activity[WorkflowWithPayloadExecutor].instance(instanceId)
-    if(activity.status().isRunning) {
-      throw NotFoundException("Workflow is still running.")
-    } else if(activity.status().failed) {
-      throw WorkflowFailedException("Cannot retrieve workflow result, because execution failed.", activity.status().exception)
+    val instances = workflowTask.activity[WorkflowWithPayloadExecutor].allInstances
+    val activity = Try(Identifier(instanceId)).toOption.flatMap(instances.get)
+      .getOrElse(throw NotFoundException(s"No execution instance with id '$instanceId' found for workflow '$workflowTaskName'."))
+    activity.status() match {
+      case status if status.isRunning =>
+        throw NotFoundException("Workflow is still running.")
+      case status if status.failed =>
+        throw WorkflowFailedException("Cannot retrieve workflow result, because execution failed.", status.exception)
+      case status: ActivityStatus.Finished if status.cancelled =>
+        // A cancelled run counts as successful, but its output is incomplete
+        throw WorkflowFailedException("Cannot retrieve workflow result, because execution has been cancelled.", None)
+      case _ =>
     }
 
-    // Return output
-    val outputResource = activity.value().resourceManager.get(VariableWorkflowRequestUtils.OUTPUT_FILE_RESOURCE_NAME, mustExist = true)
-    Result(
-      header = ResponseHeader(OK, Map.empty),
-      body = HttpEntity.Strict(ByteString(outputResource.loadAsBytes), None)
-    )
+    // Return output, if the workflow has a replaceable output dataset
+    val output = activity.value()
+    if(output.variableSinks.nonEmpty) {
+      val outputResource = output.resourceManager.get(VariableWorkflowRequestUtils.OUTPUT_FILE_RESOURCE_NAME, mustExist = true)
+      Result(
+        header = ResponseHeader(OK, Map.empty),
+        body = HttpEntity.Strict(ByteString(outputResource.loadAsBytes), None)
+      )
+    } else {
+      NoContent
+    }
   }
 
   @Operation(
