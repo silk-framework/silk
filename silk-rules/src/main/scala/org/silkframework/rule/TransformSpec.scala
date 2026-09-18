@@ -117,9 +117,14 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     updatedResourceOfRule(mappingRule, resource)
   }
 
-  override def referencedVariables: Seq[TemplateVariableName] = {
+  override def referencedVariables: Seq[TemplateVariableName] = collectFromTransformers(_.referencedVariables)
+
+  override def modifiedVariables: Seq[TemplateVariableName] = collectFromTransformers(_.modifiedVariables)
+
+  /** Collects variables from all transformers in the mapping rule tree. */
+  private def collectFromTransformers(f: Transformer => Seq[TemplateVariableName]): Seq[TemplateVariableName] = {
     val variables = mutable.Buffer[TemplateVariableName]()
-    iterateAllTransformersFromRule(mappingRule, _.referencedVariables.foreach(variables.append))
+    iterateAllTransformersFromRule(mappingRule, transformer => variables ++= f(transformer))
     variables.toSeq
   }
 

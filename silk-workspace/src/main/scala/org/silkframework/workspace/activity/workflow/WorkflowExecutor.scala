@@ -219,13 +219,13 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   private def reconfigureTask[T <: TaskSpec](workflowNode: WorkflowDependencyNode,
                                              task: Task[T])
                                             (implicit workflowRunContext: WorkflowRunContext): Task[T] = {
-    implicit val pluginContext: PluginContext = pluginContextWithExecutionVars
+    implicit val userContext: UserContext = workflowRunContext.userContext
     try {
       workflowRunContext.reconfiguredTasks.getOrElseUpdate(
         workflowNode.workflowNode, {
           // Calculate the parameters
           val configInputEntities = workflowNode.configInputNodes.flatMap(node => workflowNodeEntities(node, task) { entities => entities.flatMap(_.headOption) })
-          task.reconfigure(configInputEntities)
+          task.reconfigure(configInputEntities, project)
         }
       ).asInstanceOf[Task[T]]
     } catch {

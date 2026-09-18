@@ -6,7 +6,7 @@ import org.silkframework.runtime.templating.TemplateVariableName
   * Thrown if a value for an unbound variable is missing.
   */
 class UnboundVariablesException(val missingVars: Seq[TemplateVariableName], cause: Option[Exception] = None)
-  extends TemplateEvaluationException(UnboundVariablesException.generateMessage(missingVars), cause) {
+  extends TemplateEvaluationException(UnboundVariablesException.message(missingVars), cause) {
 
   /**
     * A short description of the error type.
@@ -24,7 +24,8 @@ class UnboundVariablesException(val missingVars: Seq[TemplateVariableName], caus
 
 object UnboundVariablesException {
 
-  private def generateMessage(missingVars: Seq[TemplateVariableName]): String = {
+  /** The error message for the given undefined variables, also for reporting without an exception. */
+  def message(missingVars: Seq[TemplateVariableName]): String = {
     missingVars match {
       case Seq(variable) =>
         s"'$variable' is not defined."

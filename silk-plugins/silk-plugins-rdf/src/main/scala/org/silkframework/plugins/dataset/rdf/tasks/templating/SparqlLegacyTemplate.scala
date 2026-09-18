@@ -71,6 +71,9 @@ class SparqlLegacyTemplate(template: CompiledTemplate) extends SparqlTemplate {
     }
   }
 
+  // The legacy engines have no access to template variables
+  override def referencedVariables: Seq[TemplateVariableName] = Seq.empty
+
   override def inputSchema: EntitySchema = {
     val properties = entityVariableNames
     if (properties.isEmpty) {

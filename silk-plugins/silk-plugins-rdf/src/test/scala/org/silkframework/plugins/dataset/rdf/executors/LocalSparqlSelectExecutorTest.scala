@@ -17,6 +17,7 @@ import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.templating.exceptions.UnboundVariablesException
+import org.silkframework.runtime.templating.{TemplateVariableName, VariableScope}
 import org.silkframework.util.{Identifier, MockitoSugar, TestMocks}
 
 import scala.collection.immutable.SortedMap
@@ -185,6 +186,12 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     val entity = entities.head
     entity.values.flatten.head mustBe "subject 0"
     (System.currentTimeMillis() - start).toInt must be < quickReactionTime
+  }
+
+  it should "report the template variables referenced by the select query" in {
+    val task = SparqlSelectCustomTask("""SELECT * WHERE { GRAPH <{{ execution.graph }}> { <{{ input.config.s }}> ?p "{{ global.label }}" } }""")
+    task.referencedVariables must contain theSameElementsAs Seq(
+      new TemplateVariableName("graph", VariableScope.execution), new TemplateVariableName("label", VariableScope.global))
   }
 
   it should "derive the schema from the result variables even when the result set is empty" in {
