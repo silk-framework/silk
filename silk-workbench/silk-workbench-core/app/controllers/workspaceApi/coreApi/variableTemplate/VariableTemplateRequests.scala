@@ -62,9 +62,11 @@ case class ValidateVariableTemplateRequest(templateString: String,
       val evaluatedTemplate = variables.resolveTemplateValue(templateString, evaluationConfig)
       valid(Some(evaluatedTemplate))
     } catch {
-      case ex: UnboundVariablesException if withheldSensitiveVariables(ex.missingVars).nonEmpty =>
-        // Same rule and message as saving the variable, see TemplateVariables.resolveTemplate
-        invalid(SensitiveVariableReferenceException.message(withheldSensitiveVariables(ex.missingVars)))
+      case ex: UnboundVariablesException if variableName.isDefined && withheldSensitiveVariables(ex.missingVars).nonEmpty =>
+        // Same rule and message as saving the variable, see TemplateVariables.resolveTemplate.
+        // A parameter template follows the password-parameter rule instead and reports the withheld variable as not defined, as in lenient mode.
+        val withheld = withheldSensitiveVariables(ex.missingVars)
+        invalid(SensitiveVariableReferenceException.message(withheld, ex.missingVars.filterNot(withheld.contains)))
       case ex: UnboundVariablesException if variableName.isDefined && ex.missingVars.size == 1 =>
         // Check if the variable is unbound because it is defined after the current one
         Try(collectVariables(ignoreVariableName = true).resolveTemplateValue(templateString, evaluationConfig)) match {

@@ -405,11 +405,16 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     val validation = validateTemplate(ValidateVariableTemplateRequest(derived.template.get, Some(projectName), variableName = Some(derived.name)))
     validation.valid shouldBe false
     validation.parseError.map(_.message) shouldBe Some(sensitivityMessage)
-    // Also for several withheld variables, and a truly undefined one does not hide them
+    // Also for several withheld variables; a truly undefined one is reported along instead of hiding them
     putVariable(projectName, projectVariable("user", "u", isSensitive = true))
     val validation2 = validateTemplate(ValidateVariableTemplateRequest("{{project.user}}:{{project.password}}@{{project.host}}", Some(projectName), variableName = Some(derived.name)))
     validation2.parseError.map(_.message) shouldBe
-      Some("The following variables are sensitive and can only be referenced from a sensitive variable: 'project.user', 'project.password'")
+      Some("The following variables are sensitive and can only be referenced from a sensitive variable: 'project.user', 'project.password'. 'project.host' is not defined.")
+    // A parameter template (no variable name) follows the password-parameter rule instead: the withheld variable is not defined, in both modes
+    for (lenient <- Seq(None, Some(true))) {
+      val parameterValidation = validateTemplate(ValidateVariableTemplateRequest("{{project.password}}", Some(projectName), ignoreUnboundVariables = lenient))
+      parameterValidation.parseError.map(_.message) shouldBe Some("'project.password' is not defined.")
+    }
     removeVariable(projectName, "user")
 
     // Saving a task with such execution variables keeps the provided value instead of resolving the secret into it

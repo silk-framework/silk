@@ -87,8 +87,8 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
           TemplateVariables(additionalVariables.variables ++ TemplateVariables.referenceable(variable, preceding)).resolveTemplateValue(template)
         } catch {
           case ex: UnboundVariablesException if !variable.isSensitive =>
-            val sensitiveSiblings = ex.missingVars.filter(isSensitiveMember)
-            if (sensitiveSiblings.nonEmpty) throw new SensitiveVariableReferenceException(sensitiveSiblings) else throw ex
+            val (sensitiveSiblings, otherMissing) = ex.missingVars.partition(isSensitiveMember)
+            if (sensitiveSiblings.nonEmpty) throw new SensitiveVariableReferenceException(sensitiveSiblings, otherMissing) else throw ex
         }
       case None =>
         variable.value

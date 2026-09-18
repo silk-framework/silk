@@ -40,6 +40,12 @@ class TemplateVariableTest extends AnyFlatSpec with Matchers with ConfigTestTrai
     ex.getMessage shouldBe "Variable 'dbUrl': 'project.password' is sensitive and can only be referenced from a sensitive variable."
     // The lenient variant keeps the stored value
     variables.resolvedKeepingUnresolved().map("dbUrl").value shouldBe ""
+    // An undefined variable in the same template is reported along, so that both problems show up at once
+    val withUndefined = TemplateVariables(Seq(
+      TemplateVariable("password", "secret", None, None, isSensitive = true, VariableScope.project),
+      TemplateVariable("dbUrl", "", Some("jdbc://{{project.password}}@{{project.host}}"), None, isSensitive = false, VariableScope.project)))
+    the[TemplateVariablesEvaluationException] thrownBy withUndefined.resolved() should have message
+      "Variable 'dbUrl': 'project.password' is sensitive and can only be referenced from a sensitive variable. 'project.host' is not defined."
   }
 
   it should "report a reference to a variable that is not defined as undefined" in {
