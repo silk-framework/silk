@@ -90,9 +90,9 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
   def add(name: Identifier, taskData: TaskData, metaData: MetaData, executionVariables: TemplateVariables = TemplateVariables.empty)
          (implicit userContext: UserContext) : ProjectTask[TaskData] = {
     assertLoaded()
-    // Variable templates are resolved at save time; unresolvable templates keep the provided value, except references to sensitive siblings.
+    // Variable templates are resolved at save time; unresolvable templates keep the provided value.
     val parentVariables = (GlobalTemplateVariables.all merge project.templateVariables.all).withoutSensitiveVariables()
-    val resolvedVariables = executionVariables.resolvedKeepingUnresolved(parentVariables, rejectSensitiveReferences = true)
+    val resolvedVariables = executionVariables.resolvedKeepingUnresolved(parentVariables)
     val task = new ProjectTask(name, taskData, metaData, resolvedVariables, this)
     task.executionVariablesValueHolder.validateScope(resolvedVariables)
     validator.validate(project, task)

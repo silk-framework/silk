@@ -143,11 +143,11 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       lastModifiedByUser = newMetaData.flatMap(_.lastModifiedByUser).orElse(userContext.user.map(_.uri))
     )
     // Validate and resolve before persisting, so that a failure does not leave persisted and in-memory state inconsistent.
-    // Variable templates are resolved at save time; unresolvable templates keep the provided value, except references to sensitive siblings.
+    // Variable templates are resolved at save time; unresolvable templates keep the provided value.
     val executionVariablesToPersist = newExecutionVariables match {
       case Some(newVariables) =>
         executionVariablesValueHolder.validateScope(newVariables)
-        newVariables.resolvedKeepingUnresolved(executionVariablesValueHolder.parentVariables.withoutSensitiveVariables(), rejectSensitiveReferences = true)
+        newVariables.resolvedKeepingUnresolved(executionVariablesValueHolder.parentVariables.withoutSensitiveVariables())
       case None =>
         executionVariablesValueHolder.all
     }

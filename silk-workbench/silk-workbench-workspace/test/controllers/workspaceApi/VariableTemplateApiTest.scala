@@ -412,17 +412,12 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
       Some("The following variables are sensitive and can only be referenced from a sensitive variable: 'project.user', 'project.password'")
     removeVariable(projectName, "user")
 
-    // Saving a task with such execution variables is rejected as well, on creation and on update
+    // Saving a task with such execution variables keeps the provided value instead of resolving the secret into it
     val project = WorkspaceFactory().workspace.project(projectName)
     val executionPassword = TemplateVariable("password", secretValue, None, None, isSensitive = true, VariableScope.execution)
     val executionDerived = TemplateVariable("dbUrl", "", Some("jdbc://u:{{execution.password}}@host"), None, isSensitive = false, VariableScope.execution)
-    val addTask = the[TemplateVariablesEvaluationException] thrownBy
-      project.addTask("derivedTask", VariablesTestTask("T", 2002), executionVariables = TemplateVariables(Seq(executionPassword, executionDerived)))
-    addTask.getMessage shouldBe "Variable 'dbUrl': 'execution.password' is sensitive and can only be referenced from a sensitive variable."
-    project.addTask("derivedTask", VariablesTestTask("T", 2002), executionVariables = TemplateVariables(Seq(executionPassword)))
-    an[TemplateVariablesEvaluationException] should be thrownBy
-      project.task[CustomTask]("derivedTask").update(VariablesTestTask("T", 2002), newExecutionVariables = Some(TemplateVariables(Seq(executionPassword, executionDerived))))
-    project.anyTask("derivedTask").executionVariables.variables.map(_.name) shouldBe Seq("password")
+    project.addTask("derivedTask", VariablesTestTask("T", 2002), executionVariables = TemplateVariables(Seq(executionPassword, executionDerived)))
+    project.anyTask("derivedTask").executionVariables.map("dbUrl").value shouldBe ""
 
     // A sensitive variable may reference it and stays masked when retrieved
     putVariables(projectName, TemplateVariables(Seq(password, derived.copy(isSensitive = true))))

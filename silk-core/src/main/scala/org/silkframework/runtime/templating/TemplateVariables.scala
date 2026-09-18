@@ -57,21 +57,15 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
     * Resolves all templates like [[resolved]], but keeps the stored value of each variable whose template
     * cannot be resolved (e.g. a template referencing a sensitive parent variable, which is not available
     * for template resolution). Kept variables still participate in the resolution of subsequent variables
-    * with their stored value.
-    *
-    * @param rejectSensitiveReferences Rejects a reference to a sensitive sibling instead of keeping the stored value.
-    *                                  Set when saving user input; loading keeps values stored before the rule existed.
-    * @throws TemplateVariablesEvaluationException If a sensitive sibling is referenced and rejectSensitiveReferences is set.
+    * with their stored value. This includes a template referencing a sensitive sibling, whose stored value
+    * is kept as provided instead of resolving the sensitive value into it.
     */
-  def resolvedKeepingUnresolved(additionalVariables: TemplateVariables = TemplateVariables.empty,
-                                rejectSensitiveReferences: Boolean = false): TemplateVariables = {
+  def resolvedKeepingUnresolved(additionalVariables: TemplateVariables = TemplateVariables.empty): TemplateVariables = {
     val resolvedVariables = mutable.Buffer[TemplateVariable]()
     for (variable <- variables) {
       try {
         resolvedVariables.append(variable.copy(value = resolveTemplate(variable, additionalVariables, resolvedVariables.toSeq)))
       } catch {
-        case ex: SensitiveVariableReferenceException if rejectSensitiveReferences =>
-          throw TemplateVariablesEvaluationException(Seq(TemplateVariableEvaluationException(variable, ex)))
         case _: TemplateEvaluationException =>
           resolvedVariables.append(variable) // Keep the stored value
       }
