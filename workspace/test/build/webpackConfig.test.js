@@ -5,6 +5,8 @@ process.env.NODE_ENV = "development";
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const browserslist = require("browserslist");
 const webpack = require("webpack");
+const path = require("path");
+const { execFileSync } = require("child_process");
 const configFactory = require("../../config/webpack.di.config");
 const paths = require("../../config/paths");
 
@@ -55,6 +57,23 @@ describe("Workspace webpack configuration invariants", () => {
             paths.appSrc,
             ...paths.additionalSourcePaths(),
         ]);
+    });
+
+    it.each([true, false])("resolves gui-elements types like webpack with built declarations present: %s", (built) => {
+        const resolved = JSON.parse(
+            execFileSync(
+                process.execPath,
+                [path.join(__dirname, "helpers/resolveTypeScriptModules.cjs"), paths.appTsConfig, String(built)],
+                { encoding: "utf8", timeout: 10000 },
+            ),
+        );
+        const resolve = (name) => resolved[name];
+
+        expect(resolve("@eccenca/gui-elements")).toBe(watchConfig.resolve.alias["@eccenca/gui-elements$"]);
+        expect(resolve("@eccenca/gui-elements/src/extensions/react-flow/versionsupport")).toBe(
+            path.join(paths.guiElements, "src/extensions/react-flow/versionsupport.ts"),
+        );
+        expect(resolve("@ducks/workspace")).toBe(path.join(paths.appSrc, "app/store/ducks/workspace/index.ts"));
     });
 
     it("constructs DI entries and transpiled source roots directly", () => {

@@ -38,7 +38,7 @@ import { bluePrintClassPrefix } from "../../../HierarchicalMapping/utils/TestHel
 
 jest.mock("@eccenca/gui-elements", () => {
     const React = jest.requireActual("react");
-    const actual = jest.requireActual("@eccenca/gui-elements");
+    const actual = jest.requireActual<typeof import("@eccenca/gui-elements")>("@eccenca/gui-elements");
     const jestTestUtils = jest.requireActual("../../../../src/app/test/jestTestUtils").default;
     const BaseCodeEditor = jestTestUtils.createCodeEditorMock(React);
     function CodeEditor(props) {
@@ -49,10 +49,12 @@ jest.mock("@eccenca/gui-elements", () => {
         );
     }
     CodeEditor.supportedModes = [];
-    return {
-        ...actual,
-        CodeEditor,
-    };
+    // Circular imports inside gui-elements can access this mock before all exports are initialized.
+    return new Proxy(actual, {
+        get(target, property) {
+            return property === "CodeEditor" ? CodeEditor : Reflect.get(target, property);
+        },
+    });
 });
 
 jest.mock("../../../../src/app/views/shared/FileUploader/FileSelectionMenu", () => {

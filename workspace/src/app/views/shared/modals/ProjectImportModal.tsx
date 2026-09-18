@@ -3,7 +3,9 @@ import {
     Button,
     CardActionsAux,
     Checkbox,
-    FieldItem,
+    FileUpload,
+    FileUploadHandle,
+    FileUploadResponseMetadata,
     Notification,
     PropertyName,
     PropertyValue,
@@ -16,9 +18,7 @@ import {
     StringPreviewContentBlobToggler,
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
-import Uppy, { UppyFile } from "@uppy/core";
 import { workspaceApi } from "../../../utils/getApiEndpoint";
-import XHR from "@uppy/xhr-upload";
 import {
     AccessControlConfig,
     requestDeleteProjectImport,
@@ -31,7 +31,7 @@ import { Loading } from "../Loading/Loading";
 import { useDispatch } from "react-redux";
 import { routerOp } from "@ducks/router";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
-import { UploadNewFile } from "../FileUploader/cases/UploadNewFile/UploadNewFile";
+import { useFileUploadLabels } from "../FileUploader/useFileUploadLabels";
 import { useProjectAclManagementComponent } from "../../../hooks/useProjectAclManagementComponent";
 import { AppDispatch } from "store/configureStore";
 
@@ -44,16 +44,37 @@ interface IProps {
     maxFileUploadSizeBytes?: number;
 }
 
+const parseProjectImportId = ({ responseText }: FileUploadResponseMetadata): string => {
+    const body: unknown = JSON.parse(responseText);
+    if (
+        typeof body !== "object" ||
+        body === null ||
+        !("projectImportId" in body) ||
+        typeof body.projectImportId !== "string" ||
+        !body.projectImportId.trim()
+    ) {
+        throw new Error("Invalid project import response");
+    }
+    return body.projectImportId;
+};
+
+const errorDetails = (error: unknown): string => {
+    const message =
+        typeof error === "object" && error !== null && "message" in error && typeof error.message === "string"
+            ? error.message
+            : "";
+    return message.split("Source error")[0].trim();
+};
+
 export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IProps) {
     const [t] = useTranslation();
-    const [uppy] = useState(() => Uppy());
+    const uploaderRef = React.useRef<FileUploadHandle<string>>(null);
+    const uploadLabels = useFileUploadLabels();
     const dispatch = useDispatch<AppDispatch>();
     const [loading, setLoading] = useState(false);
     const [projectImportId, setProjectImportId] = useState<string | null>(null);
     const [projectImportDetails, setProjectImportDetails] = useState<IProjectImportDetails | null>(null);
     const [approveReplacement, setApproveReplacement] = useState(false);
-    // Unexpected error for the file upload request
-    const [uploadError, setUploadError] = useState<string | null>(null);
     // Unexpected error for the project details request
     const [projectDetailsError, setProjectDetailsError] = useState<string | null>(null);
     // Unexpected error for the project import execution request
@@ -67,6 +88,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     const isUnmounted = React.useRef(false);
     const importCancelled = React.useRef(false);
     const pendingSleepTimeoutId = React.useRef<number | null>(null);
+    const resolvePendingSleep = React.useRef<(() => void) | undefined>();
     const aclManagement = useProjectAclManagementComponent({
         onChange: onChangeProjectAcl,
         externalInitialAclGroups: { groups: [] },
@@ -77,6 +99,8 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
             clearTimeout(pendingSleepTimeoutId.current);
             pendingSleepTimeoutId.current = null;
         }
+        resolvePendingSleep.current?.();
+        resolvePendingSleep.current = undefined;
     }, []);
 
     const stopPendingImport = React.useCallback(() => {
@@ -85,39 +109,19 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     }, [clearPendingImportTimeout]);
 
     const setLoadingIfMounted = React.useCallback((nextLoading: boolean) => {
-        if (!isUnmounted.current) {
+        if (!isUnmounted.current && !importCancelled.current) {
             setLoading(nextLoading);
         }
     }, []);
 
     useEffect(() => {
-        uppy.use(XHR, {
-            method: "POST",
-            fieldName: "file",
-            metaFields: [],
-        });
-        uppy.getPlugin("XHRUpload").setOptions({
-            endpoint: workspaceApi(`/projectImport`),
-        });
-
+        isUnmounted.current = false;
+        importCancelled.current = false;
         return () => {
             isUnmounted.current = true;
             stopPendingImport();
-            uppy.cancelAll();
-            uppy.reset();
-            uppy.close();
         };
-    }, [stopPendingImport, uppy]);
-
-    useEffect(() => {
-        if (maxFileUploadSizeBytes) {
-            uppy.setOptions({
-                restrictions: {
-                    maxFileSize: maxFileUploadSizeBytes,
-                },
-            });
-        }
-    }, [maxFileUploadSizeBytes, uppy]);
+    }, [stopPendingImport]);
 
     useEffect(() => {
         if (projectImportId) {
@@ -126,19 +130,19 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     }, [projectImportId]);
 
     const loadProjectImportDetails = async (projectImportId: string) => {
-        if (isUnmounted.current) {
+        if (isUnmounted.current || importCancelled.current) {
             return;
         }
         setProjectDetailsError(null);
         try {
             setLoadingIfMounted(true);
             const response = await requestProjectImportDetails(projectImportId);
-            if (!isUnmounted.current) {
+            if (!isUnmounted.current && !importCancelled.current) {
                 setProjectImportDetails(response.data);
             }
         } catch (ex) {
-            if (!isUnmounted.current) {
-                setProjectDetailsError(" " + errorDetails(ex));
+            if (!isUnmounted.current && !importCancelled.current) {
+                setProjectDetailsError(errorDetails(ex));
             }
         } finally {
             setLoadingIfMounted(false);
@@ -146,13 +150,19 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     };
 
     const closeDialog = async () => {
+        if (importCancelled.current) return;
         stopPendingImport();
+        uploaderRef.current?.cancel();
+        setLoading(true);
         await cleanUp();
         close();
     };
 
     const goBack = async () => {
+        if (importCancelled.current) return;
         stopPendingImport();
+        uploaderRef.current?.cancel();
+        setLoading(true);
         await cleanUp();
         back?.();
     };
@@ -161,25 +171,17 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     const cleanUp = async () => {
         if (projectImportId) {
             try {
-                setLoadingIfMounted(true);
                 await requestDeleteProjectImport(projectImportId);
             } catch (ex) {
                 // If this fails for whatever reason the backend will remove the file automatically after a specific period
-            } finally {
-                setLoadingIfMounted(false);
             }
         }
     };
 
-    const handleFileAdded = async () => {
-        setUploadError(null);
-        await uppy.upload();
-    };
-
     const startProjectImport = async (generateNewProjectId: boolean, overWriteExistingProject: boolean) => {
+        if (loading || importCancelled.current) return;
         setStartProjectImportExecutionError(null);
         if (projectImportId) {
-            importCancelled.current = false;
             try {
                 setLoadingIfMounted(true);
                 await requestStartProjectImport(
@@ -191,8 +193,10 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                 let status: Partial<IProjectExecutionStatus> = {};
                 const sleep = (ms: number) =>
                     new Promise<void>((resolve) => {
+                        resolvePendingSleep.current = resolve;
                         pendingSleepTimeoutId.current = window.setTimeout(() => {
                             pendingSleepTimeoutId.current = null;
+                            resolvePendingSleep.current = undefined;
                             resolve();
                         }, ms);
                     });
@@ -202,6 +206,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                         status = (await requestProjectImportExecutionStatus(projectImportId)).data;
                         errorCounter = 0;
                     } catch (err) {
+                        if (importCancelled.current || isUnmounted.current) return;
                         if (errorCounter >= 6) {
                             throw err;
                         }
@@ -221,7 +226,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                     dispatch(routerOp.goToPage(absoluteProjectPath(status.projectId!)));
                 } else {
                     setStartProjectImportExecutionError([
-                        status.failureMessage ?? "Project could not be imported.",
+                        status.failureMessage ?? t("ProjectImportModal.importFailed"),
                         generateNewProjectId,
                         overWriteExistingProject,
                     ]);
@@ -229,7 +234,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
             } catch (ex) {
                 if (!importCancelled.current && !isUnmounted.current) {
                     setStartProjectImportExecutionError([
-                        " " + errorDetails(ex),
+                        errorDetails(ex),
                         generateNewProjectId,
                         overWriteExistingProject,
                     ]);
@@ -241,53 +246,35 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
         }
     };
 
-    // Extracts the error details from an exception
-    const errorDetails = (error): string => {
-        let details = error?.message ? ` Details: ${error.message}` : "";
-        const idx = details.indexOf("Source error");
-        if (idx > 0) {
-            details = details.substring(0, idx);
-        }
-        return details;
-    };
-
     const handleApproveReplacement = () => {
         setApproveReplacement(!approveReplacement);
     };
 
-    const handleUploadError = (fileData, error) => {
-        let details = errorDetails(error);
-        setUploadError(
-            t("ProjectImportModal.responseUploadError", "File {{file}} could not be uploaded! {{details}}", {
-                file: fileData.name,
-                details: details,
-            }),
-        );
-        uppy.reset();
-    };
-    const onUploadSuccess = (file: UppyFile, response) => {
-        const projectImportId = response?.body?.projectImportId;
-        if (projectImportId) {
-            setProjectImportId(projectImportId);
-        } else {
-            setUploadError(
-                t(
-                    "ProjectImportModal.responseInvalid",
-                    "Invalid response received from project upload. Project import cannot proceed.",
-                ),
-            );
-            uppy.reset();
-        }
-    };
     const uploader = (
-        <UploadNewFile
-            uppy={uppy}
-            allowMultiple={false}
-            onAdded={handleFileAdded}
-            onUploadSuccess={onUploadSuccess}
-            onUploadError={handleUploadError}
-            uploadEndpoint={workspaceApi(`/projectImport`)}
-            attachFileNameToEndpoint={false}
+        <FileUpload
+            ref={uploaderRef}
+            name={t("ProjectImportModal.projectFile")}
+            endpoint={workspaceApi("/projectImport")}
+            method="POST"
+            maxNumberOfFiles={1}
+            maxFileSize={maxFileUploadSizeBytes}
+            selectionDisabled={projectImportId !== null}
+            parseResponse={parseProjectImportId}
+            onUploadSuccess={({ body }) => {
+                if (!isUnmounted.current && !importCancelled.current) setProjectImportId(body);
+            }}
+            labels={{
+                ...uploadLabels,
+                formatError: (error) => {
+                    if (error.kind === "response") return t("ProjectImportModal.responseInvalid");
+                    if (error.kind === "transport")
+                        return t("ProjectImportModal.responseUploadError", {
+                            file: error.file?.name ?? "",
+                            details: errorDetails(error.error),
+                        });
+                    return uploadLabels.formatError(error);
+                },
+            }}
         />
     );
     const actions: React.JSX.Element[] = [];
@@ -298,6 +285,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                     data-test-id={"startImportProjectBtn"}
                     key="importProject"
                     affirmative={true}
+                    disabled={loading}
                     onClick={() => startProjectImport(false, false)}
                 >
                     {t("ProjectImportModal.importBtn")}
@@ -310,6 +298,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                           data-test-id={"replaceImportProjectBtn"}
                           key="replaceProject"
                           disruptive={true}
+                          disabled={loading}
                           onClick={() => startProjectImport(false, true)}
                       >
                           {t("ProjectImportModal.replaceImportBtn")}
@@ -320,6 +309,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                           data-test-id={"importUnderFreshIdBtn"}
                           key="importAsFreshProject"
                           affirmative={true}
+                          disabled={loading}
                           onClick={() => startProjectImport(true, false)}
                       >
                           {t("ProjectImportModal.importUnderFreshIdBtn")}
@@ -338,40 +328,26 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
         <CardActionsAux key="aux">
             {back && (
                 <Button key="back" onClick={goBack}>
-                    {t("common.words.back", "Back")}
+                    {t("common.words.back")}
                 </Button>
             )}
         </CardActionsAux>,
     );
 
-    const uploaderElement = (
-        <FieldItem
-            key={"projectFile"}
-            labelProps={{
-                text: t("ProjectImportModal.projectFile"),
-                htmlFor: "projectFile-input",
-            }}
-            intent={uploadError !== null ? "danger" : undefined}
-            messageText={uploadError !== null ? uploadError : undefined}
-        >
-            {uploader}
-        </FieldItem>
-    );
-
     const projectDetails = (details: IProjectImportDetails) => {
         return (
             <>
-                <TitleSubsection>{t("ProjectImportModal.importSummary", "Imported project summary")}</TitleSubsection>
+                <TitleSubsection>{t("ProjectImportModal.importSummary")}</TitleSubsection>
                 <PropertyValueList>
                     {!!details.label && (
                         <PropertyValuePair hasDivider key={"label"}>
-                            <PropertyName>{t("form.field.label", "Label")}</PropertyName>
+                            <PropertyName>{t("form.field.label")}</PropertyName>
                             <PropertyValue>{details.label}</PropertyValue>
                         </PropertyValuePair>
                     )}
                     {!!details.description && (
                         <PropertyValuePair hasSpacing hasDivider>
-                            <PropertyName>{t("form.field.description", "Description")}</PropertyName>
+                            <PropertyName>{t("form.field.description")}</PropertyName>
                             <PropertyValue>
                                 <StringPreviewContentBlobToggler
                                     className="di__dataset__metadata-description"
@@ -382,8 +358,8 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                                             {details.description}
                                         </Markdown>
                                     }
-                                    toggleExtendText={t("common.words.more", "more")}
-                                    toggleReduceText={t("common.words.less", "less")}
+                                    toggleExtendText={t("common.words.more")}
+                                    toggleReduceText={t("common.words.less")}
                                     useOnly={"firstNonEmptyLine"}
                                 />
                             </PropertyValue>
@@ -447,7 +423,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
             return (
                 <Notification
                     intent="danger"
-                    message={"The project cannot be imported. Details: " + details.errorMessage}
+                    message={t("ProjectImportModal.analysisError", { details: details.errorMessage })}
                 />
             );
         } else {
@@ -455,7 +431,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
         }
     };
 
-    const errorRetryElement = (errorMessage: string, retryAction: () => any) => {
+    const errorRetryElement = (errorMessage: string, retryAction: () => void) => {
         return (
             <>
                 <Notification intent="danger" message={errorMessage} />
@@ -476,7 +452,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
         <Loading delay={0} />
     ) : projectDetailsError !== null ? (
         errorRetryElement(
-            "Failed to retrieve project import details. " + projectDetailsError,
+            t("ProjectImportModal.detailsLoadError", { details: projectDetailsError }),
             () => projectImportId && loadProjectImportDetails(projectImportId),
         )
     ) : startProjectImportExecutionError ? (
@@ -486,7 +462,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     ) : projectImportDetails ? (
         projectDetailElement(projectImportDetails)
     ) : (
-        uploaderElement
+        uploader
     );
 
     return (

@@ -10,7 +10,9 @@
         "noImplicitReturns": false,
         "target": "es5",
         "paths": {
-            "@ducks/*": ["./store/ducks/*"]
+            "@ducks/*": ["./store/ducks/*"],
+            "@eccenca/gui-elements": ["../../../libs/gui-elements/index.ts"],
+            "@eccenca/gui-elements/src/*": ["../../../libs/gui-elements/src/*"]
         }
     },
     "include": ["./src"]

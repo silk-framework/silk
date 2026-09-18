@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { Intent } from "@eccenca/gui-elements/blueprint/constants";
+import { IntentBlueprint as Intent } from "@eccenca/gui-elements";
 import {
     Card,
     CardContent,

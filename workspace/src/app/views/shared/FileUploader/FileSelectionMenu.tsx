@@ -1,34 +1,25 @@
 import React from "react";
-import Uppy, { UppyFile } from "@uppy/core";
-import "@uppy/core/dist/style.css";
-import "@uppy/drag-drop/dist/style.css";
-import "@uppy/progress-bar/dist/style.css";
 
-import { Button, Divider, FieldItem, Icon, TextField } from "@eccenca/gui-elements";
+import { Button, Divider, FieldItem, FileUploadFile, Icon, TextField } from "@eccenca/gui-elements";
 import { SuggestFieldProps } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
-import { UploadNewFile } from "./cases/UploadNewFile/UploadNewFile";
+import ProjectResourceUpload, { ProjectResourceUploadHandle } from "./ProjectResourceUpload";
 import { FileSelectionOptions, FileMenuItems } from "./FileSelectionOptions";
 import { SelectFileFromExisting } from "./cases/SelectFileFromExisting";
 import { CreateNewFile } from "./cases/CreateNewFile";
 import i18next from "../../../../language";
-import { requestIfResourceExists } from "@ducks/workspace/requests";
-import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import { withTranslation } from "react-i18next";
-import XHR from "@uppy/xhr-upload";
 
-interface IUploaderInstance {
-    /**
-     * Reset file uploader
-     * @see uppy.reset
-     */
-    reset();
+export interface IUploaderInstance {
+    /** Reset the file uploader. */
+    reset(): void;
 
-    upload();
+    upload(): Promise<void>;
 
-    cancelAll();
+    cancelAll(): void;
 }
 
 export interface IUploaderOptions {
+    id?: string;
     /**
      * @required
      */
@@ -48,27 +39,26 @@ export interface IUploaderOptions {
      * @see IUploaderInstance
      * @param instance
      */
-    getInstance?(instance: IUploaderInstance);
+    getInstance?(instance: IUploaderInstance): void;
 
     /**
      * Fired when file added
-     * @see this.uppy.on('file-added', this.onFileAdded);
      * @param file
      */
-    onFileAdded?(file: File);
+    onFileAdded?(file: FileUploadFile): void;
 
     /**
      * Fired when upload successfully completed
-     * @see this.uppy.on('upload-success', this.onUploadSuccess);
      */
-    onUploadSuccess?(file: File);
+    onUploadSuccess?(file: FileUploadFile): void;
 
     /**
      * Fired file uploading progress
      * @param progress
-     * @see this.uppy.on('upload-progress', this.onProgress)
      */
-    onProgress?(progress: number);
+    onProgress?(progress: number): void;
+
+    onUploadStateChange?(uploading: boolean): void;
 
     allowMultiple?: boolean;
 
@@ -88,7 +78,7 @@ export interface IUploaderOptions {
      * - Select resource from autocomplete
      * - Write new file name
      */
-    onChange(value: File | string);
+    onChange(value: FileUploadFile | string);
 
     /** The max. file upload size in bytes. */
     maxFileUploadSizeBytes?: number;
@@ -100,17 +90,14 @@ export interface IUploaderOptions {
 
     /** Callback that is called when the state of all uploads being successfully done has changed.
      * Reasons for non-success are: uploads are in progress, user interaction is needed, errors have occurred.*/
-    allFilesSuccessfullyUploadedHandler?: (allSuccessful: boolean) => any;
+    allFilesSuccessfullyUploadedHandler?: (allSuccessful: boolean) => void;
 
-    listenToUploadedFiles: (files: UppyFile[]) => void;
+    listenToUploadedFiles?: (files: FileUploadFile[]) => void;
 }
 
 interface IState {
     // Selected File menu item
     selectedFileMenu: FileMenuItems;
-
-    //Show upload process
-    isUploading: boolean;
 
     //Update default value in case that file is already given
     showActionsMenu: boolean;
@@ -118,11 +105,8 @@ interface IState {
     //Filename which shows in input for update action
     inputFilename: string;
 
-    //Toggle File delete dialog, contains filename or empty string
-    visibleFileDelete: string;
-
     // The ID of the file selection menu
-    id: string;
+    id?: string;
 }
 
 const noop = () => {
@@ -134,55 +118,24 @@ const noop = () => {
  * with advanced = true, provides full FileUploader with 2 extra options
  * otherwise provides simple drag and drop uploader
  */
-class FileSelectionMenu extends React.Component<IUploaderOptions, IState> {
-    private uppy = Uppy({
-        // @ts-ignore
-        logger: Uppy.debugLogger,
-    });
+export class FileSelectionMenu extends React.Component<IUploaderOptions, IState> {
+    private uploader?: ProjectResourceUploadHandle;
 
-    /**
-     * @see Uppy.upload
-     */
-    public upload = this.uppy.upload;
+    public upload = (): Promise<void> => this.uploader?.upload() ?? Promise.resolve();
 
-    /**
-     * @see Uppy.reset
-     */
-    public reset = this.uppy.reset;
+    public reset = (): void => this.uploader?.reset();
 
-    /**
-     * @see Uppy.cancelAll
-     */
-    public cancelAll = this.uppy.cancelAll;
+    public cancelAll = (): void => this.uploader?.cancelAll();
 
     constructor(props) {
         super(props);
 
         this.state = {
             selectedFileMenu: props.advanced ? "SELECT" : "NEW",
-            isUploading: false,
             showActionsMenu: false,
             inputFilename: props.defaultValue || "",
-            visibleFileDelete: "",
             id: props.id,
         };
-
-        if (props.maxFileUploadSizeBytes) {
-            this.uppy.setOptions({
-                restrictions: {
-                    maxFileSize: props.maxFileUploadSizeBytes,
-                    // Restrict to 1 file if allowMultiple == false
-                    maxNumberOfFiles: props.allowMultiple ? undefined : 1,
-                },
-            });
-        }
-        this.uppy.use(XHR, {
-            method: "PUT",
-            fieldName: "file",
-            allowMultipleUploads: props.allowMultiple,
-            // Only upload one file at the same time
-            limit: 1,
-        });
     }
 
     componentDidMount(): void {
@@ -196,12 +149,10 @@ class FileSelectionMenu extends React.Component<IUploaderOptions, IState> {
     }
 
     componentWillUnmount(): void {
-        this.uppy.cancelAll();
-        this.uppy.reset();
-        this.uppy.close();
+        this.cancelAll();
     }
 
-    handleUploadSuccess = (file: any) => {
+    handleUploadSuccess = (file: FileUploadFile) => {
         if (this.props.onUploadSuccess) {
             this.props.onUploadSuccess(file);
         }
@@ -219,7 +170,7 @@ class FileSelectionMenu extends React.Component<IUploaderOptions, IState> {
     };
 
     /**
-     * "Abort and Keep File" Handler
+     * "Cancel upload and keep file" handler
      * revert value back
      */
     handleDiscardChanges = () => {
@@ -253,10 +204,6 @@ class FileSelectionMenu extends React.Component<IUploaderOptions, IState> {
         this.toggleFileResourceChange();
     };
 
-    validateBeforeFileAdded = async (fileName: string): Promise<boolean> => {
-        return await requestIfResourceExists(this.props.projectId, fileName);
-    };
-
     render() {
         const { selectedFileMenu, showActionsMenu, inputFilename } = this.state;
         const { allowMultiple, advanced, defaultValue, onProgress, projectId, onChange } = this.props;
@@ -286,7 +233,7 @@ class FileSelectionMenu extends React.Component<IUploaderOptions, IState> {
                         <Button
                             outlined
                             small
-                            text={i18next.t("FileUploader.abort", "Abort and keep file")}
+                            text={i18next.t("FileUploader.abort", "Cancel upload and keep file")}
                             icon={<Icon name="operation-undo" />}
                             onClick={this.handleDiscardChanges}
                         />
@@ -320,22 +267,20 @@ class FileSelectionMenu extends React.Component<IUploaderOptions, IState> {
                                 />
                             )}
                             {selectedFileMenu === "NEW" && (
-                                <>
-                                    <UploadNewFile
-                                        uppy={this.uppy}
-                                        projectId={projectId}
-                                        allowMultiple={allowMultiple}
-                                        onProgress={onProgress}
-                                        onUploadSuccess={this.handleUploadSuccess}
-                                        validateBeforeAdd={this.validateBeforeFileAdded}
-                                        uploadEndpoint={`${legacyApiEndpoint(`/projects/${projectId}/files`)}`}
-                                        attachFileNameToEndpoint={true}
-                                        listenToUploadedFiles={this.props.listenToUploadedFiles}
-                                        allFilesSuccessfullyUploadedHandler={
-                                            this.props.allFilesSuccessfullyUploadedHandler
-                                        }
-                                    />
-                                </>
+                                <ProjectResourceUpload
+                                    ref={(uploader) => {
+                                        this.uploader = uploader ?? undefined;
+                                    }}
+                                    projectId={projectId}
+                                    allowMultiple={allowMultiple}
+                                    maxFileUploadSizeBytes={this.props.maxFileUploadSizeBytes}
+                                    onFileAdded={this.props.onFileAdded}
+                                    onProgress={onProgress}
+                                    onUploadStateChange={this.props.onUploadStateChange}
+                                    onUploadSuccess={this.handleUploadSuccess}
+                                    listenToUploadedFiles={this.props.listenToUploadedFiles}
+                                    allFilesSuccessfullyUploadedHandler={this.props.allFilesSuccessfullyUploadedHandler}
+                                />
                             )}
                             {advanced && selectedFileMenu === "EMPTY" && (
                                 <CreateNewFile onChange={onChange} confirmationButton={!!defaultValue} />

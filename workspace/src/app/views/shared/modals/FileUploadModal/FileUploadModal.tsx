@@ -1,11 +1,10 @@
 import React, { useDebugValue, useState } from "react";
-import { Button, SimpleDialog } from "@eccenca/gui-elements";
+import { Button, FileUploadFile, SimpleDialog } from "@eccenca/gui-elements";
 import FileUploader from "../../FileUploader";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import { IUploaderOptions } from "../../FileUploader/FileSelectionMenu";
+import { IUploaderInstance, IUploaderOptions } from "../../FileUploader/FileSelectionMenu";
 import { useTranslation } from "react-i18next";
-import { UppyFile } from "@uppy/core";
 
 export interface IFileUploadModalProps {
     isOpen: boolean;
@@ -17,25 +16,25 @@ export interface IFileUploadModalProps {
 
 export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFileUploadModalProps) {
     const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
-    const [fileUploaderInstance, setFileUploaderInstance] = useState<any>(null);
-    const [uploadedFiles, setUploadedFiles] = useState<UppyFile[]>([]);
+    const [fileUploaderInstance, setFileUploaderInstance] = useState<IUploaderInstance | null>(null);
+    const [uploadedFiles, setUploadedFiles] = useState<FileUploadFile[]>([]);
     const [isUploading, setIsUploading] = React.useState<boolean>(false);
 
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const [t] = useTranslation();
 
     useDebugValue(!projectId ? "Project ID not provided and upload url is not valid" : "");
-    
+
     if (!projectId) {
         return null;
     }
 
-    const getUploaderInstance = (instance) => {
+    const getUploaderInstance = (instance: IUploaderInstance) => {
         setFileUploaderInstance(instance);
     };
 
     const handleDiscard = () => {
-        fileUploaderInstance.reset();
+        fileUploaderInstance?.reset();
         onDiscard();
     };
 
@@ -43,14 +42,21 @@ export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFi
         <>
             <SimpleDialog
                 data-test-id="file-upload-dialog"
-                title={t("FileUploader.modalTitle", "Upload file")}
+                title={t("FileUploader.modalTitle")}
                 size="small"
                 isOpen={isOpen}
                 onClose={handleDiscard}
                 preventSimpleClosing={isUploading}
                 actions={
-                     <Button data-test-id="file-upload-dialog-close-btn" key="close" onClick={onDiscard} disabled={isUploading}>
-                         {!uploadedFiles.length ? t("common.action.cancel", "Cancel") :t("common.action.close", "Close") }
+                    <Button
+                        data-test-id="file-upload-dialog-close-btn"
+                        key="close"
+                        onClick={handleDiscard}
+                        disabled={isUploading}
+                    >
+                        {!uploadedFiles.length
+                            ? t("common.action.cancel")
+                            : t("common.action.close")}
                     </Button>
                 }
             >
@@ -62,7 +68,7 @@ export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFi
                     onChange={(params) => {
                         /** We are not interested on file changes, only upload. */
                     }}
-                    onProgress={(amount) => setIsUploading(amount > 0 && amount < 1)} // between 0 and 1
+                    onUploadStateChange={setIsUploading}
                     maxFileUploadSizeBytes={maxFileUploadSize}
                 />
             </SimpleDialog>
