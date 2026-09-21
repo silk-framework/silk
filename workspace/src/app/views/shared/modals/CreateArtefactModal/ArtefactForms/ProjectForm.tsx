@@ -10,7 +10,7 @@ import { MultiTagSelect } from "../../../MultiTagSelect";
 import useHotKey from "../../../HotKeyHandler/HotKeyHandler";
 import { AccessControlConfig } from "@ducks/workspace/requests";
 import { useProjectAclManagementComponent } from "../../../../../hooks/useProjectAclManagementComponent";
-import type { UseFormReturn } from "react-hook-form/dist/types";
+import type { UseFormReturn } from "react-hook-form";
 
 interface IProps {
     form: UseFormReturn;
