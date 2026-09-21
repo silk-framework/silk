@@ -1,6 +1,7 @@
 /* import type {Config} from "jest"; */
 
 module.exports = {
+    ...require("./jest-preset"),
     rootDir: "./../../",
     testEnvironment: "jest-fixed-jsdom",
     testEnvironmentOptions: {
@@ -20,10 +21,6 @@ module.exports = {
         "^.+\\.css$": "<rootDir>/config/jest/cssTransform.js",
         "^(?!.*\\.(js|jsx|ts|tsx|css|json)$)": "<rootDir>/config/jest/fileTransform.js",
     },
-    transformIgnorePatterns: [
-        "[/\\\\]node_modules[/\\\\](?!react-markdown|vfile|unist-util-stringify-position|@reduxjs/toolkit|).+\\.(js|jsx|ts|tsx|mjs|cjs)$",
-        "^.+\\.module\\.(css|sass|scss)$",
-    ],
     moduleNameMapper: {
         "^react-native$": "react-native-web",
         "^react-markdown$": "<rootDir>/../node_modules/react-markdown",
