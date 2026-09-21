@@ -99,6 +99,17 @@ it("exposes selected tabs and their labelled panels, keeping external links outs
     expect(tablist).not.toContainElement(external);
 });
 
+it("keeps a single inline view and external links available without a tablist", async () => {
+    jest.mocked(pluginRegistry.taskViews).mockReturnValue([views[0]]);
+    renderTabs({ srcLinks: [externalLink], startWithLink: "editor" });
+
+    expect(await screen.findByRole("link", { name: "External view" })).toHaveAttribute("target", "_blank");
+    expect(screen.getByRole("button", { name: "Make changes" })).toBeVisible();
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+    expect(screen.queryByRole("tabpanel")).not.toBeInTheDocument();
+});
+
 it("supports arrow-key focus, Enter/Space activation and tabbing into the panel", async () => {
     const user = userEvent.setup();
     const { history } = renderTabs();
