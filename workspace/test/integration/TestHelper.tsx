@@ -65,17 +65,8 @@ export const createStore = (history: History<LocationState>, initialState: Recur
     const root = rootReducer(history);
     const middleware = [routerMiddleware(history)];
 
-    // Get the initial state (defaults) of the store
-    // FIXME: Is there a better way to get the initial state of the store?
-    const tempStore = configureStore({
-        reducer: root,
-        middleware: (getDefaultMiddleWare) => getDefaultMiddleWare({ serializableCheck: false }).concat(middleware),
-    });
-
-    const rootState = tempStore.getState();
-    // Patch the state with user supplied state
+    const rootState = root(undefined, { type: "test/initialize" });
     const state = mergeDeepRight(rootState, initialState) as IStore;
-    // Create store with merged state
     return configureStore({
         reducer: root,
         middleware: (getDefaultMiddleWare) => getDefaultMiddleWare({ serializableCheck: false }).concat(middleware),

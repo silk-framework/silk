@@ -43,6 +43,9 @@ Use `yarn test --no-watch` for a single run. To diagnose leaks, use `yarn test-d
 with `DEBUG=true` and up to two workers instead. Do not add `--detectOpenHandles` when investigating
 worker behavior: Jest then runs serially regardless of the worker limit.
 
+Use Testing Library's `render` for isolated components. The integration helpers `renderWrapper`
+and `testWrapper` provide a fresh Redux store and connected router when those are part of the test.
+
 ### Build diagnostics
 
 Append `--stats` to a development or production build to write `bundle-stats.json`. Append
