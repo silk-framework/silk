@@ -84,9 +84,12 @@ object Change {
       check
       None
     } catch {
-      case NonFatal(ex) => Some(Option(ex.getMessage).getOrElse(ex.toString))
+      case NonFatal(ex) => Some(reason(ex))
     }
   }
+
+  /** The reason a failure is reported with: its message, or the exception itself where it has none. */
+  def reason(ex: Throwable): String = Option(ex.getMessage).getOrElse(ex.toString)
 
   /** The label to capture in a change that does not hold the task itself; None when no label is set. */
   def capturedName(obj: HasMetaData): Option[String] = {
@@ -180,8 +183,11 @@ abstract class TaskChange[T <: TaskSpec : ClassTag] extends Change with NamesTas
   }
 }
 
-/** A change cannot be applied because the project is not in the state the change expects, e.g. it changed since. */
-case class ChangeConflictException(msg: String) extends RequestException(msg, None) {
+/**
+  * A change cannot be applied because the project is not in the state the change expects, e.g. it changed since, or
+  * applying it failed, e.g. a workflow that does not validate with the change applied; that failure is the cause.
+  */
+case class ChangeConflictException(msg: String, cause: Option[Throwable] = None) extends RequestException(msg, cause) {
 
   override def errorTitle: String = "Change conflict"
 

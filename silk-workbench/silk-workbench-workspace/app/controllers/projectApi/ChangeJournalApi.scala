@@ -161,8 +161,9 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
       ),
       new ApiResponse(responseCode = "404", description = "The project or the change does not exist."),
       new ApiResponse(responseCode = "409", description = "The change has been reverted already, is not revertible, " +
-        "the project has changed since so that the revert does not apply, or applying the inverse changed nothing, " +
-        "e.g. because a variable template resolves the restored value again. The project is left unchanged.")
+        "the project has changed since so that the revert does not apply, applying the inverse failed, e.g. a workflow " +
+        "that does not validate with the node restored, or it changed nothing, e.g. because a variable template " +
+        "resolves the restored value again. The project is left unchanged.")
     ))
   def revert(@Parameter(
                name = "projectId",

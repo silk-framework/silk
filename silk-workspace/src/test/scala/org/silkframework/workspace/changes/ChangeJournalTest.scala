@@ -309,6 +309,10 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     val refused = "Datasets marked as replaceable input must not be used as output dataset! Affected dataset: data"
     journal.revertConflict(removed) shouldBe Some(refused)
     journal.revertAll(Seq(removed.seq)) shouldBe Seq(RevertOutcome.Conflict(removed.seq, refused))
+    // The single revert answers the same conflict instead of failing on the refusal, which it keeps as the cause
+    val conflict = the[ChangeConflictException] thrownBy journal.revert(removed.seq)
+    conflict.getMessage shouldBe refused
+    conflict.getCause shouldBe an[IllegalArgumentException]
     workflow.data.nodes.map(_.nodeId) shouldBe Seq("transform", "output")
   }
 

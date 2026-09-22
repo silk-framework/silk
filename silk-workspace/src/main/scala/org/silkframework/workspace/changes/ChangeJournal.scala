@@ -1,12 +1,13 @@
 package org.silkframework.workspace.changes
 
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
+import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.Project
+import org.silkframework.workspace.access.ProjectAccessDeniedException
 
-import java.io.IOException
 import java.time.Instant
+import scala.util.control.NonFatal
 
 /**
   * A recorded change.
@@ -208,8 +209,9 @@ class ChangeJournal(project: Project) {
     * the reverted one; reverting that entry in turn redoes the change.
     *
     * @throws org.silkframework.runtime.validation.NotFoundException If there is no entry with this sequence number.
-    * @throws ChangeConflictException If the entry is being or has been reverted already, has no inverse, or the
-    *                                 project changed since so that the inverse does not apply.
+    * @throws ChangeConflictException If the entry is being or has been reverted already, has no inverse, the project
+    *                                 changed since so that the inverse does not apply, or applying it failed, e.g. a
+    *                                 workflow that does not validate with the node restored; the failure is the cause.
     * @throws ChangeNotRevertedException If the inverse changed nothing that the journal records, e.g. because it
     *                                    restores a value that a variable template resolves to the same value again.
     */
@@ -222,6 +224,10 @@ class ChangeJournal(project: Project) {
     try {
       // A revert is a request of the user, so the files its inverse writes are recorded.
       ChangeJournal.onBehalfOf(userContext)(inverse.applyTo(project))
+    } catch {
+      // Any failure of the inverse is a conflict, as the dry run reports it; a refusal of the user stays the user's.
+      case ex @ (_: ChangeConflictException | _: ProjectAccessDeniedException) => throw ex
+      case NonFatal(ex) => throw ChangeConflictException(Change.reason(ex), Some(ex))
     } finally {
       reverting.remove()
       ChangeJournal.synchronized(ChangeJournal.revertsInProgress -= ((project.id, seq)))
@@ -262,9 +268,11 @@ class ChangeJournal(project: Project) {
               // The project is unchanged, so the older entries can still be reverted.
               case ex: ChangeNotRevertedException =>
                 outcomes += RevertOutcome.Unchanged(seq, ex.getMessage)
-              // An I/O failure, e.g. a file that cannot be deleted, or a spec that does not validate with the inverse applied
-              // stops the batch with its outcomes reported.
-              case ex @ (_: ChangeConflictException | _: ValidationException | _: NotFoundException | _: IOException | _: IllegalArgumentException) =>
+              // Evicted from the store since the check above; nothing to revert, the batch continues.
+              case ex: NotFoundException =>
+                outcomes += RevertOutcome.Skipped(seq, ex.getMessage)
+              // Any failure of the inverse, as revert reports it, stops the batch with its outcomes reported.
+              case ex: ChangeConflictException =>
                 outcomes += RevertOutcome.Conflict(seq, ex.getMessage)
                 stopped = true
             }
