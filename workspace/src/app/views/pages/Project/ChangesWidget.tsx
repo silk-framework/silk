@@ -17,11 +17,12 @@ const ChangesWidget = () => {
 
     // Fetched on load and whenever the tab comes back into view, so that changes made meanwhile, e.g. by an agent, show up
     React.useEffect(() => {
+        setUnreviewed(0); // not the count of the previous project while this one loads, nor if it fails
         if (!projectId) {
             return;
         }
         let stale = false;
-        // A failure leaves the widget as it is: the count is a hint, the changes page reports its errors itself
+        // A failure leaves the count at zero: it is a hint, the changes page reports its errors itself
         const fetchSummary = () =>
             requestChangeSummary(projectId)
                 .then((response) => {

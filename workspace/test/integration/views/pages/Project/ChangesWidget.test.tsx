@@ -14,9 +14,8 @@ describe("Changes widget", () => {
         mockAxios.reset();
     });
 
-    const renderWidget = (unreviewed: number) => {
+    const renderWidget = (unreviewed: number, history = createBrowserHistory()) => {
         // The project id is taken from the URL by the router
-        const history = createBrowserHistory();
         history.location.pathname = workspacePath(`/projects/${PROJECT_ID}`);
         const wrapper = renderWrapper(<ChangesWidget />, history);
         mockAxios.mockResponseFor(
@@ -51,6 +50,24 @@ describe("Changes widget", () => {
         await waitFor(() => {
             expect(wrapper.container.querySelector("h2")?.textContent).toBe("Changes (1 unreviewed)");
         });
+    });
+
+    it("should drop the count of the previous project when switching to another", async () => {
+        const history = createBrowserHistory();
+        const wrapper = renderWidget(3, history);
+        await waitFor(() => {
+            expect(wrapper.container.querySelector("h2")?.textContent).toBe("Changes (3 unreviewed)");
+        });
+        // The other project's count is unknown until it answers, and stays unknown when the request fails
+        act(() => history.push(workspacePath("/projects/otherProject")));
+        await waitFor(() => {
+            expect(wrapper.container.querySelector("h2")?.textContent).toBe("Changes");
+        });
+        mockAxios.mockError(new Error("forbidden"), mockAxios.getReqByUrl(apiUrl("/workspace/projects/otherProject/changes/summary")));
+        await waitFor(() => {
+            expect(mockAxios.queue()).toHaveLength(0);
+        });
+        expect(wrapper.container.querySelector("h2")?.textContent).toBe("Changes");
     });
 
     it("should show the plain title when nothing is unreviewed", async () => {
