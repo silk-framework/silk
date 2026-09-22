@@ -1,15 +1,16 @@
 package controllers.projectApi
 
 import controllers.core.UserContextActions
-import controllers.projectApi.ChangeJournalApi.{ChangeDetailJson, ChangeEntryJson, ChangeListJson, ChangeSummaryJson, MarkReviewedJson, ReviewedJson, RevertOutcomeJson, RevertRequestJson, RevertResultsJson}
+import controllers.projectApi.ChangeJournalApi.{ChangeDetailJson, ChangeEntryJson, ChangeListJson, ChangeSummaryJson, MarkReviewedJson, ReviewedJson, RevertConflictJson, RevertConflictsJson, RevertOutcomeJson, RevertRequestJson, RevertResultsJson}
 import controllers.util.ItemLink
 import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workspace.changes.{ChangeDetail, ChangeEntry, RevertOutcome}
 import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json.{Format, JsValue, Json}
@@ -24,8 +25,9 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
   @Operation(
     summary = "List changes",
     description = "The changes made to the project, as far as the configured store keeps them, newest first. A change can be reverted while " +
-      "'revertible' is true, 'revertedBy' does not name the change that reverted it already and 'conflict' does not tell " +
-      "why its inverse does not apply as the project is now; 'reverts' names the change a revert undid.",
+      "'revertible' is true and 'revertedBy' does not name the change that reverted it already; whether its inverse applies " +
+      "as the project is now is asked per change (see the conflicts operation), the listing itself checks nothing. " +
+      "'reverts' names the change a revert undid.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -53,12 +55,64 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
     val revertedBy = journal.revertedBy(entries)
     val fulfilledBy = journal.fulfilledBy(entries)
     val unreviewed = journal.unreviewed(entries, reviewedUpTo).map(_.seq).toSet
-    // Checked only where a revert would be attempted
-    val conflicts = journal.revertConflicts(entries.filterNot(entry => revertedBy.contains(entry.seq) || fulfilledBy.contains(entry.seq)))
     Ok(Json.toJson(ChangeListJson(reviewedUpTo,
       entries.reverse.map { entry =>
-        ChangeEntryJson.of(project, entry, revertedBy.get(entry.seq), fulfilledBy.get(entry.seq), unreviewed.contains(entry.seq), conflicts.get(entry.seq))
+        ChangeEntryJson.of(project, entry, revertedBy.get(entry.seq), fulfilledBy.get(entry.seq), unreviewed.contains(entry.seq))
       })))
+  }
+
+  @Operation(
+    summary = "Revert conflicts",
+    description = "Why the given changes cannot be reverted as the project is now, for those that cannot: their inverse " +
+      "does not apply, e.g. the task has changed since, or the task it would remove is still referenced by another task. " +
+      "Checked without writing, so a revert can still conflict if the project changes meanwhile; the write's own " +
+      "validation, e.g. of a restored variable value that a task does not accept, is not run and can still refuse. " +
+      "Reverting the newer changes first may clear a conflict, so a batch still attempts the change. A change that is " +
+      "not revertible, has been reverted already or fulfilled a proposal is not offered for a revert, so it is neither " +
+      "checked nor listed, nor is an unknown change. Asks about the changes a client shows, at most 100 per request; " +
+      "the listing itself checks nothing.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The changes among the given ones that cannot be reverted now, newest first, with the reason; empty if all of them apply.",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(implementation = classOf[RevertConflictsJson]),
+          examples = Array(new ExampleObject(ChangeJournalApi.conflictsExample))
+        ))
+      ),
+      new ApiResponse(responseCode = "400", description = "No change given, or more than 100."),
+      new ApiResponse(responseCode = "404", description = "The project does not exist.")
+    ))
+  def conflicts(@Parameter(
+                  name = "projectId",
+                  description = "The project identifier",
+                  required = true,
+                  in = ParameterIn.PATH,
+                  schema = new Schema(implementation = classOf[String])
+                )
+                projectId: String,
+                @Parameter(
+                  name = "seq",
+                  description = "The sequence numbers of the changes to check, one parameter per change: seq=2&seq=3. At least one, at most 100.",
+                  required = true,
+                  in = ParameterIn.QUERY,
+                  array = new ArraySchema(schema = new Schema(implementation = classOf[Int]))
+                )
+                seq: Seq[Int]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val asked = seq.toSet
+    if(asked.isEmpty || asked.size > ChangeJournalApi.maxConflictChecks) {
+      throw BadUserInputException(s"Between 1 and ${ChangeJournalApi.maxConflictChecks} changes can be checked per request, not ${asked.size}.")
+    }
+    val project = WorkspaceFactory().workspace.project(projectId)
+    val journal = project.changeJournal
+    val (entries, _) = journal.snapshot
+    val revertedBy = journal.revertedBy(entries)
+    val fulfilledBy = journal.fulfilledBy(entries)
+    // Checked only where a revert would be attempted
+    val attemptable = entries.filter(entry => asked.contains(entry.seq) && !revertedBy.contains(entry.seq) && !fulfilledBy.contains(entry.seq))
+    val conflicts = journal.revertConflicts(attemptable)
+    Ok(Json.toJson(RevertConflictsJson(attemptable.reverse.flatMap(entry => conflicts.get(entry.seq).map(RevertConflictJson(entry.seq, _))))))
   }
 
   @Operation(
@@ -234,15 +288,9 @@ object ChangeJournalApi {
                                "for a variable or file change the project page, for an existing file its download and for a " +
                                "workflow run its persisted execution report. Empty when there is nothing to link.")
                              links: Seq[ItemLink],
-                             @Schema(description = "Whether the change can be reverted at all. False for a workflow run, for a file overwrite or deletion, whose previous content is not kept, and for a proposed run that has been fulfilled.")
+                             @Schema(description = "Whether the change can be reverted at all. False for a workflow run, for a file overwrite or deletion, whose previous content is not kept, and for a proposed run that has been fulfilled. " +
+                               "Whether its inverse applies as the project is now is asked per change, see the conflicts operation.")
                              revertible: Boolean,
-                             @Schema(description = "Why a revertible change cannot be reverted as the project is now: its inverse does not apply, " +
-                               "e.g. the task has changed since, or the task it would remove is still referenced by another task. Checked when " +
-                               "listing, without writing, so a revert can still conflict if the project changes meanwhile; the write's own " +
-                               "validation, e.g. of a restored variable value that a task does not accept, is not run and can still refuse. Absent when the revert " +
-                               "applies, and for a change that is not revertible or has been reverted already. Reverting the newer changes first " +
-                               "may clear it, so a batch still attempts the change.")
-                             conflict: Option[String],
                              @Schema(description = "The change this one reverted. Present only if the change was made by reverting one.")
                              reverts: Option[Int],
                              @Schema(description = "The change that reverted this one. Present only if the change has been reverted.")
@@ -256,13 +304,12 @@ object ChangeJournalApi {
 
     implicit val format: Format[ChangeEntryJson] = Json.format[ChangeEntryJson]
 
-    /** The JSON of an entry; a freshly recorded entry is neither reverted nor fulfilled yet, and its conflict is not checked. */
-    def of(project: Project, entry: ChangeEntry, revertedBy: Option[Int], fulfilledBy: Option[Int] = None, unreviewed: Boolean = false,
-           conflict: Option[String] = None)
+    /** The JSON of an entry; a freshly recorded entry is neither reverted nor fulfilled yet. */
+    def of(project: Project, entry: ChangeEntry, revertedBy: Option[Int], fulfilledBy: Option[Int] = None, unreviewed: Boolean = false)
           (implicit userContext: UserContext): ChangeEntryJson = {
       ChangeEntryJson(entry.seq, entry.timestamp.toString, entry.user, entry.origin, entry.change.changeType,
         entry.change.describe, entry.change.summary, entry.change.details.map(ChangeDetailJson.of), ChangeLinks.of(project, entry.change),
-        entry.change.inverse.isDefined && fulfilledBy.isEmpty, conflict, entry.reverts, revertedBy, fulfilledBy,
+        entry.change.inverse.isDefined && fulfilledBy.isEmpty, entry.reverts, revertedBy, fulfilledBy,
         unreviewed = if(unreviewed) Some(true) else None)
     }
   }
@@ -366,7 +413,29 @@ object ChangeJournalApi {
     implicit val format: Format[RevertResultsJson] = Json.format[RevertResultsJson]
   }
 
+  @Schema(description = "Why a change cannot be reverted as the project is now.")
+  case class RevertConflictJson(@Schema(description = "The sequence number of the change.")
+                                seq: Int,
+                                @Schema(description = "Why its inverse does not apply, e.g. the task has changed since, or the task it would remove is still referenced by another task.")
+                                reason: String)
+
+  object RevertConflictJson {
+    implicit val format: Format[RevertConflictJson] = Json.format[RevertConflictJson]
+  }
+
+  @Schema(description = "The changes among the asked ones that cannot be reverted now, newest first.")
+  case class RevertConflictsJson(conflicts: Seq[RevertConflictJson])
+
+  object RevertConflictsJson {
+    implicit val format: Format[RevertConflictsJson] = Json.format[RevertConflictsJson]
+  }
+
+  /** At most this many changes are checked per request: what a page shows, not the whole journal. */
+  final val maxConflictChecks = 100
+
   // Annotation arguments, so plain literals.
+  final val conflictsExample = """{"conflicts": [{"seq": 1, "reason": "Task 'persons' in project 'movies' has been changed since."}]}"""
+
   final val listExample =
     """
       {

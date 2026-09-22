@@ -194,7 +194,7 @@ class ChangeJournal(project: Project) {
 
   /**
     * The [[revertConflict]] of every entry that has one, by seq. What the checks share (which tasks reference which,
-    * which tasks a variable can affect) is gathered once per listing instead of once per entry. Per entry remains a
+    * which tasks a variable can affect) is gathered once per call instead of once per entry. Per entry remains a
     * comparison against in-memory state, a file stat for a file creation, or, for a variable addition, the templates
     * of the tasks that can use it.
     */

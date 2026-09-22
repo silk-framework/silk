@@ -33,10 +33,8 @@ export interface IChangeEntry {
     details: IChangeDetail[];
     /** Links to what the change concerns, labelled by the server: the page of the task, as long as it exists, and for a workflow run its execution report. */
     links: IItemLink[];
-    /** Whether the change can be reverted at all. */
+    /** Whether the change can be reverted at all. Whether its revert applies as the project is now is asked per change, see requestRevertConflicts. */
     revertible: boolean;
-    /** Why a revertible change cannot be reverted as the project is now, e.g. the task changed since; checked by the server when listing. */
-    conflict?: string;
     /** The change this one reverted, if it was made by reverting one. */
     reverts?: number;
     /** The change that reverted this one, if it has been reverted. */
@@ -66,6 +64,33 @@ export interface IRevertOutcome {
 /** The changes made to a project, newest first. */
 export const requestProjectChanges = (projectId: string): Promise<FetchResponse<IChangeList>> =>
     fetch({ url: projectApi(`/${projectId}/changes`) });
+
+/** Why a change cannot be reverted as the project is now, see ChangeJournalApi.conflicts. */
+export interface IRevertConflict {
+    seq: number;
+    /** Why its inverse does not apply, e.g. the task has changed since. */
+    reason: string;
+}
+
+/** The server checks at most this many changes per request, so a longer list is asked in chunks. */
+const MAX_CONFLICT_CHECKS = 100;
+
+/**
+ * The changes among the given ones that cannot be reverted now, with the reason; checked by the server without writing,
+ * so a revert can still conflict. Meant for the changes a page shows, not for the whole journal.
+ */
+export const requestRevertConflicts = async (projectId: string, seqs: number[]): Promise<IRevertConflict[]> => {
+    const chunks: number[][] = [];
+    for (let start = 0; start < seqs.length; start += MAX_CONFLICT_CHECKS) {
+        chunks.push(seqs.slice(start, start + MAX_CONFLICT_CHECKS));
+    }
+    const responses: FetchResponse<{ conflicts: IRevertConflict[] }>[] = await Promise.all(
+        chunks.map((chunk) =>
+            fetch({ url: projectApi(`/${projectId}/changes/conflicts?${chunk.map((seq) => `seq=${seq}`).join("&")}`) }),
+        ),
+    );
+    return responses.flatMap((response) => response.data.conflicts);
+};
 
 /** Reverts a change. Answers with the change that records the revert; 409 on a conflict. */
 export const requestRevertChange = (projectId: string, seq: number): Promise<FetchResponse<IChangeEntry>> =>

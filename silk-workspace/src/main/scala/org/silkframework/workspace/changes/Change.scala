@@ -50,7 +50,7 @@ trait Change {
     * another task references. The write's own validation is not run and can still refuse, e.g. a restored variable
     * value that a task does not accept. Checked without writing, so a change that passes can still conflict if the
     * project changes meanwhile. The journal asks this of an entry's inverse, to tell before a revert is tried whether
-    * it applies. The context holds what the checks of one listing share, e.g. which tasks reference which, so that
+    * it applies. The context holds what the checks of one request share, e.g. which tasks reference which, so that
     * each gathers it once.
     */
   def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String]

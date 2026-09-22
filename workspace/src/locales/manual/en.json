@@ -737,6 +737,7 @@
             },
             "errors": {
                 "fetchChanges": "Loading the change list failed",
+                "fetchConflicts": "Checking which changes can be reverted now failed",
                 "fetchProject": "Loading the project failed",
                 "revertChange": "The change could not be reverted",
                 "markReviewed": "Marking the changes as reviewed failed",

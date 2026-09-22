@@ -41,6 +41,7 @@ import {
     requestProjectChanges,
     requestRevertChange,
     requestRevertChanges,
+    requestRevertConflicts,
 } from "./changesRequests";
 
 interface IProps {
@@ -101,18 +102,9 @@ const DETAILS_PREVIEW_LIMIT = 6;
 
 /**
  * Whether an entry has an inverse that has not been applied yet. A batch attempts every such entry: a conflict the
- * server found when listing may clear once the newer entries are reverted, as the batch reverts newest first.
+ * server reports may clear once the newer entries are reverted, as the batch reverts newest first.
  */
 const hasInverse = (entry: IChangeEntry): boolean => entry.revertible && entry.revertedBy == null;
-
-/** Whether an entry can be reverted on its own now: it has an inverse and the project is in the state it expects. */
-const canRevert = (entry: IChangeEntry): boolean => hasInverse(entry) && entry.conflict == null;
-
-/**
- * Why a batch, newest first, would stop before reverting anything: the conflict of the newest entry it attempts, which
- * no revert precedes that could clear it. Undefined when the batch can start.
- */
-const batchBlocker = (batch: IChangeEntry[]): string | undefined => batch.find(hasInverse)?.conflict;
 
 /**
  * The entries to revert so that the project returns to its state before change `seq`, newest first. A change, the
@@ -150,11 +142,18 @@ const entriesBackTo = (entries: IChangeEntry[], seq: number): IChangeEntry[] => 
     return heads.sort((a, b) => b.seq - a.seq);
 };
 
-/** A batch revert awaiting confirmation: the entries in scope, of which the revertible ones are attempted. */
+/**
+ * A batch revert awaiting confirmation: the entries in scope, of which the revertible ones are attempted, and whether
+ * the newest of those conflicts now, which would stop the batch before reverting anything; asked when the dialog opens.
+ */
 interface IBatchRevert {
     title: string;
     confirmText: string;
     entries: IChangeEntry[];
+    /** True until the server has answered whether the batch can start. */
+    checking: boolean;
+    /** Why the batch would stop before reverting anything; undefined while checking or when it can start. */
+    blocked?: string;
 }
 
 /** The changes of a project, newest first, with revert actions per entry and review actions for the agent changes. */
@@ -168,6 +167,9 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
     const [revertError, setRevertError] = React.useState<ErrorResponse | undefined>(undefined);
     const [markReviewedOpen, setMarkReviewedOpen] = React.useState<boolean>(false);
     const [batchRevert, setBatchRevert] = React.useState<IBatchRevert | undefined>(undefined);
+    // Why the entries of the shown page cannot be reverted now, by seq; asked per page, not for the whole journal
+    const [conflicts, setConflicts] = React.useState<Map<number, string>>(new Map());
+    const conflictsRequest = React.useRef(0);
     const [reviewLoading, setReviewLoading] = React.useState<boolean>(false);
     const [revertAllError, setRevertAllError] = React.useState<ErrorResponse | undefined>(undefined);
     const [revertAllSummary, setRevertAllSummary] = React.useState<
@@ -196,6 +198,36 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
     React.useEffect(() => {
         loadChanges();
     }, [loadChanges]);
+
+    /** The entries of the current page. */
+    const pageOf = (all: IChangeEntry[]): IChangeEntry[] =>
+        all.slice((pagination.current - 1) * pagination.limit, pagination.current * pagination.limit);
+
+    // Asked again whenever the list or the page changes; an answer that a later request has overtaken is dropped
+    React.useEffect(() => {
+        const request = ++conflictsRequest.current;
+        const seqs = pageOf(entries)
+            .filter(hasInverse)
+            .map((entry) => entry.seq);
+        if (seqs.length === 0) {
+            setConflicts(new Map());
+            return;
+        }
+        (async () => {
+            try {
+                const answer = await requestRevertConflicts(projectId, seqs);
+                if (request === conflictsRequest.current) {
+                    setConflicts(new Map(answer.map((conflict) => [conflict.seq, conflict.reason])));
+                }
+            } catch (ex) {
+                // Not knowing does not block a revert, which answers with the conflict itself, so no earlier answer stays either
+                if (request === conflictsRequest.current) {
+                    setConflicts(new Map());
+                    registerError("ChangeList.loadConflicts", t("pages.changes.errors.fetchConflicts"), ex);
+                }
+            }
+        })();
+    }, [entries, pagination.current, pagination.limit]);
 
     const openRevertDialog = (entry: IChangeEntry) => {
         setRevertError(undefined);
@@ -255,9 +287,27 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
         return { intent: conflict || unchanged.length > 0 ? "warning" : "success", text: parts.join(" ") };
     };
 
-    const openBatchRevert = (title: string, confirmText: string, scope: IChangeEntry[]) => {
+    /** Opens the batch dialog and asks whether its newest attempted entry conflicts now, which would stop the batch before reverting anything. */
+    const openBatchRevert = async (title: string, confirmText: string, scope: IChangeEntry[]) => {
         setRevertAllError(undefined);
-        setBatchRevert({ title, confirmText, entries: scope });
+        const head = scope.find(hasInverse);
+        setBatchRevert({ title, confirmText, entries: scope, checking: head != null });
+        if (!head) {
+            return;
+        }
+        let blocked: string | undefined;
+        try {
+            blocked = (await requestRevertConflicts(projectId, [head.seq])).find(
+                (conflict) => conflict.seq === head.seq,
+            )?.reason;
+        } catch (ex) {
+            // Not knowing does not block: the batch reports a conflict as an outcome
+            registerError("ChangeList.checkBatch", t("pages.changes.errors.fetchConflicts"), ex);
+        }
+        // Unless the dialog was closed or another batch opened meanwhile
+        setBatchRevert((current) =>
+            current && current.entries === scope ? { ...current, checking: false, blocked } : current,
+        );
     };
 
     /** Reverts the confirmed batch; the server skips the entries of it that cannot be reverted. */
@@ -349,8 +399,8 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
             return t("pages.changes.revert.fulfilled", { seq: entry.fulfilledBy });
         } else if (!entry.revertible) {
             return t("pages.changes.revert.notRevertible");
-        } else if (entry.conflict != null) {
-            return t("pages.changes.revert.conflict", { reason: entry.conflict });
+        } else if (conflicts.has(entry.seq)) {
+            return t("pages.changes.revert.conflict", { reason: conflicts.get(entry.seq) });
         } else {
             return undefined;
         }
@@ -367,7 +417,7 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                 intent="danger"
                 text={t("pages.changes.revert.action")}
                 htmlTitle={revertBlocker(entry)}
-                disabled={!canRevert(entry)}
+                disabled={!hasInverse(entry) || conflicts.has(entry.seq)}
                 onClick={() => openRevertDialog(entry)}
             />,
         ];
@@ -409,11 +459,7 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
         return <Notification message={t("pages.changes.noChanges")} />;
     }
 
-    const pageEntries = entries.slice(
-        (pagination.current - 1) * pagination.limit,
-        pagination.current * pagination.limit,
-    );
-    const batchBlocked = batchRevert && batchBlocker(batchRevert.entries);
+    const pageEntries = pageOf(entries);
 
     return (
         <>
@@ -589,11 +635,12 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                     alternativeDeleteButtonText={t("common.action.revert")}
                     removeLoading={reviewLoading}
                     errorMessage={revertAllError?.detail}
-                    deleteDisabled={batchBlocked != null}
+                    // Only the revert waits for the check; the dialog stays closable meanwhile
+                    deleteDisabled={batchRevert.checking || batchRevert.blocked != null}
                     notifications={
-                        batchBlocked != null && (
+                        batchRevert.blocked != null && (
                             <Notification data-test-id={"changes-revert-batch-blocked"} intent="warning">
-                                {t("pages.changes.revertAll.blocked", { reason: batchBlocked })}
+                                {t("pages.changes.revertAll.blocked", { reason: batchRevert.blocked })}
                             </Notification>
                         )
                     }

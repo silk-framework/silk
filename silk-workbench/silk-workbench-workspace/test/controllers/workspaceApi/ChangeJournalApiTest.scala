@@ -1,6 +1,6 @@
 package controllers.workspaceApi
 
-import controllers.projectApi.ChangeJournalApi.{ChangeEntryJson, ChangeListJson, ChangeSummaryJson, RevertResultsJson}
+import controllers.projectApi.ChangeJournalApi.{ChangeEntryJson, ChangeListJson, ChangeSummaryJson, RevertConflictJson, RevertConflictsJson, RevertResultsJson}
 import controllers.util.{ItemLink, ItemType}
 import controllers.workspaceApi.coreApi.routes.{VariableTemplateApi => TemplateApi}
 import helper.{ApiClient, IntegrationTestTrait}
@@ -36,6 +36,12 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
   private def revertUrl(seq: Int, project: String = projectId): String =
     baseUrl + controllers.projectApi.routes.ChangeJournalApi.revert(project, seq).url
 
+  private def conflictsUrl(seqs: Seq[Int], project: String = projectId): String =
+    baseUrl + controllers.projectApi.routes.ChangeJournalApi.conflicts(project, seqs).url
+
+  private def conflicts(seqs: Seq[Int]): Seq[RevertConflictJson] =
+    checkResponse(client.url(conflictsUrl(seqs)).get()).json.as[RevertConflictsJson].conflicts
+
   private def rule(name: String): DirectMapping =
     DirectMapping(id = name, sourcePath = UntypedPath(name), mappingTarget = MappingTarget("http://example.org/" + name))
 
@@ -55,8 +61,12 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     listed.head.revertible mustBe true
     listed.head.summary mustBe listed.head.description
     listed.head.details mustBe empty
-    // The task addition cannot be reverted while the mapping change since stands, which the list tells before it is tried
-    listed.map(_.conflict) mustBe Seq(None, Some(s"Task 'transform' in project '$projectId' has been changed since."))
+    // The task addition cannot be reverted while the mapping change since stands, which is told for the asked changes before a revert is tried
+    conflicts(listed.map(_.seq)) mustBe Seq(RevertConflictJson(listed(1).seq, s"Task 'transform' in project '$projectId' has been changed since."))
+    // At least one and at most 100 changes are checked per request; a change named twice counts once
+    checkResponseExactStatusCode(client.url(conflictsUrl(Seq.empty)).get(), BAD_REQUEST)
+    checkResponseExactStatusCode(client.url(conflictsUrl(1 to 101)).get(), BAD_REQUEST)
+    conflicts(Seq.fill(101)(listed.head.seq)) mustBe empty
     // A task change links the task page, a mapping change the rule it added, as handed out by the server
     val taskLink = ItemType.itemDetailsPage(ItemType.transform, projectId, "transform")
     def ruleLink(ruleId: String) = ItemLink("rule", s"Mapping rule '$ruleId'", s"${taskLink.path}?ruleId=$ruleId")
@@ -69,7 +79,7 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     task.data.mappingRule.rules.propertyRules.map(_.id.toString) mustBe Seq("a")
     changes().find(_.seq == seq).get.revertedBy mustBe Some(revert.seq)
     // The task is as added again, so its addition can be reverted; a reverted entry is not checked
-    changes().flatMap(_.conflict) mustBe empty
+    conflicts(changes().map(_.seq)) mustBe empty
     // The removal links the parent it happened in; the addition falls back to the task page, as its rule is gone
     revert.links mustBe Seq(ruleLink(task.data.mappingRule.id))
     changes().find(_.seq == seq).get.links mustBe Seq(taskLink)

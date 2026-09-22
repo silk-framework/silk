@@ -6,8 +6,8 @@ import org.silkframework.workspace.variables.AffectableTasks
 import org.silkframework.workspace.{Project, ReferencingTask, TaskReferences}
 
 /**
-  * What the conflict checks of one listing share: the project-wide facts a check would otherwise gather per entry,
-  * each gathered once on first use. It reflects the project at that moment, so it is made per listing.
+  * What the conflict checks of one request share: the project-wide facts a check would otherwise gather per entry,
+  * each gathered once on first use. It reflects the project at that moment, so it is made per request.
   */
 class ConflictContext(val project: Project)(implicit userContext: UserContext) {
 

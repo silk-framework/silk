@@ -8,6 +8,8 @@ import {
     checkRequestMade,
     clickFoundElement,
     findElement,
+    mockAxiosResponse,
+    mockedAxiosError,
     mockedAxiosResponse,
     renderWrapper,
 } from "../../../TestHelper";
@@ -24,6 +26,8 @@ describe("Project changes", () => {
     const revertUrl = (seq: number) => apiUrl(`/workspace/projects/${PROJECT_ID}/changes/${seq}/revert`);
     const revertAllUrl = apiUrl(`/workspace/projects/${PROJECT_ID}/changes/revert`);
     const reviewedUrl = apiUrl(`/workspace/projects/${PROJECT_ID}/changes/reviewed`);
+    const conflictsUrl = (seqs: number[]) =>
+        apiUrl(`/workspace/projects/${PROJECT_ID}/changes/conflicts?${seqs.map((seq) => `seq=${seq}`).join("&")}`);
 
     const transformLink = {
         id: "details",
@@ -62,8 +66,6 @@ describe("Project changes", () => {
             details: [{ label: "Output dataset", before: "out", after: "" }],
             links: [transformLink],
             revertible: true,
-            // The mapping change since stands in the way of restoring the whole task
-            conflict: `Task 'persons' in project '${PROJECT_ID}' has been changed since.`,
             reverts: 3,
         },
         {
@@ -117,10 +119,17 @@ describe("Project changes", () => {
         },
     ];
     const [mappingChange, revertChange] = changes;
+    // The mapping change since stands in the way of restoring the whole task, which the server tells when asked
+    const changedSince = `Task 'persons' in project '${PROJECT_ID}' has been changed since.`;
+    const defaultConflicts = [{ seq: revertChange.seq, reason: changedSince }];
 
     const reviewedChanges = changes.map(({ unreviewed, ...change }) => change);
 
-    const loadChangeList = async (list: IChangeEntry[] = changes): Promise<RenderResult> => {
+    /** Renders the list and answers the listing and, for the revertible entries of the page, the conflict check. */
+    const loadChangeList = async (
+        list: IChangeEntry[] = changes,
+        conflicts: { seq: number; reason: string }[] = defaultConflicts,
+    ): Promise<RenderResult> => {
         const wrapper = renderWrapper(<ChangeList projectId={PROJECT_ID} />);
         mockAxios.mockResponseFor(
             { url: changesUrl },
@@ -129,7 +138,23 @@ describe("Project changes", () => {
         await waitFor(() => {
             expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(list.length);
         });
+        const seqs = list
+            .filter((change) => change.revertible && change.revertedBy == null)
+            .map((change) => change.seq);
+        if (seqs.length > 0) {
+            await waitFor(() => checkRequestMade(conflictsUrl(seqs), "GET"));
+            mockAxios.mockResponseFor({ url: conflictsUrl(seqs) }, mockedAxiosResponse({ data: { conflicts } }));
+        }
         return wrapper;
+    };
+
+    /** Answers the check the batch dialog makes when it opens, and waits until the dialog offers the revert. */
+    const answerBatchCheck = async (head: number, conflicts: { seq: number; reason: string }[] = []) => {
+        await waitFor(() => checkRequestMade(conflictsUrl([head]), "GET"));
+        mockAxios.mockResponseFor({ url: conflictsUrl([head]) }, mockedAxiosResponse({ data: { conflicts } }));
+        await waitFor(() => {
+            expect(findElement(document.body, byTestId("remove-item-button"))).toBeEnabled();
+        });
     };
 
     /** Opens the actions menu of a change and returns the menu item with the given test id. */
@@ -142,6 +167,17 @@ describe("Project changes", () => {
     };
 
     const isDisabled = (menuItem: Element): boolean => menuItem.getAttribute("aria-disabled") === "true";
+
+    /** The button of the open dialog with the given label. */
+    const dialogButton = (label: string): Element => {
+        const button = Array.from(document.body.querySelectorAll("button")).find(
+            (element) => element.textContent?.trim() === label,
+        );
+        if (!button) {
+            throw new Error(`No button '${label}' in the dialog.`);
+        }
+        return button;
+    };
 
     it("should list all changes with their summaries and details", async () => {
         const wrapper = await loadChangeList();
@@ -199,9 +235,11 @@ describe("Project changes", () => {
         // A change whose revert would conflict now is disabled with the reason; reverting back to before it still works,
         // as the batch reverts the newer change first, which may clear the conflict
         const conflicting = await openMenuItem(wrapper, 4, "change-revert-btn-4");
-        expect(isDisabled(conflicting)).toBe(true);
+        await waitFor(() => {
+            expect(isDisabled(conflicting)).toBe(true);
+        });
         expect(conflicting.querySelector("[title]")?.getAttribute("title")).toBe(
-            `Cannot be reverted now: Task 'persons' in project '${PROJECT_ID}' has been changed since.`,
+            `Cannot be reverted now: ${changedSince}`,
         );
         expect(isDisabled(findElement(document.body, byTestId("change-revert-back-btn-4")))).toBe(false);
         // A reverted change cannot be reverted again, but the changes after it can
@@ -257,6 +295,11 @@ describe("Project changes", () => {
         expect(document.body.textContent).toContain(mappingChange.description);
         expect(document.body.textContent).toContain(revertChange.description);
         expect(document.body.textContent).not.toContain("Skipped as not revertible");
+        // The dialog offers the revert once the server has said that the newest change of the batch can be reverted,
+        // and can be closed meanwhile
+        expect(findElement(document.body, byTestId("remove-item-button"))).toBeDisabled();
+        expect(dialogButton("Cancel")).toBeEnabled();
+        await answerBatchCheck(5);
         clickFoundElement(document.body, byTestId("remove-item-button"));
         await waitFor(() => {
             checkRequestMade(revertAllUrl, "POST", { seqs: [5, 4] });
@@ -313,13 +356,46 @@ describe("Project changes", () => {
         });
     });
 
-    it("should not offer a batch whose newest change cannot be reverted now", async () => {
-        // The newest change conflicts, so a batch would stop at it before reverting anything
-        const reason = "Rule 'name' in transform 'persons' has been changed since.";
-        const wrapper = await loadChangeList(
-            changes.map((change) => (change === mappingChange ? { ...change, conflict: reason } : change)),
+    it("should not keep an earlier answer when a later check fails", async () => {
+        const wrapper = await loadChangeList();
+        // Marking reviewed reloads the list, which asks again
+        clickFoundElement(wrapper, byTestId("changes-mark-reviewed-btn"));
+        await waitFor(() => {
+            expect(findElement(document.body, byTestId("changes-mark-reviewed-confirm-btn"))).toBeInTheDocument();
+        });
+        clickFoundElement(document.body, byTestId("changes-mark-reviewed-confirm-btn"));
+        await waitFor(() => {
+            checkRequestMade(reviewedUrl, "PUT", { upTo: 5 });
+        });
+        mockAxios.mockResponseFor({ url: reviewedUrl }, mockedAxiosResponse({ data: { reviewedUpTo: 5 } }));
+        await waitFor(() => {
+            expect(mockAxios.queue().length).toBeGreaterThan(0);
+        });
+        // A fresh list, as a parsed response is; the same array would not count as a change to React
+        mockAxios.mockResponseFor(
+            { url: changesUrl },
+            mockedAxiosResponse({ data: { reviewedUpTo: 5, changes: [...changes] } }),
         );
+        // The check fails this time: the earlier reason of change 4 does not hold on, as a revert answers with the conflict itself
+        await waitFor(() => checkRequestMade(conflictsUrl([5, 4]), "GET"));
+        mockAxiosResponse({ url: conflictsUrl([5, 4]) }, mockedAxiosError(500));
+        await waitFor(() => {
+            expect(isDisabled(findElement(document.body, byTestId("change-menu-4")))).toBe(false);
+        });
+        expect(isDisabled(await openMenuItem(wrapper, 4, "change-revert-btn-4"))).toBe(false);
+    });
+
+    it("should not offer a batch whose newest change cannot be reverted now", async () => {
+        const wrapper = await loadChangeList();
         clickFoundElement(wrapper, byTestId("changes-revert-unreviewed-btn"));
+        // The dialog asks about the newest change of the batch: it conflicts, so the batch would stop at it before reverting anything
+        const reason = "Rule 'name' in transform 'persons' has been changed since.";
+        await waitFor(() => checkRequestMade(conflictsUrl([5]), "GET"));
+        expect(findElement(document.body, byTestId("remove-item-button"))).toBeDisabled();
+        mockAxios.mockResponseFor(
+            { url: conflictsUrl([5]) },
+            mockedAxiosResponse({ data: { conflicts: [{ seq: 5, reason }] } }),
+        );
         await waitFor(() => {
             expect(findElement(document.body, byTestId("changes-revert-batch-blocked"))).toBeInTheDocument();
         });
@@ -336,6 +412,7 @@ describe("Project changes", () => {
         // The dialog lists what will be attempted and notes the non-revertible entry that will be skipped
         expect(document.body.textContent).toContain(mappingChange.description);
         expect(document.body.textContent).toContain("Skipped as not revertible: 1.");
+        await answerBatchCheck(5);
         clickFoundElement(document.body, byTestId("remove-item-button"));
         await waitFor(() => {
             checkRequestMade(revertAllUrl, "POST", { seqs: [5, 2] });
