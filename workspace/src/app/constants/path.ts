@@ -36,6 +36,3 @@ export const isTestEnv = process.env.NODE_ENV === "test";
 export const API_ENDPOINT = process.env.API_ENDPOINT ?? "/api";
 
 export const AUTH_ENDPOINT = HOST + "/oauth/authorize";
-
-/** Legacy UI */
-(window as any).__DEBUG__ = false;

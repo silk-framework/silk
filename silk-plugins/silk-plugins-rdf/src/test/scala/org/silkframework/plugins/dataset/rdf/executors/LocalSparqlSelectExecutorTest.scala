@@ -221,6 +221,25 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     entities.effectiveSchema.typedPaths.map(_.toUntypedPath.normalizedSerialization) mustBe IndexedSeq("a", "b")
   }
 
+  it should "keep a projected variable named like a SPARQL keyword in the output" in {
+    // Regression: `?from` was mistaken for the FROM keyword when inferring the output schema and dropped from the rows.
+    val task = SparqlSelectCustomTask("SELECT ?to ?from WHERE { ?to <urn:p> ?from }")
+    task.outputSchema.typedPaths.map(_.toUntypedPath.normalizedSerialization) mustBe IndexedSeq("to", "from")
+    val reportUpdater = SparqlSelectExecutionReportUpdater(PlainTask("task", task), TestMocks.activityContextMock())
+    val sparqlEndpoint = new SparqlEndpoint {
+      override def sparqlParams: SparqlParams = SparqlParams()
+      override def withSparqlParams(sparqlParams: SparqlParams): SparqlEndpoint = this
+      override def select(query: String, limit: Int)(implicit userContext: UserContext): SparqlResults = {
+        val binding = SortedMap[String, RdfNode]("to" -> Resource("urn:a"), "from" -> Resource("urn:b"))
+        SparqlResults(Seq("to", "from"), CloseableIterator(Iterator(binding)))
+      }
+      override def ask(query: String)(implicit userContext: UserContext): SparqlAskResult = ???
+    }
+    val entities = LocalSparqlSelectExecutor()
+      .executeOnSparqlEndpoint(task, sparqlEndpoint, None, None, executionReportUpdater = Some(reportUpdater))
+    entities.head.values mustBe IndexedSeq(Seq("urn:a"), Seq("urn:b"))
+  }
+
   it should "derive the per-entity output schema from the runtime result variables when it cannot be inferred" in {
     val query = """SELECT {{ input.entity.s }} WHERE { <{{ input.entity.s }}> ?p ?o }"""
     val rowsPerQuery = 2

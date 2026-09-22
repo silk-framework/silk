@@ -24,7 +24,7 @@ import evaluationUtils from "../../shared/evaluations/evaluationOperations";
 import { GlobalMappingEditorContext } from "../../../pages/MappingEditor/contexts/GlobalMappingEditorContext";
 import { requestTaskContextInfo } from "@ducks/workspace/requests";
 import { IRuleBlockInputExample, IRuleBlockSnapshots, RuleBlockSnapshot } from "../../ruleBlock/ruleBlock.types";
-import ruleBlockInspectionUtils from "../../../../../../../../silk/workspace/src/app/views/taskViews/ruleBlock/ruleBlockInternalEvaluation.utils";
+import ruleBlockInspectionUtils from "../../ruleBlock/ruleBlockInternalEvaluation.utils";
 import { RuleBlockInternalEvaluationModal } from "../../ruleBlock/RuleBlockInternalEvaluationModal";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<IComplexMappingRule, IPluginDetails>>;

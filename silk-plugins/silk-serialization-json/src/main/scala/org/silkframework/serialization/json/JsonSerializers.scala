@@ -454,8 +454,9 @@ object JsonSerializers {
         case Some(rules) => mustBeJsArray(rules)(_.value.map(TypeMappingJsonFormat.read).toSeq)
         case None => Seq.empty
       }
+      // Strict: URI rules are never written into this list, so a target-less 'complex' rule here is a mistake.
       val propertyRules = optionalValue(value, PROPERTY_RULES) match {
-        case Some(rules) => mustBeJsArray(rules)(_.value.map(TransformRuleJsonFormat.read).toSeq)
+        case Some(rules) => mustBeJsArray(rules)(_.value.map(TransformRuleJsonFormat.readStrict).toSeq)
         case None => Seq.empty
       }
 
@@ -627,7 +628,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): ComplexUriMapping = {
       ComplexUriMapping(
         id = identifier(value, "uri"),
-        operator = fromJson[Input]((value \ OPERATOR).get),
+        operator = fromJson[Input](requiredValue(value, OPERATOR)),
         metaData(value),
         layout = optionalValue(value, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout()),
         uiAnnotations = optionalValue(value, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations()),
@@ -770,7 +771,22 @@ object JsonSerializers {
           fromJson[ObjectMapping](jsValue)
         case "complex" =>
           readAndConvertComplexTransformRule(jsValue)
+        case unknown =>
+          throw JsonParseException(s"Unknown mapping rule type '$unknown'. Expected one of: " +
+            "root, type, uri, complexUri, direct, object, complex.")
       }
+    }
+
+    /** Reads a rule, rejecting a 'complex' rule without mappingTarget: read() would turn it into the URI rule. */
+    def readStrict(jsValue: JsValue)(implicit readContext: ReadContext): TransformRule = {
+      val rule = read(jsValue)
+      if(stringValue(jsValue, TYPE) == "complex" && rule.isInstanceOf[UriMapping]) {
+        // Only an id the client gave is named; a derived one would point at a rule it never wrote.
+        val name = optionalValue(jsValue, ID).flatMap(_.asOpt[String]).map(id => s" '$id'").getOrElse("")
+        throw new ValidationException(s"Mapping rule$name of type 'complex' has no mappingTarget. " +
+          "A property rule needs a target property; a URI rule is written as type 'complexUri'.")
+      }
+      rule
     }
 
     private def readAndConvertComplexTransformRule(jsValue: JsValue)
@@ -818,7 +834,7 @@ object JsonSerializers {
       val id = identifier(jsValue, mappingName)
       ComplexMapping(
         id = id,
-        operator = fromJson[Input]((jsValue \ OPERATOR).get),
+        operator = fromJson[Input](requiredValue(jsValue, OPERATOR)),
         target = mappingTarget,
         metaData(jsValue),
         layout = optionalValue(jsValue, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout()),
