@@ -165,6 +165,27 @@ describe("Project changes", () => {
         );
     });
 
+    it("should show only the first details of a long entry until expanded", async () => {
+        const details = Array.from({ length: 8 }, (_, i) => ({ label: `Mapping rule 'rule-${i}' added` }));
+        const longChange: IChangeEntry = { ...mappingChange, details };
+        const wrapper = renderWrapper(<ChangeList projectId={PROJECT_ID} />);
+        mockAxios.mockResponseFor(
+            { url: changesUrl },
+            mockedAxiosResponse({ data: { reviewedUpTo: 0, changes: [longChange] } }),
+        );
+        await waitFor(() => {
+            expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(1);
+        });
+        // Six details are shown, the rest is behind a 'more' link
+        expect(findElement(wrapper, byTestId("change-detail-5-5"))).toBeInTheDocument();
+        expect(wrapper.container.querySelector(byTestId("change-detail-5-6"))).toBeNull();
+        clickFoundElement(wrapper, byTestId("content-blob-toggler-more-link"));
+        expect(findElement(wrapper, byTestId("change-detail-5-7"))).toBeInTheDocument();
+        // And hidden again with 'less'
+        clickFoundElement(wrapper, byTestId("content-blob-toggler-less-link"));
+        expect(wrapper.container.querySelector(byTestId("change-detail-5-6"))).toBeNull();
+    });
+
     it("should offer the revert actions in a menu, only for what can be reverted", async () => {
         const wrapper = await loadChangeList();
         // The newest change can be reverted alone; nothing is newer, so there is no revert back to before it

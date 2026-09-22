@@ -2,6 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import {
     Button,
+    ContentBlobToggler,
     ContextMenu,
     ElapsedDateTimeDisplay,
     ElapsedDateTimeDisplayUnits,
@@ -94,6 +95,9 @@ const linkIcon = (id: string): ValidIconName => {
             return "item-viewdetails";
     }
 };
+
+/** How many detail lines an entry shows before the rest is behind a 'more' link, as the tag list does it. */
+const DETAILS_PREVIEW_LIMIT = 6;
 
 /** Whether an entry can be reverted now: it has an inverse and has not been reverted yet. */
 const canRevert = (entry: IChangeEntry): boolean => entry.revertible && entry.revertedBy == null;
@@ -300,6 +304,14 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
         }
     };
 
+    /** The details of an entry, one per line, cut to the first `limit` when given. */
+    const detailLines = (entry: IChangeEntry, limit: number = entry.details.length): React.ReactNode =>
+        entry.details.slice(0, limit).map((detail, index) => (
+            <div key={index} data-test-id={`change-detail-${entry.seq}-${index}`}>
+                <small>{detailLine(detail)}</small>
+            </div>
+        ));
+
     const translateUnits = (unit: ElapsedDateTimeDisplayUnits) => t("common.units." + unit, unit);
 
     /** Relative within the last week, the date beyond, as the metadata panel shows it; the exact time on hover. */
@@ -461,11 +473,17 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                                 </TableCell>
                                 <TableCell alignVertical="middle">
                                     <div title={entry.type}>{entry.summary}</div>
-                                    {entry.details.map((detail, index) => (
-                                        <div key={index} data-test-id={`change-detail-${entry.seq}-${index}`}>
-                                            <small>{detailLine(detail)}</small>
-                                        </div>
-                                    ))}
+                                    {entry.details.length <= DETAILS_PREVIEW_LIMIT ? (
+                                        detailLines(entry)
+                                    ) : (
+                                        <ContentBlobToggler
+                                            data-test-id={`change-details-toggler-${entry.seq}`}
+                                            previewContent={detailLines(entry, DETAILS_PREVIEW_LIMIT)}
+                                            fullviewContent={detailLines(entry)}
+                                            toggleExtendText={t("common.words.more", "more")}
+                                            toggleReduceText={t("common.words.less", "less")}
+                                        />
+                                    )}
                                     <Spacing size="tiny" />
                                     <div>
                                         <TagList>
