@@ -707,6 +707,7 @@
                 "alreadyReverted": "Already reverted by change #{{seq}}",
                 "fulfilled": "Already run as change #{{seq}}",
                 "notRevertible": "This change cannot be reverted",
+                "conflict": "Cannot be reverted now: {{reason}}",
                 "confirmText": "Do you really want to revert the change '{{description}}'?",
                 "note": "The revert is recorded as a new change; reverting that one redoes this change."
             },

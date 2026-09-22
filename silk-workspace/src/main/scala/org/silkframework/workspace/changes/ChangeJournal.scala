@@ -183,6 +183,16 @@ class ChangeJournal(project: Project) {
   }
 
   /**
+    * Why the entry cannot be reverted as the project is now, if it cannot: its inverse does not apply, e.g. the task
+    * has changed since, or the task it would remove is referenced by another task. A dry run of the inverse's
+    * conflict check: nothing is written, and the revert can still conflict if the project changes meanwhile.
+    * None for an entry without inverse; whether it has been reverted or fulfilled already is not checked here.
+    */
+  def revertConflict(entry: ChangeEntry)(implicit userContext: UserContext): Option[String] = {
+    entry.change.inverse.flatMap(_.conflict(project))
+  }
+
+  /**
     * Reverts an entry by applying its inverse through the regular write path. The entry this records refers to
     * the reverted one; reverting that entry in turn redoes the change.
     *

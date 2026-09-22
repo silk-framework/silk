@@ -457,7 +457,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, project
   }
 
   /** How `referencingTask` refers to `referenced`, so a rejected deletion says where to look. */
-  private def referenceKind(referencingTask: TaskSpec, referenced: Identifier): String = {
+  private[workspace] def referenceKind(referencingTask: TaskSpec, referenced: Identifier): String = {
     val kinds = Seq(
       Option.when(referencingTask.inputTasks.contains(referenced))("as input"),
       Option.when(referencingTask.outputTasks.contains(referenced))("as output")

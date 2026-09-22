@@ -30,6 +30,10 @@ case class SetVariable(before: Option[TemplateVariable], after: TemplateVariable
     VariableChanges.modify(UpdateVariableModification(project, after).execute())
   }
 
+  override def conflict(project: Project)(implicit userContext: UserContext): Option[String] = {
+    Change.conflictOf(VariableChanges.expect(project, after.name, before))
+  }
+
   // The values may be sensitive, so they are never printed.
   override def toString: String = s"SetVariable(${after.name})"
 }
@@ -45,8 +49,24 @@ case class RemoveVariable(variable: TemplateVariable) extends Change {
   override def inverse: Option[SetVariable] = Some(SetVariable(None, variable))
 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
+    val modification = expectRemovable(project)
+    VariableChanges.modify(modification.execute())
+  }
+
+  override def conflict(project: Project)(implicit userContext: UserContext): Option[String] = {
+    Change.conflictOf(expectRemovable(project))
+  }
+
+  // Unchanged since and used by no other variable or task, which the modification would refuse for.
+  private def expectRemovable(project: Project)(implicit userContext: UserContext): DeleteVariableModification = {
     VariableChanges.expect(project, variable.name, Some(variable))
-    VariableChanges.modify(DeleteVariableModification(project, variable.name).execute())
+    val modification = DeleteVariableModification(project, variable.name)
+    val users = modification.dependentVariables().map(name => s"variable '$name'") ++
+      modification.invalidTasks().map(task => s"task '${task.labelOrId}'")
+    if(users.nonEmpty) {
+      throw ChangeConflictException(s"Variable '${variable.name}' in project '${project.id}' is still used by ${users.mkString(", ")}.")
+    }
+    modification
   }
 
   override def toString: String = s"RemoveVariable(${variable.name})"

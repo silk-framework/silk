@@ -4,7 +4,7 @@ import org.silkframework.config.{HasMetaData, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.RequestException
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.Project
+import org.silkframework.workspace.{Project, ProjectTask}
 
 import scala.reflect.{ClassTag, classTag}
 
@@ -42,6 +42,14 @@ trait Change {
     * @throws ChangeConflictException If the project is not in the state this change expects.
     */
   def applyTo(project: Project)(implicit userContext: UserContext): Unit
+
+  /**
+    * Why [[applyTo]] would conflict as the project is now, if it would: the project is not in the state this change
+    * expects, e.g. a task changed since, or the write would be refused, e.g. removing a task that another task
+    * references. Checked without writing, so a change that passes can still conflict if the project changes meanwhile.
+    * The journal asks this of an entry's inverse, to tell before a revert is tried whether it applies.
+    */
+  def conflict(project: Project)(implicit userContext: UserContext): Option[String]
 }
 
 /**
@@ -54,12 +62,26 @@ trait Proposal extends Change {
   final override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
     throw new IllegalStateException(s"A proposal is not applied as a change: $summary.")
   }
+
+  final override def conflict(project: Project)(implicit userContext: UserContext): Option[String] = {
+    Some(s"A proposal is not applied as a change: $summary.")
+  }
 }
 
 object Change {
 
   /** At most this many details go into [[Change.describe]]. */
   private val maxDetails = 5
+
+  /** The reason a check refuses with, or None if it passes: the conflict check of a change, run without the write. */
+  def conflictOf(check: => Unit): Option[String] = {
+    try {
+      check
+      None
+    } catch {
+      case ex: ChangeConflictException => Some(ex.getMessage)
+    }
+  }
 
   /** The label to capture in a change that does not hold the task itself; None when no label is set. */
   def capturedName(obj: HasMetaData): Option[String] = {
@@ -94,6 +116,10 @@ trait RecordedChange extends Change {
 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
     throw new IllegalStateException(s"$changeType records the outcome of a write and cannot be applied.")
+  }
+
+  override def conflict(project: Project)(implicit userContext: UserContext): Option[String] = {
+    Some(s"$changeType records the outcome of a write and cannot be applied.")
   }
 }
 
@@ -137,9 +163,17 @@ abstract class TaskChange[T <: TaskSpec : ClassTag] extends Change with NamesTas
   }
 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
-    val task = project.anyTaskOption(taskId)
+    currentTask(project).applyChange(this)
+  }
+
+  // Applied to the current data and discarded: apply is pure, so this is the check without the write.
+  override def conflict(project: Project)(implicit userContext: UserContext): Option[String] = {
+    Change.conflictOf(applyAny(currentTask(project).data))
+  }
+
+  private def currentTask(project: Project)(implicit userContext: UserContext): ProjectTask[_ <: TaskSpec] = {
+    project.anyTaskOption(taskId)
       .getOrElse(throw ChangeConflictException(s"Task '$taskName' does not exist in project '${project.id}'."))
-    task.applyChange(this)
   }
 }
 

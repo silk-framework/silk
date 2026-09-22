@@ -46,4 +46,7 @@ case class DiscardedWorkflowRun(taskId: Identifier, taskLabel: Option[String] = 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
     project.changeJournal.record(this)
   }
+
+  // Discarding changes nothing in the project; whether the proposal is still open is the journal's own check.
+  override def conflict(project: Project)(implicit userContext: UserContext): Option[String] = None
 }

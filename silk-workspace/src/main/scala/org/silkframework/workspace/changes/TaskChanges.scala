@@ -26,10 +26,18 @@ case class AddTask(task: PlainTask[TaskSpec]) extends Change with NamesTask {
   override def inverse: Option[RemoveTask] = Some(RemoveTask(task))
 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
+    expectAbsent(project)
+    project.restoreTask(task)
+  }
+
+  override def conflict(project: Project)(implicit userContext: UserContext): Option[String] = {
+    Change.conflictOf(expectAbsent(project))
+  }
+
+  private def expectAbsent(project: Project)(implicit userContext: UserContext): Unit = {
     if(project.anyTaskOption(task.id).isDefined) {
       throw ChangeConflictException(s"Task '${task.labelOrId}' already exists in project '${project.id}'.")
     }
-    project.restoreTask(task)
   }
 
   // The task parameters may be sensitive, so they are never printed.
@@ -48,8 +56,23 @@ case class RemoveTask(task: PlainTask[TaskSpec]) extends Change with NamesTask {
   override def inverse: Option[AddTask] = Some(AddTask(task))
 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
-    TaskChanges.expectState(project, task)
+    expectRemovable(project)
     project.removeAnyTask(task.id, removeDependentTasks = false)
+  }
+
+  override def conflict(project: Project)(implicit userContext: UserContext): Option[String] = {
+    Change.conflictOf(expectRemovable(project))
+  }
+
+  // Unchanged since and referenced by no other task: what the removal would refuse for, in the journal's words.
+  private def expectRemovable(project: Project)(implicit userContext: UserContext): Unit = {
+    val current = TaskChanges.expectState(project, task)
+    val references = current.findDependentTasks(recursive = false).toSeq.sortBy(_.toString).map(project.anyTask(_))
+    if(references.nonEmpty) {
+      val by = references.map(t => s"${TaskChanges.kind(t.data)} '${t.labelOrId}' (${project.referenceKind(t.data, task.id)})")
+      throw ChangeConflictException(s"${TaskChanges.kind(task.data).capitalize} '${task.labelOrId}' in project '${project.id}' " +
+        s"is still referenced by ${by.mkString(", ")}.")
+    }
   }
 
   override def toString: String = s"RemoveTask(${task.id})"
@@ -79,6 +102,10 @@ case class ReplaceTask(before: PlainTask[TaskSpec], after: PlainTask[TaskSpec]) 
     val task = TaskChanges.expectState(project, before)
     // Timestamps and users are dropped, so the update is stamped as a new modification.
     task.update(after.data, Some(after.metaData.withoutUserData), Some(after.executionVariables))
+  }
+
+  override def conflict(project: Project)(implicit userContext: UserContext): Option[String] = {
+    Change.conflictOf(TaskChanges.expectState(project, before))
   }
 
   override def toString: String = s"ReplaceTask($taskId)"

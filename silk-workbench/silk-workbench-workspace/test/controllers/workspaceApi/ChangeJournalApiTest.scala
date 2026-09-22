@@ -55,6 +55,8 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     listed.head.revertible mustBe true
     listed.head.summary mustBe listed.head.description
     listed.head.details mustBe empty
+    // The task addition cannot be reverted while the mapping change since stands, which the list tells before it is tried
+    listed.map(_.conflict) mustBe Seq(None, Some(s"Task 'transform' in project '$projectId' has been changed since."))
     // A task change links the task page, a mapping change the rule it added, as handed out by the server
     val taskLink = ItemType.itemDetailsPage(ItemType.transform, projectId, "transform")
     def ruleLink(ruleId: String) = ItemLink("rule", s"Mapping rule '$ruleId'", s"${taskLink.path}?ruleId=$ruleId")
@@ -66,6 +68,8 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     revert.reverts mustBe Some(seq)
     task.data.mappingRule.rules.propertyRules.map(_.id.toString) mustBe Seq("a")
     changes().find(_.seq == seq).get.revertedBy mustBe Some(revert.seq)
+    // The task is as added again, so its addition can be reverted; a reverted entry is not checked
+    changes().flatMap(_.conflict) mustBe empty
     // The removal links the parent it happened in; the addition falls back to the task page, as its rule is gone
     revert.links mustBe Seq(ruleLink(task.data.mappingRule.id))
     changes().find(_.seq == seq).get.links mustBe Seq(taskLink)

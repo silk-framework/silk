@@ -62,6 +62,8 @@ describe("Project changes", () => {
             details: [{ label: "Output dataset", before: "out", after: "" }],
             links: [transformLink],
             revertible: true,
+            // The mapping change since stands in the way of restoring the whole task
+            conflict: `Task 'persons' in project '${PROJECT_ID}' has been changed since.`,
             reverts: 3,
         },
         {
@@ -191,6 +193,14 @@ describe("Project changes", () => {
         // The newest change can be reverted alone; nothing is newer, so there is no revert back to before it
         expect(isDisabled(await openMenuItem(wrapper, 5, "change-revert-btn-5"))).toBe(false);
         expect(document.body.querySelector(byTestId("change-revert-back-btn-5"))).toBeNull();
+        // A change whose revert would conflict now is disabled with the reason; reverting back to before it still works,
+        // as the batch reverts the newer change first, which may clear the conflict
+        const conflicting = await openMenuItem(wrapper, 4, "change-revert-btn-4");
+        expect(isDisabled(conflicting)).toBe(true);
+        expect(conflicting.querySelector("[title]")?.getAttribute("title")).toBe(
+            `Cannot be reverted now: Task 'persons' in project '${PROJECT_ID}' has been changed since.`,
+        );
+        expect(isDisabled(findElement(document.body, byTestId("change-revert-back-btn-4")))).toBe(false);
         // A reverted change cannot be reverted again, but the changes after it can
         expect(isDisabled(await openMenuItem(wrapper, 3, "change-revert-btn-3"))).toBe(true);
         expect(isDisabled(findElement(document.body, byTestId("change-revert-back-btn-3")))).toBe(false);

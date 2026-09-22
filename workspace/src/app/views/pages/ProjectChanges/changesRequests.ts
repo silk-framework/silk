@@ -35,6 +35,8 @@ export interface IChangeEntry {
     links: IItemLink[];
     /** Whether the change can be reverted at all. */
     revertible: boolean;
+    /** Why a revertible change cannot be reverted as the project is now, e.g. the task changed since; checked by the server when listing. */
+    conflict?: string;
     /** The change this one reverted, if it was made by reverting one. */
     reverts?: number;
     /** The change that reverted this one, if it has been reverted. */

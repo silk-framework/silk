@@ -24,8 +24,8 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
   @Operation(
     summary = "List changes",
     description = "The changes made to the project, as far as the configured store keeps them, newest first. A change can be reverted while " +
-      "'revertible' is true and 'revertedBy' does not name the change that reverted it already; 'reverts' names the " +
-      "change a revert undid.",
+      "'revertible' is true, 'revertedBy' does not name the change that reverted it already and 'conflict' does not tell " +
+      "why its inverse does not apply as the project is now; 'reverts' names the change a revert undid.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -54,8 +54,12 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
     val fulfilledBy = journal.fulfilledBy(entries)
     val unreviewed = journal.unreviewed(entries, reviewedUpTo).map(_.seq).toSet
     Ok(Json.toJson(ChangeListJson(reviewedUpTo,
-      entries.reverse.map(entry => ChangeEntryJson.of(project, entry, revertedBy.get(entry.seq), fulfilledBy.get(entry.seq),
-        unreviewed.contains(entry.seq))))))
+      entries.reverse.map { entry =>
+        val (reverted, fulfilled) = (revertedBy.get(entry.seq), fulfilledBy.get(entry.seq))
+        // Checked only where a revert would be attempted
+        val conflict = if(reverted.isEmpty && fulfilled.isEmpty) journal.revertConflict(entry) else None
+        ChangeEntryJson.of(project, entry, reverted, fulfilled, unreviewed.contains(entry.seq), conflict)
+      })))
   }
 
   @Operation(
@@ -202,6 +206,12 @@ object ChangeJournalApi {
                              links: Seq[ItemLink],
                              @Schema(description = "Whether the change can be reverted at all. False for a workflow run, for a file overwrite or deletion, whose previous content is not kept, and for a proposed run that has been fulfilled.")
                              revertible: Boolean,
+                             @Schema(description = "Why a revertible change cannot be reverted as the project is now: its inverse does not apply, " +
+                               "e.g. the task has changed since, or the task it would remove is still referenced by another task. Checked when " +
+                               "listing, without writing, so a revert can still conflict if the project changes meanwhile. Absent when the revert " +
+                               "applies, and for a change that is not revertible or has been reverted already. Reverting the newer changes first " +
+                               "may clear it, so a batch still attempts the change.")
+                             conflict: Option[String],
                              @Schema(description = "The change this one reverted. Present only if the change was made by reverting one.")
                              reverts: Option[Int],
                              @Schema(description = "The change that reverted this one. Present only if the change has been reverted.")
@@ -215,12 +225,13 @@ object ChangeJournalApi {
 
     implicit val format: Format[ChangeEntryJson] = Json.format[ChangeEntryJson]
 
-    /** The JSON of an entry; a freshly recorded entry is neither reverted nor fulfilled yet. */
-    def of(project: Project, entry: ChangeEntry, revertedBy: Option[Int], fulfilledBy: Option[Int] = None, unreviewed: Boolean = false)
+    /** The JSON of an entry; a freshly recorded entry is neither reverted nor fulfilled yet, and its conflict is not checked. */
+    def of(project: Project, entry: ChangeEntry, revertedBy: Option[Int], fulfilledBy: Option[Int] = None, unreviewed: Boolean = false,
+           conflict: Option[String] = None)
           (implicit userContext: UserContext): ChangeEntryJson = {
       ChangeEntryJson(entry.seq, entry.timestamp.toString, entry.user, entry.origin, entry.change.changeType,
         entry.change.describe, entry.change.summary, entry.change.details.map(ChangeDetailJson.of), ChangeLinks.of(project, entry.change),
-        entry.change.inverse.isDefined && fulfilledBy.isEmpty, entry.reverts, revertedBy, fulfilledBy,
+        entry.change.inverse.isDefined && fulfilledBy.isEmpty, conflict, entry.reverts, revertedBy, fulfilledBy,
         unreviewed = if(unreviewed) Some(true) else None)
     }
   }

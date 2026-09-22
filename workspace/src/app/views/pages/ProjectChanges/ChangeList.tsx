@@ -99,8 +99,14 @@ const linkIcon = (id: string): ValidIconName => {
 /** How many detail lines an entry shows before the rest is behind a 'more' link, as the tag list does it. */
 const DETAILS_PREVIEW_LIMIT = 6;
 
-/** Whether an entry can be reverted now: it has an inverse and has not been reverted yet. */
-const canRevert = (entry: IChangeEntry): boolean => entry.revertible && entry.revertedBy == null;
+/**
+ * Whether an entry has an inverse that has not been applied yet. A batch attempts every such entry: a conflict the
+ * server found when listing may clear once the newer entries are reverted, as the batch reverts newest first.
+ */
+const hasInverse = (entry: IChangeEntry): boolean => entry.revertible && entry.revertedBy == null;
+
+/** Whether an entry can be reverted on its own now: it has an inverse and the project is in the state it expects. */
+const canRevert = (entry: IChangeEntry): boolean => hasInverse(entry) && entry.conflict == null;
 
 /**
  * The entries to revert so that the project returns to its state before change `seq`, newest first. A change, the
@@ -337,6 +343,8 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
             return t("pages.changes.revert.fulfilled", { seq: entry.fulfilledBy });
         } else if (!entry.revertible) {
             return t("pages.changes.revert.notRevertible");
+        } else if (entry.conflict != null) {
+            return t("pages.changes.revert.conflict", { reason: entry.conflict });
         } else {
             return undefined;
         }
@@ -365,7 +373,7 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                     icon="operation-undo"
                     intent="danger"
                     text={t("pages.changes.revertBack.action")}
-                    disabled={!backTo.some(canRevert)}
+                    disabled={!backTo.some(hasInverse)}
                     onClick={() =>
                         openBatchRevert(
                             t("pages.changes.revertBack.title", { seq: entry.seq }),
@@ -577,12 +585,12 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                     onConfirm={revertBatch}
                     onDiscard={() => setBatchRevert(undefined)}
                     render={() => {
-                        const skipped = batchRevert.entries.filter((entry) => !canRevert(entry)).length;
+                        const skipped = batchRevert.entries.filter((entry) => !hasInverse(entry)).length;
                         return (
                             <div>
                                 <p>{batchRevert.confirmText}</p>
                                 <ul>
-                                    {batchRevert.entries.filter(canRevert).map((entry) => (
+                                    {batchRevert.entries.filter(hasInverse).map((entry) => (
                                         <li key={entry.seq}>{entry.description}</li>
                                     ))}
                                 </ul>

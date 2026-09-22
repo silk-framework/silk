@@ -54,6 +54,10 @@ case class DeleteResource(path: String, expected: FileState) extends Change {
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
     ResourceChanges.expect(project, path, expected).delete()
   }
+
+  override def conflict(project: Project)(implicit userContext: UserContext): Option[String] = {
+    Change.conflictOf(ResourceChanges.expect(project, path, expected))
+  }
 }
 
 private[workspace] object ResourceChanges {
