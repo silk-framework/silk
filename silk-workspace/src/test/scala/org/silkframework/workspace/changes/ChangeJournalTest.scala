@@ -58,6 +58,9 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
 
   private def ruleIds(task: ProjectTask[TransformSpec]): Seq[String] = task.data.mappingRule.rules.allRules.map(_.id.toString)
 
+  /** The revert conflict of one entry, as a request about it alone would report it. */
+  private def revertConflict(journal: ChangeJournal, entry: ChangeEntry): Option[String] = journal.revertConflicts(Seq(entry)).get(entry.seq)
+
   it should "record every task addition, update and removal" in {
     val project = retrieveOrCreateProject("journalTasks")
     project.addTask[TransformSpec]("transform", transform(name))
@@ -254,13 +257,13 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     val dataset = DatasetSpec(PluginRegistry.create[Dataset]("text", ParameterValues(Map("file" -> ParameterStringValue("data.txt")))))
     project.addTask[GenericDatasetSpec]("dataset", dataset)
     val datasetAdded = journal.all.last
-    journal.revertConflict(datasetAdded) shouldBe None
+    revertConflict(journal, datasetAdded) shouldBe None
 
     // Reverting the addition would remove the dataset, which a task that reads it refuses; the revert itself says the same
     val transform = project.addTask[TransformSpec]("transform", TransformSpec(selection = DatasetSelection("dataset")))
     val transformAdded = journal.all.last
     val referenced = "Text dataset 'dataset' in project 'journalRevertConflicts' is still referenced by transform 'transform' (as input)."
-    journal.revertConflict(datasetAdded) shouldBe Some(referenced)
+    revertConflict(journal, datasetAdded) shouldBe Some(referenced)
     the[ChangeConflictException] thrownBy journal.revert(datasetAdded.seq) should have message referenced
     project.anyTaskOption("dataset") shouldBe defined
     // A batch reports the reference as a conflict instead of failing
@@ -269,20 +272,20 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     // A whole-task change conflicts once the task changed at all, a typed change once what it changes changed again
     transform.applyChange(AddMapping("transform", "root", name))
     val mappingAdded = journal.all.last
-    journal.revertConflict(transformAdded) shouldBe Some("Task 'transform' in project 'journalRevertConflicts' has been changed since.")
-    journal.revertConflict(mappingAdded) shouldBe None
+    revertConflict(journal, transformAdded) shouldBe Some("Task 'transform' in project 'journalRevertConflicts' has been changed since.")
+    revertConflict(journal, mappingAdded) shouldBe None
     transform.applyChange(UpdateMapping.of(transform, "name", name.copy(mappingTarget = MappingTarget("http://example.org/fullName"))))
-    journal.revertConflict(mappingAdded) shouldBe Some("Rule 'name' in transform 'transform' has been changed since.")
+    revertConflict(journal, mappingAdded) shouldBe Some("Rule 'name' in transform 'transform' has been changed since.")
     // A listing asks for all entries at once; the mapping update itself is unchanged since and reverts
     journal.revertConflicts(journal.all) shouldBe Map(datasetAdded.seq -> referenced,
       transformAdded.seq -> "Task 'transform' in project 'journalRevertConflicts' has been changed since.",
       mappingAdded.seq -> "Rule 'name' in transform 'transform' has been changed since.")
     // An entry without inverse has no conflict to report
-    journal.revertConflict(ChangeEntry(0, Instant.now, None, None, WorkflowExecuted("transform", None, failed = false))) shouldBe None
+    revertConflict(journal, ChangeEntry(0, Instant.now, None, None, WorkflowExecuted("transform", None, failed = false))) shouldBe None
 
     // Reverting the changes that stood in the way clears it: the batch unwinds newest-first
     journal.revertAll(Seq(transformAdded.seq, mappingAdded.seq, journal.all.last.seq)).foreach(_ shouldBe a[RevertOutcome.Reverted])
-    journal.revertConflict(datasetAdded) shouldBe None
+    revertConflict(journal, datasetAdded) shouldBe None
     journal.revert(datasetAdded.seq)
     project.anyTaskOption("dataset") shouldBe None
   }
@@ -307,7 +310,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
 
     // Restoring the node marks 'data' as replaceable input again while it is written to, which the workflow refuses
     val refused = "Datasets marked as replaceable input must not be used as output dataset! Affected dataset: data"
-    journal.revertConflict(removed) shouldBe Some(refused)
+    revertConflict(journal, removed) shouldBe Some(refused)
     journal.revertAll(Seq(removed.seq)) shouldBe Seq(RevertOutcome.Conflict(removed.seq, refused))
     // The single revert answers the same conflict instead of failing on the refusal, which it keeps as the cause
     val conflict = the[ChangeConflictException] thrownBy journal.revert(removed.seq)
@@ -629,7 +632,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
 
     // A variable that a task uses cannot be removed by reverting its addition, which is told before the revert is tried
     val used = "Variable 'fileName' in project 'journalVariableTasks' is still used by task 'dataset'."
-    journal.revertConflict(journal.all.head) shouldBe Some(used)
+    revertConflict(journal, journal.all.head) shouldBe Some(used)
     the[ChangeConflictException] thrownBy journal.revert(journal.all.head.seq) should have message used
     file shouldBe "a.csv"
     project.templateVariables.all.map("fileName").value shouldBe "a.csv"
@@ -646,7 +649,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
       executionVariables = TemplateVariables(Seq(TemplateVariable("input", "a.csv", Some("{{project.fileName}}"), scope = VariableScope.execution))))
 
     val used = "Variable 'fileName' in project 'journalVariableExecution' is still used by task 'dataset'."
-    journal.revertConflict(journal.all.head) shouldBe Some(used)
+    revertConflict(journal, journal.all.head) shouldBe Some(used)
     the[ChangeConflictException] thrownBy journal.revert(journal.all.head.seq) should have message used
     project.templateVariables.all.map("fileName").value shouldBe "a.csv"
   }
@@ -684,7 +687,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
       DatasetSpec(PluginRegistry.create[Dataset]("text", ParameterValues(Map("file" -> ParameterTemplateValue("{{project.base}}"))))))
 
     val used = "Variable 'base' in project 'journalVariableUsers' is still used by variable 'derived', task 'dataset'."
-    journal.revertConflict(added) shouldBe Some(used)
+    revertConflict(journal, added) shouldBe Some(used)
     the[ChangeConflictException] thrownBy journal.revert(added.seq) should have message used
     project.templateVariables.all.map("base").value shouldBe "a.csv"
   }

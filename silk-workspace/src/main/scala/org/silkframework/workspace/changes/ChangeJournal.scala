@@ -184,20 +184,9 @@ class ChangeJournal(project: Project) {
   }
 
   /**
-    * Why the entry cannot be reverted as the project is now, if it cannot: its inverse does not apply, e.g. the task
-    * has changed since, or the task it would remove is referenced by another task. A dry run of the inverse's
-    * conflict check: nothing is written, and the revert can still conflict if the project changes meanwhile.
-    * None for an entry without inverse; whether it has been reverted or fulfilled already is not checked here.
-    */
-  def revertConflict(entry: ChangeEntry)(implicit userContext: UserContext): Option[String] = {
-    revertConflicts(Seq(entry)).get(entry.seq)
-  }
-
-  /**
-    * The [[revertConflict]] of every entry that has one, by seq. What the checks share (which tasks reference which,
-    * which tasks a variable can affect) is gathered once per call instead of once per entry. Per entry remains a
-    * comparison against in-memory state, a file stat for a file creation, or, for a variable addition, the templates
-    * of the tasks that can use it.
+    * Why each entry cannot be reverted as the project is now, by seq: [[Change.conflict]] of its inverse, checked
+    * against one [[ConflictContext]] for all entries, so what the checks need is gathered once per call. An entry
+    * without inverse has none; whether an entry has been reverted or fulfilled already is not checked here.
     */
   def revertConflicts(entries: Seq[ChangeEntry])(implicit userContext: UserContext): Map[Int, String] = {
     val context = new ConflictContext(project)
