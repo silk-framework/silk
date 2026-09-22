@@ -4,6 +4,8 @@ import {
     CardActionsAux,
     Checkbox,
     FieldItem,
+    RadioButton,
+    TextField,
     Notification,
     PropertyName,
     PropertyValue,
@@ -33,6 +35,7 @@ import { routerOp } from "@ducks/router";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
 import { UploadNewFile } from "../FileUploader/cases/UploadNewFile/UploadNewFile";
 import { useProjectAclManagementComponent } from "../../../hooks/useProjectAclManagementComponent";
+import { requestProjectIdValidation } from "@ducks/common/requests";
 import { AppDispatch } from "store/configureStore";
 
 interface IProps {
@@ -44,6 +47,8 @@ interface IProps {
     maxFileUploadSizeBytes?: number;
 }
 
+type ImportDestination = "original" | "generated" | "custom";
+
 export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IProps) {
     const [t] = useTranslation();
     const [uppy] = useState(() => Uppy());
@@ -52,14 +57,50 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     const [projectImportId, setProjectImportId] = useState<string | null>(null);
     const [projectImportDetails, setProjectImportDetails] = useState<IProjectImportDetails | null>(null);
     const [approveReplacement, setApproveReplacement] = useState(false);
+    const [destination, setDestination] = useState<ImportDestination>("original");
+    const [customProjectId, setCustomProjectId] = useState("");
+    const [validatedProjectId, setValidatedProjectId] = useState<string | null>(null);
+    const [customIdError, setCustomIdError] = useState<string | null>(null);
+    const replacingProject = destination === "original" && !!projectImportDetails?.projectAlreadyExists;
+    const changeDestination = (value: ImportDestination) => {
+        setDestination(value);
+        setApproveReplacement(false);
+        setStartProjectImportExecutionError(null);
+    };
+    useEffect(() => {
+        setValidatedProjectId(null);
+        setCustomIdError(null);
+        if (destination !== "custom" || !customProjectId) return;
+        let cancelled = false;
+        const timeout = window.setTimeout(async () => {
+            try {
+                await requestProjectIdValidation(customProjectId);
+                if (!cancelled) setValidatedProjectId(customProjectId);
+            } catch (error) {
+                if (!cancelled) {
+                    setCustomIdError(
+                        t(
+                            error.httpStatus === 409
+                                ? "ProjectImportModal.projectIdAlreadyExists"
+                                : error.httpStatus === 400
+                                  ? "CreateModal.CustomIdentifierInput.validations.invalid"
+                                  : "ProjectImportModal.validationFailed",
+                        ),
+                    );
+                }
+            }
+        }, 200);
+        return () => {
+            cancelled = true;
+            window.clearTimeout(timeout);
+        };
+    }, [destination, customProjectId, t]);
     // Unexpected error for the file upload request
     const [uploadError, setUploadError] = useState<string | null>(null);
     // Unexpected error for the project details request
     const [projectDetailsError, setProjectDetailsError] = useState<string | null>(null);
     // Unexpected error for the project import execution request
-    const [startProjectImportExecutionError, setStartProjectImportExecutionError] = useState<
-        [string, boolean, boolean] | null
-    >(null);
+    const [startProjectImportExecutionError, setStartProjectImportExecutionError] = useState<string | null>(null);
     const projectAcl = React.useRef<AccessControlConfig | undefined>();
     const onChangeProjectAcl = React.useCallback((newProjectAcl: AccessControlConfig) => {
         projectAcl.current = newProjectAcl;
@@ -69,6 +110,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     const pendingSleepTimeoutId = React.useRef<number | null>(null);
     const aclManagement = useProjectAclManagementComponent({
         onChange: onChangeProjectAcl,
+        labelEmphasis: "strong",
         externalInitialAclGroups: { groups: [] },
     });
 
@@ -135,6 +177,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
             const response = await requestProjectImportDetails(projectImportId);
             if (!isUnmounted.current) {
                 setProjectImportDetails(response.data);
+                setDestination("original");
             }
         } catch (ex) {
             if (!isUnmounted.current) {
@@ -176,7 +219,9 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
         await uppy.upload();
     };
 
-    const startProjectImport = async (generateNewProjectId: boolean, overWriteExistingProject: boolean) => {
+    const startProjectImport = async () => {
+        const generateNewProjectId = destination === "generated";
+        const overWriteExistingProject = replacingProject;
         setStartProjectImportExecutionError(null);
         if (projectImportId) {
             importCancelled.current = false;
@@ -187,6 +232,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                     generateNewProjectId,
                     overWriteExistingProject,
                     overWriteExistingProject ? undefined : projectAcl.current?.groups,
+                    destination === "custom" ? customProjectId : undefined,
                 );
                 let status: Partial<IProjectExecutionStatus> = {};
                 const sleep = (ms: number) =>
@@ -220,19 +266,21 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                     close();
                     dispatch(routerOp.goToPage(absoluteProjectPath(status.projectId!)));
                 } else {
-                    setStartProjectImportExecutionError([
-                        status.failureMessage ?? "Project could not be imported.",
-                        generateNewProjectId,
-                        overWriteExistingProject,
-                    ]);
+                    setStartProjectImportExecutionError(status.failureMessage ?? t("ProjectImportModal.importFailed"));
                 }
             } catch (ex) {
                 if (!importCancelled.current && !isUnmounted.current) {
-                    setStartProjectImportExecutionError([
-                        " " + errorDetails(ex),
-                        generateNewProjectId,
-                        overWriteExistingProject,
-                    ]);
+                    setStartProjectImportExecutionError(errorDetails(ex) || t("ProjectImportModal.importFailed"));
+                    if (destination === "custom" && (ex.httpStatus === 409 || ex.httpStatus === 400)) {
+                        setValidatedProjectId(null);
+                        setCustomIdError(
+                            t(
+                                ex.httpStatus === 409
+                                    ? "ProjectImportModal.projectIdAlreadyExists"
+                                    : "CreateModal.CustomIdentifierInput.validations.invalid",
+                            ),
+                        );
+                    }
                 }
             } finally {
                 clearPendingImportTimeout();
@@ -243,7 +291,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
 
     // Extracts the error details from an exception
     const errorDetails = (error): string => {
-        let details = error?.message ? ` Details: ${error.message}` : "";
+        let details = error?.message ? String(error.message) : "";
         const idx = details.indexOf("Source error");
         if (idx > 0) {
             details = details.substring(0, idx);
@@ -258,7 +306,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     const handleUploadError = (fileData, error) => {
         let details = errorDetails(error);
         setUploadError(
-            t("ProjectImportModal.responseUploadError", "File {{file}} could not be uploaded! {{details}}", {
+            t("ProjectImportModal.responseUploadError", {
                 file: fileData.name,
                 details: details,
             }),
@@ -270,12 +318,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
         if (projectImportId) {
             setProjectImportId(projectImportId);
         } else {
-            setUploadError(
-                t(
-                    "ProjectImportModal.responseInvalid",
-                    "Invalid response received from project upload. Project import cannot proceed.",
-                ),
-            );
+            setUploadError(t("ProjectImportModal.responseInvalid"));
             uppy.reset();
         }
     };
@@ -291,41 +334,24 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
         />
     );
     const actions: React.JSX.Element[] = [];
-    if (projectImportDetails) {
-        if (!projectImportDetails.errorMessage && !projectImportDetails.projectAlreadyExists) {
-            actions.push(
-                <Button
-                    data-test-id={"startImportProjectBtn"}
-                    key="importProject"
-                    affirmative={true}
-                    onClick={() => startProjectImport(false, false)}
-                >
-                    {t("ProjectImportModal.importBtn")}
-                </Button>,
-            );
-        } else if (projectImportDetails.projectAlreadyExists) {
-            approveReplacement
-                ? actions.push(
-                      <Button
-                          data-test-id={"replaceImportProjectBtn"}
-                          key="replaceProject"
-                          disruptive={true}
-                          onClick={() => startProjectImport(false, true)}
-                      >
-                          {t("ProjectImportModal.replaceImportBtn")}
-                      </Button>,
-                  )
-                : actions.push(
-                      <Button
-                          data-test-id={"importUnderFreshIdBtn"}
-                          key="importAsFreshProject"
-                          affirmative={true}
-                          onClick={() => startProjectImport(true, false)}
-                      >
-                          {t("ProjectImportModal.importUnderFreshIdBtn")}
-                      </Button>,
-                  );
-        }
+    if (projectImportDetails && !projectImportDetails.errorMessage) {
+        actions.push(
+            <Button
+                data-test-id={replacingProject ? "replaceImportProjectBtn" : "startImportProjectBtn"}
+                key="importProject"
+                affirmative={!replacingProject}
+                disruptive={replacingProject}
+                disabled={
+                    loading ||
+                    (replacingProject && (!approveReplacement || !!projectImportDetails.noAccess)) ||
+                    (destination === "custom" &&
+                        (!customProjectId || validatedProjectId !== customProjectId || !!customIdError))
+                }
+                onClick={startProjectImport}
+            >
+                {t(replacingProject ? "ProjectImportModal.replaceImportBtn" : "ProjectImportModal.importBtn")}
+            </Button>,
+        );
     }
     // Add 'Cancel' button
     actions.push(
@@ -338,7 +364,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
         <CardActionsAux key="aux">
             {back && (
                 <Button key="back" onClick={goBack}>
-                    {t("common.words.back", "Back")}
+                    {t("common.words.back")}
                 </Button>
             )}
         </CardActionsAux>,
@@ -361,17 +387,17 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     const projectDetails = (details: IProjectImportDetails) => {
         return (
             <>
-                <TitleSubsection>{t("ProjectImportModal.importSummary", "Imported project summary")}</TitleSubsection>
+                <TitleSubsection>{t("ProjectImportModal.importSummary")}</TitleSubsection>
                 <PropertyValueList>
                     {!!details.label && (
                         <PropertyValuePair hasDivider key={"label"}>
-                            <PropertyName>{t("form.field.label", "Label")}</PropertyName>
+                            <PropertyName>{t("form.field.label")}</PropertyName>
                             <PropertyValue>{details.label}</PropertyValue>
                         </PropertyValuePair>
                     )}
                     {!!details.description && (
                         <PropertyValuePair hasSpacing hasDivider>
-                            <PropertyName>{t("form.field.description", "Description")}</PropertyName>
+                            <PropertyName>{t("form.field.description")}</PropertyName>
                             <PropertyValue>
                                 <StringPreviewContentBlobToggler
                                     className="di__dataset__metadata-description"
@@ -382,15 +408,86 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                                             {details.description}
                                         </Markdown>
                                     }
-                                    toggleExtendText={t("common.words.more", "more")}
-                                    toggleReduceText={t("common.words.less", "less")}
+                                    toggleExtendText={t("common.words.more")}
+                                    toggleReduceText={t("common.words.less")}
                                     useOnly={"firstNonEmptyLine"}
                                 />
                             </PropertyValue>
                         </PropertyValuePair>
                     )}
                 </PropertyValueList>
-                {!approveReplacement && aclManagement.component ? aclManagement.component : null}
+                <Spacing />
+                <FieldItem
+                    labelProps={{
+                        text: t("ProjectImportModal.destination"),
+                        id: "import-destination-label",
+                        emphasis: "strong",
+                    }}
+                >
+                    <div role="radiogroup" aria-labelledby="import-destination-label" data-test-id="importDestination">
+                        <RadioButton
+                            name="import-destination"
+                            data-test-id="importDestinationOriginal"
+                            checked={destination === "original"}
+                            onChange={() => changeDestination("original")}
+                            label={t("ProjectImportModal.destinationOriginal", { id: details.projectId })}
+                        />
+                        <RadioButton
+                            name="import-destination"
+                            data-test-id="importDestinationGenerated"
+                            checked={destination === "generated"}
+                            onChange={() => changeDestination("generated")}
+                            label={t("ProjectImportModal.destinationGenerated")}
+                        />
+                        <RadioButton
+                            name="import-destination"
+                            data-test-id="importDestinationCustom"
+                            checked={destination === "custom"}
+                            onChange={() => changeDestination("custom")}
+                            label={t("ProjectImportModal.destinationCustom")}
+                        />
+                    </div>
+                </FieldItem>
+                {destination === "custom" && (
+                    <FieldItem
+                        data-test-id="customProjectIdField"
+                        labelProps={{
+                            text: t("CreateModal.CustomIdentifierInput.ProjectId"),
+                            htmlFor: "import-custom-id",
+                        }}
+                        intent={customIdError ? "danger" : undefined}
+                        messageText={customIdError ?? undefined}
+                        helperText={t("CreateModal.CustomIdentifierInput.helperDescription")}
+                    >
+                        <TextField
+                            id="import-custom-id"
+                            data-test-id="customProjectIdInput"
+                            value={customProjectId}
+                            required
+                            intent={customIdError ? "danger" : undefined}
+                            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                                setCustomProjectId(event.target.value);
+                                setValidatedProjectId(null);
+                                setCustomIdError(null);
+                                setStartProjectImportExecutionError(null);
+                            }}
+                        />
+                    </FieldItem>
+                )}
+                {replacingProject && projectExistsNotification(details)}
+                {!replacingProject && aclManagement.component && (
+                    <div data-test-id="importProjectGroups">
+                        <Spacing />
+                        {aclManagement.component}
+                    </div>
+                )}
+                {startProjectImportExecutionError && (
+                    <Notification
+                        data-test-id="projectImportError"
+                        intent="danger"
+                        message={startProjectImportExecutionError}
+                    />
+                )}
             </>
         );
     };
@@ -407,7 +504,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                               <Button
                                   key={"openExistingProjectKey"}
                                   href={absoluteProjectPath(details.projectId)}
-                                  target={"_empty"}
+                                  target={"_blank"}
                               >
                                   {t("ProjectImportModal.openExistingProject")}
                               </Button>,
@@ -422,32 +519,26 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                     )}
                 </Markdown>
                 <Spacing />
-                <Checkbox
-                    data-test-id={"replaceExistingProjectCheckBox"}
-                    inline={true}
-                    checked={approveReplacement}
-                    onChange={handleApproveReplacement}
-                >
-                    <strong>{t("ProjectImportModal.replaceImportBtn")}</strong>
-                </Checkbox>
+                {!cannotOverwrite && (
+                    <Checkbox
+                        data-test-id={"replaceExistingProjectCheckBox"}
+                        inline={true}
+                        checked={approveReplacement}
+                        onChange={handleApproveReplacement}
+                    >
+                        <strong>{t("ProjectImportModal.replaceImportBtn")}</strong>
+                    </Checkbox>
+                )}
             </Notification>
         );
     };
 
     const projectDetailElement = (details: IProjectImportDetails) => {
-        if (details.projectAlreadyExists) {
-            return (
-                <>
-                    {projectExistsNotification(details)}
-                    <Spacing />
-                    {projectDetails(details)}
-                </>
-            );
-        } else if (details.errorMessage) {
+        if (details.errorMessage) {
             return (
                 <Notification
                     intent="danger"
-                    message={"The project cannot be imported. Details: " + details.errorMessage}
+                    message={t("ProjectImportModal.invalidArchive", { details: details.errorMessage })}
                 />
             );
         } else {
@@ -476,12 +567,8 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
         <Loading delay={0} />
     ) : projectDetailsError !== null ? (
         errorRetryElement(
-            "Failed to retrieve project import details. " + projectDetailsError,
+            t("ProjectImportModal.detailsFailed", { details: projectDetailsError }),
             () => projectImportId && loadProjectImportDetails(projectImportId),
-        )
-    ) : startProjectImportExecutionError ? (
-        errorRetryElement(`${t("common.messages.anErrorHasOccurred")} ${startProjectImportExecutionError[0]}`, () =>
-            startProjectImport(startProjectImportExecutionError[1], startProjectImportExecutionError[2]),
         )
     ) : projectImportDetails ? (
         projectDetailElement(projectImportDetails)
