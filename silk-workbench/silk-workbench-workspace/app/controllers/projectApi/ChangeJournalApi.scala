@@ -53,12 +53,11 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
     val revertedBy = journal.revertedBy(entries)
     val fulfilledBy = journal.fulfilledBy(entries)
     val unreviewed = journal.unreviewed(entries, reviewedUpTo).map(_.seq).toSet
+    // Checked only where a revert would be attempted
+    val conflicts = journal.revertConflicts(entries.filterNot(entry => revertedBy.contains(entry.seq) || fulfilledBy.contains(entry.seq)))
     Ok(Json.toJson(ChangeListJson(reviewedUpTo,
       entries.reverse.map { entry =>
-        val (reverted, fulfilled) = (revertedBy.get(entry.seq), fulfilledBy.get(entry.seq))
-        // Checked only where a revert would be attempted
-        val conflict = if(reverted.isEmpty && fulfilled.isEmpty) journal.revertConflict(entry) else None
-        ChangeEntryJson.of(project, entry, reverted, fulfilled, unreviewed.contains(entry.seq), conflict)
+        ChangeEntryJson.of(project, entry, revertedBy.get(entry.seq), fulfilledBy.get(entry.seq), unreviewed.contains(entry.seq), conflicts.get(entry.seq))
       })))
   }
 

@@ -32,7 +32,14 @@ case class DeleteVariableModification(project: Project, variableName: String, ta
   /**
     * Retrieves the tasks that would become invalid by this modification.
     */
-  def invalidTasks()(implicit user: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
+  def invalidTasks()(implicit user: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = invalidTasks(project.allTasks)
+
+  /**
+    * The tasks among the given ones that would become invalid by this modification, for a caller that knows which
+    * tasks a variable can affect at all ([[DeleteVariableModification.affectableTasks]]), e.g. the change journal
+    * checking many entries. An execution variable only concerns its own task, so the given tasks are ignored for it.
+    */
+  def invalidTasks(among: Seq[ProjectTask[_ <: TaskSpec]])(implicit user: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
     taskId match {
       case Some(id) =>
         // Execution variables can only be referenced by parameter templates of the task itself.
@@ -60,9 +67,9 @@ case class DeleteVariableModification(project: Project, variableName: String, ta
         // Match the resolution of execution-variable templates at save time (parent scopes without sensitive variables).
         val saveTimeParents = allNewVariables.withoutSensitiveVariables()
 
-        // Report tasks whose parameter templates break or that still reference the deleted variable.
+        // Report tasks whose parameter templates break or that still reference the deleted variable: the three uses affectableTasks looks for.
         val currentContext: PluginContext = PluginContext.fromProject(project)
-        project.allTasks.toSeq.filter { task =>
+        among.filter { task =>
           val breaksParameterTemplates =
             try {
               hasUpdatedTemplateValues(task, currentContext, allCurrentVariables, allNewVariables)
@@ -120,5 +127,22 @@ case class DeleteVariableModification(project: Project, variableName: String, ta
 
   override protected def generateException(task: Task[_ <: TaskSpec], cause: Throwable): CannotModifyVariablesUsedByTaskException = {
     CannotDeleteVariableUsedByTaskException(variableName, task, cause)
+  }
+}
+
+object DeleteVariableModification {
+
+  /**
+    * The tasks a project variable can affect at all: those with an execution-variable template, a template in their
+    * rules or a parameter template, i.e. what [[DeleteVariableModification.invalidTasks]] looks for. Gathered before
+    * the check, so that many checks against the same project share it. Cheapest test first; the parameters need reflection.
+    */
+  def affectableTasks(project: Project)(implicit user: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
+    implicit val context: PluginContext = PluginContext.fromProject(project)
+    project.allTasks.filter { task =>
+      task.executionVariables.variables.exists(_.template.isDefined) ||
+        task.data.referencedVariables.nonEmpty ||
+        task.data.parameters.hasTemplates
+    }
   }
 }

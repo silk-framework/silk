@@ -189,7 +189,18 @@ class ChangeJournal(project: Project) {
     * None for an entry without inverse; whether it has been reverted or fulfilled already is not checked here.
     */
   def revertConflict(entry: ChangeEntry)(implicit userContext: UserContext): Option[String] = {
-    entry.change.inverse.flatMap(_.conflict(project))
+    revertConflicts(Seq(entry)).get(entry.seq)
+  }
+
+  /**
+    * The [[revertConflict]] of every entry that has one, by seq. What the checks share (which tasks reference which,
+    * which tasks a variable can affect) is gathered once per listing instead of once per entry. Per entry remains a
+    * comparison against in-memory state, a file stat for a file creation, or, for a variable addition, the templates
+    * of the tasks that can use it.
+    */
+  def revertConflicts(entries: Seq[ChangeEntry])(implicit userContext: UserContext): Map[Int, String] = {
+    val context = new ConflictContext(project)
+    (for(entry <- entries; conflict <- entry.change.inverse.flatMap(_.conflict(context))) yield entry.seq -> conflict).toMap
   }
 
   /**

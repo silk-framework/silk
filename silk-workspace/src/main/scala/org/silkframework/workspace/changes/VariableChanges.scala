@@ -30,8 +30,8 @@ case class SetVariable(before: Option[TemplateVariable], after: TemplateVariable
     VariableChanges.modify(UpdateVariableModification(project, after).execute())
   }
 
-  override def conflict(project: Project)(implicit userContext: UserContext): Option[String] = {
-    Change.conflictOf(VariableChanges.expect(project, after.name, before))
+  override def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String] = {
+    Change.conflictOf(VariableChanges.expect(context.project, after.name, before))
   }
 
   // The values may be sensitive, so they are never printed.
@@ -49,20 +49,21 @@ case class RemoveVariable(variable: TemplateVariable) extends Change {
   override def inverse: Option[SetVariable] = Some(SetVariable(None, variable))
 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
-    val modification = expectRemovable(project)
+    val modification = expectRemovable(new ConflictContext(project))
     VariableChanges.modify(modification.execute())
   }
 
-  override def conflict(project: Project)(implicit userContext: UserContext): Option[String] = {
-    Change.conflictOf(expectRemovable(project))
+  override def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String] = {
+    Change.conflictOf(expectRemovable(context))
   }
 
   // Unchanged since and used by no other variable or task, which the modification would refuse for.
-  private def expectRemovable(project: Project)(implicit userContext: UserContext): DeleteVariableModification = {
+  private def expectRemovable(context: ConflictContext)(implicit userContext: UserContext): DeleteVariableModification = {
+    val project = context.project
     VariableChanges.expect(project, variable.name, Some(variable))
     val modification = DeleteVariableModification(project, variable.name)
     val users = modification.dependentVariables().map(name => s"variable '$name'") ++
-      modification.invalidTasks().map(task => s"task '${task.labelOrId}'")
+      modification.invalidTasks(context.templatedTasks).map(task => s"task '${task.labelOrId}'")
     if(users.nonEmpty) {
       throw ChangeConflictException(s"Variable '${variable.name}' in project '${project.id}' is still used by ${users.mkString(", ")}.")
     }

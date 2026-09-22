@@ -30,8 +30,8 @@ case class AddTask(task: PlainTask[TaskSpec]) extends Change with NamesTask {
     project.restoreTask(task)
   }
 
-  override def conflict(project: Project)(implicit userContext: UserContext): Option[String] = {
-    Change.conflictOf(expectAbsent(project))
+  override def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String] = {
+    Change.conflictOf(expectAbsent(context.project))
   }
 
   private def expectAbsent(project: Project)(implicit userContext: UserContext): Unit = {
@@ -56,18 +56,19 @@ case class RemoveTask(task: PlainTask[TaskSpec]) extends Change with NamesTask {
   override def inverse: Option[AddTask] = Some(AddTask(task))
 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
-    expectRemovable(project)
+    expectRemovable(new ConflictContext(project))
     project.removeAnyTask(task.id, removeDependentTasks = false)
   }
 
-  override def conflict(project: Project)(implicit userContext: UserContext): Option[String] = {
-    Change.conflictOf(expectRemovable(project))
+  override def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String] = {
+    Change.conflictOf(expectRemovable(context))
   }
 
   // Unchanged since and referenced by no other task: what the removal would refuse for, in the journal's words.
-  private def expectRemovable(project: Project)(implicit userContext: UserContext): Unit = {
-    val current = TaskChanges.expectState(project, task)
-    val references = current.findDependentTasks(recursive = false).toSeq.sortBy(_.toString).map(project.anyTask(_))
+  private def expectRemovable(context: ConflictContext)(implicit userContext: UserContext): Unit = {
+    val project = context.project
+    TaskChanges.expectState(project, task)
+    val references = context.referencingTasks.getOrElse(task.id, Seq.empty).sortBy(_.id.toString)
     if(references.nonEmpty) {
       val by = references.map(t => s"${TaskChanges.kind(t.data)} '${t.labelOrId}' (${project.referenceKind(t.data, task.id)})")
       throw ChangeConflictException(s"${TaskChanges.kind(task.data).capitalize} '${task.labelOrId}' in project '${project.id}' " +
@@ -104,8 +105,8 @@ case class ReplaceTask(before: PlainTask[TaskSpec], after: PlainTask[TaskSpec]) 
     task.update(after.data, Some(after.metaData.withoutUserData), Some(after.executionVariables))
   }
 
-  override def conflict(project: Project)(implicit userContext: UserContext): Option[String] = {
-    Change.conflictOf(TaskChanges.expectState(project, before))
+  override def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String] = {
+    Change.conflictOf(TaskChanges.expectState(context.project, before))
   }
 
   override def toString: String = s"ReplaceTask($taskId)"

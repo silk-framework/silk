@@ -273,6 +273,10 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     journal.revertConflict(mappingAdded) shouldBe None
     transform.applyChange(UpdateMapping.of(transform, "name", name.copy(mappingTarget = MappingTarget("http://example.org/fullName"))))
     journal.revertConflict(mappingAdded) shouldBe Some("Rule 'name' in transform 'transform' has been changed since.")
+    // A listing asks for all entries at once; the mapping update itself is unchanged since and reverts
+    journal.revertConflicts(journal.all) shouldBe Map(datasetAdded.seq -> referenced,
+      transformAdded.seq -> "Task 'transform' in project 'journalRevertConflicts' has been changed since.",
+      mappingAdded.seq -> "Rule 'name' in transform 'transform' has been changed since.")
     // An entry without inverse has no conflict to report
     journal.revertConflict(ChangeEntry(0, Instant.now, None, None, WorkflowExecuted("transform", None, failed = false))) shouldBe None
 
@@ -624,6 +628,22 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     journal.revertConflict(journal.all.head) shouldBe Some(used)
     the[ChangeConflictException] thrownBy journal.revert(journal.all.head.seq) should have message used
     file shouldBe "a.csv"
+    project.templateVariables.all.map("fileName").value shouldBe "a.csv"
+  }
+
+  it should "count an execution-variable template as a use of the variable" in {
+    val project = retrieveOrCreateProject("journalVariableExecution")
+    val journal = project.changeJournal
+    UpdateVariableModification(project, variable("fileName", "a.csv")).execute()
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
+    // The task's own parameters hold no template; only its execution variable does
+    val dataset = PluginRegistry.create[Dataset]("text", ParameterValues(Map("file" -> ParameterStringValue("data.txt"))))
+    project.addTask[GenericDatasetSpec]("dataset", DatasetSpec(dataset),
+      executionVariables = TemplateVariables(Seq(TemplateVariable("input", "a.csv", Some("{{project.fileName}}"), scope = VariableScope.execution))))
+
+    val used = "Variable 'fileName' in project 'journalVariableExecution' is still used by task 'dataset'."
+    journal.revertConflict(journal.all.head) shouldBe Some(used)
+    the[ChangeConflictException] thrownBy journal.revert(journal.all.head.seq) should have message used
     project.templateVariables.all.map("fileName").value shouldBe "a.csv"
   }
 

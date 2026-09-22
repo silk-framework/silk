@@ -48,9 +48,10 @@ trait Change {
     * Why [[applyTo]] would conflict as the project is now, if it would: the project is not in the state this change
     * expects, e.g. a task changed since, or the write would be refused, e.g. removing a task that another task
     * references. Checked without writing, so a change that passes can still conflict if the project changes meanwhile.
-    * The journal asks this of an entry's inverse, to tell before a revert is tried whether it applies.
+    * The journal asks this of an entry's inverse, to tell before a revert is tried whether it applies. The context
+    * holds what the checks of one listing share, e.g. which tasks reference which, so that each gathers it once.
     */
-  def conflict(project: Project)(implicit userContext: UserContext): Option[String]
+  def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String]
 }
 
 /**
@@ -64,7 +65,7 @@ trait Proposal extends Change {
     throw new IllegalStateException(s"A proposal is not applied as a change: $summary.")
   }
 
-  final override def conflict(project: Project)(implicit userContext: UserContext): Option[String] = {
+  final override def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String] = {
     Some(s"A proposal is not applied as a change: $summary.")
   }
 }
@@ -122,7 +123,7 @@ trait RecordedChange extends Change {
     throw new IllegalStateException(s"$changeType records the outcome of a write and cannot be applied.")
   }
 
-  override def conflict(project: Project)(implicit userContext: UserContext): Option[String] = {
+  override def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String] = {
     Some(s"$changeType records the outcome of a write and cannot be applied.")
   }
 }
@@ -171,8 +172,8 @@ abstract class TaskChange[T <: TaskSpec : ClassTag] extends Change with NamesTas
   }
 
   // Applied to the current data and discarded: apply is pure, so this is the check without the write.
-  override def conflict(project: Project)(implicit userContext: UserContext): Option[String] = {
-    Change.conflictOf(applyAny(currentTask(project).data))
+  override def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String] = {
+    Change.conflictOf(applyAny(currentTask(context.project).data))
   }
 
   private def currentTask(project: Project)(implicit userContext: UserContext): ProjectTask[_ <: TaskSpec] = {
