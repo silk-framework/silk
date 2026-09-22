@@ -46,10 +46,12 @@ trait Change {
 
   /**
     * Why [[applyTo]] would conflict as the project is now, if it would: the project is not in the state this change
-    * expects, e.g. a task changed since, or the write would be refused, e.g. removing a task that another task
-    * references. Checked without writing, so a change that passes can still conflict if the project changes meanwhile.
-    * The journal asks this of an entry's inverse, to tell before a revert is tried whether it applies. The context
-    * holds what the checks of one listing share, e.g. which tasks reference which, so that each gathers it once.
+    * expects, e.g. a task changed since, or the write would be refused for a reference, e.g. removing a task that
+    * another task references. The write's own validation is not run and can still refuse, e.g. a restored variable
+    * value that a task does not accept. Checked without writing, so a change that passes can still conflict if the
+    * project changes meanwhile. The journal asks this of an entry's inverse, to tell before a revert is tried whether
+    * it applies. The context holds what the checks of one listing share, e.g. which tasks reference which, so that
+    * each gathers it once.
     */
   def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String]
 }
@@ -61,13 +63,11 @@ trait Change {
   */
 trait Proposal extends Change {
 
-  final override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
-    throw new IllegalStateException(s"A proposal is not applied as a change: $summary.")
-  }
+  final override def applyTo(project: Project)(implicit userContext: UserContext): Unit = throw new IllegalStateException(notApplied)
 
-  final override def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String] = {
-    Some(s"A proposal is not applied as a change: $summary.")
-  }
+  final override def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String] = Some(notApplied)
+
+  private def notApplied: String = s"A proposal is not applied as a change: $summary."
 }
 
 object Change {
@@ -119,13 +119,11 @@ object ChangeDetail {
 /** A change recorded from the outcome of a write, e.g. a file write or a workflow run. It holds no content, so it is not applied itself. */
 trait RecordedChange extends Change {
 
-  override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
-    throw new IllegalStateException(s"$changeType records the outcome of a write and cannot be applied.")
-  }
+  override def applyTo(project: Project)(implicit userContext: UserContext): Unit = throw new IllegalStateException(notApplied)
 
-  override def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String] = {
-    Some(s"$changeType records the outcome of a write and cannot be applied.")
-  }
+  override def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String] = Some(notApplied)
+
+  private def notApplied: String = s"$changeType records the outcome of a write and cannot be applied."
 }
 
 /** A change that names the task it concerns, whether or not it changes the task's data. */

@@ -238,7 +238,8 @@ object ChangeJournalApi {
                              revertible: Boolean,
                              @Schema(description = "Why a revertible change cannot be reverted as the project is now: its inverse does not apply, " +
                                "e.g. the task has changed since, or the task it would remove is still referenced by another task. Checked when " +
-                               "listing, without writing, so a revert can still conflict if the project changes meanwhile. Absent when the revert " +
+                               "listing, without writing, so a revert can still conflict if the project changes meanwhile; the write's own " +
+                               "validation, e.g. of a restored variable value that a task does not accept, is not run and can still refuse. Absent when the revert " +
                                "applies, and for a change that is not revertible or has been reverted already. Reverting the newer changes first " +
                                "may clear it, so a batch still attempts the change.")
                              conflict: Option[String],

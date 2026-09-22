@@ -68,9 +68,9 @@ case class RemoveTask(task: PlainTask[TaskSpec]) extends Change with NamesTask {
   private def expectRemovable(context: ConflictContext)(implicit userContext: UserContext): Unit = {
     val project = context.project
     TaskChanges.expectState(project, task)
-    val references = context.referencingTasks.getOrElse(task.id, Seq.empty).sortBy(_.id.toString)
+    val references = context.referencingTasks.getOrElse(task.id, Seq.empty)
     if(references.nonEmpty) {
-      val by = references.map(t => s"${TaskChanges.kind(t.data)} '${t.labelOrId}' (${project.referenceKind(t.data, task.id)})")
+      val by = references.map(r => s"${TaskChanges.kind(r.task.data)} '${r.task.labelOrId}' (${r.describe})")
       throw ChangeConflictException(s"${TaskChanges.kind(task.data).capitalize} '${task.labelOrId}' in project '${project.id}' " +
         s"is still referenced by ${by.mkString(", ")}.")
     }

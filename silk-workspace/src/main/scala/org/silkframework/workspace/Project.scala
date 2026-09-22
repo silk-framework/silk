@@ -405,9 +405,9 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, project
     // Find the task in the project
     modules.view.flatMap(module => module.taskOption(taskName).map(task => (module, task))).headOption match {
       case Some((module, _)) =>
-        val tasks = allTasks
-        val referencingTasks = tasks.filter(_.data.referencedTasks.contains(taskName)).sortBy(_.id.toString)
-        val dependentTasks = withIndirectDependents(tasks, taskName, referencingTasks.map(_.id))
+        val references = TaskReferences.of(allTasks)
+        val referencingTasks = references.getOrElse(taskName, Seq.empty)
+        val dependentTasks = withIndirectDependents(references, taskName, referencingTasks.map(_.task.id))
         if(dependentTasks.nonEmpty && !removeDependentTasks) {
           // The caller decides whether to cascade, so the REST endpoints answer 409, not 500.
           throw ConflictRequestException(deletionRejectedMessage(taskName, referencingTasks, dependentTasks))
@@ -436,39 +436,25 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, project
     * The direct dependents and every task that directly or indirectly references one of them, nearest first.
     * Each task is visited once, so a reference cycle terminates.
     */
-  private def withIndirectDependents(tasks: Seq[ProjectTask[_ <: TaskSpec]], root: Identifier, direct: Seq[Identifier]): Seq[Identifier] = {
+  private def withIndirectDependents(references: Map[Identifier, Seq[ReferencingTask]], root: Identifier, direct: Seq[Identifier]): Seq[Identifier] = {
     val found = mutable.LinkedHashSet[Identifier]() ++ direct
-    var frontier = direct.toSet
+    var frontier = direct
     while(frontier.nonEmpty) {
-      val next = tasks.filter(t => t.id != root && !found.contains(t.id) && t.data.referencedTasks.exists(frontier)).map(_.id)
+      val next = frontier.flatMap(id => references.getOrElse(id, Seq.empty).map(_.task.id)).distinct
+        .filterNot(id => id == root || found.contains(id))
       found ++= next
-      frontier = next.toSet
+      frontier = next
     }
     found.toSeq
   }
 
   /** Names the referencing tasks and, as the blast radius, every task that removeDependentTasks=true would delete. */
   private def deletionRejectedMessage(taskName: Identifier,
-                                      referencingTasks: Seq[ProjectTask[_ <: TaskSpec]],
+                                      referencingTasks: Seq[ReferencingTask],
                                       dependentTasks: Seq[Identifier]): String = {
-    val references = referencingTasks.map(t => s"${t.id} (${referenceKind(t.data, taskName)})").mkString(", ")
+    val references = referencingTasks.map(r => s"${r.task.id} (${r.describe})").mkString(", ")
     s"Cannot delete task $taskName as it is referenced by task${if(referencingTasks.size > 1) "s" else ""} $references. " +
       s"Pass removeDependentTasks=true to delete it together with all tasks that depend on it: ${dependentTasks.map(_.toString).sorted.mkString(", ")}."
-  }
-
-  /** How `referencingTask` refers to `referenced`, so a rejected deletion says where to look. */
-  private[workspace] def referenceKind(referencingTask: TaskSpec, referenced: Identifier): String = {
-    val kinds = Seq(
-      Option.when(referencingTask.inputTasks.contains(referenced))("as input"),
-      Option.when(referencingTask.outputTasks.contains(referenced))("as output")
-    ).flatten
-    if(kinds.nonEmpty) {
-      kinds.mkString(" and ")
-    } else referencingTask match {
-      // Sources and sinks were matched above, so the node sits on the canvas without connections.
-      case _: Workflow => "as a workflow node without connections"
-      case _ => "in its rules or configuration"
-    }
   }
 
   /** Returns the user context for read and write operations to the workspace provider. */
