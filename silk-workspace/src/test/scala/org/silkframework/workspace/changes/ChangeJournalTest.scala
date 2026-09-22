@@ -18,6 +18,7 @@ import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, T
 import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
 import org.silkframework.util.{ConfigTestTrait, Uri}
+import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
 import org.silkframework.workspace.variables.{DeleteVariableModification, UpdateVariableModification}
 import org.silkframework.workspace.{ProjectTask, TestWorkspaceProviderTestTrait, WorkspaceFactory}
 
@@ -280,6 +281,31 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     journal.revertConflict(datasetAdded) shouldBe None
     journal.revert(datasetAdded.seq)
     project.anyTaskOption("dataset") shouldBe None
+  }
+
+  it should "report a revert whose result the task refuses as a conflict instead of failing on it" in {
+    val project = retrieveOrCreateProject("journalRevertRefused")
+    val journal = project.changeJournal
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
+    project.addTask[GenericDatasetSpec]("data", DatasetSpec(PluginRegistry.create[Dataset]("text", ParameterValues(Map("file" -> ParameterStringValue("data.txt"))))))
+    project.addTask[TransformSpec]("transform", TransformSpec(selection = DatasetSelection("data")))
+    val input = WorkflowDataset(inputs = Seq.empty, task = "data", outputs = Seq("transform"), position = (0, 0), nodeId = "data",
+      configInputs = Seq.empty, dependencyInputs = Seq.empty)
+    val operator = WorkflowOperator(inputs = Seq(Some("data")), task = "transform", outputs = Seq.empty, errorOutputs = Seq.empty,
+      position = (0, 0), nodeId = "transform", configInputs = Seq.empty, dependencyInputs = Seq.empty)
+    val workflow = project.addTask[Workflow]("wf", Workflow(operators = Seq(operator), datasets = Seq(input), replaceableInputs = Seq("data")))
+
+    // The replaceable input is removed; the dataset then comes back as the output of the transform
+    workflow.applyChanges(RemoveWorkflowNode.of(workflow, "data"))
+    val removed = journal.all.last
+    workflow.applyChange(AddWorkflowNode("wf", input.copy(nodeId = "output", outputs = Seq.empty)))
+    workflow.applyChange(ConnectWorkflowNodes.data(workflow, "transform", "output", targetInputIndex = None).get)
+
+    // Restoring the node marks 'data' as replaceable input again while it is written to, which the workflow refuses
+    val refused = "Datasets marked as replaceable input must not be used as output dataset! Affected dataset: data"
+    journal.revertConflict(removed) shouldBe Some(refused)
+    journal.revertAll(Seq(removed.seq)) shouldBe Seq(RevertOutcome.Conflict(removed.seq, refused))
+    workflow.data.nodes.map(_.nodeId) shouldBe Seq("transform", "output")
   }
 
   it should "reorder rules and revert the order" in {

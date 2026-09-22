@@ -251,8 +251,9 @@ class ChangeJournal(project: Project) {
               // The project is unchanged, so the older entries can still be reverted.
               case ex: ChangeNotRevertedException =>
                 outcomes += RevertOutcome.Unchanged(seq, ex.getMessage)
-              // An I/O failure, e.g. a file that cannot be deleted, stops the batch with its outcomes reported.
-              case ex @ (_: ChangeConflictException | _: ValidationException | _: NotFoundException | _: IOException) =>
+              // An I/O failure, e.g. a file that cannot be deleted, or a spec that does not validate with the inverse applied
+              // stops the batch with its outcomes reported.
+              case ex @ (_: ChangeConflictException | _: ValidationException | _: NotFoundException | _: IOException | _: IllegalArgumentException) =>
                 outcomes += RevertOutcome.Conflict(seq, ex.getMessage)
                 stopped = true
             }

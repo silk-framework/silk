@@ -7,6 +7,7 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
 
 import scala.reflect.{ClassTag, classTag}
+import scala.util.control.NonFatal
 
 /**
   * A change of a project, as recorded in its [[ChangeJournal]].
@@ -73,13 +74,16 @@ object Change {
   /** At most this many details go into [[Change.describe]]. */
   private val maxDetails = 5
 
-  /** The reason a check refuses with, or None if it passes: the conflict check of a change, run without the write. */
+  /**
+    * The reason a check refuses with, or None if it passes: the conflict check of a change, run without the write.
+    * Any failure is a refusal, e.g. a workflow that does not validate with the change applied: the write would fail the same way.
+    */
   def conflictOf(check: => Unit): Option[String] = {
     try {
       check
       None
     } catch {
-      case ex: ChangeConflictException => Some(ex.getMessage)
+      case NonFatal(ex) => Some(Option(ex.getMessage).getOrElse(ex.toString))
     }
   }
 
