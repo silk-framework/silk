@@ -15,21 +15,31 @@ const ChangesWidget = () => {
     const [t] = useTranslation();
     const [unreviewed, setUnreviewed] = React.useState<number>(0);
 
+    // Fetched on load and whenever the tab comes back into view, so that changes made meanwhile, e.g. by an agent, show up
     React.useEffect(() => {
         if (!projectId) {
             return;
         }
         let stale = false;
         // A failure leaves the widget as it is: the count is a hint, the changes page reports its errors itself
-        requestChangeSummary(projectId)
-            .then((response) => {
-                if (!stale) {
-                    setUnreviewed(response.data.unreviewed);
-                }
-            })
-            .catch(() => {});
+        const fetchSummary = () =>
+            requestChangeSummary(projectId)
+                .then((response) => {
+                    if (!stale) {
+                        setUnreviewed(response.data.unreviewed);
+                    }
+                })
+                .catch(() => {});
+        const onVisible = () => {
+            if (document.visibilityState === "visible") {
+                fetchSummary();
+            }
+        };
+        fetchSummary();
+        document.addEventListener("visibilitychange", onVisible);
         return () => {
             stale = true;
+            document.removeEventListener("visibilitychange", onVisible);
         };
     }, [projectId]);
 

@@ -1,6 +1,6 @@
 import React from "react";
 import "@testing-library/jest-dom";
-import { waitFor } from "@testing-library/react";
+import { act, waitFor } from "@testing-library/react";
 import mockAxios from "../../../../__mocks__/axios";
 import { apiUrl, byTestId, mockedAxiosResponse, renderWrapper, workspacePath } from "../../../TestHelper";
 import { createBrowserHistory } from "history";
@@ -32,6 +32,25 @@ describe("Changes widget", () => {
             expect(wrapper.container.querySelector("h2")?.textContent).toBe("Changes (3 unreviewed)");
         });
         expect(wrapper.container.querySelector(byTestId("open-project-changes-btn"))).toBeInTheDocument();
+    });
+
+    it("should refetch the count when the tab comes back into view", async () => {
+        const wrapper = renderWidget(0);
+        await waitFor(() => {
+            expect(wrapper.container.querySelector("h2")?.textContent).toBe("Changes");
+        });
+        // The tab is hidden and shown again, so a change made meanwhile is picked up
+        Object.defineProperty(document, "visibilityState", { value: "visible", configurable: true });
+        act(() => {
+            document.dispatchEvent(new Event("visibilitychange"));
+        });
+        mockAxios.mockResponseFor(
+            { url: summaryUrl },
+            mockedAxiosResponse({ data: { reviewedUpTo: 2, latestSeq: 6, unreviewed: 1 } }),
+        );
+        await waitFor(() => {
+            expect(wrapper.container.querySelector("h2")?.textContent).toBe("Changes (1 unreviewed)");
+        });
     });
 
     it("should show the plain title when nothing is unreviewed", async () => {
