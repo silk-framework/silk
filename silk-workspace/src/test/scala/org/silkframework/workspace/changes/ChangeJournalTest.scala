@@ -672,6 +672,23 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
       variables(1) -> "Variable 'input' in project 'journalVariableListing' is still used by task 'byExecution'.")
   }
 
+  it should "name every user of a variable when the revert of its addition is refused, as the check does" in {
+    val project = retrieveOrCreateProject("journalVariableUsers")
+    val journal = project.changeJournal
+    UpdateVariableModification(project, variable("base", "a.csv")).execute()
+    val added = journal.all.last
+    // Used by a variable and by a task; the modification refuses for the variable alone
+    UpdateVariableModification(project, variable("derived", "", Some("{{project.base}}"))).execute()
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
+    project.addTask[GenericDatasetSpec]("dataset",
+      DatasetSpec(PluginRegistry.create[Dataset]("text", ParameterValues(Map("file" -> ParameterTemplateValue("{{project.base}}"))))))
+
+    val used = "Variable 'base' in project 'journalVariableUsers' is still used by variable 'derived', task 'dataset'."
+    journal.revertConflict(added) shouldBe Some(used)
+    the[ChangeConflictException] thrownBy journal.revert(added.seq) should have message used
+    project.templateVariables.all.map("base").value shouldBe "a.csv"
+  }
+
   it should "record the file writes and deletions of a request and revert a creation while the file is unchanged" in {
     val project = retrieveOrCreateProject("journalFiles")
     val journal = project.changeJournal

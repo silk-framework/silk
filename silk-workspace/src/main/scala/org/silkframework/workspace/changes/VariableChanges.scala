@@ -51,15 +51,20 @@ case class RemoveVariable(variable: TemplateVariable) extends Change {
 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
     VariableChanges.expect(project, variable.name, Some(variable))
-    // The modification checks the uses itself; its refusal is told in the journal's words.
+    // The modification checks the uses itself, but names only the first it meets; the refusal names them all, as the check does.
     VariableChanges.modify {
       try {
         DeleteVariableModification(project, variable.name).execute()
       } catch {
-        case ex: CannotDeleteUsedVariableException => throw stillUsed(project, ex.dependentVariables.map(name => s"variable '$name'"))
-        case ex: CannotDeleteVariableUsedByTaskException => throw stillUsed(project, Seq(s"task '${ex.task.labelOrId}'"))
+        case ex: CannotDeleteUsedVariableException => throw stillUsedNow(project, ex.dependentVariables.map(name => s"variable '$name'"))
+        case ex: CannotDeleteVariableUsedByTaskException => throw stillUsedNow(project, Seq(s"task '${ex.task.labelOrId}'"))
       }
     }
+  }
+
+  /** The refusal naming every user as the check finds them now, or those the modification met if it finds none anymore. */
+  private def stillUsedNow(project: Project, met: Seq[String])(implicit userContext: UserContext): ChangeConflictException = {
+    conflict(new ConflictContext(project)).map(ChangeConflictException(_)).getOrElse(stillUsed(project, met))
   }
 
   override def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String] = {
