@@ -38,8 +38,7 @@ describe("Changes widget", () => {
         await waitFor(() => {
             expect(wrapper.container.querySelector("h2")?.textContent).toBe("Changes");
         });
-        // The tab is hidden and shown again, so a change made meanwhile is picked up
-        Object.defineProperty(document, "visibilityState", { value: "visible", configurable: true });
+        // The tab is shown again (jsdom keeps it visible), so a change made meanwhile is picked up
         act(() => {
             document.dispatchEvent(new Event("visibilitychange"));
         });
@@ -49,6 +48,26 @@ describe("Changes widget", () => {
         );
         await waitFor(() => {
             expect(wrapper.container.querySelector("h2")?.textContent).toBe("Changes (1 unreviewed)");
+        });
+    });
+
+    it("should refetch the count once when the window regains focus, also if the tab is shown at the same time", async () => {
+        const wrapper = renderWidget(0);
+        await waitFor(() => {
+            expect(wrapper.container.querySelector("h2")?.textContent).toBe("Changes");
+        });
+        // Coming back from another application fires focus, from a hidden tab both events; one request either way
+        act(() => {
+            window.dispatchEvent(new Event("focus"));
+            document.dispatchEvent(new Event("visibilitychange"));
+        });
+        expect(mockAxios.queue()).toHaveLength(1);
+        mockAxios.mockResponseFor(
+            { url: summaryUrl },
+            mockedAxiosResponse({ data: { reviewedUpTo: 2, latestSeq: 6, unreviewed: 2 } }),
+        );
+        await waitFor(() => {
+            expect(wrapper.container.querySelector("h2")?.textContent).toBe("Changes (2 unreviewed)");
         });
     });
 

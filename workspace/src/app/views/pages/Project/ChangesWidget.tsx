@@ -15,32 +15,42 @@ const ChangesWidget = () => {
     const [t] = useTranslation();
     const [unreviewed, setUnreviewed] = React.useState<number>(0);
 
-    // Fetched on load and whenever the tab comes back into view, so that changes made meanwhile, e.g. by an agent, show up
+    // Fetched on load and whenever the user comes back, so that changes made meanwhile, e.g. by an agent, show up:
+    // the tab shown again (visibilitychange), or the window focused again from another application (focus)
     React.useEffect(() => {
         setUnreviewed(0); // not the count of the previous project while this one loads, nor if it fails
         if (!projectId) {
             return;
         }
         let stale = false;
+        let inFlight = false;
         // A failure leaves the count at zero: it is a hint, the changes page reports its errors itself
-        const fetchSummary = () =>
+        const fetchSummary = () => {
+            inFlight = true;
             requestChangeSummary(projectId)
                 .then((response) => {
                     if (!stale) {
                         setUnreviewed(response.data.unreviewed);
                     }
                 })
-                .catch(() => {});
-        const onVisible = () => {
-            if (document.visibilityState === "visible") {
+                .catch(() => {})
+                .finally(() => {
+                    inFlight = false;
+                });
+        };
+        // Showing a hidden tab fires both events, so a fetch already under way is not repeated
+        const onReturn = () => {
+            if (document.visibilityState === "visible" && !inFlight) {
                 fetchSummary();
             }
         };
         fetchSummary();
-        document.addEventListener("visibilitychange", onVisible);
+        document.addEventListener("visibilitychange", onReturn);
+        window.addEventListener("focus", onReturn);
         return () => {
             stale = true;
-            document.removeEventListener("visibilitychange", onVisible);
+            document.removeEventListener("visibilitychange", onReturn);
+            window.removeEventListener("focus", onReturn);
         };
     }, [projectId]);
 
