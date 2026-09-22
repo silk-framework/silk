@@ -120,11 +120,14 @@ describe("Project changes", () => {
 
     const reviewedChanges = changes.map(({ unreviewed, ...change }) => change);
 
-    const loadChangeList = async (): Promise<RenderResult> => {
+    const loadChangeList = async (list: IChangeEntry[] = changes): Promise<RenderResult> => {
         const wrapper = renderWrapper(<ChangeList projectId={PROJECT_ID} />);
-        mockAxios.mockResponseFor({ url: changesUrl }, mockedAxiosResponse({ data: { reviewedUpTo: 0, changes } }));
+        mockAxios.mockResponseFor(
+            { url: changesUrl },
+            mockedAxiosResponse({ data: { reviewedUpTo: 0, changes: list } }),
+        );
         await waitFor(() => {
-            expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(changes.length);
+            expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(list.length);
         });
         return wrapper;
     };
@@ -308,6 +311,20 @@ describe("Project changes", () => {
         await waitFor(() => {
             expect(wrapper.container.querySelector(byTestId("changes-mark-reviewed-btn"))).not.toBeInTheDocument();
         });
+    });
+
+    it("should not offer a batch whose newest change cannot be reverted now", async () => {
+        // The newest change conflicts, so a batch would stop at it before reverting anything
+        const reason = "Rule 'name' in transform 'persons' has been changed since.";
+        const wrapper = await loadChangeList(
+            changes.map((change) => (change === mappingChange ? { ...change, conflict: reason } : change)),
+        );
+        clickFoundElement(wrapper, byTestId("changes-revert-unreviewed-btn"));
+        await waitFor(() => {
+            expect(findElement(document.body, byTestId("changes-revert-batch-blocked"))).toBeInTheDocument();
+        });
+        expect(findElement(document.body, byTestId("changes-revert-batch-blocked")).textContent).toContain(reason);
+        expect(findElement(document.body, byTestId("remove-item-button"))).toBeDisabled();
     });
 
     it("should revert the unreviewed changes and report the outcome", async () => {

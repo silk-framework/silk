@@ -720,6 +720,7 @@
                 "button": "Revert unreviewed",
                 "title": "Revert unreviewed changes",
                 "confirmText": "The following unreviewed changes will be reverted, newest first:",
+                "blocked": "Nothing can be reverted: the newest of these changes cannot be reverted now, and no newer change is left whose revert could clear that. {{reason}}",
                 "skippedNote": "Skipped as not revertible: {{count}}.",
                 "skippedNote_plural": "Skipped as not revertible: {{count}}.",
                 "resultReverted": "Reverted changes: {{count}}.",

@@ -109,6 +109,12 @@ const hasInverse = (entry: IChangeEntry): boolean => entry.revertible && entry.r
 const canRevert = (entry: IChangeEntry): boolean => hasInverse(entry) && entry.conflict == null;
 
 /**
+ * Why a batch, newest first, would stop before reverting anything: the conflict of the newest entry it attempts, which
+ * no revert precedes that could clear it. Undefined when the batch can start.
+ */
+const batchBlocker = (batch: IChangeEntry[]): string | undefined => batch.find(hasInverse)?.conflict;
+
+/**
  * The entries to revert so that the project returns to its state before change `seq`, newest first. A change, the
  * revert of it, the revert of that revert and so on form a chain that toggles the change on and off, so per chain the
  * newest link is reverted when the change is in effect now but was not before `seq`, or the other way round. Links that
@@ -407,6 +413,7 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
         (pagination.current - 1) * pagination.limit,
         pagination.current * pagination.limit,
     );
+    const batchBlocked = batchRevert && batchBlocker(batchRevert.entries);
 
     return (
         <>
@@ -582,6 +589,14 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                     alternativeDeleteButtonText={t("common.action.revert")}
                     removeLoading={reviewLoading}
                     errorMessage={revertAllError?.detail}
+                    deleteDisabled={batchBlocked != null}
+                    notifications={
+                        batchBlocked != null && (
+                            <Notification data-test-id={"changes-revert-batch-blocked"} intent="warning">
+                                {t("pages.changes.revertAll.blocked", { reason: batchBlocked })}
+                            </Notification>
+                        )
+                    }
                     onConfirm={revertBatch}
                     onDiscard={() => setBatchRevert(undefined)}
                     render={() => {
