@@ -72,7 +72,7 @@ case class RemoveVariable(variable: TemplateVariable) extends Change {
     VariableChanges.expect(project, variable.name, Some(variable))
     val modification = DeleteVariableModification(project, variable.name)
     val users = modification.dependentVariables().map(name => s"variable '$name'") ++
-      modification.invalidTasks(context.templatedTasks).map(task => s"task '${task.labelOrId}'")
+      modification.invalidTasks(context.affectableTasks).map(task => s"task '${task.labelOrId}'")
     if(users.nonEmpty) {
       throw stillUsed(project, users)
     }

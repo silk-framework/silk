@@ -647,6 +647,27 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     project.templateVariables.all.map("fileName").value shouldBe "a.csv"
   }
 
+  it should "check many variable entries against what one listing gathers" in {
+    val project = retrieveOrCreateProject("journalVariableListing")
+    val journal = project.changeJournal
+    UpdateVariableModification(project, variable("fileName", "a.csv")).execute()
+    UpdateVariableModification(project, variable("input", "b.csv")).execute()
+    UpdateVariableModification(project, variable("unused", "c.csv")).execute()
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
+    // One task uses a variable in a parameter template, another one in an execution-variable template, the third variable is used by none
+    project.addTask[GenericDatasetSpec]("byParameter",
+      DatasetSpec(PluginRegistry.create[Dataset]("text", ParameterValues(Map("file" -> ParameterTemplateValue("{{project.fileName}}"))))))
+    project.addTask[GenericDatasetSpec]("byExecution",
+      DatasetSpec(PluginRegistry.create[Dataset]("text", ParameterValues(Map("file" -> ParameterStringValue("data.txt"))))),
+      executionVariables = TemplateVariables(Seq(TemplateVariable("source", "b.csv", Some("{{project.input}}"), scope = VariableScope.execution))))
+
+    // Each variable entry is checked against the tasks gathered once; only the entries of the used variables conflict
+    val variables = journal.all.take(3).map(_.seq)
+    journal.revertConflicts(journal.all) shouldBe Map(
+      variables(0) -> "Variable 'fileName' in project 'journalVariableListing' is still used by task 'byParameter'.",
+      variables(1) -> "Variable 'input' in project 'journalVariableListing' is still used by task 'byExecution'.")
+  }
+
   it should "record the file writes and deletions of a request and revert a creation while the file is unchanged" in {
     val project = retrieveOrCreateProject("journalFiles")
     val journal = project.changeJournal

@@ -10,7 +10,7 @@ import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
-import org.silkframework.workspace.{Project, ProjectTask}
+import org.silkframework.workspace.{Project, ProjectTask, ReferencingTask, TaskReferencedException}
 
 /** Adds a task to the project. Recorded whenever a task is added. */
 case class AddTask(task: PlainTask[TaskSpec]) extends Change with NamesTask {
@@ -56,24 +56,30 @@ case class RemoveTask(task: PlainTask[TaskSpec]) extends Change with NamesTask {
   override def inverse: Option[AddTask] = Some(AddTask(task))
 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
-    expectRemovable(new ConflictContext(project))
-    project.removeAnyTask(task.id, removeDependentTasks = false)
-  }
-
-  override def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String] = {
-    Change.conflictOf(expectRemovable(context))
-  }
-
-  // Unchanged since and referenced by no other task: what the removal would refuse for, in the journal's words.
-  private def expectRemovable(context: ConflictContext)(implicit userContext: UserContext): Unit = {
-    val project = context.project
     TaskChanges.expectState(project, task)
-    val references = context.referencingTasks.getOrElse(task.id, Seq.empty)
-    if(references.nonEmpty) {
-      val by = references.map(r => s"${TaskChanges.kind(r.task.data)} '${r.task.labelOrId}' (${r.describe})")
-      throw ChangeConflictException(s"${TaskChanges.kind(task.data).capitalize} '${task.labelOrId}' in project '${project.id}' " +
-        s"is still referenced by ${by.mkString(", ")}.")
+    // The removal checks the references itself; its refusal is told in the journal's words.
+    try {
+      project.removeAnyTask(task.id, removeDependentTasks = false)
+    } catch {
+      case ex: TaskReferencedException => throw stillReferenced(project, ex.referencingTasks)
     }
+  }
+
+  // Unchanged since and referenced by no other task: what the removal refuses for, checked without it.
+  override def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String] = {
+    Change.conflictOf {
+      TaskChanges.expectState(context.project, task)
+      val references = context.referencingTasks.getOrElse(task.id, Seq.empty)
+      if(references.nonEmpty) {
+        throw stillReferenced(context.project, references)
+      }
+    }
+  }
+
+  private def stillReferenced(project: Project, references: Seq[ReferencingTask]): ChangeConflictException = {
+    val by = references.map(r => s"${TaskChanges.kind(r.task.data)} '${r.task.labelOrId}' (${r.describe})")
+    ChangeConflictException(s"${TaskChanges.kind(task.data).capitalize} '${task.labelOrId}' in project '${project.id}' " +
+      s"is still referenced by ${by.mkString(", ")}.")
   }
 
   override def toString: String = s"RemoveTask(${task.id})"

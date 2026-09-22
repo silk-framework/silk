@@ -185,7 +185,7 @@ abstract class Modification {
         throw generateException(task, cause)
       }
       for (task <- project.allTasks) {
-        val referenced = referencedRemovedVariables(task, removedVariableNames)
+        val referenced = referencedRemovedVariables(task.data.referencedVariables, removedVariableNames)
         if (referenced.nonEmpty) {
           throw generateException(task, new ValidationException(
             s"The task references the variable(s) ${referenced.map(_.scopedName).mkString("'", "', '", "'")} from a template, e.g., in an 'Evaluate template' operator."))
@@ -194,10 +194,10 @@ abstract class Modification {
     }
   }
 
-  /** The removed project variables that the task data reports as referenced, e.g., from an 'Evaluate template' operator. */
-  protected def referencedRemovedVariables(task: ProjectTask[_ <: TaskSpec],
+  /** The removed project variables among those a task reports as referenced, e.g., from an 'Evaluate template' operator. */
+  protected def referencedRemovedVariables(referencedVariables: Seq[TemplateVariableName],
                                            removedVariableNames: Set[String]): Seq[TemplateVariableName] = {
-    task.data.referencedVariables.filter(v => v.scope == VariableScope.project && removedVariableNames.contains(v.name)).distinct
+    referencedVariables.filter(v => v.scope == VariableScope.project && removedVariableNames.contains(v.name)).distinct
   }
 
   /**

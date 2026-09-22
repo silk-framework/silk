@@ -21,7 +21,7 @@ import org.silkframework.runtime.activity.{HasValue, UserContext}
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TaskResolver}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.templating.{TemplateVariables, TemplateVariablesManager}
-import org.silkframework.runtime.validation.{ConflictRequestException, NotFoundException}
+import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.access.{AccessControlConfig, ProjectAccessControlManager, ProjectAccessDeniedException}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowValidator}
@@ -398,7 +398,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, project
     * @param taskName The name of the task
     * @param removeDependentTasks Also remove tasks that directly or indirectly reference the named task
     * @return The ids of all removed tasks, including the dependent ones.
-    * @throws ConflictRequestException If the task to be removed is referenced by another task and removeDependentTasks is false.
+    * @throws TaskReferencedException If the task to be removed is referenced by another task and removeDependentTasks is false.
     */
   def removeAnyTask(taskName: Identifier, removeDependentTasks: Boolean)
                    (implicit userContext: UserContext): Set[Identifier] = synchronized {
@@ -410,7 +410,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, project
         val dependentTasks = withIndirectDependents(references, taskName, referencingTasks.map(_.task.id))
         if(dependentTasks.nonEmpty && !removeDependentTasks) {
           // The caller decides whether to cascade, so the REST endpoints answer 409, not 500.
-          throw ConflictRequestException(deletionRejectedMessage(taskName, referencingTasks, dependentTasks))
+          throw TaskReferencedException(taskName, referencingTasks, dependentTasks)
         }
         // Farthest dependents first, so no task references a task that is already gone.
         for(dependentTask <- dependentTasks.reverse; dependentModule <- modules if dependentModule.taskOption(dependentTask).isDefined) {
@@ -446,15 +446,6 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, project
       frontier = next
     }
     found.toSeq
-  }
-
-  /** Names the referencing tasks and, as the blast radius, every task that removeDependentTasks=true would delete. */
-  private def deletionRejectedMessage(taskName: Identifier,
-                                      referencingTasks: Seq[ReferencingTask],
-                                      dependentTasks: Seq[Identifier]): String = {
-    val references = referencingTasks.map(r => s"${r.task.id} (${r.describe})").mkString(", ")
-    s"Cannot delete task $taskName as it is referenced by task${if(referencingTasks.size > 1) "s" else ""} $references. " +
-      s"Pass removeDependentTasks=true to delete it together with all tasks that depend on it: ${dependentTasks.map(_.toString).sorted.mkString(", ")}."
   }
 
   /** Returns the user context for read and write operations to the workspace provider. */

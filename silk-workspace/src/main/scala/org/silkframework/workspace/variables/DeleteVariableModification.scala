@@ -2,9 +2,9 @@ package org.silkframework.workspace.variables
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.templating.exceptions._
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariables}
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariableName, TemplateVariables}
 import org.silkframework.workspace.{Project, ProjectTask}
 
 case class DeleteVariableModification(project: Project, variableName: String, taskId: Option[String] = None) extends Modification {
@@ -32,14 +32,14 @@ case class DeleteVariableModification(project: Project, variableName: String, ta
   /**
     * Retrieves the tasks that would become invalid by this modification.
     */
-  def invalidTasks()(implicit user: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = invalidTasks(project.allTasks)
+  def invalidTasks()(implicit user: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = invalidTasks(AffectableTasks.of(project))
 
   /**
-    * The tasks among the given ones that would become invalid by this modification, for a caller that knows which
-    * tasks a variable can affect at all ([[DeleteVariableModification.affectableTasks]]), e.g. the change journal
-    * checking many entries. An execution variable only concerns its own task, so the given tasks are ignored for it.
+    * The tasks that would become invalid by this modification, among those a project variable can affect at all,
+    * gathered by the caller ([[AffectableTasks.of]]) so that many checks against the same project share them, e.g.
+    * the change journal's. An execution variable only concerns its own task, so the given tasks are ignored for it.
     */
-  def invalidTasks(among: Seq[ProjectTask[_ <: TaskSpec]])(implicit user: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
+  def invalidTasks(affectable: AffectableTasks)(implicit user: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
     taskId match {
       case Some(id) =>
         // Execution variables can only be referenced by parameter templates of the task itself.
@@ -57,22 +57,19 @@ case class DeleteVariableModification(project: Project, variableName: String, ta
             Seq(task)
         }
       case None =>
-        // Compute current and new project variables
-        val currentVariables = project.templateVariables.all
-        val newVariables = TemplateVariables(currentVariables.variables.filter(_.name != variableName))
-
-        // Compute all variables including the global variables
-        val allCurrentVariables = GlobalTemplateVariables.all merge currentVariables
-        val allNewVariables = GlobalTemplateVariables.all merge newVariables
+        // The variables as they are and without the deleted one, both with the global variables
+        val allCurrentVariables = affectable.globalVariables merge affectable.projectVariables
+        val allNewVariables = affectable.globalVariables merge
+          TemplateVariables(affectable.projectVariables.variables.filter(_.name != variableName))
         // Match the resolution of execution-variable templates at save time (parent scopes without sensitive variables).
         val saveTimeParents = allNewVariables.withoutSensitiveVariables()
 
-        // Report tasks whose parameter templates break or that still reference the deleted variable: the three uses affectableTasks looks for.
-        val currentContext: PluginContext = PluginContext.fromProject(project)
-        among.filter { task =>
+        // Report tasks whose parameter templates break or that still reference the deleted variable: the three uses AffectableTasks.of looks for.
+        affectable.tasks.filter { affected =>
           val breaksParameterTemplates =
             try {
-              hasUpdatedTemplateValues(task, currentContext, allCurrentVariables, allNewVariables)
+              hasUpdatedTemplateValues(affected.parameters, allCurrentVariables merge affected.task.executionVariables,
+                allNewVariables merge affected.task.executionVariables)
               false
             } catch {
               case _: TemplateEvaluationException =>
@@ -80,9 +77,9 @@ case class DeleteVariableModification(project: Project, variableName: String, ta
                 true
             }
           breaksParameterTemplates ||
-            dependentExecutionVariableIssues(task, saveTimeParents, Set(variableName)).nonEmpty ||
-            referencedRemovedVariables(task, Set(variableName)).nonEmpty
-        }
+            dependentExecutionVariableIssues(affected.task, saveTimeParents, Set(variableName)).nonEmpty ||
+            referencedRemovedVariables(affected.referencedVariables, Set(variableName)).nonEmpty
+        }.map(_.task)
     }
   }
 
@@ -130,19 +127,31 @@ case class DeleteVariableModification(project: Project, variableName: String, ta
   }
 }
 
-object DeleteVariableModification {
+/**
+  * A task a project variable can affect, with what a deletion check evaluates of it: its parameters, which need
+  * reflection, and the variables its data references, which need a walk over its rules.
+  */
+case class AffectableTask(task: ProjectTask[_ <: TaskSpec], parameters: ParameterValues, referencedVariables: Seq[TemplateVariableName])
 
-  /**
-    * The tasks a project variable can affect at all: those with an execution-variable template, a template in their
-    * rules or a parameter template, i.e. what [[DeleteVariableModification.invalidTasks]] looks for. Gathered before
-    * the check, so that many checks against the same project share it. Cheapest test first; the parameters need reflection.
-    */
-  def affectableTasks(project: Project)(implicit user: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
+/**
+  * The tasks a project variable can affect at all, i.e. what [[DeleteVariableModification.invalidTasks]] looks for:
+  * those with an execution-variable template, a template in their rules or a parameter template. With them the
+  * variables their templates see now, global and project. Gathered once, so that many checks against the same
+  * project share it instead of each reading the tasks again.
+  */
+case class AffectableTasks(tasks: Seq[AffectableTask], globalVariables: TemplateVariables, projectVariables: TemplateVariables)
+
+object AffectableTasks {
+
+  def of(project: Project)(implicit user: UserContext): AffectableTasks = {
     implicit val context: PluginContext = PluginContext.fromProject(project)
-    project.allTasks.filter { task =>
-      task.executionVariables.variables.exists(_.template.isDefined) ||
-        task.data.referencedVariables.nonEmpty ||
-        task.data.parameters.hasTemplates
+    val tasks = project.allTasks.flatMap { task =>
+      val referenced = task.data.referencedVariables
+      val parameters = task.data.parameters
+      Option.when(task.executionVariables.variables.exists(_.template.isDefined) || referenced.nonEmpty || parameters.hasTemplates) {
+        AffectableTask(task, parameters, referenced)
+      }
     }
+    AffectableTasks(tasks, GlobalTemplateVariables.all, project.templateVariables.all)
   }
 }
