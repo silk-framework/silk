@@ -84,3 +84,17 @@ export const requestMarkReviewed = (
     upTo: number,
 ): Promise<FetchResponse<{ reviewedUpTo: number }>> =>
     fetch({ url: projectApi(`/${projectId}/changes/reviewed`), method: "put", body: { upTo } });
+
+/** The state of the change journal in numbers, see ChangeJournalApi.summary. */
+export interface IChangeSummary {
+    /** The seq up to which the user has reviewed the changes; 0 if never set. */
+    reviewedUpTo: number;
+    /** The seq of the latest recorded change; 0 if there is none. */
+    latestSeq: number;
+    /** How many changes are unreviewed: made by an agent after the reviewed watermark and not reverted. */
+    unreviewed: number;
+}
+
+/** The journal's numbers without the entries, for a client that only needs to know whether there is something to review. */
+export const requestChangeSummary = (projectId: string): Promise<FetchResponse<IChangeSummary>> =>
+    fetch({ url: projectApi(`/${projectId}/changes/summary`) });

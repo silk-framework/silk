@@ -1,7 +1,7 @@
 package controllers.projectApi
 
 import controllers.core.UserContextActions
-import controllers.projectApi.ChangeJournalApi.{ChangeDetailJson, ChangeEntryJson, ChangeListJson, MarkReviewedJson, ReviewedJson, RevertOutcomeJson, RevertRequestJson, RevertResultsJson}
+import controllers.projectApi.ChangeJournalApi.{ChangeDetailJson, ChangeEntryJson, ChangeListJson, ChangeSummaryJson, MarkReviewedJson, ReviewedJson, RevertOutcomeJson, RevertRequestJson, RevertResultsJson}
 import controllers.util.ItemLink
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
@@ -60,6 +60,37 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
         val conflict = if(reverted.isEmpty && fulfilled.isEmpty) journal.revertConflict(entry) else None
         ChangeEntryJson.of(project, entry, reverted, fulfilled, unreviewed.contains(entry.seq), conflict)
       })))
+  }
+
+  @Operation(
+    summary = "Change summary",
+    description = "The state of the journal in numbers: the reviewed watermark, the latest change and how many changes are " +
+      "unreviewed, i.e. made by an agent after the watermark and not reverted. For clients that only need to know whether " +
+      "there is something to review, e.g. before a workflow run; it lists nothing and checks nothing.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(implementation = classOf[ChangeSummaryJson]),
+          examples = Array(new ExampleObject("""{"reviewedUpTo": 2, "latestSeq": 4, "unreviewed": 1}"""))
+        ))
+      ),
+      new ApiResponse(responseCode = "404", description = "The project does not exist.")
+    ))
+  def summary(@Parameter(
+                name = "projectId",
+                description = "The project identifier",
+                required = true,
+                in = ParameterIn.PATH,
+                schema = new Schema(implementation = classOf[String])
+              )
+              projectId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val journal = WorkspaceFactory().workspace.project(projectId).changeJournal
+    val (entries, reviewedUpTo) = journal.snapshot
+    Ok(Json.toJson(ChangeSummaryJson(reviewedUpTo, entries.lastOption.map(_.seq).getOrElse(0),
+      journal.unreviewed(entries, reviewedUpTo).size)))
   }
 
   @Operation(
@@ -258,6 +289,18 @@ object ChangeJournalApi {
 
   object ChangeListJson {
     implicit val format: Format[ChangeListJson] = Json.format[ChangeListJson]
+  }
+
+  @Schema(description = "The state of a project's change journal in numbers.")
+  case class ChangeSummaryJson(@Schema(description = "The seq up to which the user has reviewed the changes; 0 if never set.")
+                               reviewedUpTo: Int,
+                               @Schema(description = "The seq of the latest recorded change; 0 if there is none.")
+                               latestSeq: Int,
+                               @Schema(description = "How many changes are unreviewed: made by an agent after the reviewed watermark and not reverted.")
+                               unreviewed: Int)
+
+  object ChangeSummaryJson {
+    implicit val format: Format[ChangeSummaryJson] = Json.format[ChangeSummaryJson]
   }
 
   @Schema(description = "Marks the changes up to a seq as reviewed.")
