@@ -15,6 +15,7 @@ import {
 } from "../../../TestHelper";
 import ChangeList from "../../../../../src/app/views/pages/ProjectChanges/ChangeList";
 import { IChangeEntry } from "../../../../../src/app/views/pages/ProjectChanges/changesRequests";
+import { triggerHotkeyHandler } from "../../../../../src/app/views/shared/HotKeyHandler/HotKeyHandler";
 
 describe("Project changes", () => {
     afterEach(() => {
@@ -392,6 +393,9 @@ describe("Project changes", () => {
         const reason = "Rule 'name' in transform 'persons' has been changed since.";
         await waitFor(() => checkRequestMade(conflictsUrl([5]), "GET"));
         expect(findElement(document.body, byTestId("remove-item-button"))).toBeDisabled();
+        // Enter does not do what the button refuses, neither while checking nor once blocked
+        triggerHotkeyHandler("enter");
+        expect(mockAxios.getReqMatching({ url: revertAllUrl })).toBeUndefined();
         mockAxios.mockResponseFor(
             { url: conflictsUrl([5]) },
             mockedAxiosResponse({ data: { conflicts: [{ seq: 5, reason }] } }),
@@ -401,6 +405,8 @@ describe("Project changes", () => {
         });
         expect(findElement(document.body, byTestId("changes-revert-batch-blocked")).textContent).toContain(reason);
         expect(findElement(document.body, byTestId("remove-item-button"))).toBeDisabled();
+        triggerHotkeyHandler("enter");
+        expect(mockAxios.getReqMatching({ url: revertAllUrl })).toBeUndefined();
     });
 
     it("should revert the unreviewed changes and report the outcome", async () => {
@@ -413,7 +419,8 @@ describe("Project changes", () => {
         expect(document.body.textContent).toContain(mappingChange.description);
         expect(document.body.textContent).toContain("Skipped as not revertible: 1.");
         await answerBatchCheck(5);
-        clickFoundElement(document.body, byTestId("remove-item-button"));
+        // Enter confirms once the revert is offered
+        triggerHotkeyHandler("enter");
         await waitFor(() => {
             checkRequestMade(revertAllUrl, "POST", { seqs: [5, 2] });
         });

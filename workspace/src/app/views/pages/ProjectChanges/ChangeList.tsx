@@ -637,6 +637,8 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                     errorMessage={revertAllError?.detail}
                     // Only the revert waits for the check; the dialog stays closable meanwhile
                     deleteDisabled={batchRevert.checking || batchRevert.blocked != null}
+                    // The dialog's Enter key ignores the disabled button, so it is off while the revert is not offered
+                    submitOnEnter={!batchRevert.checking && batchRevert.blocked == null}
                     notifications={
                         batchRevert.blocked != null && (
                             <Notification data-test-id={"changes-revert-batch-blocked"} intent="warning">
