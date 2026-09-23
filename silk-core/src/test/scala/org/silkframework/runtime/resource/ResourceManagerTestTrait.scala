@@ -4,7 +4,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import java.time.Instant
-import java.time.temporal.ChronoUnit
 
 /**
   * Contract that every resource manager with real storage has to fulfil. The file system defines the semantics.
@@ -15,7 +14,7 @@ trait ResourceManagerTestTrait extends AnyFlatSpec with Matchers {
   /** Creates a fresh, empty resource manager. Called once per test. */
   protected def createResourceManager(): ResourceManager
 
-  /** False for storages that cannot append to an existing resource, such as S3. The append tests are then not registered. */
+  /** False for storages that cannot append to an existing resource, such as S3. The append tests are then canceled. */
   protected def supportsAppend: Boolean = true
 
   behavior of "Resource manager"
@@ -33,13 +32,12 @@ trait ResourceManagerTestTrait extends AnyFlatSpec with Matchers {
     rm.get("name").loadAsString() shouldBe "updated"
   }
 
-  if (supportsAppend) {
-    it should "append to a resource" in {
-      val rm = createResourceManager()
-      rm.get("name").writeString("first")
-      rm.get("name").writeString("second", append = true)
-      rm.get("name").loadAsString() shouldBe "firstsecond"
-    }
+  it should "append to a resource" in {
+    assume(supportsAppend)
+    val rm = createResourceManager()
+    rm.get("name").writeString("first")
+    rm.get("name").writeString("second", append = true)
+    rm.get("name").loadAsString() shouldBe "firstsecond"
   }
 
   it should "write and read raw bytes" in {
@@ -140,26 +138,28 @@ trait ResourceManagerTestTrait extends AnyFlatSpec with Matchers {
     rm.get("name").loadAsString() shouldBe "data"
   }
 
-  if (supportsAppend) {
-    it should "not append the data again on a second close of an appending output stream" in {
-      val rm = createResourceManager()
-      rm.get("name").writeString("first")
-      val outputStream = rm.get("name").createOutputStream(append = true)
-      outputStream.write("second".getBytes)
-      outputStream.close()
-      outputStream.close()
-      rm.get("name").loadAsString() shouldBe "firstsecond"
-    }
+  it should "not append the data again on a second close of an appending output stream" in {
+    assume(supportsAppend)
+    val rm = createResourceManager()
+    rm.get("name").writeString("first")
+    val outputStream = rm.get("name").createOutputStream(append = true)
+    outputStream.write("second".getBytes)
+    outputStream.close()
+    outputStream.close()
+    rm.get("name").loadAsString() shouldBe "firstsecond"
   }
 
   it should "report the modification time of a written resource" in {
     val rm = createResourceManager()
-    // Storages may round the time down to full seconds
-    val before = Instant.now().truncatedTo(ChronoUnit.SECONDS)
+    // Storages may round the time down to full seconds and file system clocks may lag behind Instant.now
+    val tolerance = 2
+    val before = Instant.now().minusSeconds(tolerance)
     rm.get("name").writeString("data")
+    val after = Instant.now().plusSeconds(tolerance)
     val modificationTime = rm.get("name").modificationTime
     modificationTime shouldBe defined
     modificationTime.get.isBefore(before) shouldBe false
+    modificationTime.get.isAfter(after) shouldBe false
   }
 
   it should "list resources recursively" in {
