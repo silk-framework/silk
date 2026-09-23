@@ -57,6 +57,7 @@ class InMemoryResourceManagerTest extends AnyFlatSpec with ResourceManagerTestTr
     res.child("parent").get("name").loadAsString() shouldBe "fresh"
   }
 
+  // A lookup after the delete already supersedes the stale handle, else the lookup's own handle would be detached
   it should "not list the ancestors of a stale folder handle that has been superseded" in {
     val res = InMemoryResourceManager()
     val stale = res.child("parent").child("child")
@@ -64,6 +65,17 @@ class InMemoryResourceManagerTest extends AnyFlatSpec with ResourceManagerTestTr
     res.child("parent").child("child")
     stale.get("name").writeString("stale")
     res.listChildren shouldBe empty
+  }
+
+  it should "fail on writes to a closed output stream" in {
+    val res = InMemoryResourceManager()
+    val os = res.get("name").createOutputStream()
+    os.write(1)
+    os.close()
+    intercept[java.io.IOException](os.write(2))
+    intercept[java.io.IOException](os.write(Array[Byte](2)))
+    intercept[java.io.IOException](os.write(Array[Byte](2), 0, 1))
+    res.get("name").size shouldBe Some(1L)
   }
 
 }

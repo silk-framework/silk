@@ -114,7 +114,7 @@ class InMemoryResourceManagerBase(val basePath: String = "",
           case Some(current) if current eq this =>
             parent.materialize()
           case Some(_) =>
-            // Superseded by a new folder of the same name
+            // Superseded by a folder of the same name, even one only looked up since the delete: the stale write is lost
         }
       }
     }
@@ -155,7 +155,7 @@ class InMemoryResourceManagerBase(val basePath: String = "",
       store(name, bytes, append)
     }
 
-    // Deletes the resource only; a child folder of the same name stays, as a file delete on disk never removes a directory.
+    // Deletes the resource only; a child folder of the same name stays (on disk a name is either a file or a directory).
     override def delete(): Unit = InMemoryResourceManagerBase.this.synchronized {
       resources -= name
     }
@@ -164,10 +164,13 @@ class InMemoryResourceManagerBase(val basePath: String = "",
       private val outputStream = new ByteArrayOutputStream()
       private var closed = false
 
-      override def write(b: Int): Unit = outputStream.write(b)
-      override def write(b: Array[Byte]): Unit = outputStream.write(b)
-      override def write(b: Array[Byte], off: Int, len: Int): Unit = outputStream.write(b, off, len)
+      override def write(b: Int): Unit = { ensureOpen(); outputStream.write(b) }
+      override def write(b: Array[Byte]): Unit = { ensureOpen(); outputStream.write(b) }
+      override def write(b: Array[Byte], off: Int, len: Int): Unit = { ensureOpen(); outputStream.write(b, off, len) }
       override def flush(): Unit = outputStream.flush()
+
+      // Writing to a closed stream fails instead of silently dropping the data.
+      private def ensureOpen(): Unit = if(closed) throw new IOException("Stream Closed")
 
       // Idempotent like FileOutputStream.close: a second close must not apply the buffer again.
       override def close(): Unit = InMemoryResourceManagerBase.this.synchronized {

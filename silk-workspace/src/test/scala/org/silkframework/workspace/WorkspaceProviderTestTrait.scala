@@ -769,6 +769,8 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     implicit val us: UserContext = emptyUserContext
     refreshProject(PROJECT_NAME)
     workspaceProvider.readProjects().size shouldBe 3
+    // removeProject only logs a warning if activities do not stop
+    stopActivities()
     workspace.removeProject(PROJECT_NAME)
 //    workspaceProvider.deleteProject(PROJECT_NAME)
     refreshTest {
@@ -997,7 +999,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
   private def stopActivities()(implicit userContext: UserContext): Unit = {
     for(project <- workspace.projectOption(PROJECT_NAME)) {
       project.cancelActivities()
-      project.awaitActivities()
+      project.awaitActivities().get
     }
   }
 
