@@ -3,6 +3,7 @@ package controllers.workspaceApi.coreApi
 import controllers.workspaceApi.coreApi.logApi.{LogBufferStatus, LogTailResponse}
 import helper.IntegrationTestTrait
 import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.OptionValues
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workbench.logging.LogBuffer
@@ -12,7 +13,7 @@ import play.api.libs.ws.WSResponse
 import java.time.Instant
 import scala.concurrent.Future
 
-class LogApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers with ConfigTestTrait {
+class LogApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers with OptionValues with ConfigTestTrait {
 
   behavior of "Log API"
 
@@ -43,6 +44,15 @@ class LogApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers wit
     bufferStatus.capacity mustBe 20
     bufferStatus.captureLevel mustBe "INFO"
     bufferStatus.instanceId must not be empty
+  }
+
+  it should "report the timestamps of the oldest and newest retained line" in {
+    slf4jLog.warn("marker-status")
+    val bufferStatus = checkResponse(client.url(logsUrl + "/status").get()).json.as[LogBufferStatus]
+    val firstTimestamp = Instant.parse(bufferStatus.firstTimestamp.value)
+    val lastTimestamp = Instant.parse(bufferStatus.lastTimestamp.value)
+    firstTimestamp.isAfter(lastTimestamp) mustBe false
+    lastTimestamp.isAfter(Instant.now()) mustBe false
   }
 
   it should "return lines logged through SLF4J and java.util.logging" in {

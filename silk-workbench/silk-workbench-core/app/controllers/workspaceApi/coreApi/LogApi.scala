@@ -7,11 +7,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.validation.ServiceUnavailableException
-import org.silkframework.workbench.logging.{LogBuffer, LogStore}
+import org.silkframework.workbench.logging.{LogBuffer, LogPage, LogStore}
 import org.silkframework.workbench.utils.ErrorResult.ErrorResultFormat
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
+import java.time.Instant
 import javax.inject.Inject
 
 /**
@@ -134,10 +135,17 @@ class LogApi @Inject()(logBuffer: LogBuffer) extends InjectedController {
       size = store.map(_.size).getOrElse(0),
       firstSequence = store.map(_.firstSequence).getOrElse(0L),
       lastSequence = store.map(_.lastSequence).getOrElse(-1L),
+      firstTimestamp = store.flatMap(s => timestampOf(s.since(-1L, 1, _ => true))),
+      lastTimestamp = store.flatMap(s => timestampOf(s.last(1, _ => true))),
       instanceId = logBuffer.instanceId,
       excludedLoggers = config.excludedLoggers,
       nonAdditiveLoggers = logBuffer.nonAdditiveLoggers
     )))
+  }
+
+  /** Timestamp of the single line of a page. Reading a page skips lines that are being written or overwritten. */
+  private def timestampOf(page: LogPage): Option[String] = {
+    page.lines.headOption.map(line => Instant.ofEpochMilli(line.timestamp).toString)
   }
 
   /** Lines lost between what the client last saw and what is still buffered. Without it, a gap looks like a quiet period. */

@@ -21,5 +21,7 @@ class LogApiDisabledTest extends AnyFlatSpec with IntegrationTestTrait with Matc
     status.attached mustBe false
     status.size mustBe 0
     status.lastSequence mustBe -1
+    status.firstTimestamp mustBe None
+    status.lastTimestamp mustBe None
   }
 }

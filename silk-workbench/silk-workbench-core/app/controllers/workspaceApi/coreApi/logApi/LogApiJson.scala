@@ -88,6 +88,10 @@ case class LogBufferStatus(@Schema(description = "Whether capturing is switched 
                            firstSequence: Long,
                            @Schema(description = "Newest sequence retained, or -1 while nothing has been captured.")
                            lastSequence: Long,
+                           @Schema(description = "When the oldest retained line was logged, as ISO-8601 instant, or null while nothing has been captured.", example = "2026-09-11T08:21:04.512Z", nullable = true)
+                           firstTimestamp: Option[String],
+                           @Schema(description = "When the newest retained line was logged, as ISO-8601 instant, or null while nothing has been captured.", example = "2026-09-11T09:47:15.031Z", nullable = true)
+                           lastTimestamp: Option[String],
                            @Schema(description = "Instance that answered. Changes on every start.")
                            instanceId: String,
                            @ArraySchema(schema = new Schema(description = "Loggers that are never captured.", implementation = classOf[String]))
@@ -96,5 +100,6 @@ case class LogBufferStatus(@Schema(description = "Whether capturing is switched 
                            nonAdditiveLoggers: Seq[String])
 
 object LogBufferStatus {
+  implicit val jsonConfig: JsonConfiguration = JsonConfiguration(optionHandlers = OptionHandlers.WritesNull)
   implicit val format: Format[LogBufferStatus] = Json.format[LogBufferStatus]
 }
