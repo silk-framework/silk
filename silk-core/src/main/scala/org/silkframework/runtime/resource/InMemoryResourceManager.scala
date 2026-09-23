@@ -10,6 +10,9 @@ case class InMemoryResourceManager() extends InMemoryResourceManagerBase()
 
 /**
   * Base class of [[InMemoryResourceManager]] for avoiding leaking implementation details.
+  *
+  * Mirrors the file system: a child folder is listed once a resource has been written into it or into one of its
+  * descendants and stays listed until it is deleted, even if all of its resources have been deleted in the meantime.
   */
 class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[InMemoryResourceManagerBase] = None) extends ResourceManager {
 
@@ -17,10 +20,13 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
   // All mutations must be synchronized on this instance; reads are lock-free via @volatile.
 
   /** Holds all resources at this path. */
-  @volatile private var resources = Map[String, Array[Byte]]()
+  @volatile private var resources = Map[String, Entry]()
 
-  /** Hold all non-empty child resource managers. */
+  /** Holds all child resource managers that have been accessed, including ones nothing has been written to yet. */
   @volatile private var children = Map[String, InMemoryResourceManagerBase]()
+
+  /** True once a resource has been written into this folder or one of its descendants. Only materialized children are listed. */
+  @volatile private var materialized = false
 
   /**
     * Retrieves a name resource.
@@ -34,7 +40,7 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
     val path = basePath + "/" + name
 
     resources.get(name) match {
-      case Some(data) => new InMemoryWritableResource(name, path)
+      case Some(_) => new InMemoryWritableResource(name, path)
       case None if !mustExist => new InMemoryWritableResource(name, path)
       case None => throw new ResourceNotFoundException(s"Resource $name not found in path $basePath")
     }
@@ -47,7 +53,7 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
     */
   override def list: List[String] = resources.keys.toList
 
-  override def listChildren: List[String] = children.keys.toList
+  override def listChildren: List[String] = children.collect { case (name, child) if child.materialized => name }.toList
 
   override def child(name: String): ResourceManager = synchronized {
     children.get(name) match {
@@ -62,18 +68,43 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
   override def parent: Option[ResourceManager] = parentMgr
 
   override def delete(name: String): Unit = {
-    val childToDelete = child(name)
-    for(childFolders <- childToDelete.listChildren) {
-      childToDelete.delete(childFolders)
-    }
-    for(childResources <- childToDelete.list) {
-      childToDelete.get(childResources).delete()
+    for(childToDelete <- children.get(name)) {
+      for(childFolders <- childToDelete.listChildren) {
+        childToDelete.delete(childFolders)
+      }
+      for(childResources <- childToDelete.list) {
+        childToDelete.get(childResources).delete()
+      }
     }
     synchronized {
       resources -= name
       children -= name
     }
   }
+
+  /** Stores a resource. Like writing a file on disk, this also creates the folders. Must be called while holding this instance's monitor. */
+  private def store(name: String, bytes: Array[Byte], append: Boolean): Unit = {
+    val allBytes =
+      resources.get(name) match {
+        case Some(entry) if append =>
+          entry.data ++ bytes
+        case _ =>
+          bytes
+      }
+    resources += ((name, Entry(allBytes, Instant.now())))
+    materialize()
+  }
+
+  /** Marks this folder and all of its ancestors as written to. */
+  private def materialize(): Unit = {
+    if(!materialized) {
+      materialized = true
+      parentMgr.foreach(_.materialize())
+    }
+  }
+
+  /** The data of a resource and the time of its last write. */
+  private case class Entry(data: Array[Byte], modificationTime: Instant)
 
   /**
     * A resource that is held in memory.
@@ -82,18 +113,13 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
 
     override def exists: Boolean = resources.contains(name)
 
-    override def size: Option[Long] = {
-      resources.get(name) match {
-        case Some(data) => Some(data.length.toLong)
-        case None => None
-      }
-    }
+    override def size: Option[Long] = resources.get(name).map(_.data.length.toLong)
 
-    override def modificationTime: Option[Instant] = None
+    override def modificationTime: Option[Instant] = resources.get(name).map(_.modificationTime)
 
     override def inputStream: InputStream = {
       resources.get(name) match {
-        case Some(data) => new ByteArrayInputStream(data)
+        case Some(entry) => new ByteArrayInputStream(entry.data)
         case None => new ByteArrayInputStream(Array.empty)
       }
     }
@@ -112,39 +138,29 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
       * Overridden for performance.
       */
     override def writeBytes(bytes: Array[Byte], append: Boolean = false): Unit = InMemoryResourceManagerBase.this.synchronized {
-      val allBytes =
-        resources.get(name) match {
-          case Some(data) if append =>
-            data ++ bytes
-          case _ =>
-            bytes
-        }
-
-      resources += ((name, allBytes))
+      store(name, bytes, append)
     }
 
+    // Deletes the resource only; a child folder of the same name stays, as a file delete on disk never removes a directory.
     override def delete(): Unit = InMemoryResourceManagerBase.this.synchronized {
       resources -= name
-      children -= name
     }
 
     private class InMemoryOutputStream(append: Boolean) extends OutputStream {
       private val outputStream = new ByteArrayOutputStream()
+      private var closed = false
 
       override def write(b: Int): Unit = outputStream.write(b)
       override def write(b: Array[Byte]): Unit = outputStream.write(b)
       override def write(b: Array[Byte], off: Int, len: Int): Unit = outputStream.write(b, off, len)
       override def flush(): Unit = outputStream.flush()
-      override def close(): Unit = InMemoryResourceManagerBase.this.synchronized {
-        val bytes =
-          resources.get(name) match {
-            case Some(data) if append =>
-              data ++ outputStream.toByteArray
-            case _ =>
-              outputStream.toByteArray
-          }
 
-        resources += ((name, bytes))
+      // Idempotent like FileOutputStream.close: a second close must not apply the buffer again.
+      override def close(): Unit = InMemoryResourceManagerBase.this.synchronized {
+        if(!closed) {
+          closed = true
+          store(name, outputStream.toByteArray, append)
+        }
       }
     }
 
