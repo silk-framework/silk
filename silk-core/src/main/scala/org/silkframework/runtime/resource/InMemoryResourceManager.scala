@@ -11,9 +11,7 @@ case class InMemoryResourceManager() extends InMemoryResourceManagerBase()
 /**
   * Base class of [[InMemoryResourceManager]] for avoiding leaking implementation details.
   *
-  * Mirrors the file system: a child folder is listed once a resource has been written into it or into one of its
-  * descendants and stays listed until it is deleted, even if all of its resources have been deleted in the meantime.
-  * Exception: a write through a handle of a deleted folder is lost if a new folder of the same name exists by then.
+  * Folders are only listed once they have been written to, see `materialized`.
   */
 class InMemoryResourceManagerBase(val basePath: String = "",
                                   parentMgr: Option[InMemoryResourceManagerBase] = None,
