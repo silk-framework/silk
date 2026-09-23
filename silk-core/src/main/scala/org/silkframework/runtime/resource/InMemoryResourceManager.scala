@@ -17,6 +17,8 @@ class InMemoryResourceManagerBase(val basePath: String = "",
                                   parentMgr: Option[InMemoryResourceManagerBase] = None,
                                   folderName: String = "") extends ResourceManager {
 
+  import InMemoryResourceManagerBase.Entry
+
   // Both maps may be updated concurrently, e.g., task XML and cache files share the same folder.
   // All mutations must be synchronized on this instance; reads are lock-free via @volatile.
   // Locks are only ever nested child before parent (see materialize), never parent before child.
@@ -118,9 +120,6 @@ class InMemoryResourceManagerBase(val basePath: String = "",
     }
   }
 
-  /** The data of a resource and the time of its last write. */
-  private case class Entry(data: Array[Byte], modificationTime: Instant)
-
   /**
     * A resource that is held in memory.
     */
@@ -180,5 +179,12 @@ class InMemoryResourceManagerBase(val basePath: String = "",
     }
 
   }
+
+}
+
+object InMemoryResourceManagerBase {
+
+  /** The data of a resource and the time of its last write. */
+  private final case class Entry(data: Array[Byte], modificationTime: Instant)
 
 }
