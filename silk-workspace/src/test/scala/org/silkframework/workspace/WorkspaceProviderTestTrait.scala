@@ -702,6 +702,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     implicit val us: UserContext = emptyUserContext
     refreshProject(PROJECT_NAME)
     workspaceProvider.readTasks[CustomTask](PROJECT_NAME).headOption shouldBe defined
+    stopActivities()
     workspaceProvider.deleteTask[CustomTask](PROJECT_NAME, CUSTOM_TASK_ID)
     refreshTest {
       workspaceProvider.readTasks[CustomTask](PROJECT_NAME).headOption shouldBe empty
@@ -712,6 +713,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     implicit val us: UserContext = emptyUserContext
     refreshProject(PROJECT_NAME)
     workspaceProvider.readTasks[Workflow](PROJECT_NAME).headOption shouldBe defined
+    stopActivities()
     workspaceProvider.deleteTask[Workflow](PROJECT_NAME, WORKFLOW_ID)
     refreshTest {
       workspaceProvider.readTasks[Workflow](PROJECT_NAME).headOption shouldBe empty
@@ -723,6 +725,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     workspaceProvider.readTasks[LinkSpec](PROJECT_NAME).headOption shouldBe defined
     refreshProject(PROJECT_NAME)
     workspaceProvider.readTasks[LinkSpec](PROJECT_NAME).headOption shouldBe defined
+    stopActivities()
     workspaceProvider.deleteTask[LinkSpec](PROJECT_NAME, LINKING_TASK_ID)
     refreshTest {
       workspaceProvider.readTasks[LinkSpec](PROJECT_NAME).headOption shouldBe empty
@@ -733,6 +736,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     implicit val us: UserContext = emptyUserContext
     refreshProject(PROJECT_NAME)
     workspaceProvider.readTasks[TransformSpec](PROJECT_NAME).headOption shouldBe defined
+    stopActivities()
     workspaceProvider.deleteTask[TransformSpec](PROJECT_NAME, TRANSFORM_ID)
     refreshTest {
       workspaceProvider.readTasks[TransformSpec](PROJECT_NAME).headOption shouldBe empty
@@ -743,6 +747,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     implicit val us: UserContext = emptyUserContext
     refreshProject(PROJECT_NAME)
     workspaceProvider.readTasks[RuleBlockSpec](PROJECT_NAME).find(_.task.id.toString == RULE_BLOCK_TASK_ID) shouldBe defined
+    stopActivities()
     workspaceProvider.deleteTask[RuleBlockSpec](PROJECT_NAME, RULE_BLOCK_TASK_ID)
     refreshTest {
       workspaceProvider.readTasks[RuleBlockSpec](PROJECT_NAME).find(_.task.id.toString == RULE_BLOCK_TASK_ID) shouldBe empty
@@ -753,6 +758,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     implicit val us: UserContext = emptyUserContext
     refreshProject(PROJECT_NAME)
     workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME).headOption shouldBe defined
+    stopActivities()
     workspaceProvider.deleteTask[GenericDatasetSpec](PROJECT_NAME, DATASET_ID)
     refreshTest {
       workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME).map(_.task.id.toString) shouldBe Seq(DUMMY_DATASET, hierarchicalFileDatasetId)
@@ -985,6 +991,14 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     ex
     workspace.reload()
     ex
+  }
+
+  /** Stops the activities of the loaded project before a direct provider delete, so no cache write resurrects the task folder. */
+  private def stopActivities()(implicit userContext: UserContext): Unit = {
+    for(project <- workspace.projectOption(PROJECT_NAME)) {
+      project.cancelActivities()
+      project.awaitActivities()
+    }
   }
 
   /** Refreshes the project in the workspace, which usually means that it is reloaded from wherever its stored.

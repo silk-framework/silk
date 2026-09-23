@@ -13,11 +13,15 @@ case class InMemoryResourceManager() extends InMemoryResourceManagerBase()
   *
   * Mirrors the file system: a child folder is listed once a resource has been written into it or into one of its
   * descendants and stays listed until it is deleted, even if all of its resources have been deleted in the meantime.
+  * Exception: a write through a handle of a deleted folder is lost if a new folder of the same name exists by then.
   */
-class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[InMemoryResourceManagerBase] = None) extends ResourceManager {
+class InMemoryResourceManagerBase(val basePath: String = "",
+                                  parentMgr: Option[InMemoryResourceManagerBase] = None,
+                                  folderName: String = "") extends ResourceManager {
 
   // Both maps may be updated concurrently, e.g., task XML and cache files share the same folder.
   // All mutations must be synchronized on this instance; reads are lock-free via @volatile.
+  // Locks are only ever nested child before parent (see materialize), never parent before child.
 
   /** Holds all resources at this path. */
   @volatile private var resources = Map[String, Entry]()
@@ -59,7 +63,7 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
     children.get(name) match {
       case Some(childMgr) => childMgr
       case None =>
-        val childMgr = new InMemoryResourceManagerBase(basePath + "/" + name, Some(this))
+        val childMgr = new InMemoryResourceManagerBase(basePath + "/" + name, Some(this), name)
         children += ((name, childMgr))
         childMgr
     }
@@ -95,11 +99,24 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
     materialize()
   }
 
-  /** Marks this folder and all of its ancestors as written to. */
+  /**
+    * Marks this folder and all of its ancestors as written to, re-attaching a deleted folder like a file write recreates
+    * directories. Must be called while holding this instance's monitor; ancestors are updated under their own monitor.
+    */
   private def materialize(): Unit = {
-    if(!materialized) {
-      materialized = true
-      parentMgr.foreach(_.materialize())
+    materialized = true
+    for(parent <- parentMgr) {
+      parent.synchronized {
+        parent.children.get(folderName) match {
+          case None =>
+            parent.children += ((folderName, this))
+            parent.materialize()
+          case Some(current) if current eq this =>
+            parent.materialize()
+          case Some(_) =>
+            // Superseded by a new folder of the same name
+        }
+      }
     }
   }
 
