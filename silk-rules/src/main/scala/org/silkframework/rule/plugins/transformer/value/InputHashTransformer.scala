@@ -129,6 +129,28 @@ import java.security.MessageDigest
     output = Array("5364f2f2fc4f54e9d47ad29cfb08ef430c8153394bf2a0dff5cbe77a0ffef861")
   ),
   new TransformExample(
+    description = "An input port without a value is skipped, and no glue is inserted for it.",
+    parameters = Array("glue", "-"),
+    input1 = Array(),
+    input2 = Array("solo"),
+    output = Array("5364f2f2fc4f54e9d47ad29cfb08ef430c8153394bf2a0dff5cbe77a0ffef861")
+  ),
+  new TransformExample(
+    description = "An empty port 2 is skipped in the same way, producing the same hash as an empty port 1.",
+    parameters = Array("glue", "-"),
+    input1 = Array("solo"),
+    input2 = Array(),
+    output = Array("5364f2f2fc4f54e9d47ad29cfb08ef430c8153394bf2a0dff5cbe77a0ffef861")
+  ),
+  new TransformExample(
+    description = "Without any input values, the glue is not hashed on its own, producing the hash of an empty " +
+      "message.",
+    parameters = Array("glue", "-"),
+    input1 = Array(),
+    input2 = Array(),
+    output = Array("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
+  ),
+  new TransformExample(
     description = "With more than two values, the glue separator is inserted between every adjacent pair.",
     parameters = Array("glue", "-"),
     input1 = Array("a", "b"),
@@ -196,7 +218,7 @@ import java.security.MessageDigest
   ),
   new TransformExample(
     description = "With the MD5 algorithm and a glue of '-', the hash equals the SPARQL expression " +
-      "MD5(CONCAT(?a, \"-\", ?b)) for the values on port 1 and port 2.",
+      "MD5(CONCAT(?a, \"-\", ?b)).",
     parameters = Array("algorithm", "MD5", "glue", "-"),
     input1 = Array("a"),
     input2 = Array("b"),

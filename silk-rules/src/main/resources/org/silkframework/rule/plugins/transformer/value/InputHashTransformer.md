@@ -33,3 +33,5 @@ The Java names use hyphens (SHA-256, SHA-1) where SPARQL uses none (SHA256, SHA1
 The glue parameter sets a separator string that is inserted between every adjacent pair of values in the traversal order described above, defaulting to an empty string. Its text can contain the escaped sequences `\n`, `\t`, and `\\`, which are converted to a newline, a tab, and a backslash respectively before hashing.
 
 Connecting one port with values `["apple", "banana"]` and a glue of `-` produces the same hash as connecting two ports with `["apple"]` and `["banana"]` respectively, using the same glue, because the glue is inserted at the same point in the byte sequence either way.
+
+An input port without a value is skipped, and the glue is only inserted between the values that exist. To insert the glue for such a port, the port can be connected through a Default Value operator with an empty value.
