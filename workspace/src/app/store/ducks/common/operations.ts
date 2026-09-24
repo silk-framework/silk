@@ -19,7 +19,11 @@ import {
 import { routerOp } from "@ducks/router";
 import { IProjectTask, TaskType } from "@ducks/shared/typings";
 import { HttpError } from "../../../services/fetch/responseInterceptor";
-import i18Instance, { fetchStoredLang } from "../../../../language";
+import i18Instance, {
+    fetchRequestedLanguage,
+    fetchUserSelectedLanguage,
+    markLanguageAsUserChoice,
+} from "../../../../language";
 import { URI_PROPERTY_PARAMETER_ID } from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/UriAttributeParameterInput";
 import utils from "../../../views/shared/Metadata/MetadataUtils";
 import { Keyword } from "@ducks/workspace/typings";
@@ -86,13 +90,8 @@ const fetchCommonSettingsAsync = () => {
             await fillCustomPluginStore(taskPluginOverviews);
             dispatch(setTaskPluginOverviews(taskPluginOverviews));
 
-            const selectedLng = fetchStoredLang();
-            if (!selectedLng) {
-                dispatch(changeLocale(data.initialLanguage));
-            } else {
-                // Just make sure that specific flags for DM are set
-                dispatch(changeLocale(selectedLng));
-            }
+            const selectedLng = fetchUserSelectedLanguage();
+            dispatch(changeLocale(selectedLng ?? fetchRequestedLanguage() ?? data.initialLanguage));
         } catch (error) {
             dispatch(setError(error));
         }
@@ -485,9 +484,12 @@ const resetArtefactModal =
         });
     };
 
-const changeLocale = (locale: string) => {
+const changeLocale = (locale: string, userSelected = false) => {
     return async (dispatch) => {
         await i18Instance.changeLanguage(locale);
+        if (userSelected) {
+            markLanguageAsUserChoice();
+        }
         dispatch(changeLanguage(locale));
     };
 };

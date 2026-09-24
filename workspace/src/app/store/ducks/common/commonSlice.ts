@@ -15,7 +15,6 @@ import {
     IArtefactModal,
     ICommonState,
 } from "@ducks/common/typings";
-import { setStoredLang } from "../../../../language";
 
 /**
  * @override connect-react-router location change action
@@ -100,9 +99,7 @@ export const commonSlice = createSlice({
         },
 
         changeLanguage: (state, action: PayloadAction<string>) => {
-            const lang = action.payload;
-            state.locale = lang;
-            setStoredLang(lang);
+            state.locale = action.payload;
         },
 
         loginSuccess: (state) => {
