@@ -195,6 +195,14 @@ import java.security.MessageDigest
     output = Array("cf0bf238cadd6688db6f8d2511a52ebf")
   ),
   new TransformExample(
+    description = "With the MD5 algorithm and a glue of '-', the hash equals the SPARQL expression " +
+      "MD5(CONCAT(?a, \"-\", ?b)) for the values on port 1 and port 2.",
+    parameters = Array("algorithm", "MD5", "glue", "-"),
+    input1 = Array("a"),
+    input2 = Array("b"),
+    output = Array("8ca2ed590cf2ea2404f2e67641bcdf50")
+  ),
+  new TransformExample(
     description = "The algorithm parameter selects the hash function (MD5).",
     parameters = Array("algorithm", "MD5"),
     input1 = Array("input value"),
