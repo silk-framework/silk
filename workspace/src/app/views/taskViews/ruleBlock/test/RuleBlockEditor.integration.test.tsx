@@ -239,9 +239,10 @@ const setupRuleBlockEditorIntegrationTest = () => {
     jest.resetModules();
     jest.doMock("react", () => React);
     jest.doMock("react-i18next", () => {
-        const translationResult = Object.assign([jestTestUtils.testTranslate], {
+        const i18n = { language: "en", exists: () => false };
+        const translationResult = Object.assign([jestTestUtils.testTranslate, i18n], {
             t: jestTestUtils.testTranslate,
-            i18n: { language: "en" },
+            i18n,
         });
         return {
             useTranslation: () => translationResult,

@@ -12,7 +12,7 @@ import { ruleOperatorToPluginDocumentation } from "../../RuleEditorDocumentation
 
 interface NodeMenuProps {
     nodeId: string;
-    t: (translationKey: string, defaultValue?: string) => string;
+    t: (translationKey: string) => string;
     handleDeleteNode: (nodeId: string) => void;
     handleCloneNode: (nodeId: string) => void;
     ruleOperatorDescription?: string;
@@ -109,11 +109,8 @@ export const RuleNodeMenu = ({
                             );
                             ruleEvaluationContext.toggleEvaluationResults(true);
                         }}
-                        text={t("RuleEditor.node.menu.subtree.label", "Evaluate subtree")}
-                        htmlTitle={t(
-                            "RuleEditor.node.menu.subtree.description",
-                            "Evaluate linking tree partially until this operator node.",
-                        )}
+                        text={t("RuleEditor.node.menu.subtree.label")}
+                        htmlTitle={t("RuleEditor.node.menu.subtree.description")}
                     />
                 ) : null}
                 {openRuleBlockUrl ? (
@@ -126,11 +123,8 @@ export const RuleNodeMenu = ({
                             closeMenu();
                             window.open(openRuleBlockUrl, "_blank", "noopener");
                         }}
-                        text={t("RuleEditor.node.menu.openRuleBlock.label", "Open rule block")}
-                        htmlTitle={t(
-                            "RuleEditor.node.menu.openRuleBlock.description",
-                            "Open the referenced rule block in a new tab.",
-                        )}
+                        text={t("RuleEditor.node.menu.openRuleBlock.label")}
+                        htmlTitle={t("RuleEditor.node.menu.openRuleBlock.description")}
                     />
                 ) : null}
                 {internalRuleBlockEvaluationAction.visible && currentRuleNode ? (
@@ -151,14 +145,8 @@ export const RuleNodeMenu = ({
                                 );
                             }, 0);
                         }}
-                        text={t(
-                            "RuleEditor.node.menu.openInternalRuleBlockEvaluation.label",
-                            "Show internal evaluation",
-                        )}
-                        htmlTitle={t(
-                            "RuleEditor.node.menu.openInternalRuleBlockEvaluation.description",
-                            "Show the latest available internal evaluation for this reusable rule block usage.",
-                        )}
+                        text={t("RuleEditor.node.menu.openInternalRuleBlockEvaluation.label")}
+                        htmlTitle={t("RuleEditor.node.menu.openInternalRuleBlockEvaluation.description")}
                     />
                 ) : null}
                 <MenuItem

@@ -29,7 +29,7 @@ type PreConfiguredOperatorConfig = IPreConfiguredOperators<any> & {
 export const RuleEditorOperatorSidebar = () => {
     const editorContext = React.useContext(RuleEditorContext);
     const externalSidebarContext = React.useContext(ExternalSidebarContext);
-    const [t] = useTranslation();
+    const [t, i18n] = useTranslation();
     const prefLang = useSelector(commonSel.localeSelector);
     const { registerError } = useErrorHandler();
     const [filteredOperators, setFilteredOperators] = React.useState<IRuleOperator[]>([]);
@@ -227,19 +227,22 @@ export const RuleEditorOperatorSidebar = () => {
 
     const getTabColor = ruleEditorUtils.linkingRuleOperatorTypeColorFunction();
 
-    const tabs: TabProps[] = (editorContext.tabs ?? []).map((tab) => ({
-        id: tab.id,
-        title: (
-            <TabTitle
-                text={tab.icon ? null : t("RuleEditor.sidebar.tab." + tab.id, tab.label)}
-                titlePrefix={tab.icon ? <Icon name={tab.icon} small /> : undefined}
-                tooltip={tab.icon ? t("RuleEditor.sidebar.tab." + tab.id, tab.label) : undefined}
-                small
-            />
-        ),
-        // dontShrink: tab.icon ? true : false,
-        backgroundColor: getTabColor(tab.id),
-    }));
+    const tabs: TabProps[] = (editorContext.tabs ?? []).map((tab) => {
+        const translationKey = "RuleEditor.sidebar.tab." + tab.id;
+        const label = i18n.exists(translationKey) ? t(translationKey) : tab.label;
+        return {
+            id: tab.id,
+            title: (
+                <TabTitle
+                    text={tab.icon ? null : label}
+                    titlePrefix={tab.icon ? <Icon name={tab.icon} small /> : undefined}
+                    tooltip={tab.icon ? label : undefined}
+                    small
+                />
+            ),
+            backgroundColor: getTabColor(tab.id),
+        };
+    });
 
     const fetchCategories = () => operatorCategories;
 

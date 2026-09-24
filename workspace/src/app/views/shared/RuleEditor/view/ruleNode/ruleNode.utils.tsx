@@ -1,5 +1,6 @@
 import { Highlighter, Spacing, Tag } from "@eccenca/gui-elements";
 import React from "react";
+import type { TFunction } from "i18next";
 import { IParameterSpecification, IParameterValidationResult } from "../../RuleEditor.typings";
 import { ruleEditorNodeParameterValue, RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
 import { ColorLike } from "color";
@@ -43,7 +44,7 @@ export const invalidValueResult = (message: string): IParameterValidationResult 
 const validateValue = (
     parameterValue: RuleEditorNodeParameterValue,
     parameterSpec: IParameterSpecification,
-    translate: (key: string, additionalParameters?: object) => string,
+    translate: TFunction,
 ): IParameterValidationResult => {
     const value = ruleEditorNodeParameterValue(parameterValue);
     if (value == null) {
