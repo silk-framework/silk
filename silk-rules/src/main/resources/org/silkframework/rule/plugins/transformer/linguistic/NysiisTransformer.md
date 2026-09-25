@@ -12,8 +12,8 @@ The full procedure of the algorithm is described in the corresponding
 ### Plain NYSIIS
 
 The (plain) NYSIIS algorithm was originally meant for encoding **names**. Originally, the maximum number of characters
-in the output was limited to six, but modern implementations of this algorithm —and improvements thereupon— don't
-necessarily contain this limitation. This plugin doesn't.
+in the output was limited to six, but modern implementations of this algorithm —and improvements thereupon—
+are not necessarily bound by this limitation. This plugin is among them.
 
 ### Modified NYSIIS
 

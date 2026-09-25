@@ -1,8 +1,9 @@
 ## Overview
 
-The Alignment plugin provides support for **writing alignment files**, following the format specified by the Alignment API ([format specification](https://moex.gitlabpages.inria.fr/alignapi/format.html)) and described in [Semantic Web Journal, SWJ60](https://www.semantic-web-journal.net/sites/default/files/swj60_1.pdf). It is designed to integrate seamlessly with Silk and CMEM BUILD's **modular, task-specific dataset architecture**, allowing users to produce alignment links in a structured and standardized way.
+The Alignment plugin provides support for **writing alignment files**, following the format specified by the Alignment API ([format specification](https://moex.gitlabpages.inria.fr/alignapi/format.html)) and described in [Semantic Web Journal, SWJ60](https://www.semantic-web-journal.net/sites/default/files/swj60_1.pdf). It is designed to integrate seamlessly with Silk and the modular, task-specific dataset architecture of eccenca Corporate Memory's Build component, allowing users to produce alignment links in a structured and standardized way.
 
 This plugin **focuses exclusively on writing links** between entities. Unlike other datasets, it does **not provide reading of entities**, transformations, or additional processing. Its purpose is simple and clear: to **export alignment links in a format compatible with alignment-aware tools or downstream processing**.
+
 ## General Principles
 
 The Alignment plugin reflects two guiding principles:
