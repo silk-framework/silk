@@ -23,6 +23,7 @@ import { workspaceApi } from "../../../utils/getApiEndpoint";
 import XHR from "@uppy/xhr-upload";
 import {
     AccessControlConfig,
+    fetchProjectAccessControl,
     requestDeleteProjectImport,
     requestProjectImportDetails,
     requestProjectImportExecutionStatus,
@@ -60,15 +61,38 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     const [destination, setDestination] = useState<ImportDestination>("original");
     const [customProjectId, setCustomProjectId] = useState("");
     const [validatedProjectId, setValidatedProjectId] = useState<string | null>(null);
+    const [existingCustomProjectId, setExistingCustomProjectId] = useState<string | null>(null);
+    const [customProjectNoAccess, setCustomProjectNoAccess] = useState(false);
     const [customIdError, setCustomIdError] = useState<string | null>(null);
-    const replacingProject = destination === "original" && !!projectImportDetails?.projectAlreadyExists;
+    const replacingProject =
+        destination === "original"
+            ? !!projectImportDetails?.projectAlreadyExists
+            : destination === "custom" && existingCustomProjectId === customProjectId;
+    const replacementProjectId = destination === "custom" ? customProjectId : (projectImportDetails?.projectId ?? "");
+    const replacementNoAccess = destination === "custom" ? customProjectNoAccess : !!projectImportDetails?.noAccess;
     const changeDestination = (value: ImportDestination) => {
         setDestination(value);
         setApproveReplacement(false);
         setStartProjectImportExecutionError(null);
     };
+    const checkCustomProjectAccess = async (projectId: string): Promise<boolean> => {
+        if (projectImportDetails?.projectAlreadyExists && projectImportDetails.projectId === projectId) {
+            return !!projectImportDetails.noAccess;
+        }
+        try {
+            await fetchProjectAccessControl(projectId);
+            return false;
+        } catch (error) {
+            if (error.httpStatus === 403) {
+                return true;
+            }
+            throw error;
+        }
+    };
     useEffect(() => {
         setValidatedProjectId(null);
+        setExistingCustomProjectId(null);
+        setCustomProjectNoAccess(false);
         setCustomIdError(null);
         if (destination !== "custom" || !customProjectId) return;
         let cancelled = false;
@@ -77,14 +101,23 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                 await requestProjectIdValidation(customProjectId);
                 if (!cancelled) setValidatedProjectId(customProjectId);
             } catch (error) {
-                if (!cancelled) {
+                if (error.httpStatus === 409) {
+                    try {
+                        const noAccess = await checkCustomProjectAccess(customProjectId);
+                        if (!cancelled) {
+                            setExistingCustomProjectId(customProjectId);
+                            setCustomProjectNoAccess(noAccess);
+                            setValidatedProjectId(customProjectId);
+                        }
+                    } catch {
+                        if (!cancelled) setCustomIdError(t("ProjectImportModal.validationFailed"));
+                    }
+                } else if (!cancelled) {
                     setCustomIdError(
                         t(
-                            error.httpStatus === 409
-                                ? "ProjectImportModal.projectIdAlreadyExists"
-                                : error.httpStatus === 400
-                                  ? "CreateModal.CustomIdentifierInput.validations.invalid"
-                                  : "ProjectImportModal.validationFailed",
+                            error.httpStatus === 400
+                                ? "CreateModal.CustomIdentifierInput.validations.invalid"
+                                : "ProjectImportModal.validationFailed",
                         ),
                     );
                 }
@@ -271,15 +304,39 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
             } catch (ex) {
                 if (!importCancelled.current && !isUnmounted.current) {
                     setStartProjectImportExecutionError(errorDetails(ex) || t("ProjectImportModal.importFailed"));
-                    if (destination === "custom" && (ex.httpStatus === 409 || ex.httpStatus === 400)) {
+                    if (destination === "custom" && ex.httpStatus === 409) {
+                        try {
+                            await requestProjectIdValidation(customProjectId);
+                        } catch (validationError) {
+                            if (validationError.httpStatus === 409) {
+                                try {
+                                    const noAccess = await checkCustomProjectAccess(customProjectId);
+                                    if (!isUnmounted.current) {
+                                        setExistingCustomProjectId(customProjectId);
+                                        setCustomProjectNoAccess(noAccess);
+                                        setValidatedProjectId(customProjectId);
+                                        setApproveReplacement(false);
+                                        setCustomIdError(null);
+                                        setStartProjectImportExecutionError(null);
+                                    }
+                                } catch {
+                                    if (!isUnmounted.current)
+                                        setCustomIdError(t("ProjectImportModal.validationFailed"));
+                                }
+                            } else if (!isUnmounted.current) {
+                                setValidatedProjectId(null);
+                                setCustomIdError(
+                                    t(
+                                        validationError.httpStatus === 400
+                                            ? "CreateModal.CustomIdentifierInput.validations.invalid"
+                                            : "ProjectImportModal.validationFailed",
+                                    ),
+                                );
+                            }
+                        }
+                    } else if (destination === "custom" && ex.httpStatus === 400) {
                         setValidatedProjectId(null);
-                        setCustomIdError(
-                            t(
-                                ex.httpStatus === 409
-                                    ? "ProjectImportModal.projectIdAlreadyExists"
-                                    : "CreateModal.CustomIdentifierInput.validations.invalid",
-                            ),
-                        );
+                        setCustomIdError(t("CreateModal.CustomIdentifierInput.validations.invalid"));
                     }
                 }
             } finally {
@@ -349,7 +406,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                 disruptive={replacingProject}
                 disabled={
                     loading ||
-                    (replacingProject && (!approveReplacement || !!projectImportDetails.noAccess)) ||
+                    (replacingProject && (!approveReplacement || replacementNoAccess)) ||
                     (destination === "custom" &&
                         (!customProjectId || validatedProjectId !== customProjectId || !!customIdError))
                 }
@@ -474,13 +531,16 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                             onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
                                 setCustomProjectId(event.target.value);
                                 setValidatedProjectId(null);
+                                setExistingCustomProjectId(null);
+                                setCustomProjectNoAccess(false);
+                                setApproveReplacement(false);
                                 setCustomIdError(null);
                                 setStartProjectImportExecutionError(null);
                             }}
                         />
                     </FieldItem>
                 )}
-                {replacingProject && projectExistsNotification(details)}
+                {replacingProject && projectExistsNotification(replacementProjectId, replacementNoAccess)}
                 {!replacingProject && aclManagement.component && (
                     <div data-test-id="importProjectGroups">
                         <Spacing />
@@ -498,8 +558,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
         );
     };
 
-    const projectExistsNotification = (details: IProjectImportDetails) => {
-        const cannotOverwrite = details.noAccess;
+    const projectExistsNotification = (projectId: string, cannotOverwrite: boolean) => {
         return (
             <Notification
                 intent="warning"
@@ -509,7 +568,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                         : [
                               <Button
                                   key={"openExistingProjectKey"}
-                                  href={absoluteProjectPath(details.projectId)}
+                                  href={absoluteProjectPath(projectId)}
                                   target={"_blank"}
                               >
                                   {t("ProjectImportModal.openExistingProject")}

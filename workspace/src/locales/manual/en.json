@@ -242,7 +242,6 @@
         "workspacePrefixesTitle": "Explore prefixes"
     },
     "ProjectImportModal": {
-        "projectIdAlreadyExists": "Project ID must be unique. The entered ID is already used by another project.",
         "importBtn": "Import project",
         "importSummary": "Imported project summary",
         "importUnderFreshIdBtn": "Import as new project",
