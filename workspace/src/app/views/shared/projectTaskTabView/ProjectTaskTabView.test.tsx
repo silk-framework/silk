@@ -153,11 +153,12 @@ it("preserves the selected tab until an unsaved-change switch is confirmed", asy
     );
 });
 
-it("labels iframe panels and keeps the iframe mounted when switching between item links", async () => {
+it("does not render an unused external-link description, and keeps the iframe mounted", async () => {
     jest.mocked(pluginRegistry.taskViews).mockReturnValue([]);
     const secondLink = { ...itemLink, id: "second", label: "Second preview", path: "/second" };
     renderTabs({ srcLinks: [itemLink, secondLink], startWithLink: itemLink });
     const preview = await screen.findByRole("tab", { name: "Preview", selected: true });
+    expect(document.querySelector('[id$="-external-link-description"]')).not.toBeInTheDocument();
     const iframe = screen.getByTitle("Preview");
     fireEvent.load(iframe);
     expect(preview).toHaveAttribute("aria-controls", screen.getByRole("tabpanel", { name: "Preview" }).id);
