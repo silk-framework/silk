@@ -83,6 +83,7 @@ describe("RuleBlockEditor integration", () => {
             </RuleBlockEditorOptionalContextValue.Provider>,
         );
 
+        await waitFor(() => expect(screen.getByRole("button", { name: "remove-normal-node" })).toBeInTheDocument());
         await waitFor(() => expect(screen.getByRole("button", { name: "Save" })).toBeDisabled());
         expect(screen.queryByTestId("context-overlay")).not.toBeInTheDocument();
 

@@ -1,0 +1,125 @@
+import { projectApi } from "../../../utils/getApiEndpoint";
+import fetch from "../../../services/fetch";
+import { FetchResponse } from "../../../services/fetch/responseInterceptor";
+import { IItemLink } from "@ducks/shared/typings";
+
+/** One thing a change changed: what, and the value before and after where there is one to show. */
+export interface IChangeDetail {
+    /** What changed, e.g. the label of a parameter; without values the whole statement, e.g. "Password changed". */
+    label: string;
+    /** The value before the change; absent for an addition, or when there is no value to show. */
+    before?: string;
+    /** The value after the change; absent for a removal, or when there is no value to show. */
+    after?: string;
+}
+
+/** A recorded change of a project, see ChangeJournalApi. */
+export interface IChangeEntry {
+    /** Sequence number of the change, ascending in the order the changes were made. */
+    seq: number;
+    /** When the change was made, as ISO-8601 timestamp. */
+    timestamp: string;
+    /** URI of the user who made the change. */
+    user?: string;
+    /** The client the change came from, e.g. 'mcp:<user agent>'. */
+    origin?: string;
+    /** The kind of change, e.g. 'AddMapping' or 'ReplaceTask'. */
+    type: string;
+    /** What has been changed, in one line: the summary with the details. */
+    description: string;
+    /** What has been changed, without the details. */
+    summary: string;
+    /** What the change changed in detail, where the summary does not tell: the parameters of a task update with their values. */
+    details: IChangeDetail[];
+    /** Links to what the change concerns, labelled by the server: the page of the task, as long as it exists, and for a workflow run its execution report. */
+    links: IItemLink[];
+    /** Whether the change can be reverted at all. Whether its revert applies as the project is now is asked per change, see requestRevertConflicts. */
+    revertible: boolean;
+    /** The change this one reverted, if it was made by reverting one. */
+    reverts?: number;
+    /** The change that reverted this one, if it has been reverted. */
+    revertedBy?: number;
+    /** For a proposed workflow run, the run that fulfilled it, if it has been run. */
+    fulfilledBy?: number;
+    /** True for an agent change after the reviewed watermark. */
+    unreviewed?: boolean;
+}
+
+export interface IChangeList {
+    /** The seq up to which the user has reviewed the changes; 0 if never set. */
+    reviewedUpTo: number;
+    changes: IChangeEntry[];
+}
+
+/** What happened to one change of a revert batch. */
+export interface IRevertOutcome {
+    seq: number;
+    outcome: "reverted" | "skipped" | "unchanged" | "conflict" | "notAttempted";
+    /** Why the change was skipped, left unchanged or conflicted. */
+    message?: string;
+    /** The change that records the revert, for outcome 'reverted'. */
+    entry?: IChangeEntry;
+}
+
+/** The changes made to a project, newest first. */
+export const requestProjectChanges = (projectId: string): Promise<FetchResponse<IChangeList>> =>
+    fetch({ url: projectApi(`/${projectId}/changes`) });
+
+/** Why a change cannot be reverted as the project is now, see ChangeJournalApi.conflicts. */
+export interface IRevertConflict {
+    seq: number;
+    /** Why its inverse does not apply, e.g. the task has changed since. */
+    reason: string;
+}
+
+/** The server checks at most this many changes per request, so a longer list is asked in chunks. */
+const MAX_CONFLICT_CHECKS = 100;
+
+/**
+ * The changes among the given ones that cannot be reverted now, with the reason; checked by the server without writing,
+ * so a revert can still conflict. Meant for the changes a page shows, not for the whole journal.
+ */
+export const requestRevertConflicts = async (projectId: string, seqs: number[]): Promise<IRevertConflict[]> => {
+    const chunks: number[][] = [];
+    for (let start = 0; start < seqs.length; start += MAX_CONFLICT_CHECKS) {
+        chunks.push(seqs.slice(start, start + MAX_CONFLICT_CHECKS));
+    }
+    const responses: FetchResponse<{ conflicts: IRevertConflict[] }>[] = await Promise.all(
+        chunks.map((chunk) =>
+            fetch({ url: projectApi(`/${projectId}/changes/conflicts?${chunk.map((seq) => `seq=${seq}`).join("&")}`) }),
+        ),
+    );
+    return responses.flatMap((response) => response.data.conflicts);
+};
+
+/** Reverts a change. Answers with the change that records the revert; 409 on a conflict. */
+export const requestRevertChange = (projectId: string, seq: number): Promise<FetchResponse<IChangeEntry>> =>
+    fetch({ url: projectApi(`/${projectId}/changes/${seq}/revert`), method: "post" });
+
+/** Reverts the given changes newest-first; skips what cannot be reverted and stops at the first conflict. */
+export const requestRevertChanges = (
+    projectId: string,
+    seqs: number[],
+): Promise<FetchResponse<{ results: IRevertOutcome[] }>> =>
+    fetch({ url: projectApi(`/${projectId}/changes/revert`), method: "post", body: { seqs } });
+
+/** Marks the changes up to the given seq as reviewed. */
+export const requestMarkReviewed = (
+    projectId: string,
+    upTo: number,
+): Promise<FetchResponse<{ reviewedUpTo: number }>> =>
+    fetch({ url: projectApi(`/${projectId}/changes/reviewed`), method: "put", body: { upTo } });
+
+/** The state of the change journal in numbers, see ChangeJournalApi.summary. */
+export interface IChangeSummary {
+    /** The seq up to which the user has reviewed the changes; 0 if never set. */
+    reviewedUpTo: number;
+    /** The seq of the latest recorded change; 0 if there is none. */
+    latestSeq: number;
+    /** How many changes are unreviewed: made by an agent after the reviewed watermark and not reverted. */
+    unreviewed: number;
+}
+
+/** The journal's numbers without the entries, for a client that only needs to know whether there is something to review. */
+export const requestChangeSummary = (projectId: string): Promise<FetchResponse<IChangeSummary>> =>
+    fetch({ url: projectApi(`/${projectId}/changes/summary`) });

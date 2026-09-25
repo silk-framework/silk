@@ -49,6 +49,12 @@ trait HasMetaData {
   }
 
   /**
+    * Returns the label as set by the user (truncated), or the plain identifier if no label is set.
+    * Unlike label(), neither subclass overrides nor identifier beautification apply.
+    */
+  def labelOrId: String = metaData.formattedLabel(id)
+
+  /**
     * Retrieves the full tags from the meta data.
     */
   def tags()(implicit userContext: UserContext): Set[Tag] = Set.empty

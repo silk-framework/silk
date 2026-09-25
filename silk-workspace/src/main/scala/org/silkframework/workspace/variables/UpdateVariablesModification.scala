@@ -1,4 +1,4 @@
-package org.silkframework.runtime.templating.operations
+package org.silkframework.workspace.variables
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext

@@ -1,6 +1,6 @@
 package org.silkframework.workspace
 
-import org.silkframework.config.{CustomTask, MetaData, TaskSpec}
+import org.silkframework.config.{CustomTask, MetaData, PlainTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
@@ -8,6 +8,7 @@ import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVa
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.TaskCleanupPlugin.CleanUpAfterTaskDeletionFunction
 import org.silkframework.workspace.activity.workflow.Workflow
+import org.silkframework.workspace.changes.{AddTask, RemoveTask}
 import org.silkframework.workspace.exceptions.TaskNotFoundException
 
 import java.util.logging.{Level, Logger}
@@ -102,6 +103,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     provider.putTask(project.id, task, project.resources)
     task.startActivities()
     cachedTasks += ((name, task))
+    project.changeJournal.record(AddTask(PlainTask.fromTask(task)))
     logger.info(s"Added task '$name' to project ${project.id}." + userContext.logInfo)
     task
   }
@@ -123,6 +125,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     val taskOpt = taskOption(taskId)
     provider.deleteTask(project.id, taskId)
     cachedTasks -= taskId
+    taskOpt.foreach(task => project.changeJournal.record(RemoveTask(PlainTask.fromTask(task))))
     taskOpt.foreach(task => cleanUpAfterTaskDeletion(project.id, taskId, task))
     logger.info(s"Removed task '$taskId' from project ${project.id}." + userContext.logInfo)
   }
