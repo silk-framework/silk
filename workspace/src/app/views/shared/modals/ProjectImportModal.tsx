@@ -314,9 +314,15 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
         uppy.reset();
     };
     const onUploadSuccess = (file: UppyFile, response) => {
-        const projectImportId = response?.body?.projectImportId;
-        if (projectImportId) {
-            setProjectImportId(projectImportId);
+        const nextProjectImportId = response?.body?.projectImportId;
+        if (nextProjectImportId) {
+            if (projectImportDetails?.errorMessage && projectImportId) {
+                void requestDeleteProjectImport(projectImportId).catch(() => {
+                    // The backend removes abandoned uploads automatically if deletion fails.
+                });
+            }
+            setProjectImportDetails(null);
+            setProjectImportId(nextProjectImportId);
         } else {
             setUploadError(t("ProjectImportModal.responseInvalid"));
             uppy.reset();
@@ -536,10 +542,14 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     const projectDetailElement = (details: IProjectImportDetails) => {
         if (details.errorMessage) {
             return (
-                <Notification
-                    intent="danger"
-                    message={t("ProjectImportModal.invalidArchive", { details: details.errorMessage })}
-                />
+                <>
+                    <Notification
+                        intent="danger"
+                        message={t("ProjectImportModal.invalidArchive", { details: details.errorMessage })}
+                    />
+                    <Spacing />
+                    {uploaderElement}
+                </>
             );
         } else {
             return projectDetails(details);
