@@ -11,6 +11,7 @@ jest.mock("react-i18next", () => {
     return { useTranslation: () => [t] };
 });
 jest.mock("@ducks/workspace/requests", () => ({
+    fetchProjectAccessControl: jest.fn(),
     requestProjectImportDetails: jest.fn(),
     requestStartProjectImport: jest.fn(),
     requestProjectImportExecutionStatus: jest.fn(),
@@ -55,6 +56,11 @@ async function open(overrides = {}) {
 beforeEach(() => {
     jest.clearAllMocks();
     validate.mockResolvedValue({} as Awaited<ReturnType<typeof requestProjectIdValidation>>);
+    const accessControl = { groups: [] };
+    jest.mocked(requests.fetchProjectAccessControl).mockResolvedValue({
+        data: accessControl,
+        axiosResponse: { data: accessControl, status: 200, statusText: "OK", headers: {}, config: {} },
+    });
     jest.mocked(requests.requestProjectImportExecutionStatus).mockResolvedValue({
         data: { importEnded: 1, success: true, projectId: "target" },
     } as Awaited<ReturnType<typeof requests.requestProjectImportExecutionStatus>>);
@@ -105,6 +111,9 @@ it("does not allow replacement without access", async () => {
 });
 it("keeps a conflicting custom ID editable after submission", async () => {
     start.mockRejectedValueOnce({ httpStatus: 409 });
+    validate
+        .mockResolvedValueOnce({} as Awaited<ReturnType<typeof requestProjectIdValidation>>)
+        .mockRejectedValueOnce({ httpStatus: 409 });
     await open();
     fireEvent.click(screen.getByLabelText("ProjectImportModal.destinationCustom"));
     fireEvent.change(screen.getByLabelText("CreateModal.CustomIdentifierInput.ProjectId"), {
@@ -112,11 +121,17 @@ it("keeps a conflicting custom ID editable after submission", async () => {
     });
     await waitFor(() => expect(screen.getByText("ProjectImportModal.importBtn").closest("button")).toBeEnabled());
     fireEvent.click(screen.getByText("ProjectImportModal.importBtn"));
-    await screen.findByText("ProjectImportModal.projectIdAlreadyExists");
+    await screen.findByText("ProjectImportModal.warningExistingProject");
+    expect(screen.getByRole("button", { name: "ProjectImportModal.replaceImportBtn" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "ProjectImportModal.openExistingProject" })).toHaveAttribute(
+        "href",
+        expect.stringContaining("/taken"),
+    );
     expect(screen.getByLabelText("CreateModal.CustomIdentifierInput.ProjectId")).toHaveValue("taken");
     fireEvent.change(screen.getByLabelText("CreateModal.CustomIdentifierInput.ProjectId"), {
         target: { value: "available" },
     });
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
     await waitFor(() => expect(screen.getByText("ProjectImportModal.importBtn").closest("button")).toBeEnabled());
     fireEvent.click(screen.getByText("ProjectImportModal.importBtn"));
     await waitFor(() => expect(start).toHaveBeenLastCalledWith("upload", false, false, undefined, "available"));
@@ -130,7 +145,6 @@ it("can generate a new ID even when the original is available", async () => {
 });
 it.each([
     [400, "CreateModal.CustomIdentifierInput.validations.invalid"],
-    [409, "ProjectImportModal.projectIdAlreadyExists"],
     [500, "ProjectImportModal.validationFailed"],
 ])("blocks import when validation returns %s", async (httpStatus, message) => {
     validate.mockRejectedValueOnce({ httpStatus });
@@ -141,6 +155,21 @@ it.each([
     });
     await screen.findByText(message);
     expect(screen.getByText("ProjectImportModal.importBtn").closest("button")).toBeDisabled();
+});
+it("requires replacement confirmation when custom ID validation returns 409", async () => {
+    validate.mockRejectedValueOnce({ httpStatus: 409 });
+    await open();
+    fireEvent.click(screen.getByLabelText("ProjectImportModal.destinationCustom"));
+    fireEvent.change(screen.getByLabelText("CreateModal.CustomIdentifierInput.ProjectId"), {
+        target: { value: "taken" },
+    });
+
+    await screen.findByText("ProjectImportModal.warningExistingProject");
+    const replaceButton = screen.getByRole("button", { name: "ProjectImportModal.replaceImportBtn" });
+    expect(replaceButton).toBeDisabled();
+    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(replaceButton);
+    await waitFor(() => expect(start).toHaveBeenCalledWith("upload", false, true, undefined, "taken"));
 });
 it("ignores validation responses for a previous ID", async () => {
     let rejectPrevious: (reason: unknown) => void = () => {};
@@ -159,7 +188,7 @@ it("ignores validation responses for a previous ID", async () => {
     fireEvent.change(input, { target: { value: "current" } });
     await waitFor(() => expect(screen.getByText("ProjectImportModal.importBtn").closest("button")).toBeEnabled());
     await act(async () => rejectPrevious({ httpStatus: 409 }));
-    expect(screen.queryByText("ProjectImportModal.projectIdAlreadyExists")).not.toBeInTheDocument();
+    expect(screen.queryByText("ProjectImportModal.warningExistingProject")).not.toBeInTheDocument();
     fireEvent.click(screen.getByText("ProjectImportModal.importBtn"));
     await waitFor(() => expect(start).toHaveBeenCalledWith("upload", false, false, undefined, "current"));
 });
