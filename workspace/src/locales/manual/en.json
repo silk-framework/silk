@@ -242,6 +242,7 @@
         "workspacePrefixesTitle": "Explore prefixes"
     },
     "ProjectImportModal": {
+        "cannotImport": "The project cannot be imported. Details: {{details}}",
         "importBtn": "Import project",
         "importSummary": "Imported project summary",
         "importUnderFreshIdBtn": "Import as new project",
