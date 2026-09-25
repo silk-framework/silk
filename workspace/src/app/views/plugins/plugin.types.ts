@@ -1,6 +1,6 @@
 import { IArtefactItemProperty } from "@ducks/common/typings";
 import { IViewActions } from "../../views/plugins/PluginRegistry";
-import { TestableComponent } from "@eccenca/gui-elements";
+import { LabelProps, TestableComponent } from "@eccenca/gui-elements";
 import { AccessControlConfig } from "@ducks/workspace/requests";
 
 export type IPreview = IDatasetConfigPreview | IResourcePreview | IDatasetPreview | FixedPreview;
@@ -158,6 +158,8 @@ export interface ProjectAccessControlProps {
 
 /** Project ACL management plugin props. */
 export interface ProjectAccessControlManagementProps {
+    /** Visual emphasis of the groups field label. */
+    labelEmphasis?: LabelProps["emphasis"];
     projectId?: string;
     readOnly?: boolean;
     onChange: (projectAcl: AccessControlConfig) => void;
