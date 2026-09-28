@@ -3,6 +3,7 @@ package org.silkframework.rule.plugins.transformer.extraction
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.InlineTransformer
 import org.silkframework.rule.plugins.transformer.conditional.IfMatchesRegexTransformer
+import org.silkframework.rule.plugins.transformer.filter.FilterByRegex
 import org.silkframework.rule.plugins.transformer.replace.RegexReplaceTransformer
 import org.silkframework.rule.plugins.transformer.selection.RegexSelectTransformer
 import org.silkframework.rule.plugins.transformer.validation.ValidateRegex
@@ -34,6 +35,10 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginRefere
     new PluginReference(
       id = ValidateRegex.pluginId,
       description = "The Validate regex plugin keeps the original value only when the full value matches the configured regular expression and otherwise fails validation. The Regex extract plugin returns match-derived output and can return an empty result when nothing matches."
+    ),
+    new PluginReference(
+      id = FilterByRegex.pluginId,
+      description = "Filter by regex passes a value through exactly as it was, or excludes it — no partial output exists. Regex extract never returns the value itself; its output is always a fragment of the match, a substring or a capturing group."
     ),
   )
 )
