@@ -11,16 +11,20 @@ import { ModalContext, useModalContext } from "@eccenca/gui-elements/src/compone
 /** Wraps globally used contexts around the application component. */
 export const GlobalContextsWrapper = ({ children }) => {
     const { globalTableSettings, updateGlobalTableSettings } = useStoreGlobalTableSettings();
-    const { openModalStack, setModalOpen } = useModalContext();
+    // Context values must keep their identity as long as they do not change, otherwise all consumers get re-rendered
+    // whenever this component re-renders, e.g. the whole project page on every change of the open modal stack.
+    const modalContextValue = useModalContext();
+    const globalTableContextValue = React.useMemo(
+        () => ({
+            globalTableSettings,
+            updateGlobalTableSettings,
+        }),
+        [globalTableSettings, updateGlobalTableSettings],
+    );
 
     return (
-        <GlobalTableContext.Provider
-            value={{
-                globalTableSettings,
-                updateGlobalTableSettings,
-            }}
-        >
-            <ModalContext.Provider value={{ openModalStack, setModalOpen }}>{children}</ModalContext.Provider>
+        <GlobalTableContext.Provider value={globalTableContextValue}>
+            <ModalContext.Provider value={modalContextValue}>{children}</ModalContext.Provider>
         </GlobalTableContext.Provider>
     );
 };
