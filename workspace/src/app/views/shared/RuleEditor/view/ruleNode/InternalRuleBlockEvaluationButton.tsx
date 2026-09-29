@@ -6,7 +6,7 @@ import { internalRuleBlockEvaluationActionState } from "./internalRuleBlockEvalu
 
 interface InternalRuleBlockEvaluationButtonProps {
     nodeId: string;
-    t: (translationKey: string, defaultValue?: string) => string;
+    t: (translationKey: string) => string;
 }
 
 /** Action button that opens the internal evaluation of a reusable rule block usage. */
@@ -29,7 +29,7 @@ export const InternalRuleBlockEvaluationButton = ({ nodeId, t }: InternalRuleBlo
             data-test-id="rule-node-open-internal-rule-block-evaluation-icon-btn"
             name="item-viewdetails"
             disabled={!actionState.enabled}
-            text={t("RuleEditor.node.action.openInternalRuleBlockEvaluation.tooltip", "Show internal evaluation")}
+            text={t("RuleEditor.node.action.openInternalRuleBlockEvaluation.tooltip")}
             onClick={() =>
                 ruleEvaluationContext.openInternalRuleBlockEvaluation?.(
                     nodeId,
