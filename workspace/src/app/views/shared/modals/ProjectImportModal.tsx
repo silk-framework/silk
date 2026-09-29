@@ -266,9 +266,15 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
         uppy.reset();
     };
     const onUploadSuccess = (file: UppyFile, response) => {
-        const projectImportId = response?.body?.projectImportId;
-        if (projectImportId) {
-            setProjectImportId(projectImportId);
+        const nextProjectImportId = response?.body?.projectImportId;
+        if (nextProjectImportId) {
+            if (projectImportDetails?.errorMessage && projectImportId) {
+                void requestDeleteProjectImport(projectImportId).catch(() => {
+                    // The backend removes abandoned uploads automatically if deletion fails.
+                });
+            }
+            setProjectImportDetails(null);
+            setProjectImportId(nextProjectImportId);
         } else {
             setUploadError(
                 t(
@@ -445,10 +451,14 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
             );
         } else if (details.errorMessage) {
             return (
-                <Notification
-                    intent="danger"
-                    message={"The project cannot be imported. Details: " + details.errorMessage}
-                />
+                <>
+                    <Notification
+                        intent="danger"
+                        message={t("ProjectImportModal.cannotImport", { details: details.errorMessage })}
+                    />
+                    <Spacing />
+                    {uploaderElement}
+                </>
             );
         } else {
             return projectDetails(details);
