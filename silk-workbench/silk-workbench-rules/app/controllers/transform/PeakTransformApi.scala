@@ -342,6 +342,9 @@ object PeakTransformApi {
    * @param ruleExecution   The contextualized transformation rule to execute on the example entities.
    * @param exampleEntities Entities to try executing the transform rule on
    * @param limit           Limit of examples to return
+   *
+   * For a rule where `readsOnlyEntityUri` is true, each returned [[PeakResult]]'s source values
+   * are the entity's own URI rather than the entity's fetched values.
    */
   def collectTransformationExamples(ruleExecution: TransformRuleExecution, exampleEntities: Iterator[Entity], limit: Int): (Int, Int, String, Seq[PeakResult]) = {
     // Number of examples collected
@@ -353,6 +356,7 @@ object PeakTransformApi {
     // Record the first error message
     var errorMessage: String = ""
     val resultBuffer = ArrayBuffer[PeakResult]()
+    val substituteEntityUriAsSourceValue = ruleExecution.operator.readsOnlyEntityUri
     while (exampleEntities.hasNext && exampleCounter < limit) {
       tryCounter += 1
       val entity = exampleEntities.next()
@@ -365,7 +369,8 @@ object PeakTransformApi {
           }
         }
         if (transformResult.values.nonEmpty) {
-          resultBuffer.append(PeakResult(entity.values, transformResult.values))
+          val sourceValues = if (substituteEntityUriAsSourceValue) IndexedSeq(Seq(entity.uri.toString)) else entity.values
+          resultBuffer.append(PeakResult(sourceValues, transformResult.values))
           exampleCounter += 1
         }
       } catch {

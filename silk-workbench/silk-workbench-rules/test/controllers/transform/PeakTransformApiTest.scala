@@ -56,6 +56,11 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
     ComplexMapping(operator = transformation).execution(TaskContext.empty)
   }
 
+  private def emptyPathTransformRule(transformer: Transformer): TransformRuleExecution = {
+    val transformation = TransformInput(transformer = transformer, inputs = IndexedSeq(PathInput("p", UntypedPath.empty)))
+    ComplexMapping(operator = transformation).execution(TaskContext.empty)
+  }
+
   it should "collect transformation examples skipping empty transformation results" in {
     val rule = transformRule(ConcatTransformer(" "))
     val entities = Iterator(
@@ -102,6 +107,18 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
     counter mustBe 3
   }
 
+  it should "substitute the entity's own URI as the source value for a rule reading only the empty path" in {
+    val rule = emptyPathTransformRule(LowerCaseTransformer())
+    val entities = Seq(entity(Seq("aValue"), Seq("bValue")))
+    val (tries, errors, errorMsg, peakResult) = PeakTransformApi.collectTransformationExamples(rule, entities.iterator, limit = 3)
+    tries mustBe 1
+    errors mustBe 0
+    errorMsg mustBe ""
+    peakResult mustBe Seq(
+      PeakResult(Seq(Seq("uri")), Seq("uri"))
+    )
+  }
+
   it should "return results from the API" in {
     val peakResult = peakChildRuleRequest(PatternUriMapping(pattern = "urn:{Name}/{Events/Birth}"))
     peakResult.status.id mustBe "success"
@@ -124,6 +141,8 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
     for(result <- results) {
       result.transformedValues must have size 1
       result.transformedValues.head must endWith ("/object")
+      result.sourceValues must have size 1
+      result.sourceValues.head must have size 1
     }
   }
 
