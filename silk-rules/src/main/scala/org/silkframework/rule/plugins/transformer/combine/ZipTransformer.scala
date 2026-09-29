@@ -16,6 +16,7 @@ package org.silkframework.rule.plugins.transformer.combine
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.InlineTransformer
+import org.silkframework.rule.plugins.transformer.value.InputHashTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 
 @Plugin(
@@ -27,6 +28,12 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginRefere
     new PluginReference(
       id = ConcatPairwiseTransformer.pluginId,
       description = "Zip handles unequal input lengths by padding, not truncating, and is constrained to exactly two inputs. Concatenate pairwise removes that constraint — it accepts any number of inputs — but resolves the length mismatch by stopping at the shortest."
+    ),
+    new PluginReference(
+      id = InputHashTransformer.pluginId,
+      description = "Zip pairs exactly two inputs position by position and returns one output per pair, using the " +
+        "same optional separator between values. Combined input hash instead combines every connected value into " +
+        "a single hash, regardless of how many ports are used."
     )
   )
 )
