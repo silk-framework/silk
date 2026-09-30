@@ -173,6 +173,19 @@ class JsonSinkTest extends AnyFlatSpec with Matchers {
     }
   }
 
+  it should "only delete the file on clear if forced" in {
+    implicit val userContext: UserContext = UserContext.Empty
+    val resource = InMemoryResourceManager().get("temp")
+    resource.writeString("[]")
+    val sink = new JsonSink(resource)
+
+    sink.clear()
+    resource.exists shouldBe true
+
+    sink.clear(force = true)
+    resource.exists shouldBe false
+  }
+
   private def test(entityTables: Seq[Seq[Entity]], outputSingleJsonObject: Boolean = false, template: JsonTemplate = JsonTemplate.default, expected: String): Unit = {
     implicit val userContext: UserContext = UserContext.Empty
     implicit val prefixes: Prefixes = Prefixes.empty

@@ -347,6 +347,19 @@ class XmlSinkTest extends AnyFlatSpec with Matchers {
     )
   }
 
+  it should "only delete the file on clear if forced" in {
+    implicit val userContext: UserContext = UserContext.Empty
+    val resource = InMemoryResourceManager().get("test.xml")
+    resource.writeString("<Root/>")
+    val sink = new XmlSink(resource, XmlOutputTemplate.parse("<Root><?Element?></Root>"))
+
+    sink.clear()
+    resource.exists shouldBe true
+
+    sink.clear(force = true)
+    resource.exists shouldBe false
+  }
+
   private def test(template: String, entityTables: Seq[Seq[Entity]], expected: Node, compareRawText: Boolean = false): Unit = {
     implicit val userContext: UserContext = UserContext.Empty
     implicit val prefixes: Prefixes = Prefixes.empty

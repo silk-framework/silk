@@ -41,4 +41,15 @@ class TextFileDatasetTest extends AnyFlatSpec with Matchers with TestPluginConte
     entities.head.values shouldBe Seq(Seq(testValue))
   }
 
+  it should "only empty the file on clear if forced" in {
+    resource.writeString(testValue)
+    val sink = ExecutorRegistry.access(dataset).entitySink
+
+    sink.clear()
+    resource.loadAsString() shouldBe testValue
+
+    sink.clear(force = true)
+    resource.loadAsString() shouldBe ""
+  }
+
 }
