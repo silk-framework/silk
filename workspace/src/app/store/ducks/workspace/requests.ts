@@ -363,15 +363,18 @@ export const requestDeleteProjectImport = async (projectImportId: string): Promi
  * @param generateNewId   If the project should be imported under a freshly generated ID. E.g. when there already exists a project with the same ID.
  * @param overwriteExistingProject If set to true, then a project with the same ID will be overwritten, else the request would fail.
  * @param groups Groups for the ACL.
+ * @param newProjectId Custom destination ID; cannot be combined with generateNewId.
  */
 export const requestStartProjectImport = async (
     projectImportId: string,
     generateNewId: boolean,
     overwriteExistingProject: boolean,
     groups?: string[],
+    newProjectId?: string,
 ): Promise<FetchResponse<void>> => {
-    const params: any = {
-        generateNewId: generateNewId,
+    const params: { generateNewId: boolean; overwriteExisting: boolean; groups?: string[]; newProjectId?: string } = {
+        generateNewId,
+        newProjectId,
         overwriteExisting: overwriteExistingProject,
     };
     if (groups) {
