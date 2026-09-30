@@ -33,6 +33,7 @@ import ChangeRow from "./ChangeRow";
 import BatchRevertModal from "./BatchRevertModal";
 
 interface IProps {
+    /** Must not change while the list is mounted, as the list keeps the state of its project: key the list by it. */
     projectId: string;
     /** Increment to reload the list from the outside. */
     refreshKey?: number;
