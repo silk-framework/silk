@@ -2,48 +2,35 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import {
     Button,
-    ContentBlobToggler,
-    ContextMenu,
-    ElapsedDateTimeDisplay,
-    ElapsedDateTimeDisplayUnits,
-    Icon,
-    IconButton,
-    MenuItem,
-    NotAvailable,
     Notification,
     SimpleDialog,
     Spacing,
     Table,
     TableBody,
-    TableCell,
     TableContainer,
     TableHead,
     TableHeader,
     TableRow,
-    Tag,
-    TagList,
     Toolbar,
     ToolbarSection,
 } from "@eccenca/gui-elements";
 import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
-import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
-import { getDateData } from "../../shared/Metadata/Metadata";
 import Loading from "../../shared/Loading";
 import DeleteModal from "../../shared/modals/DeleteModal";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { useModalError } from "../../../hooks/useModalError";
 import { ErrorResponse } from "../../../services/fetch/responseInterceptor";
 import {
-    IChangeDetail,
     IChangeEntry,
     IRevertOutcome,
     requestMarkReviewed,
     requestProjectChanges,
     requestRevertChange,
-    requestRevertChanges,
     requestRevertConflicts,
 } from "./changesRequests";
-import { entriesBackTo } from "./changeListUtils";
+import { entriesBackTo, hasInverse } from "./changeListUtils";
+import ChangeRow from "./ChangeRow";
+import BatchRevertModal from "./BatchRevertModal";
 
 interface IProps {
     projectId: string;
@@ -51,74 +38,11 @@ interface IProps {
     refreshKey?: number;
 }
 
-/** The last segment of a user URI, e.g. 'alice' for 'urn:user:alice'. */
-const userDisplayName = (uri: string): string => {
-    const idx = Math.max(uri.lastIndexOf("/"), uri.lastIndexOf(":"), uri.lastIndexOf("#"));
-    return idx >= 0 && idx < uri.length - 1 ? uri.substring(idx + 1) : uri;
-};
-
-type ChangeKind = "added" | "updated" | "removed" | "run";
-
-/** The kind of change by its type name, e.g. 'AddMapping' adds, 'ResourceDeleted' removes, 'WorkflowExecuted' and its proposal are runs. */
-const changeKind = (type: string): ChangeKind => {
-    if (type === "WorkflowExecuted" || type === "ProposedWorkflowRun") {
-        return "run";
-    } else if (type.startsWith("Add") || type === "ResourceCreated") {
-        return "added";
-    } else if (
-        type.startsWith("Remove") ||
-        type.startsWith("Discarded") ||
-        type === "ResourceDeleted" ||
-        type === "DisconnectWorkflowNodes"
-    ) {
-        return "removed";
-    } else {
-        return "updated";
-    }
-};
-
-const kindIntent: Record<ChangeKind, "success" | "danger" | "info" | undefined> = {
-    added: "success",
-    removed: "danger",
-    run: "info",
-    updated: undefined,
-};
-
-/** The icon of a link by its id, as handed out by the server. */
-const linkIcon = (id: string): ValidIconName => {
-    switch (id) {
-        case "rule":
-            return "application-mapping";
-        case "report":
-            return "artefact-report";
-        case "download":
-            return "item-download";
-        default:
-            return "item-viewdetails";
-    }
-};
-
-/** How many detail lines an entry shows before the rest is behind a 'more' link, as the tag list does it. */
-const DETAILS_PREVIEW_LIMIT = 6;
-
-/**
- * Whether an entry has an inverse that has not been applied yet. A batch attempts every such entry: a conflict the
- * server reports may clear once the newer entries are reverted, as the batch reverts newest first.
- */
-const hasInverse = (entry: IChangeEntry): boolean => entry.revertible && entry.revertedBy == null;
-
-/**
- * A batch revert awaiting confirmation: the entries in scope, of which the revertible ones are attempted, and whether
- * the newest of those conflicts now, which would stop the batch before reverting anything; asked when the dialog opens.
- */
+/** A batch revert awaiting confirmation: the entries in scope, of which the revertible ones are attempted. */
 interface IBatchRevert {
     title: string;
     confirmText: string;
     entries: IChangeEntry[];
-    /** True until the server has answered whether the batch can start. */
-    checking: boolean;
-    /** Why the batch would stop before reverting anything; undefined while checking or when it can start. */
-    blocked?: string;
 }
 
 /** The changes of a project, newest first, with revert actions per entry and review actions for the agent changes. */
@@ -136,12 +60,10 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
     const [conflicts, setConflicts] = React.useState<Map<number, string>>(new Map());
     const conflictsRequest = React.useRef(0);
     const [reviewLoading, setReviewLoading] = React.useState<boolean>(false);
-    const [revertAllError, setRevertAllError] = React.useState<ErrorResponse | undefined>(undefined);
     const [revertAllSummary, setRevertAllSummary] = React.useState<
         { intent: "success" | "warning"; text: string } | undefined
     >(undefined);
     const displayRevertError = useModalError({ setError: setRevertError });
-    const displayRevertAllError = useModalError({ setError: setRevertAllError });
     const [pagination, paginationElement, onTotalChange] = usePagination({
         pageSizes: [25, 50, 100],
         initialPageSize: 25,
@@ -252,167 +174,38 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
         return { intent: conflict || unchanged.length > 0 ? "warning" : "success", text: parts.join(" ") };
     };
 
-    /** Opens the batch dialog and asks whether its newest attempted entry conflicts now, which would stop the batch before reverting anything. */
-    const openBatchRevert = async (title: string, confirmText: string, scope: IChangeEntry[]) => {
-        setRevertAllError(undefined);
-        const head = scope.find(hasInverse);
-        setBatchRevert({ title, confirmText, entries: scope, checking: head != null });
-        if (!head) {
-            return;
-        }
-        let blocked: string | undefined;
-        try {
-            blocked = (await requestRevertConflicts(projectId, [head.seq])).find(
-                (conflict) => conflict.seq === head.seq,
-            )?.reason;
-        } catch (ex) {
-            // Not knowing does not block: the batch reports a conflict as an outcome
-            registerError("ChangeList.checkBatch", t("pages.changes.errors.fetchConflicts"), ex);
-        }
-        // Unless the dialog was closed or another batch opened meanwhile
-        setBatchRevert((current) =>
-            current && current.entries === scope ? { ...current, checking: false, blocked } : current,
-        );
-    };
-
-    /** Reverts the confirmed batch; the server skips the entries of it that cannot be reverted. */
-    const revertBatch = async () => {
-        if (!batchRevert) {
-            return;
-        }
+    /** Closes the batch dialog, reloads the list and reports the outcomes. */
+    const batchReverted = async (results: IRevertOutcome[]) => {
+        setBatchRevert(undefined);
+        // The review actions stay busy until the list is current again
         setReviewLoading(true);
         try {
-            const response = await requestRevertChanges(
-                projectId,
-                batchRevert.entries.map((entry) => entry.seq),
-            );
-            setBatchRevert(undefined);
             await loadChanges();
-            setRevertAllSummary(revertAllSummaryText(response.data.results));
-        } catch (ex) {
-            displayRevertAllError(ex, t("pages.changes.errors.revertAll"));
         } finally {
             setReviewLoading(false);
         }
+        setRevertAllSummary(revertAllSummaryText(results));
     };
 
-    /** A value of a detail: the previous one marked as gone, the new one as current; an empty value spelled out. */
-    const detailValue = (text: string, intent: "danger" | "success"): React.ReactNode =>
-        text === "" ? (
-            <NotAvailable label={t("pages.changes.emptyValue")} tooltip={t("pages.changes.emptyValueTooltip")} />
-        ) : (
-            <Tag small emphasis="weak" intent={intent}>
-                {text}
-            </Tag>
-        );
-
-    /** A detail as one line: the label, then before and after, one of them for an addition or removal, nothing when the label says it all. */
-    const detailLine = (detail: IChangeDetail): React.ReactNode => {
-        if (detail.before != null && detail.after != null) {
-            return (
-                <>
-                    {detail.label}: {detailValue(detail.before, "danger")} → {detailValue(detail.after, "success")}
-                </>
-            );
-        } else if (detail.after != null) {
-            return (
-                <>
-                    {detail.label}: {detailValue(detail.after, "success")} {t("pages.changes.detailAdded")}
-                </>
-            );
-        } else if (detail.before != null) {
-            return (
-                <>
-                    {detail.label}: {detailValue(detail.before, "danger")} {t("pages.changes.detailRemoved")}
-                </>
-            );
-        } else {
-            return detail.label;
-        }
-    };
-
-    /** The details of an entry, one per line, cut to the first `limit` when given. */
-    const detailLines = (entry: IChangeEntry, limit: number = entry.details.length): React.ReactNode =>
-        entry.details.slice(0, limit).map((detail, index) => (
-            <div key={index} data-test-id={`change-detail-${entry.seq}-${index}`}>
-                <small>{detailLine(detail)}</small>
-            </div>
-        ));
-
-    const translateUnits = (unit: ElapsedDateTimeDisplayUnits) => t("common.units." + unit, unit);
-
-    /** Relative within the last week, the date beyond, as the metadata panel shows it; the exact time on hover. */
-    const timestamp = (isoDate: string): React.ReactNode => {
-        const days = (Date.now() - new Date(isoDate).getTime()) / 1000 / 60 / 60 / 24;
-        return days < 7 ? (
-            <ElapsedDateTimeDisplay
-                dateTime={isoDate}
-                prefix={t("Metadata.prefixAgo")}
-                suffix={t("Metadata.suffixAgo")}
-                translateUnits={translateUnits}
-            />
-        ) : (
-            <span title={new Date(isoDate).toLocaleString()}>{t("Metadata.dateFormat", getDateData(isoDate))}</span>
-        );
-    };
-
-    /** Why an entry cannot be reverted, if it cannot. */
-    const revertBlocker = (entry: IChangeEntry): string | undefined => {
-        if (entry.revertedBy != null) {
-            return t("pages.changes.revert.alreadyReverted", { seq: entry.revertedBy });
-        } else if (entry.fulfilledBy != null) {
-            return t("pages.changes.revert.fulfilled", { seq: entry.fulfilledBy });
-        } else if (!entry.revertible) {
-            return t("pages.changes.revert.notRevertible");
-        } else if (conflicts.has(entry.seq)) {
-            return t("pages.changes.revert.conflict", { reason: conflicts.get(entry.seq) });
-        } else {
-            return undefined;
-        }
-    };
-
-    /** The revert actions of an entry, behind a menu so that none is hit by accident: the entry alone, or back to before it. */
-    const revertMenu = (entry: IChangeEntry): React.ReactNode => {
-        const backTo = entriesBackTo(entries, entry.seq);
-        const items = [
-            <MenuItem
-                key="revert"
-                data-test-id={`change-revert-btn-${entry.seq}`}
-                icon="operation-undo"
-                intent="danger"
-                text={t("pages.changes.revert.action")}
-                htmlTitle={revertBlocker(entry)}
-                disabled={!hasInverse(entry) || conflicts.has(entry.seq)}
-                onClick={() => openRevertDialog(entry)}
-            />,
-        ];
-        if (entry.seq !== latestSeq) {
-            items.push(
-                <MenuItem
-                    key="revertBack"
-                    data-test-id={`change-revert-back-btn-${entry.seq}`}
-                    icon="operation-undo"
-                    intent="danger"
-                    text={t("pages.changes.revertBack.action")}
-                    disabled={!backTo.some(hasInverse)}
-                    onClick={() =>
-                        openBatchRevert(
-                            t("pages.changes.revertBack.title", { seq: entry.seq }),
-                            t("pages.changes.revertBack.confirmText"),
-                            backTo,
-                        )
-                    }
-                />,
-            );
-        }
+    /** The row of an entry; the latest entry has nothing newer, so no state before it to return to. */
+    const changeRow = (entry: IChangeEntry): React.ReactNode => {
+        const backTo = entry.seq !== latestSeq ? entriesBackTo(entries, entry.seq) : undefined;
         return (
-            <ContextMenu
-                data-test-id={`change-menu-${entry.seq}`}
-                togglerText={t("common.action.moreOptions", "Show more options")}
-                togglerSize="small"
-            >
-                {items}
-            </ContextMenu>
+            <ChangeRow
+                key={entry.seq}
+                entry={entry}
+                conflict={conflicts.get(entry.seq)}
+                revertBackEntries={backTo}
+                onRevert={() => openRevertDialog(entry)}
+                onRevertBack={() =>
+                    backTo &&
+                    setBatchRevert({
+                        title: t("pages.changes.revertBack.title", { seq: entry.seq }),
+                        confirmText: t("pages.changes.revertBack.confirmText"),
+                        entries: backTo,
+                    })
+                }
+            />
         );
     };
 
@@ -423,8 +216,6 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
     if (!entries.length) {
         return <Notification message={t("pages.changes.noChanges")} />;
     }
-
-    const pageEntries = pageOf(entries);
 
     return (
         <>
@@ -448,11 +239,11 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                                 disruptive
                                 text={t("pages.changes.revertAll.button")}
                                 onClick={() =>
-                                    openBatchRevert(
-                                        t("pages.changes.revertAll.title"),
-                                        t("pages.changes.revertAll.confirmText"),
-                                        unreviewedEntries,
-                                    )
+                                    setBatchRevert({
+                                        title: t("pages.changes.revertAll.title"),
+                                        confirmText: t("pages.changes.revertAll.confirmText"),
+                                        entries: unreviewedEntries,
+                                    })
                                 }
                             />
                             <Spacing vertical size="small" />
@@ -477,95 +268,7 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                             <TableHeader>{""}</TableHeader>
                         </TableRow>
                     </TableHead>
-                    <TableBody>
-                        {pageEntries.map((entry) => (
-                            <TableRow
-                                key={entry.seq}
-                                className={entry.unreviewed ? "diapp-changes__row--unreviewed" : undefined}
-                            >
-                                <TableCell alignVertical="middle">{entry.seq}</TableCell>
-                                <TableCell alignVertical="middle">{timestamp(entry.timestamp)}</TableCell>
-                                <TableCell alignVertical="middle">
-                                    {entry.user && <span title={entry.user}>{userDisplayName(entry.user)}</span>}
-                                    {entry.origin && (
-                                        <span
-                                            data-test-id={`change-agent-${entry.seq}`}
-                                            title={`${t("pages.changes.originTooltip")}: ${entry.origin}`}
-                                        >
-                                            {" "}
-                                            <Icon name="operation-ai-generate" small />
-                                        </span>
-                                    )}
-                                </TableCell>
-                                <TableCell alignVertical="middle">
-                                    <div title={entry.type}>{entry.summary}</div>
-                                    {entry.details.length <= DETAILS_PREVIEW_LIMIT ? (
-                                        detailLines(entry)
-                                    ) : (
-                                        <ContentBlobToggler
-                                            data-test-id={`change-details-toggler-${entry.seq}`}
-                                            previewContent={detailLines(entry, DETAILS_PREVIEW_LIMIT)}
-                                            fullviewContent={detailLines(entry)}
-                                            toggleExtendText={t("common.words.more", "more")}
-                                            toggleReduceText={t("common.words.less", "less")}
-                                        />
-                                    )}
-                                    <Spacing size="tiny" />
-                                    <div>
-                                        <TagList>
-                                            <Tag
-                                                small
-                                                intent={kindIntent[changeKind(entry.type)]}
-                                                htmlTitle={entry.type}
-                                            >
-                                                {t(`pages.changes.kind.${changeKind(entry.type)}`)}
-                                            </Tag>
-                                            {entry.unreviewed && (
-                                                <Tag
-                                                    small
-                                                    intent="warning"
-                                                    htmlTitle={t("pages.changes.unreviewedTooltip")}
-                                                >
-                                                    {t("pages.changes.unreviewed")}
-                                                </Tag>
-                                            )}
-                                            {entry.reverts != null && (
-                                                <Tag small>{t("pages.changes.revertsTag", { seq: entry.reverts })}</Tag>
-                                            )}
-                                            {entry.revertedBy != null && (
-                                                <Tag small>
-                                                    {t("pages.changes.revertedByTag", {
-                                                        seq: entry.revertedBy,
-                                                    })}
-                                                </Tag>
-                                            )}
-                                            {entry.fulfilledBy != null && (
-                                                <Tag small>
-                                                    {t("pages.changes.fulfilledTag", { seq: entry.fulfilledBy })}
-                                                </Tag>
-                                            )}
-                                        </TagList>
-                                    </div>
-                                </TableCell>
-                                <TableCell alignVertical="middle">
-                                    {/* Every link opens in a new tab, so the review keeps its place */}
-                                    {entry.links.map((link) => (
-                                        <IconButton
-                                            key={link.id}
-                                            data-test-id={`change-link-${entry.seq}-${link.id}`}
-                                            name={linkIcon(link.id)}
-                                            small
-                                            text={link.label}
-                                            href={link.path}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        />
-                                    ))}
-                                    {revertMenu(entry)}
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
+                    <TableBody>{pageOf(entries).map(changeRow)}</TableBody>
                 </Table>
             </TableContainer>
             {entries.length > Math.min(pagination.total, pagination.minPageSize) && (
@@ -593,40 +296,15 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                 />
             )}
             {batchRevert && (
-                <DeleteModal
-                    data-test-id={"changes-revert-batch-modal"}
-                    isOpen={true}
+                <BatchRevertModal
+                    // Keyed by its entries, so that another batch gets a dialog and a check of its own
+                    key={batchRevert.entries.map((entry) => entry.seq).join()}
+                    projectId={projectId}
                     title={batchRevert.title}
-                    alternativeDeleteButtonText={t("common.action.revert")}
-                    removeLoading={reviewLoading}
-                    errorMessage={revertAllError?.detail}
-                    // Only the revert waits for the check; the dialog stays closable meanwhile
-                    deleteDisabled={batchRevert.checking || batchRevert.blocked != null}
-                    // The dialog's Enter key ignores the disabled button, so it is off while the revert is not offered
-                    submitOnEnter={!batchRevert.checking && batchRevert.blocked == null}
-                    notifications={
-                        batchRevert.blocked != null && (
-                            <Notification data-test-id={"changes-revert-batch-blocked"} intent="warning">
-                                {t("pages.changes.revertAll.blocked", { reason: batchRevert.blocked })}
-                            </Notification>
-                        )
-                    }
-                    onConfirm={revertBatch}
-                    onDiscard={() => setBatchRevert(undefined)}
-                    render={() => {
-                        const skipped = batchRevert.entries.filter((entry) => !hasInverse(entry)).length;
-                        return (
-                            <div>
-                                <p>{batchRevert.confirmText}</p>
-                                <ul>
-                                    {batchRevert.entries.filter(hasInverse).map((entry) => (
-                                        <li key={entry.seq}>{entry.description}</li>
-                                    ))}
-                                </ul>
-                                {skipped > 0 && <p>{t("pages.changes.revertAll.skippedNote", { count: skipped })}</p>}
-                            </div>
-                        );
-                    }}
+                    confirmText={batchRevert.confirmText}
+                    entries={batchRevert.entries}
+                    onClose={() => setBatchRevert(undefined)}
+                    onReverted={batchReverted}
                 />
             )}
             {markReviewedOpen && (
