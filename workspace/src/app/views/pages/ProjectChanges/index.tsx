@@ -22,10 +22,9 @@ import NotFound from "../NotFound";
 import ChangeList from "./ChangeList";
 
 /** The change journal of a project: what has been changed, and reverting single changes. */
-const ProjectChanges = () => {
+const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
-    const { projectId } = useParams<{ projectId: string }>();
     const [notFound, setNotFound] = React.useState(false);
     const [refreshKey, setRefreshKey] = React.useState(0);
 
@@ -111,6 +110,15 @@ const ProjectChanges = () => {
             <WorkspaceSide></WorkspaceSide>
         </WorkspaceContent>
     );
+};
+
+/**
+ * The changes page of the project in the URL. The router keeps the page when only the project changes, so the page
+ * is keyed by the project: nothing of the previous project is kept, and a late answer for it is not shown.
+ */
+const ProjectChanges = () => {
+    const { projectId } = useParams<{ projectId: string }>();
+    return <ProjectChangesPage key={projectId} projectId={projectId} />;
 };
 
 export default ProjectChanges;

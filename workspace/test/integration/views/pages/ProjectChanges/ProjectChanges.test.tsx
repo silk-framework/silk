@@ -12,7 +12,9 @@ import {
     mockedAxiosError,
     mockedAxiosResponse,
     renderWrapper,
+    setUseParams,
 } from "../../../TestHelper";
+import ProjectChanges from "../../../../../src/app/views/pages/ProjectChanges";
 import ChangeList from "../../../../../src/app/views/pages/ProjectChanges/ChangeList";
 import { IChangeEntry } from "../../../../../src/app/views/pages/ProjectChanges/changesRequests";
 import { triggerHotkeyHandler } from "../../../../../src/app/views/shared/HotKeyHandler/HotKeyHandler";
@@ -149,6 +151,16 @@ describe("Project changes", () => {
         return wrapper;
     };
 
+    /** Answers the reload of the list that follows a revert or a review. */
+    const answerReload = async (list: IChangeEntry[] = changes, reviewedUpTo: number = 0) => {
+        await waitFor(() => checkRequestMade(changesUrl, "GET"));
+        // A fresh list, as a parsed response is; the same array would not count as a change to React
+        mockAxios.mockResponseFor(
+            { url: changesUrl },
+            mockedAxiosResponse({ data: { reviewedUpTo, changes: [...list] } }),
+        );
+    };
+
     /** Answers the check the batch dialog makes when it opens, and waits until the dialog offers the revert. */
     const answerBatchCheck = async (head: number, conflicts: { seq: number; reason: string }[] = []) => {
         await waitFor(() => checkRequestMade(conflictsUrl([head]), "GET"));
@@ -277,10 +289,7 @@ describe("Project changes", () => {
             }),
         );
         // The list is reloaded after the revert
-        await waitFor(() => {
-            expect(mockAxios.queue().length).toBeGreaterThan(0);
-        });
-        mockAxios.mockResponseFor({ url: changesUrl }, mockedAxiosResponse({ data: { reviewedUpTo: 0, changes } }));
+        await answerReload();
         await waitFor(() => {
             expect(document.body.querySelector(byTestId("remove-item-button"))).not.toBeInTheDocument();
         });
@@ -316,10 +325,7 @@ describe("Project changes", () => {
                 },
             }),
         );
-        await waitFor(() => {
-            expect(mockAxios.queue().length).toBeGreaterThan(0);
-        });
-        mockAxios.mockResponseFor({ url: changesUrl }, mockedAxiosResponse({ data: { reviewedUpTo: 0, changes } }));
+        await answerReload();
         await waitFor(() => {
             expect(findElement(wrapper, byTestId("changes-revert-all-summary")).textContent).toContain(
                 "Reverted changes: 2.",
@@ -327,15 +333,10 @@ describe("Project changes", () => {
         });
     });
 
-    it("should mark the unreviewed changes and offer the review actions", async () => {
+    it("should offer the review actions for the unreviewed changes and mark them reviewed with the latest fetched seq", async () => {
         const wrapper = await loadChangeList();
         expect(wrapper.container.textContent).toContain("Unreviewed changes: 2");
-        expect(findElement(wrapper, byTestId("changes-mark-reviewed-btn"))).toBeInTheDocument();
         expect(findElement(wrapper, byTestId("changes-revert-unreviewed-btn"))).toBeInTheDocument();
-    });
-
-    it("should mark all changes as reviewed with the latest fetched seq", async () => {
-        const wrapper = await loadChangeList();
         clickFoundElement(wrapper, byTestId("changes-mark-reviewed-btn"));
         await waitFor(() => {
             expect(findElement(document.body, byTestId("changes-mark-reviewed-confirm-btn"))).toBeInTheDocument();
@@ -345,13 +346,7 @@ describe("Project changes", () => {
             checkRequestMade(reviewedUrl, "PUT", { upTo: 5 });
         });
         mockAxios.mockResponseFor({ url: reviewedUrl }, mockedAxiosResponse({ data: { reviewedUpTo: 5 } }));
-        await waitFor(() => {
-            expect(mockAxios.queue().length).toBeGreaterThan(0);
-        });
-        mockAxios.mockResponseFor(
-            { url: changesUrl },
-            mockedAxiosResponse({ data: { reviewedUpTo: 5, changes: reviewedChanges } }),
-        );
+        await answerReload(reviewedChanges, 5);
         await waitFor(() => {
             expect(wrapper.container.querySelector(byTestId("changes-mark-reviewed-btn"))).not.toBeInTheDocument();
         });
@@ -369,14 +364,7 @@ describe("Project changes", () => {
             checkRequestMade(reviewedUrl, "PUT", { upTo: 5 });
         });
         mockAxios.mockResponseFor({ url: reviewedUrl }, mockedAxiosResponse({ data: { reviewedUpTo: 5 } }));
-        await waitFor(() => {
-            expect(mockAxios.queue().length).toBeGreaterThan(0);
-        });
-        // A fresh list, as a parsed response is; the same array would not count as a change to React
-        mockAxios.mockResponseFor(
-            { url: changesUrl },
-            mockedAxiosResponse({ data: { reviewedUpTo: 5, changes: [...changes] } }),
-        );
+        await answerReload(changes, 5);
         // The check fails this time: the earlier reason of change 4 does not hold on, as a revert answers with the conflict itself
         await waitFor(() => checkRequestMade(conflictsUrl([5, 4]), "GET"));
         mockAxiosResponse({ url: conflictsUrl([5, 4]) }, mockedAxiosError(500));
@@ -435,14 +423,55 @@ describe("Project changes", () => {
                 },
             }),
         );
-        await waitFor(() => {
-            expect(mockAxios.queue().length).toBeGreaterThan(0);
-        });
-        mockAxios.mockResponseFor({ url: changesUrl }, mockedAxiosResponse({ data: { reviewedUpTo: 0, changes } }));
+        await answerReload();
         await waitFor(() => {
             const summary = findElement(wrapper, byTestId("changes-revert-all-summary"));
             expect(summary.textContent).toContain("Reverted changes: 1.");
             expect(summary.textContent).toContain("Skipped: 1.");
         });
+    });
+
+    it("should keep nothing of the previous project when the project changes", async () => {
+        const metaDataUrl = (projectId: string) => apiUrl(`/workspace/projects/${projectId}/metaData`);
+        const notFoundPage = () => wrapper.container.querySelector(byTestId("not-found-page"));
+        const rows = () => wrapper.container.querySelectorAll("tbody tr");
+        // As the router does it: the page stays and only its project id changes
+        const switchProject = (projectId: string) => {
+            setUseParams(projectId, "");
+            wrapper.rerender(<ProjectChanges />);
+        };
+
+        setUseParams("missingProject", "");
+        const wrapper = renderWrapper(<ProjectChanges />);
+        await waitFor(() => checkRequestMade(metaDataUrl("missingProject"), "GET"));
+        mockAxiosResponse(metaDataUrl("missingProject"), mockedAxiosError(404));
+        await waitFor(() => {
+            expect(notFoundPage()).toBeInTheDocument();
+        });
+
+        // An existing project is not reported missing
+        switchProject(PROJECT_ID);
+        await waitFor(() => checkRequestMade(changesUrl, "GET"));
+        expect(notFoundPage()).not.toBeInTheDocument();
+        mockAxios.mockResponseFor({ url: changesUrl }, mockedAxiosResponse({ data: { reviewedUpTo: 0, changes } }));
+        await waitFor(() => {
+            expect(rows()).toHaveLength(changes.length);
+        });
+
+        // Another project does not show the changes of the previous one while it loads
+        switchProject("otherProject");
+        const otherChangesUrl = apiUrl("/workspace/projects/otherProject/changes");
+        await waitFor(() => checkRequestMade(otherChangesUrl, "GET"));
+        expect(rows()).toHaveLength(0);
+        // An answer for the previous project that arrives late is not taken for this one
+        mockAxiosResponse(metaDataUrl(PROJECT_ID), mockedAxiosError(404));
+        mockAxios.mockResponseFor(
+            { url: otherChangesUrl },
+            mockedAxiosResponse({ data: { reviewedUpTo: 0, changes: [mappingChange] } }),
+        );
+        await waitFor(() => {
+            expect(rows()).toHaveLength(1);
+        });
+        expect(notFoundPage()).not.toBeInTheDocument();
     });
 });
