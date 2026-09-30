@@ -313,6 +313,9 @@ export interface IInitFrontend {
     /** If the assistant feature is enabled. */
     assistantSupported: boolean;
 
+    /** Configuration of the Explore companion integration for the current user. */
+    companion: ICompanionFrontendConfig;
+
     /** If the mapping creator is enabled. */
     mappingCreatorEnabled: boolean;
 
@@ -321,6 +324,18 @@ export interface IInitFrontend {
 
     /** If access control is enabled. */
     aclEnabled: boolean;
+}
+
+/** InitApi configuration needed to mount and connect the companion frontend. */
+export interface ICompanionFrontendConfig {
+    /** Whether the installation and current user's actions allow the companion. */
+    enabled: boolean;
+
+    /** Same-origin base path of the Explore companion HTTP API. */
+    apiBasePath: string;
+
+    /** Same-origin path of the Explore companion event stream. */
+    streamPath: string;
 }
 
 type HotKeyIds = "quickSearch" | "overview";

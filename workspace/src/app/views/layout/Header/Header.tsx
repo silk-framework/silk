@@ -33,7 +33,7 @@ import { APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME 
 import { CONTEXT_PATH, SERVE_PATH } from "../../../constants/path";
 import { APP_VIEWHEADER_ID } from "../../shared/PageHeader/PageHeader";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
-import { UserMenuFooterProps } from "../../plugins/plugin.types";
+import { CompanionToolbarProps, UserMenuFooterProps } from "../../plugins/plugin.types";
 import { ExampleProjectImportMenu } from "./ExampleProjectImportMenu";
 import { useKeyboardHeaderShortcuts } from "./useKeyBoardHeaderShortcuts";
 import { getFullRoutePath } from "../../../utils/routerUtils";
@@ -49,9 +49,10 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
     const location = useLocation();
     const locationParams = new URLSearchParams(location.search?.substring(1));
     const { hotKeys } = useSelector(commonSel.initialSettingsSelector);
-    const { dmBaseUrl, dmModuleLinks, version } = useSelector(commonSel.initialSettingsSelector);
+    const { companion, dmBaseUrl, dmModuleLinks, version } = useSelector(commonSel.initialSettingsSelector);
     const [t] = useTranslation();
     const displayUserMenu = useSelector(commonSel.userMenuDisplaySelector);
+    const displayNotifications = useSelector(commonSel.notificationMenuSelector);
 
     //general keyboard shortcuts
     useKeyboardHeaderShortcuts();
@@ -60,6 +61,14 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
         SUPPORTED_PLUGINS.DI_USER_MENU_FOOTER,
     );
     const languageSwitcher = pluginRegistry.pluginReactComponent<{}>(SUPPORTED_PLUGINS.DI_LANGUAGE_SWITCHER);
+    const companionToolbar = pluginRegistry.pluginReactComponent<CompanionToolbarProps>(
+        SUPPORTED_PLUGINS.DI_COMPANION,
+    );
+
+    const closeOtherToolbarPanels = React.useCallback(() => {
+        dispatch(commonOp.toggleNotificationMenuDisplay(false));
+        dispatch(commonOp.toggleUserMenuDisplay(false));
+    }, [dispatch]);
 
     const handleCreateDialog = React.useCallback(() => {
         dispatch(commonOp.setSelectedArtefactDType("all"));
@@ -199,6 +208,15 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         <CreateButton onClick={handleCreateDialog} />
                     </ApplicationToolbarSection>
                     <NotificationsMenu />
+                    {companion?.enabled && companionToolbar && (
+                        <companionToolbar.Component
+                            companionConfig={companion}
+                            closeOtherToolbarPanels={closeOtherToolbarPanels}
+                            dmBaseUrl={dmBaseUrl}
+                            dmModuleLinks={dmModuleLinks}
+                            isAnotherToolbarPanelOpen={displayNotifications || displayUserMenu}
+                        />
+                    )}
                     {displayUserMenu ? (
                         <>
                             <ApplicationToolbarAction

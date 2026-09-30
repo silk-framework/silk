@@ -17,6 +17,7 @@ import { requestDeprecatedPlugins } from "@ducks/common/requests";
 import { DeprecatedPluginsSidebar } from "./DeprecatedPluginsSidebar";
 import { DeprecatedPluginsList } from "./DeprecatedPluginsList";
 import { useHistory, useLocation } from "react-router";
+import { usePageContextContribution } from "../../../contexts/ApplicationContextRegistry";
 
 export interface DeprecatedPluginsModel {
     project?: string;
@@ -138,6 +139,25 @@ export default function DeprecatedPlugins() {
         () => (selectedPluginKey ? sortedPlugins.filter((p) => p.pluginId === selectedPluginKey) : sortedPlugins),
         [sortedPlugins, selectedPluginKey],
     );
+    const pageContextContribution = React.useMemo(
+        () => ({
+            kind: "deprecatedPlugins" as const,
+            scope: { view: "deprecatedPlugins" as const },
+            totalUsageCount: deprecatedPlugins.length,
+            ...(selectedPlugin
+                ? {
+                      selectedPlugin: {
+                          deprecationMessage: selectedPlugin.deprecationMessage,
+                          id: selectedPlugin.pluginId,
+                          label: selectedPlugin.pluginLabel,
+                          usageCount: selectedPlugin.count,
+                      },
+                  }
+                : {}),
+        }),
+        [deprecatedPlugins.length, selectedPlugin],
+    );
+    usePageContextContribution(pageContextContribution);
 
     return (
         <WorkspaceContent>
