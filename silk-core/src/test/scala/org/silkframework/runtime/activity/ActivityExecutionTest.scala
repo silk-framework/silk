@@ -295,6 +295,7 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     gated.released = true
     eventually { counter.get() mustBe 2 }
     eventually { activity.status() mustBe a[Finished] }
+    eventually { activity.lastResult mustBe defined }
     // The successful re-run must not inherit the earlier run's cancellation metadata, and its recorded finish
     // status must be the terminal one.
     val metaData = activity.lastResult.get.metaData
@@ -624,6 +625,7 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     gated.released = true
     eventually { counter.get() mustBe 2 }
     eventually { activity.status() mustBe a[Finished] }
+    eventually { activity.lastResult mustBe defined }
     // The re-run must execute under the requesting user's context and be attributed to that user.
     gated.usersSeen.asScala.toSeq.map(_.user.map(_.uri)) mustBe Seq(Some("urn:user:user1"), Some("urn:user:user2"))
     activity.startedBy.user.map(_.uri) mustBe Some("urn:user:user2")
