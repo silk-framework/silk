@@ -50,6 +50,52 @@ export const validatePrefixValue = (prefixValue: string): boolean | number => {
     }
 };
 
+interface OverwritePrefixDialogProps {
+    prefixName: string;
+    /** If true an existing project prefix gets updated, else a workspace prefix gets overridden in the project. */
+    isUpdatePrefix: boolean;
+    onConfirm: () => void;
+    onClose: () => void;
+}
+
+/** Asks for confirmation before an existing project prefix gets updated or a workspace prefix gets overridden. */
+const OverwritePrefixDialog = ({ prefixName, isUpdatePrefix, onConfirm, onClose }: OverwritePrefixDialogProps) => {
+    const [t] = useTranslation();
+
+    const confirmLabel = isUpdatePrefix
+        ? t("common.action.update")
+        : t("PrefixDialog.overrideWorkspacePrefixAction", "Override in project");
+    const message = isUpdatePrefix
+        ? t("PrefixDialog.overwritePrefix", { prefixName })
+        : t("PrefixDialog.overrideWorkspacePrefix", {
+              defaultValue:
+                  "The workspace prefix '{{prefixName}}' will stay unchanged. This project prefix will override it only inside this project.",
+              prefixName,
+          });
+
+    useHotKey({ hotkey: "enter", handler: onConfirm });
+
+    return (
+        <AlertDialog
+            warning
+            isOpen={true}
+            canEscapeKeyClose={true}
+            onClose={onClose}
+            data-test-id={"update-prefix-dialog"}
+            actions={[
+                <Button key="overwrite" data-test-id={"prefix-update-dialog-submit-btn"} onClick={onConfirm}>
+                    {confirmLabel}
+                </Button>,
+                <Button key="cancel" onClick={onClose}>
+                    {t("common.action.cancel")}
+                </Button>,
+            ]}
+        >
+            <p>{message}</p>
+        </AlertDialog>
+    );
+};
+
 /** Component for entering a new prefix. */
 const PrefixNew = ({ onAdd, existingProjectPrefixes, existingWorkspacePrefixes }: IProps) => {
     const [t] = useTranslation();
@@ -106,7 +152,7 @@ const PrefixNew = ({ onAdd, existingProjectPrefixes, existingWorkspacePrefixes }
         if (!submitButtonDisabled) {
             isUpdatePrefix || isWorkspaceOverride ? setOverwriteDialogOpen(true) : onAdd(prefixDefinition);
         }
-    }, [prefixDefinition, isUpdatePrefix, isWorkspaceOverride, submitButtonDisabled]);
+    }, [onAdd, prefixDefinition, isUpdatePrefix, isWorkspaceOverride, submitButtonDisabled]);
 
     const enterHandler: KeyboardEventHandler<HTMLInputElement> = React.useCallback(
         (event): void => {
@@ -119,45 +165,10 @@ const PrefixNew = ({ onAdd, existingProjectPrefixes, existingWorkspacePrefixes }
 
     const closeOverwriteDialog = React.useCallback(() => setOverwriteDialogOpen(false), []);
 
-    const OverWriteDialog = () => {
-        const submitHandler = React.useCallback(() => {
-            setOverwriteDialogOpen(false);
-            onAdd(prefixDefinition);
-        }, []);
-
-        const confirmLabel = isUpdatePrefix
-            ? t("common.action.update")
-            : t("PrefixDialog.overrideWorkspacePrefixAction", "Override in project");
-        const message = isUpdatePrefix
-            ? t("PrefixDialog.overwritePrefix", { prefixName: prefixDefinition.prefixName })
-            : t("PrefixDialog.overrideWorkspacePrefix", {
-                  defaultValue:
-                      "The workspace prefix '{{prefixName}}' will stay unchanged. This project prefix will override it only inside this project.",
-                  prefixName: prefixDefinition.prefixName,
-              });
-
-        useHotKey({ hotkey: "enter", handler: submitHandler });
-
-        return (
-            <AlertDialog
-                warning
-                isOpen={true}
-                canEscapeKeyClose={true}
-                onClose={closeOverwriteDialog}
-                data-test-id={"update-prefix-dialog"}
-                actions={[
-                    <Button key="overwrite" data-test-id={"prefix-update-dialog-submit-btn"} onClick={submitHandler}>
-                        {confirmLabel}
-                    </Button>,
-                    <Button key="cancel" onClick={closeOverwriteDialog}>
-                        {t("common.action.cancel")}
-                    </Button>,
-                ]}
-            >
-                <p>{message}</p>
-            </AlertDialog>
-        );
-    };
+    const confirmOverwrite = React.useCallback(() => {
+        setOverwriteDialogOpen(false);
+        onAdd(prefixDefinition);
+    }, [onAdd, prefixDefinition]);
 
     return (
         <>
@@ -216,7 +227,14 @@ const PrefixNew = ({ onAdd, existingProjectPrefixes, existingWorkspacePrefixes }
                     </FieldItem>
                 </FieldItemRow>
             </FieldSet>
-            {overwriteDialogOpen && <OverWriteDialog />}
+            {overwriteDialogOpen && (
+                <OverwritePrefixDialog
+                    prefixName={prefixDefinition.prefixName}
+                    isUpdatePrefix={isUpdatePrefix}
+                    onConfirm={confirmOverwrite}
+                    onClose={closeOverwriteDialog}
+                />
+            )}
         </>
     );
 };
