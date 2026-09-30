@@ -23,11 +23,13 @@ class JsonSink (val resource: WritableResource,
   }
 
   /**
-   * Makes sure that the next write will start from an empty dataset.
+   * Only deletes the file if forced, because each write replaces the file anyway.
    */
   override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
-    resource.delete()
-    super.clear(force)
+    if(force) {
+      resource.delete()
+      super.clear(force)
+    }
   }
 
 }

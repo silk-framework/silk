@@ -40,8 +40,13 @@ class TextFileSink(ds: TextFileDataset) extends EntitySink with LinkSink {
     writeEntity("", IndexedSeq(Seq(link.source), Seq(link.target)))
   }
 
+  /**
+   * Only empties the file if forced, because each write replaces the file anyway.
+   */
   override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
-    ds.bulkWritableResource.writeString("", codec = ds.codec)
+    if(force) {
+      ds.bulkWritableResource.writeString("", codec = ds.codec)
+    }
   }
 
   override def close()(implicit userContext: UserContext): Unit = {

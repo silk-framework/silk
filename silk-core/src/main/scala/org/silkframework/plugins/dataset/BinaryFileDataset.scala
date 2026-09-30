@@ -105,8 +105,13 @@ class FileSink(file: WritableResource) extends EntitySink {
     throwException
   }
 
+  /**
+   * Only deletes the file if forced, because each write replaces the file anyway.
+   */
   override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
-    file.delete()
+    if(force) {
+      file.delete()
+    }
   }
 
   private def throwException: Nothing = {
