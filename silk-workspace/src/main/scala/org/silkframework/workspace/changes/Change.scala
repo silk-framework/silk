@@ -34,7 +34,10 @@ trait Change {
   /** The change that undoes this one, or None if it cannot be undone, e.g. a file overwrite of which no copy was kept. */
   def inverse: Option[Change]
 
-  /** Whether this change fulfils the given proposal, e.g. a workflow run the proposal to run it; recorded as [[ChangeEntry.fulfils]]. */
+  /**
+    * Whether this change fulfils the given proposal, e.g. a workflow run fulfils the proposal to run that workflow.
+    * Recorded as [[ChangeEntry.fulfils]].
+    */
   def fulfils(proposal: Proposal): Boolean = false
 
   /**

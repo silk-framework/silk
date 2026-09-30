@@ -18,7 +18,8 @@ import scala.util.control.NonFatal
   * @param origin    The client the change came from, e.g. "mcp:<client name>", if known.
   * @param change    The change that was applied.
   * @param reverts   The seq of the entry this change reverts, if it was recorded by reverting one.
-  * @param fulfils   The seq of the proposal this change fulfilled, if it answered an open one, e.g. the run of a proposed workflow run.
+  * @param fulfils   The seq of the proposal this change fulfilled, if any, e.g. a workflow run fulfils the proposal to run
+  *                  that workflow.
   */
 case class ChangeEntry(seq: Int, timestamp: Instant, user: Option[String], origin: Option[String], change: Change,
                        reverts: Option[Int] = None, fulfils: Option[Int] = None) {
@@ -33,13 +34,13 @@ case class ChangeEntry(seq: Int, timestamp: Instant, user: Option[String], origi
   */
 class ChangeJournal(project: Project) {
 
-  // Set while an entry is reverted, so the first entry that the revert records refers to it.
-  // Not inheritable, so that an activity started by the write does not pick it up.
+  // The seq of the entry that this thread is reverting, if any. The method `record` below copies it into the
+  // `reverts` field of the first journal entry created during the revert. That links the new entry to the reverted one.
   private val reverting = new ThreadLocal[Option[Int]] {
     override def initialValue: Option[Int] = None
   }
 
-  // Set while a write is derived from a change that is recorded itself, so that it is not recorded.
+  // True while this thread runs derived writes, see `derived`. Derived writes are not recorded.
   private val derivedWrite = new ThreadLocal[Boolean] {
     override def initialValue: Boolean = false
   }
@@ -55,15 +56,15 @@ class ChangeJournal(project: Project) {
   /** The seq up to which the user has reviewed the changes; 0 if never set. */
   def reviewedUpTo: Int = store.reviewedUpTo(project.id)
 
-  /** The entries and the reviewed watermark as of one moment, so that what is derived from them agrees. */
+  /** The entries and the reviewed watermark, read in one step, so that both describe the same journal state. */
   def snapshot: (Seq[ChangeEntry], Int) = {
     val currentStore = store
     currentStore.synchronized((currentStore.entries(project.id), currentStore.reviewedUpTo(project.id)))
   }
 
-  /** The agent entries after the reviewed watermark, oldest first. The user's own writes do not queue for review,
-    * a reverted entry needs no review anymore: its effect is undone, and neither does a run that fulfils an approved
-    * proposal: the approval was its review. */
+  /** The entries awaiting review, oldest first: the agent entries after the reviewed watermark.
+    * Left out are reverted entries (their effect is undone) and runs that fulfil a reviewed proposal (approving the
+    * proposal was the review). */
   def unreviewed: Seq[ChangeEntry] = {
     val (entries, watermark) = snapshot
     unreviewed(entries, watermark)
@@ -76,14 +77,14 @@ class ChangeJournal(project: Project) {
     }
   }
 
-  /** The seq of the entry that reverted each reverted entry. */
+  /** For each reverted entry, the seq of the entry that reverted it. */
   def revertedBy: Map[Int, Int] = revertedBy(all)
 
   def revertedBy(entries: Seq[ChangeEntry]): Map[Int, Int] = {
     entries.flatMap(entry => entry.reverts.map(_ -> entry.seq)).toMap
   }
 
-  /** The seq of the entry that fulfilled each fulfilled proposal. A fulfilled proposal is final: it cannot be discarded anymore. */
+  /** For each fulfilled proposal, the seq of the entry that fulfilled it. A fulfilled proposal is final and cannot be discarded. */
   def fulfilledBy: Map[Int, Int] = fulfilledBy(all)
 
   def fulfilledBy(entries: Seq[ChangeEntry]): Map[Int, Int] = {
@@ -165,17 +166,17 @@ class ChangeJournal(project: Project) {
       None
     } else {
       val currentStore = store
-      // The seq comes from the store, under its monitor: a project can have more than one journal while it is
-      // reloaded, and its journals share the store.
-      // A write may run with provider rights, e.g. as the loading user when access control is on, so the user of
-      // the request being served is the one who asked for it.
+      // A write may run as the provider user, e.g. the loading user when access control is on.
+      // The entry names the user of the request being served, if there is one.
       val requester = ChangeJournal.requestUserContext.getOrElse(userContext)
+      // The seq is taken under the store's monitor.
+      // While a project is reloaded it can have two journals, which share the store.
       currentStore.synchronized {
-        // The change answers the latest open proposal it fulfils, e.g. a run the proposal to run its workflow.
+        // Links the change to the latest open proposal it fulfils, e.g. a workflow run to the proposal to run that workflow.
         val fulfils = openProposals(currentStore.entries(project.id)).findLast { case (_, proposal) => change.fulfils(proposal) }
         val entry = ChangeEntry(currentStore.latestSeq(project.id) + 1, Instant.now, requester.user.map(_.uri),
           userContext.executionContext.origin, change, reverting.get(), fulfils.map(_._1.seq))
-        // A change that writes more than one task records one entry per task; only the first one reverts the entry.
+        // A revert can record several entries, one per task it writes. Only the first is marked as the revert.
         reverting.remove()
         currentStore.append(project.id, entry)
         Some(entry)
@@ -184,9 +185,9 @@ class ChangeJournal(project: Project) {
   }
 
   /**
-    * Why each entry cannot be reverted as the project is now, by seq: [[Change.conflict]] of its inverse, checked
-    * against one [[ConflictContext]] for all entries, so what the checks need is gathered once per call. An entry
-    * without inverse has none; whether an entry has been reverted or fulfilled already is not checked here.
+    * The reason why each entry cannot be reverted as the project is now, by seq. Entries that can be reverted are absent.
+    * Asks [[Change.conflict]] of each inverse, with one [[ConflictContext]] shared by all entries.
+    * An entry without inverse is absent as well. Not checked: whether an entry has been reverted or fulfilled already.
     */
   def revertConflicts(entries: Seq[ChangeEntry])(implicit userContext: UserContext): Map[Int, String] = {
     val context = new ConflictContext(project)
@@ -211,10 +212,11 @@ class ChangeJournal(project: Project) {
     val inverse = claimRevert(seq)
     reverting.set(Some(seq))
     try {
-      // A revert is a request of the user, so the files its inverse writes are recorded.
+      // File writes are recorded only while a request user is set, so the inverse runs on behalf of the reverting user.
       ChangeJournal.onBehalfOf(userContext)(inverse.applyTo(project))
     } catch {
-      // Any failure of the inverse is a conflict, as the dry run reports it; a refusal of the user stays the user's.
+      // Conflicts and access denials pass through.
+      // Any other failure of the inverse becomes a conflict, as the conflict check reports it.
       case ex @ (_: ChangeConflictException | _: ProjectAccessDeniedException) => throw ex
       case NonFatal(ex) => throw ChangeConflictException(Change.reason(ex), Some(ex))
     } finally {
@@ -227,15 +229,15 @@ class ChangeJournal(project: Project) {
   }
 
   /**
-    * Reverts entries newest-first, so that no entry is reverted while a later one still builds on it: an entry
-    * that cannot be reverted is skipped, one whose inverse changes nothing stays unchanged, a conflict stops the
-    * batch and leaves the remaining entries unattempted.
+    * Reverts entries newest first, so that no entry is reverted while a later one still builds on it.
+    * An entry that cannot be reverted is skipped. An entry whose inverse changes nothing stays as it is.
+    * A conflict stops the batch: the remaining entries are not attempted.
     * Not transactional: the entries reverted before a conflict stay reverted, as the outcomes report.
     */
   def revertAll(seqs: Seq[Int])(implicit userContext: UserContext): Seq[RevertOutcome] = {
     val outcomes = Seq.newBuilder[RevertOutcome]
     var stopped = false
-    // Fixed before the batch: a revert never fulfils a proposal.
+    // Read once for the batch: a revert never fulfils a proposal, so the batch does not change it.
     val fulfilled = fulfilledBy
     for(seq <- seqs.distinct.sorted(Ordering[Int].reverse)) {
       if(stopped) {
@@ -257,10 +259,10 @@ class ChangeJournal(project: Project) {
               // The project is unchanged, so the older entries can still be reverted.
               case ex: ChangeNotRevertedException =>
                 outcomes += RevertOutcome.Unchanged(seq, ex.getMessage)
-              // Evicted from the store since the check above; nothing to revert, the batch continues.
+              // The entry was evicted from the store after the check above. Nothing to revert, the batch continues.
               case ex: NotFoundException =>
                 outcomes += RevertOutcome.Skipped(seq, ex.getMessage)
-              // Any failure of the inverse, as revert reports it, stops the batch with its outcomes reported.
+              // A conflict, which is how revert reports any failure of the inverse, stops the batch.
               case ex: ChangeConflictException =>
                 outcomes += RevertOutcome.Conflict(seq, ex.getMessage)
                 stopped = true
@@ -319,8 +321,8 @@ object RevertOutcome {
 
 object ChangeJournal {
 
-  // The entries whose inverse is being applied, by project: their revert is not recorded yet, so nothing else marks
-  // them. Held here, as a project can have more than one journal while it is reloaded.
+  // The reverts in progress, as (project, seq): claimed, but not recorded yet, so the journal does not show them as reverted.
+  // Held in the companion, as a project can have two journals while it is reloaded.
   private var revertsInProgress = Set.empty[(Identifier, Int)]
 
   // The user of the request being served, for writes that carry no user context, such as resource writes.
