@@ -306,6 +306,28 @@ abstract class JsonSourceTest extends AnyFlatSpec with Matchers with TestPluginC
     entities.map(_.values).toSeq mustBe Seq(Seq(Seq("Berlin")), Seq(Seq("Hamburg")))
   }
 
+  private val jsonWithEmptyKeys =
+    """[
+      |  {"name": "no empty key", "key": "value"},
+      |  {"name": "empty key", "": "value", "nested": {"": {"ignored": 1}, "kept": 2}}
+      |]""".stripMargin
+
+  it should "ignore empty keys" in {
+    val source = jsonSource(jsonWithEmptyKeys)
+    source.retrievePaths("").map(_.toUntypedPath.normalizedSerialization) mustBe IndexedSeq("name", "key", "nested", "nested/kept")
+    source.retrieveTypes().map(_._1).toSeq mustBe Seq("", "nested")
+    source.collectPaths(Int.MaxValue).map(_.mkString("/")) mustBe Seq("", "name", "key", "nested", "nested/kept")
+  }
+
+  it should "read entities from objects that have empty keys" in {
+    val schema = EntitySchema("", typedPaths = IndexedSeq("name", "key", "nested/kept").map(UntypedPath.parse(_).asStringTypedPath))
+    val entities = jsonSource(jsonWithEmptyKeys).retrieve(schema).entities
+    entities.map(_.values).toSeq mustBe Seq(
+      Seq(Seq("no empty key"), Seq("value"), Seq()),
+      Seq(Seq("empty key"), Seq(), Seq("2"))
+    )
+  }
+
   it should "generate consistent URIs for array values" in {
     val source2 = createSource(resources.get("exampleArrays.json"), "", "")
 
