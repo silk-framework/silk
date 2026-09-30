@@ -22,8 +22,10 @@ import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset,
 import org.silkframework.workspace.variables.{DeleteVariableModification, UpdateVariableModification}
 import org.silkframework.workspace.{ProjectTask, TestWorkspaceProviderTestTrait, WorkspaceFactory}
 
+import java.lang.management.ManagementFactory
 import java.time.Instant
-import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.{CyclicBarrier, TimeUnit}
 import scala.util.{Failure, Try}
 
 class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait with ConfigTestTrait {
@@ -60,6 +62,34 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
 
   /** The revert conflict of one entry, as a request about it alone would report it. */
   private def revertConflict(journal: ChangeJournal, entry: ChangeEntry): Option[String] = journal.revertConflicts(Seq(entry)).get(entry.seq)
+
+  /**
+    * Reverts an entry on a second thread while this thread holds `monitor`, as a write in progress does.
+    * Runs `write` once the revert waits for that monitor and returns how the revert ended.
+    */
+  private def revertDuringWrite(journal: ChangeJournal, seq: Int, monitor: AnyRef)(write: => Unit): Try[ChangeEntry] = {
+    val outcome = new AtomicReference[Option[Try[ChangeEntry]]](None)
+    val revert = new Thread(() => outcome.set(Some(Try(journal.revert(seq)))))
+    revert.setDaemon(true)
+    def waitsForMonitor: Boolean = {
+      Option(ManagementFactory.getThreadMXBean.getThreadInfo(revert.threadId())).flatMap(info => Option(info.getLockInfo))
+        .exists(_.getIdentityHashCode == System.identityHashCode(monitor))
+    }
+    val timeout = TimeUnit.SECONDS.toMillis(10)
+    monitor.synchronized {
+      revert.start()
+      val deadline = System.currentTimeMillis() + timeout
+      while(!waitsForMonitor) {
+        if(!revert.isAlive || System.currentTimeMillis() > deadline) {
+          fail("The revert did not wait for the monitor.")
+        }
+        Thread.sleep(10)
+      }
+      write
+    }
+    revert.join(timeout)
+    outcome.get.getOrElse(fail("The revert did not finish."))
+  }
 
   it should "record every task addition, update and removal" in {
     val project = retrieveOrCreateProject("journalTasks")
@@ -152,6 +182,26 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     failure.getMessage should include ("reverted already")
     journal.all.count(_.reverts.contains(update.seq)) shouldBe 1
     ruleIds(project.task[TransformSpec]("transform")) shouldBe Seq("name")
+  }
+
+  it should "refuse a whole-task revert whose task is written while the revert waits for it" in {
+    val project = retrieveOrCreateProject("journalRevertDuringWrite")
+    val journal = project.changeJournal
+    project.addTask[TransformSpec]("transform", transform(name))
+    project.updateTask[TransformSpec]("transform", transform(name, age))
+    val update = journal.all.last
+    val task = project.task[TransformSpec]("transform")
+
+    // An update of the task holds the task's monitor
+    val outcome = revertDuringWrite(journal, update.seq, task) {
+      task.update(transform(name, age, city))
+    }
+
+    val failure = outcome.failed.get
+    failure shouldBe a[ChangeConflictException]
+    failure.getMessage should include ("has been changed since")
+    journal.all.exists(_.reverts.contains(update.seq)) shouldBe false
+    ruleIds(task) shouldBe Seq("name", "age", "city")
   }
 
   it should "apply typed mapping changes and revert them in place" in {
@@ -608,6 +658,25 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     DeleteVariableModification(project, "b").execute()
     journal.revert(removed.seq)
     value("b") shouldBe Some("1")
+  }
+
+  it should "refuse a variable revert whose variable is set while the revert waits for it" in {
+    val project = retrieveOrCreateProject("journalRevertVariableDuringWrite")
+    val journal = project.changeJournal
+    UpdateVariableModification(project, variable("a", "1")).execute()
+    UpdateVariableModification(project, variable("a", "2")).execute()
+    val set = journal.all.last
+
+    // A modification holds the project's monitor
+    val outcome = revertDuringWrite(journal, set.seq, project) {
+      UpdateVariableModification(project, variable("a", "3")).execute()
+    }
+
+    val failure = outcome.failed.get
+    failure shouldBe a[ChangeConflictException]
+    failure.getMessage should include ("has been changed since")
+    journal.all.exists(_.reverts.contains(set.seq)) shouldBe false
+    project.templateVariables.all.map.get("a").map(_.value) shouldBe Some("3")
   }
 
   it should "let the tasks that use a variable follow it without recording them" in {

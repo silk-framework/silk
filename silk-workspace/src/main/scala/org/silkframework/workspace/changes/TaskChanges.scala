@@ -106,9 +106,14 @@ case class ReplaceTask(before: PlainTask[TaskSpec], after: PlainTask[TaskSpec]) 
   override def inverse: Option[ReplaceTask] = Some(ReplaceTask(after, before))
 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
-    val task = TaskChanges.expectState(project, before)
-    // Timestamps and users are dropped, so the update is stamped as a new modification.
-    task.update(after.data, Some(after.metaData.withoutUserData), Some(after.executionVariables))
+    val task = TaskChanges.expectTask(project, before)
+    // Check and update are one step under the monitor that update takes, so that no write slips in between.
+    // The project's monitor is not taken: some writers take it while holding the task's.
+    task.synchronized {
+      TaskChanges.expectUnchanged(project, task, before)
+      // Timestamps and users are dropped, so the update is stamped as a new modification.
+      task.update(after.data, Some(after.metaData.withoutUserData), Some(after.executionVariables))
+    }
   }
 
   override def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String] = {
@@ -142,12 +147,24 @@ object TaskChanges {
   /** The project task in the state of `expected`; throws a conflict if it is missing or has changed since. */
   private[changes] def expectState(project: Project, expected: PlainTask[TaskSpec])
                                   (implicit userContext: UserContext): ProjectTask[TaskSpec] = {
-    val task = project.anyTaskOption(expected.id)
-      .getOrElse(throw ChangeConflictException(s"Task '${expected.labelOrId}' does not exist in project '${project.id}'."))
+    val task = expectTask(project, expected)
+    expectUnchanged(project, task, expected)
+    task
+  }
+
+  /** Throws a conflict if the task is not in the state of `expected`. */
+  private[changes] def expectUnchanged(project: Project, task: Task[TaskSpec], expected: PlainTask[TaskSpec]): Unit = {
     if(!same(task, expected)) {
       throw ChangeConflictException(s"Task '${expected.labelOrId}' in project '${project.id}' has been changed since.")
     }
-    task.asInstanceOf[ProjectTask[TaskSpec]]
+  }
+
+  /** The project task with the id of `expected`; throws a conflict if it is missing. */
+  private[changes] def expectTask(project: Project, expected: PlainTask[TaskSpec])
+                                 (implicit userContext: UserContext): ProjectTask[TaskSpec] = {
+    project.anyTaskOption(expected.id)
+      .getOrElse(throw ChangeConflictException(s"Task '${expected.labelOrId}' does not exist in project '${project.id}'."))
+      .asInstanceOf[ProjectTask[TaskSpec]]
   }
 }
 

@@ -27,8 +27,10 @@ case class SetVariable(before: Option[TemplateVariable], after: TemplateVariable
   })
 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
-    VariableChanges.expect(project, after.name, before)
-    VariableChanges.modify(UpdateVariableModification(project, after).execute())
+    VariableChanges.modify(project) {
+      VariableChanges.expect(project, after.name, before)
+      UpdateVariableModification(project, after).execute()
+    }
   }
 
   override def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String] = {
@@ -50,9 +52,9 @@ case class RemoveVariable(variable: TemplateVariable) extends Change {
   override def inverse: Option[SetVariable] = Some(SetVariable(None, variable))
 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
-    VariableChanges.expect(project, variable.name, Some(variable))
-    // The modification checks the uses itself, but names only the first it meets; the refusal names them all, as the check does.
-    VariableChanges.modify {
+    VariableChanges.modify(project) {
+      VariableChanges.expect(project, variable.name, Some(variable))
+      // The modification checks the uses itself, but names only the first it meets; the refusal names them all, as the check does.
       try {
         DeleteVariableModification(project, variable.name).execute()
       } catch {
@@ -142,10 +144,13 @@ private[workspace] object VariableChanges {
     }
   }
 
-  /** Runs a modification; one that it refuses, e.g. because a task would break, is a conflict. */
-  def modify(body: => Unit): Unit = {
+  /**
+    * Runs a state check and the modification it guards. A modification that is refused, e.g. because a task would
+    * break, is a conflict. Both run under the monitors that the modification takes, so that no write slips in between.
+    */
+  def modify(project: Project)(body: => Unit): Unit = {
     try {
-      body
+      project.synchronized(project.templateVariables.synchronized(body))
     } catch {
       case ex: ChangeConflictException => throw ex
       case ex: RequestException => throw ChangeConflictException(ex.getMessage)
