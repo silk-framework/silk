@@ -89,6 +89,21 @@ sealed trait TransformRule extends Operator with HasMetaData {
     collectPaths(operator).distinct
   }
 
+  /**
+    * True if this rule's operator tree contains the empty/self path and no other, non-empty
+    * path. Does not account for other input kinds, such as an unbound rule-block port — a
+    * formula combining the empty path with one still evaluates this to true.
+    */
+  def readsOnlyEntityUri: Boolean = {
+    def hasEmptyPathInput(param: Input): Boolean = param match {
+      case p: PathInput => p.path.operators.isEmpty
+      case p: TransformInput => p.inputs.exists(hasEmptyPathInput)
+      case rb: RuleBlockInput => rb.bindings.exists(binding => hasEmptyPathInput(binding.input))
+      case _: InputPortInput => false
+    }
+    sourcePaths.isEmpty && hasEmptyPathInput(operator)
+  }
+
   /** Throws ValidationException if this transform rule is not valid. */
   protected def validate(): Unit = {
     validateTargetUri()
