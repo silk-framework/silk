@@ -24,7 +24,6 @@ import org.silkframework.workspace.variables.{DeleteVariableModification, Update
 import org.silkframework.workspace.{Project, ProjectTask, TagManager, TestWorkspaceProviderTestTrait, WorkspaceFactory}
 
 import java.lang.management.ManagementFactory
-import java.net.URLEncoder
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.{CyclicBarrier, TimeUnit}
@@ -554,8 +553,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
       "Updated transform 'task': description changed, tag 'urn:tag' added, execution variable 'limit' '10' added"
     // A tag is named by the label that its generated URI carries, as the change does not hold the tags of the project
     def tagged(labels: String*): PlainTask[TaskSpec] = {
-      def generatedUri(label: String) = Uri(TagManager.defaultUriPrefix + URLEncoder.encode(label, "UTF8"))
-      task(transform(name), MetaData(None, tags = labels.map(generatedUri).toSet))
+      task(transform(name), MetaData(None, tags = labels.map(label => Uri(TagManager.generateTagUri(label))).toSet))
     }
     describe(tagged("Cleanup", "Old"), tagged("Cleanup", "Needs review")) shouldBe
       "Updated transform 'task': tag 'Needs review' added, tag 'Old' removed"

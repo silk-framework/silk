@@ -47,20 +47,12 @@ class TagManager(project: Identifier, provider: WorkspaceProvider) {
   }
 
   /**
-    * Generates a tag URI.
-    * Tags with the same label will receive the same URI.
-    */
-  def generateTagUri(label: String): String = {
-    TagManager.defaultUriPrefix + URLEncoder.encode(label, "UTF8")
-  }
-
-  /**
     * Creates a tag for a label, which is normalized.
     * The URI is generated from the label, unless one is given.
     */
   def createTag(label: String, uri: Option[String] = None)(implicit userContext: UserContext): Tag = {
     val normalizedLabel = TagManager.normalizeLabel(label)
-    val tag = Tag(Uri(uri.getOrElse(generateTagUri(normalizedLabel))), normalizedLabel)
+    val tag = Tag(Uri(uri.getOrElse(TagManager.generateTagUri(normalizedLabel))), normalizedLabel)
     putTag(tag)
     tag
   }
@@ -86,6 +78,14 @@ object TagManager {
 
   /** Trims a tag label and collapses its whitespace. */
   def normalizeLabel(label: String): String = label.trim.replaceAll("\\s+", " ")
+
+  /**
+    * Generates a tag URI.
+    * Tags with the same label will receive the same URI.
+    */
+  def generateTagUri(label: String): String = {
+    defaultUriPrefix + URLEncoder.encode(label, "UTF8")
+  }
 
   /** The label that a generated tag URI has been generated from. None for any other URI. */
   def labelOfGeneratedUri(uri: String): Option[String] = {
