@@ -22,7 +22,7 @@ import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TaskReso
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.templating.{TemplateVariables, TemplateVariablesManager}
 import org.silkframework.runtime.validation.{ConflictRequestException, NotFoundException}
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.Identifier
 import org.silkframework.workspace.access.{AccessControlConfig, ProjectAccessControlManager, ProjectAccessDeniedException}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowValidator}
 import org.silkframework.workspace.activity.{ProjectActivity, ProjectActivityFactory}
@@ -323,12 +323,11 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     }
   }
 
-  private def mergeMetaData(metaData: MetaData, fromMetaData: Option[MetaData], tags: Option[Set[Uri]] = None): MetaData = {
-    val merged = fromMetaData match {
+  private def mergeMetaData(metaData: MetaData, fromMetaData: Option[MetaData]): MetaData = {
+    fromMetaData match {
       case Some(newMetaData) => metaData.copy(label = newMetaData.label, description = newMetaData.description)
       case None => metaData
     }
-    merged.copy(tags = tags.getOrElse(merged.tags))
   }
 
   /**
@@ -337,22 +336,39 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     * @param name The name of the task. Must be unique for all tasks in this project.
     * @param taskData The task data.
     * @param metaData The task meta data. If not provided, no changes to the meta data are made.
-    *                 Its tags are only used for a new task; the tags of an existing task are kept.
     * @param executionVariables The execution variables of the task. If not provided, no changes to the variables are made.
-    * @param tags The tags of the task. If not provided, an existing task keeps its tags and a new task takes those of the meta data.
     */
   def updateAnyTask(name: Identifier, taskData: TaskSpec, metaData: Option[MetaData] = None,
-                    executionVariables: Option[TemplateVariables] = None, tags: Option[Set[Uri]] = None)
-                   (implicit userContext: UserContext): Unit = synchronized {
+                    executionVariables: Option[TemplateVariables] = None)
+                   (implicit userContext: UserContext): Unit = {
+    putAnyTask(name, taskData, executionVariables) {
+      case Some(currentMetaData) => mergeMetaData(currentMetaData, metaData)
+      case None => metaData.getOrElse(MetaData.empty)
+    }
+  }
+
+  /**
+    * Updates a task of any type in this project, or adds it if no task with the given name exists.
+    * The meta data is derived from the current one in the same step, so that no other update slips in between.
+    *
+    * @param name The name of the task. Must be unique for all tasks in this project.
+    * @param taskData The task data.
+    * @param executionVariables The execution variables of the task. If not provided, no changes to the variables are made.
+    * @param metaData Returns the meta data to write for the current one, which is None if the task does not exist yet.
+    */
+  def putAnyTask(name: Identifier, taskData: TaskSpec, executionVariables: Option[TemplateVariables] = None)
+                (metaData: Option[MetaData] => MetaData)
+                (implicit userContext: UserContext): Unit = synchronized {
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
       case Some(module) =>
         module.taskOption(name) match {
           case Some(task) =>
-            val mergedMetaData = mergeMetaData(task.metaData, metaData, tags)
-            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(mergedMetaData.asUpdatedMetaData), executionVariables)(readWriteUser)
+            task.synchronized {
+              val newMetaData = metaData(Some(task.metaData))
+              task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(newMetaData.asUpdatedMetaData), executionVariables)(readWriteUser)
+            }
           case None =>
-            val newMetaData = metaData.getOrElse(MetaData.empty)
-            addAnyTask(name, taskData, newMetaData.copy(tags = tags.getOrElse(newMetaData.tags)).asNewMetaData, executionVariables.getOrElse(TemplateVariables.empty))
+            addAnyTask(name, taskData, metaData(None).asNewMetaData, executionVariables.getOrElse(TemplateVariables.empty))
         }
       case None =>
         throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")

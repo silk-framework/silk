@@ -89,29 +89,29 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
     }
   }
 
-  it should "only replace the tags of an existing task if tags are provided" in {
-    val project = retrieveOrCreateProject("UpdateTagsTest")
+  it should "derive the meta data of a task from its current meta data when putting it" in {
+    val project = retrieveOrCreateProject("PutAnyTaskTest")
     val tag1 = Uri("urn:tag:1")
-    val tag2 = Uri("urn:tag:2")
-    def tags = project.anyTask("task1").metaData.tags
+    def stored = {
+      val metaData = project.anyTask("task1").metaData
+      (metaData.label, metaData.description, metaData.tags)
+    }
 
-    // A new task takes the tags of its meta data, unless tags are provided
-    project.updateAnyTask("task1", ProjectTestTask(), Some(MetaData(Some("label"), tags = Set(tag1))))
-    tags shouldBe Set(tag1)
-    project.updateAnyTask("task2", ProjectTestTask(), Some(MetaData(Some("label"), tags = Set(tag1))), tags = Some(Set(tag2)))
-    project.anyTask("task2").metaData.tags shouldBe Set(tag2)
+    // A new task has no current meta data
+    project.putAnyTask("task1", ProjectTestTask()) { current =>
+      current shouldBe None
+      MetaData(Some("label"), Some("description"), tags = Set(tag1))
+    }
+    stored shouldBe ((Some("label"), Some("description"), Set(tag1)))
 
-    // The tags in the meta data of an update are ignored
-    project.updateAnyTask("task1", ProjectTestTask(), Some(MetaData(Some("new label"), tags = Set(tag2))))
-    tags shouldBe Set(tag1)
-    project.anyTask("task1").metaData.label shouldBe Some("new label")
+    // An existing task hands in its current meta data
+    project.putAnyTask("task1", ProjectTestTask("updated"))(_.get.copy(description = None))
+    project.anyTask("task1").data shouldBe ProjectTestTask("updated")
+    stored shouldBe ((Some("label"), None, Set(tag1)))
 
-    project.updateAnyTask("task1", ProjectTestTask(), tags = Some(Set(tag2)))
-    tags shouldBe Set(tag2)
-    project.anyTask("task1").metaData.label shouldBe Some("new label")
-
-    project.updateAnyTask("task1", ProjectTestTask(), tags = Some(Set.empty))
-    tags shouldBe empty
+    // updateAnyTask takes the label and the description of the given meta data, but keeps the tags of an existing task
+    project.updateAnyTask("task1", ProjectTestTask(), Some(MetaData(Some("new label"), tags = Set(Uri("urn:tag:2")))))
+    stored shouldBe ((Some("new label"), None, Set(tag1)))
   }
 
   it should "update the meta data of a task, leaving the task itself as it is" in {
