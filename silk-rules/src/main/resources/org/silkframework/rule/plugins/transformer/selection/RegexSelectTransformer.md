@@ -8,8 +8,8 @@ In other words: It _selects_ the matches within the sequence of values against t
 with the provided output value.
 
 As a further detail of its operation: If the parameter `oneOnly` of the transformer is set to `true`, then only the
-position of the _first_ matching regular expression will be marked with the output value. There won't be any further
-marked matches.
+position of the _first_ matching regular expression will be marked with the output value. Further matches remain
+unmarked.
 
 ### Notes on regular expressions
 
@@ -29,4 +29,3 @@ Attention: Slashes in regular expressions have to be _escaped_, e.g. instead of 
 
 A compilation of the available constructs for building regular expressions is available in the
 [API of the Java `Pattern`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html#sum).
-
