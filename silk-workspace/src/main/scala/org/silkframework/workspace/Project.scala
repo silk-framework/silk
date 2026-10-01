@@ -365,15 +365,16 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     *
     * @param name The name of the task.
     * @param update Returns the new meta data for the current one.
+    * @return The meta data that has been written.
     * @throws TaskNotFoundException If no task with the given name has been found
     */
   def updateTaskMetaData(name: Identifier)(update: MetaData => MetaData)
-                        (implicit userContext: UserContext): ProjectTask[_ <: TaskSpec] = synchronized {
+                        (implicit userContext: UserContext): MetaData = synchronized {
     val task = anyTask(name)
     task.synchronized {
       task.updateMetaData(update(task.metaData).asUpdatedMetaData)(readWriteUser)
+      task.metaData
     }
-    task
   }
 
   /** Removes a task loading error. */

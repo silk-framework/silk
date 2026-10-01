@@ -119,8 +119,9 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
     project.addAnyTask("task1", ProjectTestTask("param"), MetaData(Some("label"), Some("description")))
     val created = project.anyTask("task1").metaData.created
 
-    project.updateTaskMetaData("task1")(_.copy(label = Some("new label"), tags = Set(Uri("urn:tag:1"))))
+    val written = project.updateTaskMetaData("task1")(_.copy(label = Some("new label"), tags = Set(Uri("urn:tag:1"))))
     val task = project.anyTask("task1")
+    written shouldBe task.metaData
     task.data shouldBe ProjectTestTask("param")
     task.metaData.label shouldBe Some("new label")
     task.metaData.description shouldBe Some("description")
