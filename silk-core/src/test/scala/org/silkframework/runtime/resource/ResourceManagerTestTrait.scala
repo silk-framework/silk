@@ -129,6 +129,31 @@ trait ResourceManagerTestTrait extends AnyFlatSpec with Matchers {
     rm.listChildren shouldBe List("child")
   }
 
+  it should "recreate a deleted folder and its ancestors when writing through a handle held across the delete" in {
+    val rm = createResourceManager()
+    val held = rm.child("child").child("grandChild")
+    held.get("name").writeString("old")
+    rm.delete("child")
+    held.get("name").exists shouldBe false
+    held.get("name").writeString("new")
+    rm.listChildren shouldBe List("child")
+    rm.child("child").listChildren shouldBe List("grandChild")
+    rm.child("child").child("grandChild").get("name").loadAsString() shouldBe "new"
+  }
+
+  it should "address the same folder through a handle held across a delete and one retrieved after it" in {
+    val rm = createResourceManager()
+    val held = rm.child("child").child("grandChild")
+    held.get("name").writeString("old")
+    rm.child("child").delete("grandChild")
+    val retrieved = rm.child("child").child("grandChild")
+    retrieved.get("name").writeString("first")
+    held.get("name").loadAsString() shouldBe "first"
+    held.get("name").writeString("second")
+    retrieved.get("name").loadAsString() shouldBe "second"
+    rm.child("child").listChildren shouldBe List("grandChild")
+  }
+
   it should "ignore a second close of an output stream" in {
     val rm = createResourceManager()
     val outputStream = rm.get("name").createOutputStream()

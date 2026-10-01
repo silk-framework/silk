@@ -12,10 +12,9 @@ case class InMemoryResourceManager() extends InMemoryResourceManagerBase()
   * Base class of [[InMemoryResourceManager]] for avoiding leaking implementation details.
   *
   * Folders are only listed once they have been written to, see `materialized`.
+  * A deleted folder is emptied in place, so that all handles of a path keep addressing the same folder, like on the file system.
   */
-class InMemoryResourceManagerBase(val basePath: String = "",
-                                  parentMgr: Option[InMemoryResourceManagerBase] = None,
-                                  folderName: String = "") extends ResourceManager {
+class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[InMemoryResourceManagerBase] = None) extends ResourceManager {
 
   import InMemoryResourceManagerBase.Entry
 
@@ -26,10 +25,10 @@ class InMemoryResourceManagerBase(val basePath: String = "",
   /** Holds all resources at this path. */
   @volatile private var resources = Map[String, Entry]()
 
-  /** Holds all child resource managers that have been accessed, including ones nothing has been written to yet. */
+  /** Holds all child resource managers that have been accessed, including deleted ones and ones nothing has been written to yet. */
   @volatile private var children = Map[String, InMemoryResourceManagerBase]()
 
-  /** True once a resource has been written into this folder or one of its descendants. Only materialized children are listed. */
+  /** True once a resource has been written into this folder or one of its descendants, until it is deleted. Only materialized children are listed. */
   @volatile private var materialized = false
 
   /**
@@ -63,7 +62,7 @@ class InMemoryResourceManagerBase(val basePath: String = "",
     children.get(name) match {
       case Some(childMgr) => childMgr
       case None =>
-        val childMgr = new InMemoryResourceManagerBase(basePath + "/" + name, Some(this), name)
+        val childMgr = new InMemoryResourceManagerBase(basePath + "/" + name, Some(this))
         children += ((name, childMgr))
         childMgr
     }
@@ -72,17 +71,21 @@ class InMemoryResourceManagerBase(val basePath: String = "",
   override def parent: Option[ResourceManager] = parentMgr
 
   override def delete(name: String): Unit = {
-    for(childToDelete <- children.get(name)) {
-      for(childFolders <- childToDelete.listChildren) {
-        childToDelete.delete(childFolders)
-      }
-      for(childResources <- childToDelete.list) {
-        childToDelete.get(childResources).delete()
-      }
-    }
+    // The child folder stays registered, a handle held across the delete must not become detached
+    children.get(name).foreach(_.clear())
     synchronized {
       resources -= name
-      children -= name
+    }
+  }
+
+  /** Removes all resources and child folders. The folder is not listed anymore until something is written into it again. */
+  private def clear(): Unit = {
+    // Children first and without holding this monitor, see the lock order above
+    children.values.foreach(_.clear())
+    synchronized {
+      resources = Map.empty
+      // Stays listed if a write into a child folder raced the delete
+      materialized = children.values.exists(_.materialized)
     }
   }
 
@@ -100,22 +103,14 @@ class InMemoryResourceManagerBase(val basePath: String = "",
   }
 
   /**
-    * Marks this folder and all of its ancestors as written to, re-attaching a deleted folder like a file write recreates
-    * directories. Must be called while holding this instance's monitor; ancestors are updated under their own monitor.
+    * Marks this folder and all of its ancestors as written to, like a file write creates the directories.
+    * Must be called while holding this instance's monitor; ancestors are updated under their own monitor.
     */
   private def materialize(): Unit = {
     materialized = true
     for(parent <- parentMgr) {
       parent.synchronized {
-        parent.children.get(folderName) match {
-          case None =>
-            parent.children += ((folderName, this))
-            parent.materialize()
-          case Some(current) if current eq this =>
-            parent.materialize()
-          case Some(_) =>
-            // Superseded by a folder of the same name, even one only looked up since the delete: the stale write is lost
-        }
+        parent.materialize()
       }
     }
   }
