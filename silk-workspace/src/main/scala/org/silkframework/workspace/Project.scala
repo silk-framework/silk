@@ -52,8 +52,6 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, project
 
   val accessControl = new ProjectAccessControlManager(initialConfig.id, provider, loadingUser)
 
-  val tagManager = new TagManager(initialConfig.id, provider)
-
   val cacheResources: ResourceManager = provider.projectCache(initialConfig.id)
 
   @volatile
@@ -61,6 +59,9 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, project
 
   /** The journal of changes to this project, which records every write and can revert it. */
   val changeJournal: ChangeJournal = new ChangeJournal(this)
+
+  /** The tags of this project. Every change is recorded in the change journal. */
+  val tagManager = new TagManager(initialConfig.id, provider, changeJournal)
 
   /** The file resources of this project. Every write is recorded in the change journal. */
   val resources: ResourceManager = new JournalingResourceManager(projectResources, changeJournal)

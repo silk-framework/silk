@@ -849,6 +849,61 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     project.templateVariables.all.map("base").value shouldBe "a.csv"
   }
 
+  it should "record every tag addition, renaming and removal" in {
+    val project = retrieveOrCreateProject("journalTags")
+    val tags = project.tagManager
+    val tag = tags.createTag("Cleanup")
+    // Not recorded: the tag is there as given
+    tags.createTag(" Cleanup ")
+    tags.putTag(tag.copy(label = "Clean up"))
+    tags.deleteTag(tag.uri)
+    // Not recorded: there is no such tag
+    tags.deleteTag(tag.uri)
+
+    project.changeJournal.all.map(_.change.describe) shouldBe
+      Seq("Added tag 'Cleanup'", "Renamed tag 'Cleanup' to 'Clean up'", "Removed tag 'Clean up'")
+    SetTag(None, tag.copy(label = "x" * 60)).describe shouldBe s"Added tag '${"x" * 50}…'"
+  }
+
+  it should "revert tag changes while the tag is unchanged and no task has it" in {
+    val project = retrieveOrCreateProject("journalRevertTags")
+    val journal = project.changeJournal
+    val tags = project.tagManager
+    def labels: Seq[String] = tags.allTags().map(_.label).toSeq
+    val tag = tags.createTag("Cleanup")
+    val added = journal.all.last
+    val renamedTag = tag.copy(label = "Clean up")
+    tags.putTag(renamedTag)
+    val renamed = journal.all.last
+
+    // Revert the renaming, then revert the revert
+    val reverted = journal.revert(renamed.seq)
+    reverted.change shouldBe SetTag(Some(renamedTag), tag)
+    labels shouldBe Seq("Cleanup")
+    // The addition is not reverted while the tag differs from the added one
+    journal.revert(reverted.seq)
+    labels shouldBe Seq("Clean up")
+    revertConflict(journal, added) shouldBe Some("Tag 'Clean up' in project 'journalRevertTags' has been changed since.")
+    tags.putTag(tag)
+
+    // Nor while a task or the project itself has the tag, as the tag would stay there as a URI without a label
+    project.addTask[TransformSpec]("task", transform(name), MetaData(Some("Tagged task"), tags = Set(tag.uri)))
+    project.updateMetaData(project.config.metaData.copy(tags = Set(tag.uri)))
+    val used = "Tag 'Cleanup' in project 'journalRevertTags' is still used by task 'Tagged task', the project itself."
+    revertConflict(journal, added) shouldBe Some(used)
+    the[ChangeConflictException] thrownBy journal.revert(added.seq) should have message used
+    labels shouldBe Seq("Cleanup")
+
+    // Reverting the addition removes the tag, reverting that adds it back
+    project.updateTaskMetaData("task")(_.copy(tags = Set.empty))
+    project.updateMetaData(project.config.metaData.copy(tags = Set.empty))
+    val removed = journal.revert(added.seq)
+    removed.change shouldBe RemoveTag(tag)
+    labels shouldBe empty
+    journal.revert(removed.seq).change shouldBe SetTag(None, tag)
+    labels shouldBe Seq("Cleanup")
+  }
+
   it should "record the file writes and deletions of a request and revert a creation while the file is unchanged" in {
     val project = retrieveOrCreateProject("journalFiles")
     val journal = project.changeJournal
