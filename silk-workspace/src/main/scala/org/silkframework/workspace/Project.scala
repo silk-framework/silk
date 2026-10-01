@@ -30,10 +30,12 @@ import org.silkframework.workspace.changes.ChangeJournal
 import org.silkframework.workspace.exceptions.{IdentifierAlreadyExistsException, TaskNotFoundException}
 import org.silkframework.workspace.resources.JournalingResourceManager
 
+import java.util.concurrent.{TimeUnit, TimeoutException}
 import java.util.logging.{Level, Logger}
 import scala.collection.mutable
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 
 /**
  * A project.
@@ -114,18 +116,27 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, project
     allTasks.foreach(_.cancelActivities())
   }
 
-  /** Waits until all activities stopped. Bounded, because activities are not guaranteed to react to cancellation. */
-  def awaitActivities()(implicit userContext: UserContext): Unit = {
+  /**
+    * Waits until all activities stopped. Bounded, because activities are not guaranteed to react to cancellation.
+    *
+    * @return A failure naming the activities that are still running after the timeout, which is also logged as a warning.
+    */
+  def awaitActivities()(implicit userContext: UserContext): Try[Unit] = {
     val controls = activities.map(_.control) ++ allTasks.flatMap(_.activities.map(_.control))
-    val deadline = System.currentTimeMillis() + Project.cancellationTimeoutMillis
+    // Monotonic clock, so that wall clock jumps do not shorten or stretch the wait
+    val deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(Project.cancellationTimeoutMillis)
     var running = controls.filter(_.status().isRunning)
-    while(running.nonEmpty && System.currentTimeMillis() < deadline) {
+    while(running.nonEmpty && System.nanoTime() - deadline < 0) {
       Thread.sleep(Project.cancellationPollIntervalMillis)
       running = running.filter(_.status().isRunning)
     }
     if(running.nonEmpty) {
-      logger.warning(s"Activities in project $id did not stop within ${Project.cancellationTimeoutMillis}ms " +
-        s"after being cancelled: ${running.map(_.name).mkString(", ")}")
+      val message = s"Activities in project $id did not stop within ${Project.cancellationTimeoutMillis}ms " +
+        s"after being cancelled: ${running.map(_.name).mkString(", ")}"
+      logger.warning(message)
+      Failure(new TimeoutException(message))
+    } else {
+      Success(())
     }
   }
 
