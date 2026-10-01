@@ -111,6 +111,17 @@ case class ParameterValues(values: Map[String, ParameterValue]) extends Paramete
   }
 
   /**
+    * Whether any parameter holds a template, nested ones included.
+    */
+  def hasTemplates: Boolean = {
+    values.values.exists {
+      case _: ParameterTemplateValue => true
+      case nested: ParameterValues => nested.hasTemplates
+      case _ => false
+    }
+  }
+
+  /**
     * Only returns the nested templates.
     */
   def filterTemplates: ParameterValues = {

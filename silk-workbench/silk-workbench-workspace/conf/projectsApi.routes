@@ -49,3 +49,11 @@ DELETE        /:projectId/datasets/:datasetId/content                  controlle
 POST          /:projectId/dataset/autoConfigure                        controllers.projectApi.ProjectTaskApi.postDatasetAutoConfigured(projectId: String)
 
 POST          /:projectId/taskContext                                  controllers.projectApi.ProjectTaskApi.taskContext(projectId: String)
+
+# Change journal
+GET           /:projectId/changes                                      controllers.projectApi.ChangeJournalApi.changes(projectId: String)
+GET           /:projectId/changes/summary                              controllers.projectApi.ChangeJournalApi.summary(projectId: String)
+GET           /:projectId/changes/conflicts                            controllers.projectApi.ChangeJournalApi.conflicts(projectId: String, seq: Seq[Int])
+POST          /:projectId/changes/:seq/revert                          controllers.projectApi.ChangeJournalApi.revert(projectId: String, seq: Int)
+POST          /:projectId/changes/revert                               controllers.projectApi.ChangeJournalApi.revertAll(projectId: String)
+PUT           /:projectId/changes/reviewed                             controllers.projectApi.ChangeJournalApi.markReviewed(projectId: String)
