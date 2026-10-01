@@ -56,12 +56,18 @@ case class RemoveTask(task: PlainTask[TaskSpec]) extends Change with NamesTask {
   override def inverse: Option[AddTask] = Some(AddTask(task))
 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
-    TaskChanges.expectState(project, task)
-    // The removal checks the references itself; its refusal is told in the journal's words.
-    try {
-      project.removeAnyTask(task.id, removeDependentTasks = false)
-    } catch {
-      case ex: TaskReferencedException => throw stillReferenced(project, ex.referencingTasks)
+    // The state check and the removal are one step under the monitors of the removal: the project's, then the task's.
+    project.synchronized {
+      val current = TaskChanges.expectTask(project, task)
+      current.synchronized {
+        TaskChanges.expectUnchanged(project, current, task)
+        // The removal checks the references itself; its refusal is told in the journal's words.
+        try {
+          project.removeAnyTask(task.id, removeDependentTasks = false)
+        } catch {
+          case ex: TaskReferencedException => throw stillReferenced(project, ex.referencingTasks)
+        }
+      }
     }
   }
 
@@ -108,7 +114,7 @@ case class ReplaceTask(before: PlainTask[TaskSpec], after: PlainTask[TaskSpec]) 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
     val task = TaskChanges.expectTask(project, before)
     // Check and update are one step under the monitor that update takes, so that no write slips in between.
-    // The project's monitor is not taken: some writers take it while holding the task's.
+    // A task that is removed meanwhile refuses the update, so the project's monitor is not needed.
     task.synchronized {
       TaskChanges.expectUnchanged(project, task, before)
       // Timestamps and users are dropped, so the update is stamped as a new modification.

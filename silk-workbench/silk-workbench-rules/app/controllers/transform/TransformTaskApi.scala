@@ -379,7 +379,8 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
           deserializeCompileTime[RootMappingRule]() { updatedRules =>
             //Update transformation task
             val updatedTask = task.data.copy(mappingRule = updatedRules)
-            project.updateTask(taskName, updatedTask)
+            // Not via the project, whose monitor must not be taken while holding the task's.
+            task.update(updatedTask)
             Ok
           }
         }

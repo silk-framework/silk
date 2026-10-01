@@ -16,7 +16,7 @@ import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.util.{ConfigTestTrait, Identifier}
 import org.silkframework.workspace.WorkspaceTest.RecordingWorkspaceProvider
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowOperator}
-import org.silkframework.workspace.exceptions.CircularDependencyException
+import org.silkframework.workspace.exceptions.{CircularDependencyException, TaskNotFoundException}
 
 class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait {
 
@@ -226,6 +226,23 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
     error.getMessage should endWith("depend on it: a, b.")
     project.removeAnyTask("root", removeDependentTasks = true) shouldBe Set[Identifier]("root", "a", "b")
     project.allTasks shouldBe empty
+  }
+
+  it should "refuse to update a task that has been removed" in {
+    val project = retrieveOrCreateProject("RemovedTaskUpdateTest")
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
+    val task = project.addAnyTask("task", ProjectTestTask())
+    project.removeAnyTask("task", removeDependentTasks = false)
+
+    // The removed task must not be written back to the provider
+    a[TaskNotFoundException] should be thrownBy task.update(ProjectTestTask("updated"))
+    a[TaskNotFoundException] should be thrownBy task.updateMetaData(MetaData(Some("label")))
+    workspaceProvider.readAllTasks(project.id) shouldBe empty
+
+    // A task that is added under the same name afterwards is a task of its own
+    val readded = project.addAnyTask("task", ProjectTestTask())
+    readded.update(ProjectTestTask("updated"))
+    project.anyTask("task").data shouldBe ProjectTestTask("updated")
   }
 
   private def workflowUsing(tasks: String*): Workflow = {

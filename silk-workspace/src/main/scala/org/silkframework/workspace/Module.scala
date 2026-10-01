@@ -114,19 +114,22 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
   def remove(taskId: Identifier)
             (implicit userContext: UserContext): Unit = {
     assertLoaded()
-    // Cancel all activities
-    for {
-      task <- cachedTasks.get(taskId)
-      activity <- task.activities
-    } {
-      activity.control.cancel()
+    taskOption(taskId) match {
+      case Some(task) =>
+        // Under the task's monitor: an update in progress completes first, a later one is refused.
+        task.synchronized {
+          // Cancelled under the monitor, so that no update restarts the activities afterwards
+          task.cancelActivities()
+          provider.deleteTask(project.id, taskId)
+          cachedTasks -= taskId
+          task.markRemoved()
+          project.changeJournal.record(RemoveTask(PlainTask.fromTask(task)))
+        }
+        cleanUpAfterTaskDeletion(project.id, taskId, task)
+      case None =>
+        // A task that failed to load is held by the provider only
+        provider.deleteTask(project.id, taskId)
     }
-    // Delete task
-    val taskOpt = taskOption(taskId)
-    provider.deleteTask(project.id, taskId)
-    cachedTasks -= taskId
-    taskOpt.foreach(task => project.changeJournal.record(RemoveTask(PlainTask.fromTask(task))))
-    taskOpt.foreach(task => cleanUpAfterTaskDeletion(project.id, taskId, task))
     logger.info(s"Removed task '$taskId' from project ${project.id}." + userContext.logInfo)
   }
 

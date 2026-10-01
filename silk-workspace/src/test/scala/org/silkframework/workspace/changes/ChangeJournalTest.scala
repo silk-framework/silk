@@ -19,8 +19,9 @@ import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
 import org.silkframework.util.{ConfigTestTrait, Uri}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
+import org.silkframework.workspace.exceptions.TaskNotFoundException
 import org.silkframework.workspace.variables.{DeleteVariableModification, UpdateVariableModification}
-import org.silkframework.workspace.{ProjectTask, TestWorkspaceProviderTestTrait, WorkspaceFactory}
+import org.silkframework.workspace.{Project, ProjectTask, TestWorkspaceProviderTestTrait, WorkspaceFactory}
 
 import java.lang.management.ManagementFactory
 import java.time.Instant
@@ -63,32 +64,37 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
   /** The revert conflict of one entry, as a request about it alone would report it. */
   private def revertConflict(journal: ChangeJournal, entry: ChangeEntry): Option[String] = journal.revertConflicts(Seq(entry)).get(entry.seq)
 
-  /**
-    * Reverts an entry on a second thread while this thread holds `monitor`, as a write in progress does.
-    * Runs `write` once the revert waits for that monitor and returns how the revert ended.
-    */
+  /** Reverts an entry while this thread holds `monitor`, see [[duringWrite]]. */
   private def revertDuringWrite(journal: ChangeJournal, seq: Int, monitor: AnyRef)(write: => Unit): Try[ChangeEntry] = {
-    val outcome = new AtomicReference[Option[Try[ChangeEntry]]](None)
-    val revert = new Thread(() => outcome.set(Some(Try(journal.revert(seq)))))
-    revert.setDaemon(true)
+    duringWrite(monitor)(journal.revert(seq))(write)
+  }
+
+  /**
+    * Runs `action` on a second thread while this thread holds `monitor`, as a write in progress does.
+    * Runs `write` once the action waits for that monitor and returns how the action ended.
+    */
+  private def duringWrite[T](monitor: AnyRef)(action: => T)(write: => Unit): Try[T] = {
+    val outcome = new AtomicReference[Option[Try[T]]](None)
+    val thread = new Thread(() => outcome.set(Some(Try(action))))
+    thread.setDaemon(true)
     def waitsForMonitor: Boolean = {
-      Option(ManagementFactory.getThreadMXBean.getThreadInfo(revert.threadId())).flatMap(info => Option(info.getLockInfo))
+      Option(ManagementFactory.getThreadMXBean.getThreadInfo(thread.threadId())).flatMap(info => Option(info.getLockInfo))
         .exists(_.getIdentityHashCode == System.identityHashCode(monitor))
     }
     val timeout = TimeUnit.SECONDS.toMillis(10)
     monitor.synchronized {
-      revert.start()
+      thread.start()
       val deadline = System.currentTimeMillis() + timeout
       while(!waitsForMonitor) {
-        if(!revert.isAlive || System.currentTimeMillis() > deadline) {
-          fail("The revert did not wait for the monitor.")
+        if(!thread.isAlive || System.currentTimeMillis() > deadline) {
+          fail(s"The action did not wait for the monitor. Its outcome: ${outcome.get}")
         }
         Thread.sleep(10)
       }
       write
     }
-    revert.join(timeout)
-    outcome.get.getOrElse(fail("The revert did not finish."))
+    thread.join(timeout)
+    outcome.get.getOrElse(fail("The action did not finish."))
   }
 
   it should "record every task addition, update and removal" in {
@@ -202,6 +208,81 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     failure.getMessage should include ("has been changed since")
     journal.all.exists(_.reverts.contains(update.seq)) shouldBe false
     ruleIds(task) shouldBe Seq("name", "age", "city")
+  }
+
+  it should "refuse to revert a task addition whose task is written while the revert waits for it" in {
+    val project = retrieveOrCreateProject("journalRevertAdditionDuringWrite")
+    val journal = project.changeJournal
+    val task = project.addTask[TransformSpec]("transform", transform(name))
+    val added = journal.all.last
+
+    // An update of the task holds the task's monitor
+    val outcome = revertDuringWrite(journal, added.seq, task) {
+      task.update(transform(name, age))
+    }
+
+    val failure = outcome.failed.get
+    failure shouldBe a[ChangeConflictException]
+    failure.getMessage should include ("has been changed since")
+    journal.all.exists(_.reverts.contains(added.seq)) shouldBe false
+    ruleIds(project.task[TransformSpec]("transform")) shouldBe Seq("name", "age")
+  }
+
+  it should "refuse a whole-task revert whose task is removed while the revert waits for it" in {
+    val project = retrieveOrCreateProject("journalRevertDuringRemoval")
+    project.addTask[TransformSpec]("transform", transform(name))
+    project.updateTask[TransformSpec]("transform", transform(name, age))
+
+    expectRefusedByRemoval(project, project.changeJournal.all.last)
+  }
+
+  it should "refuse a typed revert whose task is removed while the revert waits for it" in {
+    val project = retrieveOrCreateProject("journalTypedRevertDuringRemoval")
+    val task = project.addTask[TransformSpec]("transform", transform(name))
+    task.applyChange(AddMapping("transform", "root", age))
+
+    expectRefusedByRemoval(project, project.changeJournal.all.last)
+  }
+
+  /** Removes the task 'transform' while a revert of the entry waits, and expects the revert to refuse without writing the task back. */
+  private def expectRefusedByRemoval(project: Project, entry: ChangeEntry): Unit = {
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
+    val journal = project.changeJournal
+    // A removal of the task holds the project's monitor and then the task's
+    val outcome = project.synchronized {
+      revertDuringWrite(journal, entry.seq, project.task[TransformSpec]("transform")) {
+        project.removeTask[TransformSpec]("transform")
+      }
+    }
+
+    val failure = outcome.failed.get
+    failure shouldBe a[ChangeConflictException]
+    failure.getMessage should include ("not found")
+    journal.all.exists(_.reverts.contains(entry.seq)) shouldBe false
+    project.anyTaskOption("transform") shouldBe None
+    workspaceProvider.readTasks[TransformSpec](project.id) shouldBe empty
+  }
+
+  it should "let a task removal wait for a write of the task and refuse the writes after it" in {
+    val project = retrieveOrCreateProject("journalRemovalDuringWrite")
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
+    val journal = project.changeJournal
+    val task = project.addTask[TransformSpec]("transform", transform(name))
+
+    // An update of the task holds the task's monitor
+    val outcome = duringWrite(task)(project.removeTask[TransformSpec]("transform")) {
+      task.update(transform(name, age))
+    }
+
+    outcome.get
+    // The removal holds the task as the update left it
+    journal.all.map(_.change.toString) shouldBe Seq("AddTask(transform)", "ReplaceTask(transform)", "RemoveTask(transform)")
+    journal.all.last.change.asInstanceOf[RemoveTask].task.data shouldBe transform(name, age)
+    // A write to the removed task is refused instead of writing it back
+    a[TaskNotFoundException] should be thrownBy task.update(transform(name))
+    a[TaskNotFoundException] should be thrownBy task.applyChange(AddMapping("transform", "root", city))
+    journal.all should have size 3
+    workspaceProvider.readTasks[TransformSpec](project.id) shouldBe empty
   }
 
   it should "apply typed mapping changes and revert them in place" in {

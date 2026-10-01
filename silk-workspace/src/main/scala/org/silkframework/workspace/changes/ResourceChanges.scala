@@ -52,6 +52,7 @@ case class DeleteResource(path: String, expected: FileState) extends Change {
   override def inverse: Option[Change] = None
 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
+    // The check is best effort: file writes take no lock, so a write between the check and the deletion is lost.
     ResourceChanges.expect(project, path, expected).delete()
   }
 
