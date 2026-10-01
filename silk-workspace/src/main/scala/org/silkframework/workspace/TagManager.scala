@@ -76,4 +76,7 @@ object TagManager {
 
   final val defaultUriPrefix = "urn:silkframework:tag:"
 
+  /** Trims a tag label and collapses its whitespace. */
+  def normalizeLabel(label: String): String = label.trim.replaceAll("\\s+", " ")
+
 }

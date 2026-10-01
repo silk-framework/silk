@@ -14,7 +14,7 @@ import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.runtime.validation.ConflictRequestException
-import org.silkframework.util.{ConfigTestTrait, Identifier}
+import org.silkframework.util.{ConfigTestTrait, Identifier, Uri}
 import org.silkframework.workspace.WorkspaceTest.RecordingWorkspaceProvider
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowOperator}
 import org.silkframework.workspace.exceptions.CircularDependencyException
@@ -87,6 +87,31 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
       project.removeAnyTask("task1", removeDependentTasks = false)(regularUser)
       recordingProvider.recordedUsers should contain(("deleteTask", adminUser))
     }
+  }
+
+  it should "only replace the tags of an existing task if tags are provided" in {
+    val project = retrieveOrCreateProject("UpdateTagsTest")
+    val tag1 = Uri("urn:tag:1")
+    val tag2 = Uri("urn:tag:2")
+    def tags = project.anyTask("task1").metaData.tags
+
+    // A new task takes the tags of its meta data, unless tags are provided
+    project.updateAnyTask("task1", ProjectTestTask(), Some(MetaData(Some("label"), tags = Set(tag1))))
+    tags shouldBe Set(tag1)
+    project.updateAnyTask("task2", ProjectTestTask(), Some(MetaData(Some("label"), tags = Set(tag1))), tags = Some(Set(tag2)))
+    project.anyTask("task2").metaData.tags shouldBe Set(tag2)
+
+    // The tags in the meta data of an update are ignored
+    project.updateAnyTask("task1", ProjectTestTask(), Some(MetaData(Some("new label"), tags = Set(tag2))))
+    tags shouldBe Set(tag1)
+    project.anyTask("task1").metaData.label shouldBe Some("new label")
+
+    project.updateAnyTask("task1", ProjectTestTask(), tags = Some(Set(tag2)))
+    tags shouldBe Set(tag2)
+    project.anyTask("task1").metaData.label shouldBe Some("new label")
+
+    project.updateAnyTask("task1", ProjectTestTask(), tags = Some(Set.empty))
+    tags shouldBe empty
   }
 
   it should "remove a task that failed to load" in {
