@@ -8,9 +8,9 @@ import org.silkframework.runtime.plugin.types.{PasswordParameter, ResourceOption
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext, PluginObjectParameterTypeTrait, PluginParameter, StringParameterType}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables}
-import org.silkframework.util.Identifier
+import org.silkframework.util.{Identifier, Uri}
 import org.silkframework.workspace.activity.workflow.Workflow
-import org.silkframework.workspace.{Project, ProjectTask, ReferencingTask, TaskReferencedException}
+import org.silkframework.workspace.{Project, ProjectTask, ReferencingTask, TagManager, TaskReferencedException}
 
 /** Adds a task to the project. Recorded whenever a task is added. */
 case class AddTask(task: PlainTask[TaskSpec]) extends Change with NamesTask {
@@ -21,7 +21,7 @@ case class AddTask(task: PlainTask[TaskSpec]) extends Change with NamesTask {
 
   override def summary: String = s"Added ${TaskChanges.kind(task.data)} '${task.labelOrId}'"
 
-  override def details: Seq[ChangeDetail] = TaskDiff.settings(task.data)
+  override def details: Seq[ChangeDetail] = TaskDiff.settings(task.data) ++ TaskDiff.tags(Set.empty, task.metaData.tags)
 
   override def inverse: Option[RemoveTask] = Some(RemoveTask(task))
 
@@ -200,10 +200,18 @@ private object TaskDiff {
       case _ =>
         Seq.empty
     }
-    val metaData =
-      Seq("description" -> (before.metaData.description != after.metaData.description),
-          "tags" -> (before.metaData.tags != after.metaData.tags)).collect { case (field, true) => ChangeDetail(s"$field changed") }
-    data ++ metaData ++ variables(before.executionVariables, after.executionVariables)
+    val description = if(before.metaData.description != after.metaData.description) Seq(ChangeDetail("description changed")) else Seq.empty
+    data ++ description ++ tags(before.metaData.tags, after.metaData.tags) ++ variables(before.executionVariables, after.executionVariables)
+  }
+
+  /**
+    * The tags that have been added and removed. A change does not hold the tags of the project, so a tag is named by
+    * the label that a generated tag URI carries, and by its URI otherwise.
+    */
+  def tags(before: Set[Uri], after: Set[Uri]): Seq[ChangeDetail] = {
+    def names(tags: Set[Uri]): Seq[String] = tags.toSeq.map(tag => TagManager.labelOfGeneratedUri(tag.uri).getOrElse(tag.uri)).sorted
+    names(after -- before).map(tag => ChangeDetail("tag", after = Some(tag))) ++
+      names(before -- after).map(tag => ChangeDetail("tag", before = Some(tag)))
   }
 
   /**
