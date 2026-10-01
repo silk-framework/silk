@@ -558,6 +558,10 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     describe(tagged("Cleanup", "Old"), tagged("Cleanup", "Needs review")) shouldBe
       "Updated transform 'task': tag 'Needs review' added, tag 'Old' removed"
     AddTask(tagged("Cleanup")).describe should endWith ("tag 'Cleanup' added")
+    // A long name is shortened: a label, or the URI of a tag that has no generated URI
+    describe(tagged(), tagged("x" * 60)) shouldBe s"Updated transform 'task': tag '${"x" * 50}…' added"
+    describe(task(transform(name), MetaData(None, tags = Set(Uri("http://example.org/tags/" + "y" * 60)))), tagged()) shouldBe
+      s"Updated transform 'task': tag 'http://example.org/tags/${"y" * 26}…' removed"
     describe(task(transform(name), variables = limit("10")), task(transform(name), variables = limit("100"))) shouldBe
       "Updated transform 'task': execution variable 'limit' '10' → '100'"
     describe(task(transform(name), variables = limit("10", sensitive = true)), task(transform(name), variables = limit("100", sensitive = true))) shouldBe

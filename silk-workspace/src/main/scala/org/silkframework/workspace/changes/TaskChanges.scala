@@ -206,10 +206,12 @@ private object TaskDiff {
 
   /**
     * The tags that have been added and removed. A change does not hold the tags of the project, so a tag is named by
-    * the label that a generated tag URI carries, and by its URI otherwise.
+    * the label that a generated tag URI carries, and by its URI otherwise, shortened like any other value.
     */
   def tags(before: Set[Uri], after: Set[Uri]): Seq[ChangeDetail] = {
-    def names(tags: Set[Uri]): Seq[String] = tags.toSeq.map(tag => TagManager.labelOfGeneratedUri(tag.uri).getOrElse(tag.uri)).sorted
+    def names(tags: Set[Uri]): Seq[String] = {
+      tags.toSeq.map(tag => TagManager.labelOfGeneratedUri(tag.uri).getOrElse(tag.uri)).sorted.map(VariableChanges.shorten(_))
+    }
     names(after -- before).map(tag => ChangeDetail("tag", after = Some(tag))) ++
       names(before -- after).map(tag => ChangeDetail("tag", before = Some(tag)))
   }
