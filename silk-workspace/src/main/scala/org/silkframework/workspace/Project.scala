@@ -408,18 +408,23 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, project
 
   /**
     * Updates the meta data of an existing task of any type. Reading and writing it are one step,
-    * so that no other update slips in between.
+    * so that no other update slips in between. An update that changes nothing writes nothing:
+    * the task is not persisted again and its activities are not restarted.
     *
     * @param name The name of the task.
     * @param update Returns the new meta data for the current one.
-    * @return The meta data that has been written.
+    * @return The meta data of the task after the update.
     * @throws TaskNotFoundException If no task with the given name has been found
     */
   def updateTaskMetaData(name: Identifier)(update: MetaData => MetaData)
                         (implicit userContext: UserContext): MetaData = synchronized {
     val task = anyTask(name)
     task.synchronized {
-      task.updateMetaData(update(task.metaData).asUpdatedMetaData)
+      val current = task.metaData
+      val updated = update(current)
+      if(updated != current) {
+        task.updateMetaData(updated.asUpdatedMetaData)
+      }
       task.metaData
     }
   }

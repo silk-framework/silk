@@ -130,6 +130,26 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
     a[TaskNotFoundException] should be thrownBy project.updateTaskMetaData("noSuchTask")(identity)
   }
 
+  it should "not write a task whose meta data update changes nothing" in {
+    val recordingProvider = new RecordingWorkspaceProvider()
+    val projectConfig = ProjectConfig("NoOpMetaDataUpdateTest", metaData = MetaData(Some("project")))
+    recordingProvider.putProject(projectConfig)
+    val project = new Project(projectConfig, recordingProvider, new InMemoryResourceManager, userContext)
+    project.addAnyTask("task1", ProjectTestTask("param"), MetaData(Some("label"), tags = Set(Uri("urn:tag:1"))))
+    val metaData = project.anyTask("task1").metaData
+    def taskWrites: Int = recordingProvider.recordedUsers.count(_._1 == "putTask")
+    val writesBefore = taskWrites
+
+    // Neither is the task persisted, which would also restart its activities, nor is its modification date moved
+    project.updateTaskMetaData("task1")(identity) shouldBe metaData
+    project.updateTaskMetaData("task1")(current => current.copy(tags = current.tags + Uri("urn:tag:1"))) shouldBe metaData
+    taskWrites shouldBe writesBefore
+    project.anyTask("task1").metaData shouldBe metaData
+
+    project.updateTaskMetaData("task1")(_.copy(label = Some("new label")))
+    taskWrites shouldBe writesBefore + 1
+  }
+
   it should "remove a task that failed to load" in {
     val projectId = "failedTaskRemovalTest"
     val failedTaskId: Identifier = "failedTask"
