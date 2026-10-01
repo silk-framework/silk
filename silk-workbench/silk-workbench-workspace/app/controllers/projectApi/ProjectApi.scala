@@ -30,7 +30,7 @@ import org.silkframework.util.{Identifier, IdentifierUtils}
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.exceptions.IdentifierAlreadyExistsException
 import org.silkframework.workspace.io.WorkspaceIO
-import org.silkframework.workspace.{Project, ProjectConfig, TagManager}
+import org.silkframework.workspace.{Project, ProjectConfig}
 import play.api.libs.json.{Format, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
@@ -920,16 +920,7 @@ object ProjectApi {
     def execute(project: Project)
                (implicit userContext: UserContext): Iterable[FullTag] = {
       for (tag <- tags) yield {
-        val normalizedLabel = TagManager.normalizeLabel(tag.label)
-        val uri = tag.uri match {
-          case Some(userUri) =>
-            userUri
-          case None =>
-            project.tagManager.generateTagUri(normalizedLabel)
-        }
-        val newTag = Tag(uri, normalizedLabel)
-        project.tagManager.putTag(newTag)
-        FullTag.fromTag(newTag)
+        FullTag.fromTag(project.tagManager.createTag(tag.label, tag.uri))
       }
     }
   }

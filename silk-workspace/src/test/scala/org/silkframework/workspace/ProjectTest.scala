@@ -17,7 +17,7 @@ import org.silkframework.runtime.validation.ConflictRequestException
 import org.silkframework.util.{ConfigTestTrait, Identifier, Uri}
 import org.silkframework.workspace.WorkspaceTest.RecordingWorkspaceProvider
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowOperator}
-import org.silkframework.workspace.exceptions.CircularDependencyException
+import org.silkframework.workspace.exceptions.{CircularDependencyException, TaskNotFoundException}
 
 class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait {
 
@@ -112,6 +112,22 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
 
     project.updateAnyTask("task1", ProjectTestTask(), tags = Some(Set.empty))
     tags shouldBe empty
+  }
+
+  it should "update the meta data of a task, leaving the task itself as it is" in {
+    val project = retrieveOrCreateProject("UpdateMetaDataTest")
+    project.addAnyTask("task1", ProjectTestTask("param"), MetaData(Some("label"), Some("description")))
+    val created = project.anyTask("task1").metaData.created
+
+    project.updateTaskMetaData("task1")(_.copy(label = Some("new label"), tags = Set(Uri("urn:tag:1"))))
+    val task = project.anyTask("task1")
+    task.data shouldBe ProjectTestTask("param")
+    task.metaData.label shouldBe Some("new label")
+    task.metaData.description shouldBe Some("description")
+    task.metaData.tags shouldBe Set(Uri("urn:tag:1"))
+    task.metaData.created shouldBe created
+
+    a[TaskNotFoundException] should be thrownBy project.updateTaskMetaData("noSuchTask")(identity)
   }
 
   it should "remove a task that failed to load" in {
