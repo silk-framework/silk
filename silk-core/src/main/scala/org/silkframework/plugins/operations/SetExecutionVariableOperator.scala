@@ -18,6 +18,7 @@ import org.silkframework.config.{CustomTask, FixedNumberOfInputs, FixedSchemaPor
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.templating.{TemplateVariableName, VariableScope}
 import org.silkframework.util.Uri
 
 /**
@@ -64,6 +65,10 @@ case class SetExecutionVariableOperator(@Param("Name of the execution variable t
 
   /** Passes the input through unchanged; the schema depends on the connected input. */
   override def outputPort: Option[Port] = Some(UnknownSchemaPort)
+
+  override def modifiedVariables: Seq[TemplateVariableName] = {
+    Seq(new TemplateVariableName(variableName, VariableScope.execution))
+  }
 
   /** Extracts the variable value from an entity: the value at the source path, or the first value if no path is set. */
   def extractValue(entity: Entity): Option[String] = {

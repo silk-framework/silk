@@ -5,7 +5,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.templating.exceptions._
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariables}
-import org.silkframework.workspace.{Project, ProjectTask}
+import org.silkframework.workspace.{Project, ProjectTask, TaskExecutionVariablesManager}
 
 case class DeleteVariableModification(project: Project, variableName: String, taskId: Option[String] = None) extends Modification {
 
@@ -57,8 +57,7 @@ case class DeleteVariableModification(project: Project, variableName: String, ta
         // Compute all variables including the global variables
         val allCurrentVariables = GlobalTemplateVariables.all merge currentVariables
         val allNewVariables = GlobalTemplateVariables.all merge newVariables
-        // Match the resolution of execution-variable templates at save time (parent scopes without sensitive variables).
-        val saveTimeParents = allNewVariables.withoutSensitiveVariables()
+        val saveTimeParents = TaskExecutionVariablesManager.templateParentVariables(newVariables)
 
         // Report tasks whose parameter templates break or that still reference the deleted variable.
         val currentContext: PluginContext = PluginContext.fromProject(project)

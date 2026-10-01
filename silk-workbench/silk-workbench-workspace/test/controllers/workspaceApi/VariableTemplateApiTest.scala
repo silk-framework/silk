@@ -1,21 +1,23 @@
 package controllers.workspaceApi
 
 import controllers.autoCompletion.AutoSuggestAutoCompletionResponse
+import controllers.workspace.workspaceRequests.CopyTasksRequest
 import controllers.workspaceApi.coreApi.VariableTemplateApi.VariableDependencies
 import org.silkframework.serialization.json.{TemplateVariableJson, TemplateVariablesJson}
 import helper.{ApiClient, IntegrationTestTrait, RequestFailedException}
 import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, TemplateVariableName, TemplateVariables, VariableScope}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowOperator, WorkflowOperatorsParameter}
-import org.silkframework.workspace.{Project, ProjectConfig, WorkspaceFactory}
+import org.silkframework.workspace.{Project, ProjectConfig, TaskLoadingError, WorkspaceFactory}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import controllers.workspaceApi.coreApi.routes.{VariableTemplateApi => TemplateApi}
-import controllers.workspaceApi.coreApi.variableTemplate.{AutoCompleteVariableTemplateRequest, ValidateVariableTemplateRequest, VariableTemplateValidationResponse}
+import controllers.workspaceApi.coreApi.variableTemplate.{AllVariablesJson, AutoCompleteVariableTemplateRequest, ResolvedVariablesJson, ValidateVariableTemplateRequest, VariableTemplateValidationResponse}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.{CustomTask, InputPorts, Port}
 import org.silkframework.runtime.plugin.{ClassPluginDescription, ParameterTemplateValue, ParameterValues, PluginContext, PluginRegistry}
-import org.silkframework.runtime.templating.exceptions.{CannotDeleteUsedVariableException, InvalidScopeException}
+import org.silkframework.runtime.templating.exceptions.{CannotDeleteUsedVariableException, InvalidScopeException, TemplateVariablesEvaluationException}
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.{ConfigTestTrait, Identifier}
 
 import scala.concurrent.Await
@@ -32,7 +34,8 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
 
   // All templates in this suite are plain substitutions, so the simple engine suffices.
   override def propertyMap: Map[String, Option[String]] = Map(
-    "config.variables.engine" -> Some(SimpleSubstitutionTemplateEngine.id)
+    "config.variables.engine" -> Some(SimpleSubstitutionTemplateEngine.id),
+    "config.variables.global.allVariablesGlobal" -> Some("globalValue")
   )
 
   override def beforeAll(): Unit = {
@@ -212,6 +215,14 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     error should not be empty
     error.get.variable shouldBe "year"
     error.get.dependentVariables shouldBe Seq("movie1", "movie2")
+
+    // Bodies that do not match the expected JSON are rejected, not reported as server errors
+    val noScope = the[RequestFailedException] thrownBy checkResponse(createRequest(TemplateApi.putVariable(projectName, "movie2", None))
+      .put(Json.obj("name" -> "movie2", "value" -> "x")))
+    noScope.response.status shouldBe 400
+    val noArray = the[RequestFailedException] thrownBy checkResponse(createRequest(TemplateApi.reorderVariables(projectName, None))
+      .post(Json.obj("names" -> Seq("year"))))
+    noArray.response.status shouldBe 400
   }
 
   it should "allow to reorder variables (simple)" in {
@@ -370,6 +381,147 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     project.anyTask(taskName).updateExecutionVariables(referencingVariables)
     val response = checkResponse(createRequest(TemplateApi.getVariables(projectName, Some(taskName))).get())
     response.body should not include secretValue
+  }
+
+  it should "not disclose sensitive variables through non-sensitive variables of the same scope" in {
+    val projectName = "variables-test-sensitive-sibling"
+    val secretValue = "very-secret-sibling"
+    WorkspaceFactory().workspace.createProject(ProjectConfig(projectName))
+    val password = projectVariable("password", secretValue, isSensitive = true)
+    val derived = TemplateVariable("dbUrl", "", Some("jdbc://u:{{project.password}}@host"), None, isSensitive = false, VariableScope.project)
+    val sensitivityMessage = "'project.password' is sensitive and can only be referenced from a sensitive variable."
+
+    // The write paths must reject a non-sensitive variable that references a sensitive sibling and name the rule
+    val putAll = the[RequestFailedException] thrownBy putVariables(projectName, TemplateVariables(Seq(password, derived)))
+    putAll.response.status shouldBe 400
+    putAll.response.body should include(sensitivityMessage)
+    getVariables(projectName).variables shouldBe empty
+    putVariable(projectName, password)
+    val putOne = the[RequestFailedException] thrownBy putVariable(projectName, derived)
+    putOne.response.status shouldBe 400
+    putOne.response.body should include(sensitivityMessage)
+    getVariables(projectName).variables.map(_.name) shouldBe Seq("password")
+    // The live validation of the variable editor gives the same message
+    val validation = validateTemplate(ValidateVariableTemplateRequest(derived.template.get, Some(projectName), variableName = Some(derived.name)))
+    validation.valid shouldBe false
+    validation.parseError.map(_.message) shouldBe Some(sensitivityMessage)
+    // Also for several withheld variables; a truly undefined one is reported along instead of hiding them
+    putVariable(projectName, projectVariable("user", "u", isSensitive = true))
+    val validation2 = validateTemplate(ValidateVariableTemplateRequest("{{project.user}}:{{project.password}}@{{project.host}}", Some(projectName), variableName = Some(derived.name)))
+    validation2.parseError.map(_.message) shouldBe
+      Some("The following variables are sensitive and can only be referenced from a sensitive variable: 'project.user', 'project.password'. 'project.host' is not defined.")
+    // A parameter template (no variable name) follows the password-parameter rule instead: the withheld variable is not defined, in both modes
+    for (lenient <- Seq(None, Some(true))) {
+      val parameterValidation = validateTemplate(ValidateVariableTemplateRequest("{{project.password}}", Some(projectName), ignoreUnboundVariables = lenient))
+      parameterValidation.parseError.map(_.message) shouldBe Some("'project.password' is not defined.")
+    }
+    // A sensitive variable may reference its sensitive siblings, so its live validation and completion see them like the save does
+    val token = TemplateVariable("token", "", Some("{{project.user}}:{{project.password}}"), None, isSensitive = true, VariableScope.project)
+    putVariable(projectName, token)
+    val sensitiveValidation = validateTemplate(ValidateVariableTemplateRequest(token.template.get, Some(projectName), variableName = Some(token.name)))
+    sensitiveValidation.parseError shouldBe None
+    sensitiveValidation.evaluatedTemplate shouldBe Some(s"u:$secretValue")
+    autoCompleteTemplate(projectName, variableName = Some(token.name)) should contain allOf("project.password", "project.user")
+    autoCompleteTemplate(projectName, variableName = Some(derived.name)) should contain noneOf("project.password", "project.user")
+    // A sensitive sibling defined after it is reported as such, not as withheld
+    val laterValidation = validateTemplate(ValidateVariableTemplateRequest("{{project.token}}", Some(projectName), variableName = Some("user")))
+    laterValidation.parseError.map(_.message) shouldBe Some("'project.token' cannot be used because it's defined after 'user'.")
+    removeVariable(projectName, "token")
+    removeVariable(projectName, "user")
+
+    // Saving a task with such execution variables keeps the provided value instead of resolving the secret into it
+    val project = WorkspaceFactory().workspace.project(projectName)
+    val executionPassword = TemplateVariable("password", secretValue, None, None, isSensitive = true, VariableScope.execution)
+    val executionDerived = TemplateVariable("dbUrl", "", Some("jdbc://u:{{execution.password}}@host"), None, isSensitive = false, VariableScope.execution)
+    project.addTask("derivedTask", VariablesTestTask("T", 2002), executionVariables = TemplateVariables(Seq(executionPassword, executionDerived)))
+    project.anyTask("derivedTask").executionVariables.map("dbUrl").value shouldBe ""
+
+    // A sensitive variable may reference it and stays masked when retrieved
+    putVariables(projectName, TemplateVariables(Seq(password, derived.copy(isSensitive = true))))
+    val response = checkResponse(createRequest(TemplateApi.allVariables(None, None)).get())
+    response.body should not include secretValue
+  }
+
+  it should "withhold and reject a non-sensitive variable that was derived from a sensitive sibling before the rule existed" in {
+    val projectName = "variables-test-sensitive-sibling-legacy"
+    val secretValue = "very-secret-legacy"
+    val project = WorkspaceFactory().workspace.createProject(ProjectConfig(projectName))
+    val password = projectVariable("password", secretValue, isSensitive = true)
+    val derived = TemplateVariable("dbUrl", s"jdbc://u:$secretValue@host", Some("jdbc://u:{{project.password}}@host"), None, isSensitive = false, VariableScope.project)
+    // Stored without the write path, like a value resolved before the rule existed
+    project.templateVariables.put(TemplateVariables(Seq(password, derived, projectVariable("year", "2002"))))
+
+    // The stored value is not disclosed by the masking endpoint, the error names the rule
+    val response = checkResponse(createRequest(TemplateApi.allVariables(Some("project"), None)).get())
+    response.body should not include secretValue
+    val projectJson = Json.fromJson[AllVariablesJson](response.json).get.projects.find(_.id == projectName).get
+    projectJson.variables.map(_.map(v => (v.name, v.value))) shouldBe Some(Seq(("password", None), ("dbUrl", None), ("year", Some("2002"))))
+    projectJson.errors.map(_.map(_.variableName)) shouldBe Some(Seq("dbUrl"))
+    projectJson.errors.get.head.message should include("'project.password' is sensitive")
+
+    // The error of a sensitive variable is not reported verbatim, since it may quote the template
+    project.templateVariables.put(TemplateVariables(Seq(password, derived,
+      TemplateVariable("token", "", Some("{{project.vaultSecretName}}"), None, isSensitive = true, VariableScope.project))))
+    val tokenResponse = checkResponse(createRequest(TemplateApi.allVariables(Some("project"), None)).get())
+    tokenResponse.body should not include "vaultSecretName"
+    val tokenErrors = Json.fromJson[AllVariablesJson](tokenResponse.json).get.projects.find(_.id == projectName).get.errors.get
+    tokenErrors.map(e => (e.variableName, e.message)) should contain(("token", ResolvedVariablesJson.maskedErrorMessage))
+    project.templateVariables.put(TemplateVariables(Seq(password, derived, projectVariable("year", "2002"))))
+
+    // Any change to the scope is rejected until the variable is made sensitive or the reference removed
+    val unrelated = the[RequestFailedException] thrownBy putVariable(projectName, projectVariable("year", "2003"))
+    unrelated.response.status shouldBe 400
+    unrelated.response.body should include("Variable 'dbUrl': 'project.password' is sensitive")
+    getVariable(projectName, "year").value shouldBe "2002"
+    // Reordering names the variable as well, instead of reporting an ordering problem or keeping the stored value
+    val reorder = reorderVariablesError(projectName, Seq("year", "password", "dbUrl")).get
+    reorder.toString should include("Variable 'dbUrl': 'project.password' is sensitive")
+    getVariables(projectName).variables.map(_.name) shouldBe Seq("password", "dbUrl", "year")
+    putVariable(projectName, derived.copy(isSensitive = true))
+    putVariable(projectName, projectVariable("year", "2003"))
+    getVariable(projectName, "year").value shouldBe "2003"
+  }
+
+  it should "copy the variables a task needs and report a target project whose variables cannot be resolved" in {
+    val sourceName = "variables-test-copy-source"
+    val taskName = "copiedVariablesTask"
+    // The task's parameter template references 'year', whose template in turn references 'base'
+    createProjectWithVariablesTask(sourceName, taskName, projectVariables = Seq(projectVariable("base", "20"),
+      TemplateVariable("year", "", Some("{{project.base}}02"), None, isSensitive = false, VariableScope.project)))
+    def copyTo(targetName: String): Unit = {
+      CopyTasksRequest(dryRun = Some(false), overwriteTasks = Some(true), targetProject = targetName).copyTask(sourceName, taskName)
+    }
+
+    // Both variables are copied along, the transitively referenced one in front
+    val targetName = "variables-test-copy-target"
+    WorkspaceFactory().workspace.createProject(ProjectConfig(targetName))
+    copyTo(targetName)
+    getVariables(targetName).variables.map(v => (v.name, v.value)) shouldBe Seq(("base", "20"), ("year", "2002"))
+
+    // The same when the task reports the variable as referenced instead of failing on it
+    val reportingTaskName = "reportingVariablesTask"
+    WorkspaceFactory().workspace.project(sourceName).addTask(reportingTaskName, VariablesTestTask("T", 2002, variableReference = "project.year"))
+    val reportedTargetName = "variables-test-copy-reported-target"
+    WorkspaceFactory().workspace.createProject(ProjectConfig(reportedTargetName))
+    CopyTasksRequest(dryRun = Some(false), overwriteTasks = Some(true), targetProject = reportedTargetName).copyTask(sourceName, reportingTaskName)
+    getVariables(reportedTargetName).variables.map(v => (v.name, v.value)) shouldBe Seq(("base", "20"), ("year", "2002"))
+
+    // A target variable that cannot be resolved is reported instead of retrying until a limit is hit
+    val legacyTargetName = "variables-test-copy-legacy-target"
+    val legacyTarget = WorkspaceFactory().workspace.createProject(ProjectConfig(legacyTargetName))
+    legacyTarget.templateVariables.put(TemplateVariables(Seq(
+      projectVariable("password", "secret", isSensitive = true),
+      TemplateVariable("dbUrl", "jdbc://secret@host", Some("jdbc://{{project.password}}@host"), None, isSensitive = false, VariableScope.project))))
+    val ex = the[BadUserInputException] thrownBy copyTo(legacyTargetName)
+    ex.getMessage should include(s"variables of project '$legacyTargetName' after copying 'year', 'base' from project '$sourceName'")
+    ex.getMessage should include("Variable 'dbUrl': 'project.password' is sensitive")
+
+    // A referenced variable that the source project lacks is a client error, not a 404
+    val danglingTaskName = "danglingVariablesTask"
+    WorkspaceFactory().workspace.project(sourceName).addTask(danglingTaskName, VariablesTestTask("T", 2002, variableReference = "project.missing"))
+    val dangling = the[BadUserInputException] thrownBy
+      CopyTasksRequest(dryRun = Some(false), overwriteTasks = Some(true), targetProject = targetName).copyTask(sourceName, danglingTaskName)
+    dangling.getMessage shouldBe s"The copied tasks reference the variable 'project.missing', which is not defined in project '$sourceName'."
   }
 
   it should "reject invalid-scope execution variables without persisting them" in {
@@ -755,6 +907,83 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     getVariables(projectName, Some(taskName), transitive = true).variables.map(_.name) shouldBe Seq("greeting")
   }
 
+  it should "list the variables of all projects and their tasks with sensitive values masked" in {
+    val projectName = "variables-test-all"
+    val taskName = "allVariablesTask"
+    val secretValue = "very-secret-all-variables"
+    createProjectWithVariablesTask(projectName, taskName,
+      projectVariables = Seq(projectVariable("year", "2002"), projectVariable("password", secretValue, isSensitive = true)),
+      taskParameters = Map("title" -> "T", "year" -> "2002"),
+      taskExecutionVariables = TemplateVariables(Seq(executionVariable("greeting", "Hello"),
+        TemplateVariable("derived", "", Some("{{execution.greeting}} World"), None, isSensitive = false, VariableScope.execution))))
+    // A task without execution variables and a task that failed to load
+    WorkspaceFactory().workspace.project(projectName).addTask("plainAllVariablesTask", VariablesTestTask("T", 2002))
+    WorkspaceFactory().workspace.provider.retainExternalTaskLoadingError(projectName,
+      TaskLoadingError(Some(Identifier(projectName)), Identifier("brokenTask"), new RuntimeException("boom"), Some("Broken task"), None, None, None))
+    // A project without any variables is still listed
+    val emptyProjectName = "variables-test-all-empty"
+    WorkspaceFactory().workspace.createProject(ProjectConfig(emptyProjectName))
+
+    val response = checkResponse(createRequest(TemplateApi.allVariables(None, None)).get())
+    response.body should not include secretValue
+    val all = Json.fromJson[AllVariablesJson](response.json).get
+
+    all.global.getOrElse(fail("Global variables are missing")).variables.map(v => (v.name, v.value)) should contain(("allVariablesGlobal", Some("globalValue")))
+
+    val projectJson = all.projects.find(_.id == projectName).getOrElse(fail(s"Project $projectName is missing"))
+    projectJson.variables.map(_.map(v => (v.name, v.value, v.isSensitive))) shouldBe
+      Some(Seq(("year", Some("2002"), false), ("password", None, true)))
+    projectJson.errors shouldBe None
+    projectJson.loadingErrors.map(_.map(e => (e.id, e.label, e.message))) shouldBe Some(Seq(("brokenTask", Some("Broken task"), "boom")))
+    val tasks = projectJson.tasks.getOrElse(fail("Tasks are missing"))
+    tasks.map(_.id) should contain theSameElementsAs Seq(taskName, "plainAllVariablesTask")
+    val task = tasks.find(_.id == taskName).get
+    task.taskType shouldBe "task"
+    // Templates are resolved
+    task.variables.map(v => (v.name, v.value)) shouldBe Seq(("greeting", Some("Hello")), ("derived", Some("Hello World")))
+    task.errors shouldBe None
+    tasks.find(_.id == "plainAllVariablesTask").get.variables shouldBe empty
+
+    val emptyProject = all.projects.find(_.id == emptyProjectName).getOrElse(fail(s"Project $emptyProjectName is missing"))
+    emptyProject.variables shouldBe Some(Seq.empty)
+    emptyProject.tasks shouldBe Some(Seq.empty)
+    emptyProject.loadingErrors shouldBe None
+  }
+
+  it should "only list the requested scopes when retrieving all variables" in {
+    val projectName = "variables-test-all-scopes"
+    createProjectWithVariablesTask(projectName, "scopesTask",
+      taskExecutionVariables = TemplateVariables(Seq(executionVariable("greeting", "Hello"))))
+
+    val executionOnly = getAllVariables(scope = Some("execution"))
+    executionOnly.global shouldBe None
+    val executionProject = executionOnly.projects.find(_.id == projectName).get
+    executionProject.variables shouldBe None
+    executionProject.tasks.map(_.map(_.id)) shouldBe Some(Seq("scopesTask"))
+
+    val globalAndProject = getAllVariables(scope = Some("global, project"))
+    globalAndProject.global shouldBe defined
+    val projectJson = globalAndProject.projects.find(_.id == projectName).get
+    projectJson.variables.map(_.map(_.name)) shouldBe Some(Seq("year"))
+    projectJson.tasks shouldBe None
+
+    val ex = the[RequestFailedException] thrownBy getAllVariables(scope = Some("unknown"))
+    ex.response.status shouldBe 400
+    // A scope parameter that names no scope is an error too, not a request for all scopes
+    for (empty <- Seq("", ",", " , ")) {
+      val emptyEx = the[RequestFailedException] thrownBy getAllVariables(scope = Some(empty))
+      emptyEx.response.status shouldBe 400
+      emptyEx.response.body should include("The scope parameter is given but names no scope.")
+    }
+
+    // The project filter restricts the response to one project
+    val single = getAllVariables(scope = Some("project"), project = Some(projectName))
+    single.projects.map(_.id) shouldBe Seq(projectName)
+    single.projects.head.variables.map(_.map(_.name)) shouldBe Some(Seq("year"))
+    val missingProject = the[RequestFailedException] thrownBy getAllVariables(project = Some("doesNotExist"))
+    missingProject.response.status shouldBe 404
+  }
+
   private def projectVariable(name: String, value: String, isSensitive: Boolean = false): TemplateVariable =
     TemplateVariable(name, value, None, None, isSensitive, VariableScope.project)
 
@@ -791,6 +1020,11 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
       ParameterValues(taskParameters.view.mapValues(ParameterTemplateValue(_)).toMap))
     project.addTask(taskName, plugin, executionVariables = taskExecutionVariables)
     project
+  }
+
+  def getAllVariables(scope: Option[String] = None, project: Option[String] = None): AllVariablesJson = {
+    val json = checkResponse(createRequest(TemplateApi.allVariables(scope, project)).get()).json
+    Json.fromJson[AllVariablesJson](json).get
   }
 
   def getVariables(projectId: String, task: Option[String] = None, transitive: Boolean = false): TemplateVariables = {

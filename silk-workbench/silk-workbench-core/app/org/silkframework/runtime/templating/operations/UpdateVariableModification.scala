@@ -8,7 +8,7 @@ import org.silkframework.workspace.Project
 
 case class UpdateVariableModification(project: Project, variable: TemplateVariable, taskId: Option[String] = None) extends Modification {
 
-  override def operation: String = s"Updated variable $variable"
+  override def operation: String = s"Updated variable '${variable.name}'"
 
   override protected def updateVariables(currentVariables: TemplateVariables, parentVariables: TemplateVariables)
                                         (implicit user: UserContext): TemplateVariables = {

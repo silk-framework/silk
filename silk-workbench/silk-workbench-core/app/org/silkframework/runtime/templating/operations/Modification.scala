@@ -7,7 +7,7 @@ import org.silkframework.runtime.templating.exceptions._
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, InMemoryTemplateVariablesReader, TemplateVariableName, VariableScope, TemplateVariables, TemplateVariablesManager}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.{Project, ProjectTask}
+import org.silkframework.workspace.{Project, ProjectTask, TaskExecutionVariablesManager}
 
 import java.util.logging.Logger
 import scala.collection.mutable
@@ -197,8 +197,7 @@ abstract class Modification {
   protected def tasksWithDependentExecutionVariables(newProjectVariables: TemplateVariables,
                                                      removedVariableNames: Set[String])
                                                     (implicit user: UserContext): Seq[(ProjectTask[_ <: TaskSpec], TemplateVariablesEvaluationException)] = {
-    // Match the resolution at save time (parent scopes without sensitive variables).
-    val parentVariables = (GlobalTemplateVariables.all merge newProjectVariables).withoutSensitiveVariables()
+    val parentVariables = TaskExecutionVariablesManager.templateParentVariables(newProjectVariables)
     for (task <- project.allTasks.toSeq;
          issues = dependentExecutionVariableIssues(task, parentVariables, removedVariableNames) if issues.nonEmpty) yield {
       (task, TemplateVariablesEvaluationException(issues))

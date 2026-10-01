@@ -9,7 +9,7 @@ import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.plugin.annotations.{Action, Param, Plugin, PluginReference}
 
 import org.silkframework.runtime.plugin.types.SparqlCodeParameter
-import org.silkframework.runtime.templating.{TemplateEngineAutocompletionProvider, TemplateEngines}
+import org.silkframework.runtime.templating.{TemplateEngineAutocompletionProvider, TemplateEngines, TemplateVariableName}
 
 @Plugin(
   id = SparqlUpdateCustomTask.pluginId,
@@ -68,6 +68,8 @@ case class SparqlUpdateCustomTask(
   }
 
   override def outputPort: Option[Port] = Some(FixedSchemaPort(SparqlUpdateEntitySchema.schema))
+
+  override def referencedVariables: Seq[TemplateVariableName] = compiledTemplate.referencedVariables
 
   @Action(
     label = "Show prefixes",
