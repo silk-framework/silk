@@ -324,6 +324,25 @@ class TaskJsonFormatRegressionTest extends AnyFlatSpec with Matchers with Config
     ex.getMessage should include("Valid parameters are: param1, param2")
   }
 
+  it should "reject an unknown attribute in the meta data" in {
+    val metaData = Json.obj("label" -> "Label", "desciption" -> "misspelled", "addTags" -> Json.arr())
+    val ex = the[BadUserInputException] thrownBy {
+      JsonSerialization.fromJson[Task[TaskSpec]](datasetJson() ++ Json.obj(METADATA -> metaData))
+    }
+    ex.getMessage shouldBe "The task JSON is invalid. At 'metadata': unknown attribute(s): addTags, desciption. " +
+      "Valid attributes are: created, createdByUser, description, label, lastModifiedByUser, modified, tags."
+  }
+
+  it should "trim the label and the description, and read a blank description as none" in {
+    def read(label: String, description: String): MetaData = {
+      val metaData = Json.obj("label" -> label, "description" -> description)
+      JsonSerialization.fromJson[Task[TaskSpec]](datasetJson() ++ Json.obj(METADATA -> metaData)).metaData
+    }
+    val padded = read(" Label ", " Description ")
+    (padded.label, padded.description) shouldBe ((Some("Label"), Some("Description")))
+    read("Label", " ").description shouldBe None
+  }
+
   it should "accept boolean 'readOnly' values" in {
     val task = JsonSerialization.fromJson[Task[TaskSpec]](datasetJson(TaskDataDto.READ_ONLY -> JsBoolean(true)))
     task.data.asInstanceOf[DatasetSpec[_]].readOnly shouldBe true
