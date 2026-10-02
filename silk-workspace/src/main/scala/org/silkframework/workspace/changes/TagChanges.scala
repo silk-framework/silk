@@ -41,7 +41,8 @@ case class RemoveTag(tag: Tag) extends Change {
 
   override def inverse: Option[SetTag] = Some(SetTag(None, tag))
 
-  // The writes that give a task a tag take the project monitor as well, so none slips in between the check and the removal.
+  // The task writes of Project and of the journal take the project monitor as well, so none slips in between the check
+  // and the removal. A direct ProjectTask update, as the REST metadata endpoint makes, can.
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = project.synchronized {
     expectRemovable(project)
     project.tagManager.deleteTag(tag.uri)
