@@ -21,6 +21,8 @@ POST       /variableTemplate/completion       controllers.workspaceApi.coreApi.V
 
 # System
 GET        /system/threadDump            controllers.workspaceApi.coreApi.SystemApi.threadDump()
+GET        /system/logs                  controllers.workspaceApi.coreApi.LogApi.logTail(since: Option[Long] ?= None, limit: Option[Int] ?= None, level: Option[String] ?= None, logger: List[String] ?= List[String](), contains: List[String] ?= List[String]())
+GET        /system/logs/status           controllers.workspaceApi.coreApi.LogApi.logBufferStatus()
 
 # Access Control
 GET        /accessControl               controllers.workspaceApi.coreApi.AccessControlApi.accessControl()

@@ -209,7 +209,7 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
   }
 
   // Returns the project import details. Caches the result.
-  private def fetchProjectImportDetails(projectImportId: String): ProjectImportDetails = {
+  private def fetchProjectImportDetails(projectImportId: String)(implicit userContext: UserContext): ProjectImportDetails = {
     val pi = getProjectImport(projectImportId)
     pi.synchronized {
       // This might have been updated already
@@ -225,7 +225,7 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
     }
   }
 
-  private def extractProjectImportDetails(projectImport: ProjectImport): ProjectImportDetails = {
+  private def extractProjectImportDetails(projectImport: ProjectImport)(implicit userContext: UserContext): ProjectImportDetails = {
     try {
       val configFile = "config.xml"
       val zipFile = new ZipFile(projectImport.projectFileResource.file)
@@ -262,8 +262,8 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
     }
   }
 
-  private def handleUnexpectedError(projectImport: ProjectImport, ex: Exception): ProjectImportDetails = {
-    log.log(Level.INFO, s"Failed to import project $projectImport", ex)
+  private def handleUnexpectedError(projectImport: ProjectImport, ex: Exception)(implicit userContext: UserContext): ProjectImportDetails = {
+    log.log(Level.WARNING, s"Could not read the uploaded project file of $projectImport." + userContext.logInfo, ex)
     val projectImportError = try {
       val source = Source.fromInputStream(projectImport.projectFileResource.inputStream)(Codec.UTF8)
       try {
@@ -503,6 +503,9 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
         val importProcess: Future[Try[Unit]] = Future {
           val result = Try[Unit] {
             workspace.importProject(newProjectId, projectImport.projectFileResource.file, marshaller, overwrite = overwriteExisting, importGroups = importGroups, groups = groups.toSet)
+          }
+          for (ex <- result.failed) {
+            log.log(Level.WARNING, s"Import of project '$newProjectId' failed." + userContext.logInfo, ex)
           }
           // Remove file and update project import object
           withProjectImportQueue { queue =>
