@@ -232,8 +232,15 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     val project = retrieveOrCreateProject("journalRevertDuringRemoval")
     project.addTask[TransformSpec]("transform", transform(name))
     project.updateTask[TransformSpec]("transform", transform(name, age))
+    val update = project.changeJournal.all.last
 
-    expectRefusedByRemoval(project, project.changeJournal.all.last)
+    // The revert takes the project's monitor first, as the removal does, so it finds the task gone
+    val outcome = revertDuringWrite(project.changeJournal, update.seq, project) {
+      project.removeTask[TransformSpec]("transform")
+    }
+
+    outcome.failed.get.getMessage should include ("does not exist")
+    project.anyTaskOption("transform") shouldBe None
   }
 
   it should "refuse a typed revert whose task is removed while the revert waits for it" in {
@@ -906,6 +913,26 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     labels shouldBe empty
     journal.revert(removed.seq).change shouldBe SetTag(None, tag)
     labels shouldBe Seq("Cleanup")
+  }
+
+  it should "not revert a task change that gives the task a tag the project does not have" in {
+    val project = retrieveOrCreateProject("journalRevertTaskTags")
+    val journal = project.changeJournal
+    val tag = project.tagManager.createTag("Cleanup")
+    // A URI that the task holds already is not checked, so it stays
+    val dangling = Uri("urn:dangling")
+    project.addTask[TransformSpec]("task", transform(name), MetaData(Some("Tagged task"), tags = Set(tag.uri, dangling)))
+    project.updateTaskMetaData("task")(_.copy(tags = Set(dangling)))
+    val untagged = journal.all.last
+    project.tagManager.deleteTag(tag.uri)
+
+    // The revert would give the task the deleted tag back, as a URI without a label
+    val missing = "Task 'Tagged task' would get the tag 'Cleanup', which project 'journalRevertTaskTags' does not have."
+    revertConflict(journal, untagged) shouldBe Some(missing)
+    the[ChangeConflictException] thrownBy journal.revert(untagged.seq) should have message missing
+    project.tagManager.putTag(tag)
+    journal.revert(untagged.seq)
+    project.anyTask("task").metaData.tags shouldBe Set(tag.uri, dangling)
   }
 
   it should "record the file writes and deletions of a request and revert a creation while the file is unchanged" in {

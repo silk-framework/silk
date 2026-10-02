@@ -39,6 +39,12 @@ class TagManager(project: Identifier, provider: WorkspaceProvider, changeJournal
     }
   }
 
+  /** The given tag URIs that are not tags of the project. */
+  def missingTags(uris: Set[Uri])(implicit userContext: UserContext): Set[Uri] = synchronized {
+    loadIfRequired()
+    uris.filterNot(uri => tags.contains(uri.uri))
+  }
+
   /** Adds a tag or replaces the tag of that URI. Recorded in the change journal, unless the tag is there as given. */
   def putTag(tag: Tag)(implicit userContext: UserContext): TagReference = synchronized {
     loadIfRequired()

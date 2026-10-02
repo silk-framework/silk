@@ -25,19 +25,21 @@ case class AddTask(task: PlainTask[TaskSpec]) extends Change with NamesTask {
 
   override def inverse: Option[RemoveTask] = Some(RemoveTask(task))
 
-  override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
-    expectAbsent(project)
+  // Check and restore are one step under the project's monitor, which a tag removal takes as well.
+  override def applyTo(project: Project)(implicit userContext: UserContext): Unit = project.synchronized {
+    expectAddable(project)
     project.restoreTask(task)
   }
 
   override def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String] = {
-    Change.conflictOf(expectAbsent(context.project))
+    Change.conflictOf(expectAddable(context.project))
   }
 
-  private def expectAbsent(project: Project)(implicit userContext: UserContext): Unit = {
+  private def expectAddable(project: Project)(implicit userContext: UserContext): Unit = {
     if(project.anyTaskOption(task.id).isDefined) {
       throw ChangeConflictException(s"Task '${task.labelOrId}' already exists in project '${project.id}'.")
     }
+    TaskChanges.expectTags(project, task, Set.empty)
   }
 
   // The task parameters may be sensitive, so they are never printed.
@@ -112,18 +114,24 @@ case class ReplaceTask(before: PlainTask[TaskSpec], after: PlainTask[TaskSpec]) 
   override def inverse: Option[ReplaceTask] = Some(ReplaceTask(after, before))
 
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = {
-    val task = TaskChanges.expectTask(project, before)
-    // Check and update are one step under the monitor that update takes, so that no write slips in between.
-    // A task that is removed meanwhile refuses the update, so the project's monitor is not needed.
-    task.synchronized {
-      TaskChanges.expectUnchanged(project, task, before)
-      // Timestamps and users are dropped, so the update is stamped as a new modification.
-      task.update(after.data, Some(after.metaData.withoutUserData), Some(after.executionVariables))
+    // Check and update are one step under the monitors of the update, so that no write slips in between:
+    // the project's, which a tag removal takes as well, then the task's.
+    project.synchronized {
+      val task = TaskChanges.expectTask(project, before)
+      task.synchronized {
+        TaskChanges.expectUnchanged(project, task, before)
+        TaskChanges.expectTags(project, after, before.metaData.tags)
+        // Timestamps and users are dropped, so the update is stamped as a new modification.
+        task.update(after.data, Some(after.metaData.withoutUserData), Some(after.executionVariables))
+      }
     }
   }
 
   override def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String] = {
-    Change.conflictOf(TaskChanges.expectState(context.project, before))
+    Change.conflictOf {
+      TaskChanges.expectState(context.project, before)
+      TaskChanges.expectTags(context.project, after, before.metaData.tags)
+    }
   }
 
   override def toString: String = s"ReplaceTask($taskId)"
@@ -162,6 +170,19 @@ object TaskChanges {
   private[changes] def expectUnchanged(project: Project, task: Task[TaskSpec], expected: PlainTask[TaskSpec]): Unit = {
     if(!same(task, expected)) {
       throw ChangeConflictException(s"Task '${expected.labelOrId}' in project '${project.id}' has been changed since.")
+    }
+  }
+
+  /**
+    * Throws a conflict if `task` has a tag beyond the `current` ones that the project does not have, e.g. one deleted
+    * since, as the task would hold it as a URI without a label. A tag that the task already holds is kept as it is.
+    */
+  private[changes] def expectTags(project: Project, task: PlainTask[TaskSpec], current: Set[Uri])
+                                 (implicit userContext: UserContext): Unit = {
+    val missing = TaskDiff.tagNames(project.tagManager.missingTags(task.metaData.tags -- current)).map(name => s"'$name'")
+    if(missing.nonEmpty) {
+      val tags = if(missing.size == 1) "tag" else "tags"
+      throw ChangeConflictException(s"Task '${task.labelOrId}' would get the $tags ${missing.mkString(", ")}, which project '${project.id}' does not have.")
     }
   }
 
@@ -209,11 +230,13 @@ private object TaskDiff {
     * the label that a generated tag URI carries, and by its URI otherwise, shortened like any other value.
     */
   def tags(before: Set[Uri], after: Set[Uri]): Seq[ChangeDetail] = {
-    def names(tags: Set[Uri]): Seq[String] = {
-      tags.toSeq.map(tag => TagManager.labelOfGeneratedUri(tag.uri).getOrElse(tag.uri)).sorted.map(VariableChanges.shorten(_))
-    }
-    names(after -- before).map(tag => ChangeDetail("tag", after = Some(tag))) ++
-      names(before -- after).map(tag => ChangeDetail("tag", before = Some(tag)))
+    tagNames(after -- before).map(tag => ChangeDetail("tag", after = Some(tag))) ++
+      tagNames(before -- after).map(tag => ChangeDetail("tag", before = Some(tag)))
+  }
+
+  /** Names tags for display as [[tags]] does, sorted by their full name. */
+  def tagNames(tags: Set[Uri]): Seq[String] = {
+    tags.toSeq.map(tag => TagManager.labelOfGeneratedUri(tag.uri).getOrElse(tag.uri)).sorted.map(VariableChanges.shorten(_))
   }
 
   /**
