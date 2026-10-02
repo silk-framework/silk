@@ -40,15 +40,12 @@ case class BinaryFileDataset(
   /**
    * Creates a data source for a particular resource inside the bulk file.
    */
-  override def createSource(resource: Resource): DataSource = {
-    new FileSource(ReadOnlyResource(resource))
-  }
+  override def createSource(resource: Resource): DataSource = new FileSource(ReadOnlyResource(resource))
 
   override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly(explicitSchema = true)
 }
 
 object BinaryFileDataset {
-
   final val id = "binaryFile"
   final val mimeType = "application/octet-stream"
 }
@@ -93,13 +90,9 @@ class FileSource(file: WritableResource) extends DataSource with PeakDataSource 
 class FileSink(file: WritableResource) extends EntitySink {
 
   override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean)
-                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
-    throwException
-  }
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = throwException
 
-  override def closeTable()(implicit userContext: UserContext): Unit = {
-    throwException
-  }
+  override def closeTable()(implicit userContext: UserContext): Unit = throwException
 
   override def writeEntity(subject: String, values: IndexedSeq[Seq[String]])(implicit userContext: UserContext): Unit = {
     throwException
@@ -108,14 +101,9 @@ class FileSink(file: WritableResource) extends EntitySink {
   /**
    * Only deletes the file if forced, because each write replaces the file anyway.
    */
-  override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
-    if(force) {
-      file.delete()
-    }
-  }
+  override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = if(force) file.delete()
 
-  private def throwException: Nothing = {
+  private def throwException: Nothing =
     throw new RuntimeException("Cannot write generic entities to this dataset. Only file entities can be written. " +
                                "File entities are produced by some operators, such as the 'Get project files' task.")
-  }
 }

@@ -9,7 +9,8 @@ import java.io.OutputStream
 
 class JsonSink (val resource: WritableResource,
                 template: JsonTemplate = JsonTemplate.default,
-                override val maxDepth: Int = HierarchicalSink.DEFAULT_MAX_SIZE) extends HierarchicalSink with DirtyTrackingFileDataSink {
+                override val maxDepth: Int = HierarchicalSink.DEFAULT_MAX_SIZE)
+  extends HierarchicalSink with DirtyTrackingFileDataSink {
 
   override protected def outputEntities(writeOutput: HierarchicalEntityWriter => Unit): Unit = {
     resource.write() { outputStream =>
@@ -31,5 +32,4 @@ class JsonSink (val resource: WritableResource,
       super.clear(force)
     }
   }
-
 }

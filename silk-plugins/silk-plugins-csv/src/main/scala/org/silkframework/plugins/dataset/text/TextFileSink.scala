@@ -13,19 +13,15 @@ class TextFileSink(ds: TextFileDataset) extends EntitySink with LinkSink {
 
   private var writer: Option[Writer] = None
 
-  override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
-    if(writer.isEmpty) {
-      writer = Some(new OutputStreamWriter(ds.bulkWritableResource.createOutputStream(), ds.charset))
-    }
-  }
+  override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit =
+    if(writer.isEmpty) writer = Some(new OutputStreamWriter(ds.bulkWritableResource.createOutputStream(), ds.charset))
 
-  override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
-    init()
-  }
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = init()
 
   override def closeTable()(implicit userContext: UserContext): Unit = { }
 
-  override def writeEntity(subject: String, values: IndexedSeq[Seq[String]])(implicit userContext: UserContext): Unit = {
+  override def writeEntity(subject: String, values: IndexedSeq[Seq[String]])(implicit userContext: UserContext): Unit =
     writer match {
       case Some(w) =>
         w.write(values.flatten.mkString("", " ", "\n"))
@@ -33,27 +29,19 @@ class TextFileSink(ds: TextFileDataset) extends EntitySink with LinkSink {
         throw new ValidationException("TextFileSink must be opened first")
     }
 
-  }
-
   override def writeLink(link: Link, predicateUri: String, inversePredicateUri: Option[String])
-                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit =
     writeEntity("", IndexedSeq(Seq(link.source), Seq(link.target)))
-  }
 
   /**
    * Only empties the file if forced, because each write replaces the file anyway.
    */
-  override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
-    if(force) {
-      ds.bulkWritableResource.writeString("", codec = ds.codec)
-    }
-  }
+  override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit =
+    if(force) ds.bulkWritableResource.writeString("", codec = ds.codec)
 
-  override def close()(implicit userContext: UserContext): Unit = {
-    try {
+  override def close()(implicit userContext: UserContext): Unit =
+    try
       writer.foreach(_.close())
-    } finally {
+    finally
       writer = None
-    }
-  }
 }
