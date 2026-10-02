@@ -432,6 +432,8 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with Matchers {
 
     "simulate copying a task in a dry run" in {
       createProject(targetProject)
+      val tag = workspaceProject(project).tagManager.createTag("copied tag")
+      workspaceProject(project).updateTaskMetaData(transformId)(_.copy(tags = Set(tag.uri)))
 
       val copyResponse = copyTransformTaskRequest(CopyTasksRequest(dryRun = Some(true), overwriteTasks = None, targetProject = targetProject))
       copyResponse.copiedTasks.map(_.id) must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
@@ -441,6 +443,8 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with Matchers {
       val projectResponse = client.url(s"$baseUrl/workspace/projects/$targetProject").get()
       val projectJson = checkResponse(projectResponse).json
       (projectJson \ "tasks" \ "transform").asStringArray mustBe Seq.empty
+      // Nor have their tags
+      workspaceProject(targetProject).tagManager.allTags() mustBe empty
     }
 
     "copy a task" in {
@@ -453,6 +457,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with Matchers {
       val projectJson = checkResponse(projectResponse).json
       (projectJson \ "tasks" \ "dataset").asStringArray.toSet mustBe Set(datasetId, TRANSFORM_OUTPUT_DATASET)
       (projectJson \ "tasks" \ "transform").asStringArray mustBe Seq(transformId)
+      workspaceProject(targetProject).tagManager.allTags().map(_.label) mustBe Seq("copied tag")
     }
 
     "overwrite tasks when copying" in {

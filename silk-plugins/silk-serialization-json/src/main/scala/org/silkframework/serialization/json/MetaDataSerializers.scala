@@ -8,7 +8,7 @@ import org.silkframework.runtime.users.User
 import org.silkframework.serialization.json.TransformedJsonFormat.TransformableJsonFormat
 import org.silkframework.util.Uri
 import org.silkframework.workspace.TagManager
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{Format, JsError, JsObject, Json, Reads}
 
 import java.time.Instant
 
@@ -68,10 +68,11 @@ object MetaDataSerializers {
       )
     }
 
+    /** The label is trimmed, and a blank description stands for none; any other description is kept as given, as its whitespace can be Markdown. */
     def toMetaData(md: MetaDataPlain): MetaData = {
       MetaData(
-        label = md.label,
-        description = md.description,
+        label = md.label.map(_.trim),
+        description = md.description.filter(_.trim.nonEmpty),
         modified = md.modified,
         created = md.created,
         createdByUser = md.createdByUser.map(new Uri(_)),
@@ -103,6 +104,23 @@ object MetaDataSerializers {
   implicit val userFormat: Format[UserInfo] = Json.format[UserInfo]
   implicit val metaDataFormat: Format[MetaDataPlain] = Json.format[MetaDataPlain]
   implicit val metaDataExpandedFormat: Format[MetaDataExpanded] = Json.format[MetaDataExpanded]
+
+  /**
+    * Reads meta data and rejects unknown attributes, e.g. a misspelled one, which [[metaDataFormat]] drops silently.
+    * Not the default: the task meta data endpoint returns further attributes that a client may send back.
+    */
+  val strictMetaDataReads: Reads[MetaDataPlain] = Reads {
+    case json: JsObject =>
+      val validFields = MetaDataPlain(None).productElementNames.toSeq.sorted
+      val unknownFields = (json.keys.toSet -- validFields).toSeq.sorted
+      if(unknownFields.isEmpty) {
+        metaDataFormat.reads(json)
+      } else {
+        JsError(s"unknown attribute(s): ${unknownFields.mkString(", ")}. Valid attributes are: ${validFields.mkString(", ")}.")
+      }
+    case _ =>
+      JsError("error.expected.jsobject")
+  }
 
   implicit val metaDataJsonFormat: JsonFormat[MetaData] = new PlayJsonFormat[MetaDataPlain]().map(MetaDataPlain.toMetaData, MetaDataPlain.fromMetaData)
 
