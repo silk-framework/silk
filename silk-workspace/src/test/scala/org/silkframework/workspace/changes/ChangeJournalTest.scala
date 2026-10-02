@@ -927,7 +927,8 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     project.tagManager.deleteTag(tag.uri)
 
     // The revert would give the task the deleted tag back, as a URI without a label
-    val missing = "Task 'Tagged task' would get the tag 'Cleanup', which project 'journalRevertTaskTags' does not have."
+    val missing = "Task 'Tagged task' would get the tag 'Cleanup', which project 'journalRevertTaskTags' does not have. " +
+      "Revert the removal of the tag first, or create the tag again."
     revertConflict(journal, untagged) shouldBe Some(missing)
     the[ChangeConflictException] thrownBy journal.revert(untagged.seq) should have message missing
     project.tagManager.putTag(tag)

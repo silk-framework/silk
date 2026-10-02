@@ -182,7 +182,8 @@ object TaskChanges {
     val missing = TaskDiff.tagNames(project.tagManager.missingTags(task.metaData.tags -- current)).map(name => s"'$name'")
     if(missing.nonEmpty) {
       val tags = if(missing.size == 1) "tag" else "tags"
-      throw ChangeConflictException(s"Task '${task.labelOrId}' would get the $tags ${missing.mkString(", ")}, which project '${project.id}' does not have.")
+      throw ChangeConflictException(s"Task '${task.labelOrId}' would get the $tags ${missing.mkString(", ")}, which project '${project.id}' does not have. " +
+        s"Revert the removal of the $tags first, or create the $tags again.")
     }
   }
 
