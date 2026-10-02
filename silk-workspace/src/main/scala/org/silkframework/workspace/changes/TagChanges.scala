@@ -1,9 +1,9 @@
 package org.silkframework.workspace.changes
 
-import org.silkframework.config.Tag
+import org.silkframework.config.{Tag, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
-import org.silkframework.workspace.Project
+import org.silkframework.workspace.{Project, ProjectTask}
 
 /**
   * Sets a tag of the project, adding it if `before` is empty. Applies only while the tag is unchanged since.
@@ -44,18 +44,19 @@ case class RemoveTag(tag: Tag) extends Change {
   // The task writes of Project and of the journal take the project monitor as well, so none slips in between the check
   // and the removal. A direct ProjectTask update, as the REST metadata endpoint makes, can.
   override def applyTo(project: Project)(implicit userContext: UserContext): Unit = project.synchronized {
-    expectRemovable(project)
+    expectRemovable(project, project.allTasks.filter(_.metaData.tags.contains(tag.uri)))
     project.tagManager.deleteTag(tag.uri)
   }
 
   override def conflict(context: ConflictContext)(implicit userContext: UserContext): Option[String] = {
-    Change.conflictOf(expectRemovable(context.project))
+    Change.conflictOf(expectRemovable(context.project, context.tasksByTag.getOrElse(tag.uri, Seq.empty)))
   }
 
-  private def expectRemovable(project: Project)(implicit userContext: UserContext): Unit = {
+  /** Throws a conflict if the tag has changed since or if `tasks`, the tasks that have the tag, or the project itself still have it. */
+  private def expectRemovable(project: Project, tasks: Seq[ProjectTask[_ <: TaskSpec]])(implicit userContext: UserContext): Unit = {
     TagChanges.expect(project, tag.uri, Some(tag))
     // With the id, as the label alone does not tell which task to change.
-    val users = project.allTasks.filter(_.metaData.tags.contains(tag.uri)).map(task => s"task ${task.labelAndId}") ++
+    val users = tasks.map(task => s"task ${task.labelAndId}") ++
       Seq("the project itself").filter(_ => project.config.metaData.tags.contains(tag.uri))
     if(users.nonEmpty) {
       throw ChangeConflictException(s"Tag '${TagChanges.name(tag)}' in project '${project.id}' is still used by ${users.mkString(", ")}.")
