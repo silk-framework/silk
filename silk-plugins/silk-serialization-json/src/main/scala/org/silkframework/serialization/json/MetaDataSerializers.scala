@@ -68,11 +68,11 @@ object MetaDataSerializers {
       )
     }
 
-    /** The label and the description are trimmed, and a blank description stands for none. */
+    /** The label is trimmed, and a blank description stands for none; any other description is kept as given, as its whitespace can be Markdown. */
     def toMetaData(md: MetaDataPlain): MetaData = {
       MetaData(
         label = md.label.map(_.trim),
-        description = md.description.map(_.trim).filter(_.nonEmpty),
+        description = md.description.filter(_.trim.nonEmpty),
         modified = md.modified,
         created = md.created,
         createdByUser = md.createdByUser.map(new Uri(_)),

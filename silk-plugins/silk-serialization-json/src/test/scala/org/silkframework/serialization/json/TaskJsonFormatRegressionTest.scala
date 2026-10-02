@@ -333,13 +333,14 @@ class TaskJsonFormatRegressionTest extends AnyFlatSpec with Matchers with Config
       "Valid attributes are: created, createdByUser, description, label, lastModifiedByUser, modified, tags."
   }
 
-  it should "trim the label and the description, and read a blank description as none" in {
+  it should "trim the label, keep the description as given and read a blank description as none" in {
     def read(label: String, description: String): MetaData = {
       val metaData = Json.obj("label" -> label, "description" -> description)
       JsonSerialization.fromJson[Task[TaskSpec]](datasetJson() ++ Json.obj(METADATA -> metaData)).metaData
     }
-    val padded = read(" Label ", " Description ")
-    (padded.label, padded.description) shouldBe ((Some("Label"), Some("Description")))
+    // An indented description is a Markdown code block
+    val padded = read(" Label ", "    code\n")
+    (padded.label, padded.description) shouldBe ((Some("Label"), Some("    code\n")))
     read("Label", " ").description shouldBe None
   }
 
