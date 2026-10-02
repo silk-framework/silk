@@ -893,7 +893,7 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     // Nor while a task or the project itself has the tag, as the tag would stay there as a URI without a label
     project.addTask[TransformSpec]("task", transform(name), MetaData(Some("Tagged task"), tags = Set(tag.uri)))
     project.updateMetaData(project.config.metaData.copy(tags = Set(tag.uri)))
-    val used = "Tag 'Cleanup' in project 'journalRevertTags' is still used by task 'Tagged task', the project itself."
+    val used = "Tag 'Cleanup' in project 'journalRevertTags' is still used by task 'Tagged task' (task), the project itself."
     revertConflict(journal, added) shouldBe Some(used)
     the[ChangeConflictException] thrownBy journal.revert(added.seq) should have message used
     labels shouldBe Seq("Cleanup")

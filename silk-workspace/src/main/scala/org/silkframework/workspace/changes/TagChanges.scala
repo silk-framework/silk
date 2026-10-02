@@ -53,7 +53,8 @@ case class RemoveTag(tag: Tag) extends Change {
 
   private def expectRemovable(project: Project)(implicit userContext: UserContext): Unit = {
     TagChanges.expect(project, tag.uri, Some(tag))
-    val users = project.allTasks.filter(_.metaData.tags.contains(tag.uri)).map(task => s"task '${task.labelOrId}'") ++
+    // With the id, as the label alone does not tell which task to change.
+    val users = project.allTasks.filter(_.metaData.tags.contains(tag.uri)).map(task => s"task ${task.labelAndId}") ++
       Seq("the project itself").filter(_ => project.config.metaData.tags.contains(tag.uri))
     if(users.nonEmpty) {
       throw ChangeConflictException(s"Tag '${TagChanges.name(tag)}' in project '${project.id}' is still used by ${users.mkString(", ")}.")
