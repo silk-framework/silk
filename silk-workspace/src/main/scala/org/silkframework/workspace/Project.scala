@@ -22,7 +22,7 @@ import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TaskReso
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.templating.{TemplateVariables, TemplateVariablesManager}
 import org.silkframework.runtime.validation.NotFoundException
-import org.silkframework.util.Identifier
+import org.silkframework.util.{Identifier, Uri}
 import org.silkframework.workspace.access.{AccessControlConfig, ProjectAccessControlManager, ProjectAccessDeniedException}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowValidator}
 import org.silkframework.workspace.activity.{ProjectActivity, ProjectActivityFactory}
@@ -484,6 +484,14 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, project
         }
         provider.removeExternalTaskLoadingError(id, taskName)
         Set.empty
+    }
+  }
+
+  /** Removes a tag unless a task or the project itself still has it, else throws [[TagInUseException]]. */
+  def removeTag(uri: Uri)(implicit userContext: UserContext): Unit = synchronized {
+    for(tag <- tagManager.allTags().find(_.uri == uri)) {
+      TagInUseException.check(this, tag, allTasks.filter(_.metaData.tags.contains(uri)))
+      tagManager.deleteTag(uri)
     }
   }
 

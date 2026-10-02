@@ -1,7 +1,8 @@
 package org.silkframework.workspace
 
-import org.silkframework.config.{Tag, TagReference}
+import org.silkframework.config.{Tag, TagReference, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.validation.RequestException
 import org.silkframework.util.{Identifier, Uri}
 import org.silkframework.workspace.changes.{ChangeJournal, RemoveTag, SetTag}
 
@@ -56,7 +57,7 @@ class TagManager(project: Identifier, provider: WorkspaceProvider, changeJournal
     TagReference(tag.uri)
   }
 
-  /** Removes a tag, also if tasks still have it. Recorded in the change journal, if there is such a tag. */
+  /** Removes a tag, also if tasks still have it; [[Project.removeTag]] refuses that. Recorded in the change journal, if there is such a tag. */
   def deleteTag(tagUri: String)(implicit userContext: UserContext): Unit = synchronized {
     loadIfRequired()
     provider.deleteTag(project, tagUri)
@@ -87,6 +88,28 @@ class TagManager(project: Identifier, provider: WorkspaceProvider, changeJournal
     }
   }
 
+}
+
+/** A tag is not removed, as tasks or the project itself still have it; answers 409. Names them, the tasks with their ids. */
+case class TagInUseException(project: Identifier, tag: Tag, users: Seq[String])
+  extends RequestException(s"Tag '${tag.label}' in project '$project' is still used by ${users.mkString(", ")}.", None) {
+
+  override def errorTitle: String = "Conflict"
+
+  override def httpErrorCode: Option[Int] = Some(409)
+}
+
+object TagInUseException {
+
+  /** Throws if one of `tasks`, the tasks that have the tag, or the project itself has the tag. */
+  def check(project: Project, tag: Tag, tasks: Seq[ProjectTask[_ <: TaskSpec]])(implicit userContext: UserContext): Unit = {
+    // With the id, as the label alone does not tell which task to change.
+    val users = tasks.map(task => s"task ${task.labelAndId}") ++
+      Seq("the project itself").filter(_ => project.config.metaData.tags.contains(tag.uri))
+    if(users.nonEmpty) {
+      throw TagInUseException(project.id, tag, users)
+    }
+  }
 }
 
 object TagManager {
