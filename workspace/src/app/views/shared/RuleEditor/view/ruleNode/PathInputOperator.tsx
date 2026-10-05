@@ -289,7 +289,8 @@ export const LanguageSwitcher = ({ onLanguageChange, initialLanguage }: Language
     let selectedLanguageName = languageFilter;
     if (languageFilter && typeof Intl.DisplayNames === "function") {
         try {
-            selectedLanguageName = new Intl.DisplayNames(i18n.language, { type: "language" }).of(languageFilter) ?? languageFilter;
+            selectedLanguageName =
+                new Intl.DisplayNames(i18n.language, { type: "language" }).of(languageFilter) ?? languageFilter;
         } catch {
             // User-entered language tags may be invalid for Intl.DisplayNames; keep their original text.
         }
@@ -353,6 +354,7 @@ export const LanguageSwitcher = ({ onLanguageChange, initialLanguage }: Language
                     return lang === NO_LANG ? (
                         currentLanguageFilter.current ? (
                             <MenuItem
+                                key={lang}
                                 roleStructure="none"
                                 role="option"
                                 id={id}
@@ -368,6 +370,7 @@ export const LanguageSwitcher = ({ onLanguageChange, initialLanguage }: Language
                         ) : null
                     ) : (
                         <MenuItem
+                            key={lang}
                             roleStructure="none"
                             role="option"
                             id={id}

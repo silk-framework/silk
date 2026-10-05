@@ -1,6 +1,6 @@
 import React from "react";
 import "@testing-library/jest-dom";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createInstance } from "i18next";
 import { I18nextProvider } from "react-i18next";
@@ -59,21 +59,21 @@ it("focuses each link state button once and activates Confirm with Enter", async
     const uncertainButton = screen.getByRole("button", { name: "Uncertain" });
     const declineButton = screen.getByRole("button", { name: "Decline" });
     expect(confirmButton).not.toBeNull();
-    await user.tab();
+    await act(async () => user.tab());
     expect(confirmButton).toHaveFocus();
     expect(confirmButton).toHaveAccessibleName("Confirm");
     expect(confirmButton).toHaveAttribute("aria-pressed", "false");
     expect(uncertainButton).toHaveAttribute("aria-pressed", "true");
     expect(declineButton).toHaveAttribute("aria-pressed", "false");
-    await user.keyboard("{Enter}");
+    await act(async () => user.keyboard("{Enter}"));
     await waitFor(() =>
         expect(handleReferenceLinkTypeUpdate).toHaveBeenCalledWith("unlabeled", "positive", "source", "target", 0),
     );
     await waitFor(() => expect(confirmButton).toHaveAttribute("aria-pressed", "true"));
     expect(uncertainButton).toHaveAttribute("aria-pressed", "false");
 
-    await user.tab();
+    await act(async () => user.tab());
     expect(uncertainButton).toHaveFocus();
-    await user.tab();
+    await act(async () => user.tab());
     expect(declineButton).toHaveFocus();
 });

@@ -118,6 +118,7 @@ export const AddReferenceLinkModal = ({ projectId, linkingTaskId, onClose }: Pro
                     itemRenderer={(item, { handleClick, handleFocus, id, modifiers }) => {
                         return (
                             <MenuItem
+                                key={item}
                                 data-test-id={`add-reference-${item}`}
                                 text={t(`ReferenceLinks.${LinkTypeMapping[item]}`, LinkTypeMapping[item])}
                                 id={id}

@@ -1,6 +1,6 @@
 import React from "react";
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createInstance } from "i18next";
 import { I18nextProvider } from "react-i18next";
@@ -33,9 +33,9 @@ it("announces the selected target property for its source and names its search i
     renderWithTranslations(<TargetList targets={[target]} onChange={jest.fn()} elementLabel="Source A" />);
 
     const selectButton = screen.getByRole("button", { name: "Target property for Source A, Target A selected" });
-    await user.tab();
+    await act(async () => user.tab());
     expect(selectButton).toHaveFocus();
-    fireEvent.click(selectButton);
+    await act(async () => fireEvent.click(selectButton));
     expect(screen.getByRole("combobox", { name: "Search target properties" })).toBeInTheDocument();
 });
 
@@ -43,10 +43,12 @@ it("announces the selected target URI when it has no label", () => {
     const target = { uri: "urn:target", type: "value" as const, confidence: 1, _selected: true };
     renderWithTranslations(<TargetList targets={[target]} onChange={jest.fn()} elementLabel="Source A" />);
 
-    expect(screen.getByRole("button", { name: "Target property for Source A, urn:target selected" })).toBeInTheDocument();
+    expect(
+        screen.getByRole("button", { name: "Target property for Source A, urn:target selected" }),
+    ).toBeInTheDocument();
 });
 
-it("names the source path selector when the suggestion table is reversed", () => {
+it("names the source path selector when the suggestion table is reversed", async () => {
     const targets = [
         { uri: "urn:source-a", label: "Source A", type: "value" as const, confidence: 1, _selected: true },
         { uri: "urn:source-b", label: "Source B", type: "value" as const, confidence: 0.5, _selected: false },
@@ -66,7 +68,7 @@ it("names the source path selector when the suggestion table is reversed", () =>
     );
 
     const selectButton = screen.getByRole("button", { name: "Source path for Target A, Source A selected" });
-    fireEvent.click(selectButton);
+    await act(async () => fireEvent.click(selectButton));
     expect(screen.getByRole("combobox", { name: "Search source paths" })).toBeInTheDocument();
 });
 
@@ -95,26 +97,27 @@ it("navigates and selects a mapping type with the keyboard", async () => {
     };
     renderWithTranslations(<ControlledTypesList />);
 
-    await user.tab();
+    await act(async () => user.tab());
     const combobox = screen.getByRole("combobox", { name: "Mapping type for Source A, value selected" });
     expect(combobox).toHaveFocus();
-    await user.keyboard("{Enter}{ArrowDown}");
+    await act(async () => user.keyboard("{Enter}"));
+    await act(async () => user.keyboard("{ArrowDown}"));
     expect(document.getElementById(combobox.getAttribute("aria-activedescendant")!)).toEqual(
         screen.getByRole("option", { name: "object" }),
     );
-    await user.keyboard("{Enter}");
+    await act(async () => user.keyboard("{Enter}"));
     expect(onChange).toHaveBeenCalledWith("object");
     expect(combobox).toHaveAccessibleName("Mapping type for Source A, object selected");
     expect(combobox).toHaveFocus();
 });
 
-it("names the prefix selector and its search input", () => {
+it("names the prefix selector and its search input", async () => {
     renderWithTranslations(
         <PrefixList prefixes={[{ key: "ex", uri: "urn:example" }]} selectedPrefix="urn:example" onChange={jest.fn()} />,
     );
 
     const selectButton = screen.getByRole("button", { name: "Use known prefix" });
     expect(selectButton).toBeInTheDocument();
-    fireEvent.click(selectButton);
+    await act(async () => fireEvent.click(selectButton));
     expect(screen.getByRole("combobox", { name: "Search prefixes" })).toBeInTheDocument();
 });

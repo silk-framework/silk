@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createInstance } from "i18next";
 import { I18nextProvider } from "react-i18next";
@@ -25,12 +25,15 @@ it("changes the reference link type with the keyboard", async () => {
     );
 
     const combobox = screen.getByRole("combobox", { name: "Type" });
-    combobox.focus();
-    await user.keyboard("{Enter}{ArrowDown}");
+    await act(async () => {
+        combobox.focus();
+        await user.keyboard("{Enter}");
+    });
+    await act(async () => user.keyboard("{ArrowDown}"));
     expect(document.getElementById(combobox.getAttribute("aria-activedescendant")!)).toEqual(
         screen.getByRole("option", { name: "Declined" }),
     );
-    await user.keyboard("{Enter}");
+    await act(async () => user.keyboard("{Enter}"));
     await waitFor(() =>
         expect(document.querySelector('[data-test-id="reference-links-types-select"]')).toHaveTextContent("Declined"),
     );
