@@ -20,6 +20,8 @@ interface Props {
     onClose: (needsRefresh: boolean) => any;
 }
 
+const LINK_TYPES: ReferenceLinkType[] = ["positive", "negative"];
+
 /** Modal to add a new reference link manually. */
 export const AddReferenceLinkModal = ({ projectId, linkingTaskId, onClose }: Props) => {
     const [t] = useTranslation();
@@ -110,15 +112,22 @@ export const AddReferenceLinkModal = ({ projectId, linkingTaskId, onClose }: Pro
                     text: t("ReferenceLinks.type"),
                 }}
             >
-                <Select
-                    items={["positive", "negative"].map((type) => ({ label: type }))}
-                    onItemSelect={() => {}}
-                    itemRenderer={(item, props) => {
+                <Select<ReferenceLinkType>
+                    items={LINK_TYPES}
+                    onItemSelect={setNewLinkType}
+                    itemRenderer={(item, { handleClick, handleFocus, id, modifiers }) => {
                         return (
                             <MenuItem
-                                data-test-id={`add-reference-${item.label}`}
-                                text={t(`ReferenceLinks.${LinkTypeMapping[item.label]}`, LinkTypeMapping[item.label])}
-                                onClick={() => setNewLinkType(item.label as ReferenceLinkType)}
+                                data-test-id={`add-reference-${item}`}
+                                text={t(`ReferenceLinks.${LinkTypeMapping[item]}`, LinkTypeMapping[item])}
+                                id={id}
+                                roleStructure="none"
+                                role="option"
+                                aria-selected={modifiers.active}
+                                tabIndex={-1}
+                                active={modifiers.active}
+                                onFocus={handleFocus}
+                                onClick={handleClick}
                             />
                         );
                     }}
