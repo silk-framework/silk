@@ -11,7 +11,7 @@ import { AppDispatch } from "store/configureStore";
 /** List of filter facets used to re-fine search results. */
 export default function FacetsList({ projectId }: { projectId?: string }) {
     const dispatch = useDispatch<AppDispatch>();
-    const [t] = useTranslation();
+    const [t, i18n] = useTranslation();
 
     const facets = useSelector(workspaceSel.facetsSelector);
     const appliedFacets = useSelector(workspaceSel.appliedFacetsSelector);
@@ -84,6 +84,7 @@ export default function FacetsList({ projectId }: { projectId?: string }) {
                         {visibleFacetsKeywords[facet.id] &&
                             visibleFacetsKeywords[facet.id].map((val) => {
                                 const key = `${val.id}-${facet.id}`;
+                                const translationKey = `widget.FacetsList.facet.${facet.id}.valueLabels.${val.id}`;
                                 return (
                                     <li key={key}>
                                         <FacetItem
@@ -94,10 +95,7 @@ export default function FacetsList({ projectId }: { projectId?: string }) {
                                             label={
                                                 <>
                                                     <span className={ClassNames.Typography.FORCELINEBREAK}>
-                                                        {t(
-                                                            `widget.FacetsList.facet.${facet.id}.valueLabels.${val.id}`,
-                                                            val.label,
-                                                        )}
+                                                        {i18n.exists(translationKey) ? t(translationKey) : val.label}
                                                     </span>
                                                     <span> ({val.count})</span>
                                                 </>

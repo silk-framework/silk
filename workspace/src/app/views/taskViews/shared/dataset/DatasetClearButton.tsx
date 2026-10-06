@@ -112,7 +112,7 @@ const DatasetClearButtonModal = ({ projectId, datasetId, onClose, datasetMetaDat
             alternativeDeleteButtonText={t("DatasetClearButton.modalButtonText")}
             errorMessage={error ? `Clearing dataset '${datasetLabel}' has failed. ${error.asString()}` : undefined}
         >
-            {t("DatasetClearButton.modalText", { datasetLabel })}
+            <>{t("DatasetClearButton.modalText", { datasetLabel })}</>
         </DeleteModal>
     );
 };

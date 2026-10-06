@@ -242,7 +242,6 @@
         "workspacePrefixesTitle": "Explore prefixes"
     },
     "ProjectImportModal": {
-        "cannotImport": "The project cannot be imported. Details: {{details}}",
         "importBtn": "Import project",
         "importSummary": "Imported project summary",
         "importUnderFreshIdBtn": "Import as new project",
@@ -254,8 +253,16 @@
         "restoreNotice": "Want to restore an existing project?",
         "restoreStarter": "Import project file",
         "title": "Project import",
-        "warningExistingProject": "A project with the same ID already exists! Choose to either overwrite the existing project or import the project under a freshly generated ID.",
-        "warningExistingProjectForbidden": "A project with the same ID already exists and you do **not** have the necessary **access rights** to replace it. Trying to replace the project will most likely result in an error!"
+        "warningExistingProject": "A project with this ID already exists. Confirm that you want to replace it, or choose another import destination.",
+        "warningExistingProjectForbidden": "A project with this ID already exists and you do not have permission to replace it. Choose another import destination.",
+        "destination": "Import destination",
+        "destinationOriginal": "Use original project ID: {{id}}",
+        "destinationGenerated": "Generate a new project ID",
+        "destinationCustom": "Use a custom project ID",
+        "validationFailed": "The project ID could not be validated. Edit the ID to try again.",
+        "importFailed": "Project could not be imported.",
+        "invalidArchive": "The project cannot be imported. Details: {{details}}",
+        "detailsFailed": "Failed to retrieve project import details. {{details}}"
     },
     "RecentlyViewedModal": {
         "globalSearch": "Search in workspace for '{{query}}'",
@@ -673,6 +680,78 @@
             "title": "Activities",
             "noActivities": "No activities found"
         },
+        "changes": {
+            "title": "Changes",
+            "loading": "Loading changes.",
+            "noChanges": "No changes have been recorded for this project.",
+            "reload": "Reload changes",
+            "originTooltip": "The client the change came from",
+            "emptyValue": "empty",
+            "emptyValueTooltip": "The value is empty",
+            "detailAdded": "added",
+            "detailRemoved": "removed",
+            "kind": {
+                "added": "Added",
+                "updated": "Updated",
+                "removed": "Removed",
+                "run": "Run"
+            },
+            "revertsTag": "Reverts #{{seq}}",
+            "revertedByTag": "Reverted by #{{seq}}",
+            "fulfilledTag": "Run as #{{seq}}",
+            "unreviewed": "Unreviewed",
+            "unreviewedTooltip": "An agent change that has not been reviewed yet",
+            "unreviewedInfo": "Unreviewed changes: {{count}}",
+            "unreviewedInfo_plural": "Unreviewed changes: {{count}}",
+            "column": {
+                "seq": "#",
+                "date": "Date",
+                "user": "User",
+                "change": "Change"
+            },
+            "revert": {
+                "action": "Revert this change",
+                "title": "Revert change",
+                "alreadyReverted": "Already reverted by change #{{seq}}",
+                "fulfilled": "Already run as change #{{seq}}",
+                "notRevertible": "This change cannot be reverted",
+                "conflict": "Cannot be reverted now: {{reason}}",
+                "confirmText": "Do you really want to revert the change '{{description}}'?",
+                "note": "The revert is recorded as a new change; reverting that one redoes this change."
+            },
+            "markReviewed": {
+                "button": "Mark all as reviewed",
+                "title": "Mark changes as reviewed",
+                "confirmText": "Mark all listed changes as reviewed?"
+            },
+            "revertAll": {
+                "button": "Revert unreviewed",
+                "title": "Revert unreviewed changes",
+                "confirmText": "The following unreviewed changes will be reverted, newest first:",
+                "blocked": "Nothing can be reverted: the newest of these changes cannot be reverted now, and no newer change is left whose revert could clear that. {{reason}}",
+                "skippedNote": "Skipped as not revertible: {{count}}.",
+                "skippedNote_plural": "Skipped as not revertible: {{count}}.",
+                "resultReverted": "Reverted changes: {{count}}.",
+                "resultReverted_plural": "Reverted changes: {{count}}.",
+                "resultSkipped": "Skipped: {{count}}.",
+                "resultSkipped_plural": "Skipped: {{count}}.",
+                "resultUnchanged": "Change #{{seq}} was not reverted: {{message}}",
+                "resultConflict": "Stopped at change #{{seq}}: {{message}}"
+            },
+            "revertBack": {
+                "action": "Revert this and all newer changes",
+                "title": "Revert changes back to before #{{seq}}",
+                "confirmText": "The following changes will be reverted, newest first:"
+            },
+            "errors": {
+                "fetchChanges": "Loading the change list failed",
+                "fetchConflicts": "Checking which changes can be reverted now failed",
+                "fetchProject": "Loading the project failed",
+                "revertChange": "The change could not be reverted",
+                "markReviewed": "Marking the changes as reviewed failed",
+                "revertAll": "Reverting the changes failed"
+            }
+        },
         "deprecatedPlugins": {
             "title": "Deprecated plugins usage",
             "noPluginsFound": "This page lists plugins that are used in existing projects but have been marked as deprecated. Good news: No deprecated plugins were found in your workspace!",
@@ -1018,6 +1097,12 @@
         "ActivityInfoWidget": {
             "title": "Activities",
             "view": "View project activities"
+        },
+        "ChangesWidget": {
+            "titleWithUnreviewed": "Changes ({{count}} unreviewed)",
+            "titleWithUnreviewed_plural": "Changes ({{count}} unreviewed)",
+            "title": "Changes",
+            "view": "View project changes"
         },
         "ConfigWidget": {
             "loading": "Loading configuration list.",

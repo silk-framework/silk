@@ -13,11 +13,10 @@ import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.users.DefaultUserManager
-import org.silkframework.runtime.validation.ConflictRequestException
 import org.silkframework.util.{ConfigTestTrait, Identifier}
 import org.silkframework.workspace.WorkspaceTest.RecordingWorkspaceProvider
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowOperator}
-import org.silkframework.workspace.exceptions.CircularDependencyException
+import org.silkframework.workspace.exceptions.{CircularDependencyException, TaskNotFoundException}
 
 class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait {
 
@@ -177,16 +176,18 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
 
     // Deleting the rule block would leave the transforms calling a task that no longer exists.
     // The rejection names every referencing task and the whole set that removeDependentTasks=true would delete.
-    val ruleBlockError = the[ConflictRequestException] thrownBy
+    val ruleBlockError = the[TaskReferencedException] thrownBy
       project.removeAnyTask("normalizeLabel", removeDependentTasks = false)
     ruleBlockError.getMessage should include("normalizeLabel")
     ruleBlockError.getMessage should include("tasks otherTransformUsingRuleBlock (in its rules or configuration), " +
       "transformUsingRuleBlock (in its rules or configuration)")
     ruleBlockError.getMessage should include("removeDependentTasks=true")
     ruleBlockError.getMessage should endWith("depend on it: otherTransformUsingRuleBlock, pipeline, transformUsingRuleBlock.")
+    // The refusal carries what it names, so a caller can word it its own way
+    ruleBlockError.referencingTasks.map(_.task.id.toString) shouldBe Seq("otherTransformUsingRuleBlock", "transformUsingRuleBlock")
 
     // Deleting the dataset the transform writes to is just as breaking as deleting its input.
-    val outputError = the[ConflictRequestException] thrownBy project.removeAnyTask("sink", removeDependentTasks = false)
+    val outputError = the[TaskReferencedException] thrownBy project.removeAnyTask("sink", removeDependentTasks = false)
     outputError.getMessage should include("as output")
 
     // All are deletable together with their dependents, as they always were.
@@ -205,7 +206,7 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
       inputs = Seq.empty, task = "lonelyTask", outputs = Seq.empty, errorOutputs = Seq.empty,
       position = (0, 0), nodeId = "lonelyTask", configInputs = Seq.empty, dependencyInputs = Seq.empty))))
 
-    val error = the[ConflictRequestException] thrownBy project.removeAnyTask("lonelyTask", removeDependentTasks = false)
+    val error = the[TaskReferencedException] thrownBy project.removeAnyTask("lonelyTask", removeDependentTasks = false)
     error.getMessage should include("canvas")
     error.getMessage should include("as a workflow node without connections")
   }
@@ -221,10 +222,27 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
     workspaceProvider.putTask(projectId, PlainTask[Workflow]("b", workflowUsing("a")), resources)
     val project = new Project(config, workspaceProvider, resources, userContext)
 
-    val error = the[ConflictRequestException] thrownBy project.removeAnyTask("root", removeDependentTasks = false)
+    val error = the[TaskReferencedException] thrownBy project.removeAnyTask("root", removeDependentTasks = false)
     error.getMessage should endWith("depend on it: a, b.")
     project.removeAnyTask("root", removeDependentTasks = true) shouldBe Set[Identifier]("root", "a", "b")
     project.allTasks shouldBe empty
+  }
+
+  it should "refuse to update a task that has been removed" in {
+    val project = retrieveOrCreateProject("RemovedTaskUpdateTest")
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
+    val task = project.addAnyTask("task", ProjectTestTask())
+    project.removeAnyTask("task", removeDependentTasks = false)
+
+    // The removed task must not be written back to the provider
+    a[TaskNotFoundException] should be thrownBy task.update(ProjectTestTask("updated"))
+    a[TaskNotFoundException] should be thrownBy task.updateMetaData(MetaData(Some("label")))
+    workspaceProvider.readAllTasks(project.id) shouldBe empty
+
+    // A task that is added under the same name afterwards is a task of its own
+    val readded = project.addAnyTask("task", ProjectTestTask())
+    readded.update(ProjectTestTask("updated"))
+    project.anyTask("task").data shouldBe ProjectTestTask("updated")
   }
 
   private def workflowUsing(tasks: String*): Workflow = {

@@ -84,7 +84,7 @@ const ActivityList = () => {
 
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
 
-    const [t] = useTranslation();
+    const [t, i18n] = useTranslation();
 
     const isEmpty = !isLoading && !data.length;
 
@@ -169,6 +169,7 @@ const ActivityList = () => {
     };
 
     const ActivityTags = ({ activity }: any) => {
+        const parentTypeKey = `widget.Filterbar.subsections.valueLabels.itemType.${activity.parentType}`;
         return (
             <TagList>
                 {activity.projectLabel && (
@@ -179,10 +180,9 @@ const ActivityList = () => {
                 {activity.parentType && (
                     <Tag>
                         <Highlighter
-                            label={t(
-                                "widget.Filterbar.subsections.valueLabels.itemType." + activity.parentType,
-                                activity.parentType[0].toUpperCase() + activity.parentType.substr(1),
-                            )}
+                            label={i18n.exists(parentTypeKey)
+                                ? t(parentTypeKey)
+                                : activity.parentType[0].toUpperCase() + activity.parentType.substr(1)}
                             searchValue={textQuery}
                         />
                     </Tag>

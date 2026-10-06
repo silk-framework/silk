@@ -1,4 +1,4 @@
-package org.silkframework.runtime.templating.operations
+package org.silkframework.workspace.variables
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
@@ -65,23 +65,32 @@ abstract class Modification {
     */
   def execute()(implicit user: UserContext): Unit = {
     val manager = variablesManager()
-    val currentVariables = manager.all
-    val newVariables = updateVariables(currentVariables, manager.parentVariables.withoutSensitiveVariables())
-    taskId match {
-      case Some(id) =>
-        updateExecutionVariablesAndTask(project.anyTask(id), currentVariables, newVariables)
-        log.info(s"$operation.")
-      case None =>
-        val updatedTaskIds = updateTasks(newVariables)
-        manager.put(newVariables)
-        // Execution-variable templates are resolved at save time, so re-resolve them against the updated variables.
-        val refreshedTaskIds = refreshTaskExecutionVariables()
-        val allUpdatedIds = (updatedTaskIds ++ refreshedTaskIds).toSeq.distinct
-        if(allUpdatedIds.nonEmpty) {
-          log.info(s"$operation. The following tasks have been updated: " + allUpdatedIds)
-        } else {
-          log.info(s"$operation. No tasks have been updated.")
+    // The project monitor is taken first, as the task updates below take it and callers that copy tasks put variables under it.
+    project.synchronized {
+      // Read and write are one step under the monitor that `put` takes, so concurrent modifications do not overwrite each other.
+      manager.synchronized {
+        val currentVariables = manager.all
+        val newVariables = updateVariables(currentVariables, manager.parentVariables.withoutSensitiveVariables())
+        taskId match {
+          case Some(id) =>
+            updateExecutionVariablesAndTask(project.anyTask(id), currentVariables, newVariables)
+            log.info(s"$operation.")
+          case None =>
+            // The scope check is the one expected failure of the put, so it precedes the task updates.
+            manager.validateScope(newVariables)
+            // The task updates follow the variables and are restored by reverting the variable change, so they are not journaled.
+            val updatedTaskIds = project.changeJournal.derived(updateTasks(newVariables))
+            manager.put(newVariables)
+            // Execution-variable templates are resolved at save time, so re-resolve them against the updated variables.
+            val refreshedTaskIds = project.changeJournal.derived(refreshTaskExecutionVariables())
+            val allUpdatedIds = (updatedTaskIds ++ refreshedTaskIds).toSeq.distinct
+            if(allUpdatedIds.nonEmpty) {
+              log.info(s"$operation. The following tasks have been updated: " + allUpdatedIds)
+            } else {
+              log.info(s"$operation. No tasks have been updated.")
+            }
         }
+      }
     }
   }
 
@@ -176,7 +185,7 @@ abstract class Modification {
         throw generateException(task, cause)
       }
       for (task <- project.allTasks) {
-        val referenced = referencedRemovedVariables(task, removedVariableNames)
+        val referenced = referencedRemovedVariables(task.data.referencedVariables, removedVariableNames)
         if (referenced.nonEmpty) {
           throw generateException(task, new ValidationException(
             s"The task references the variable(s) ${referenced.map(_.scopedName).mkString("'", "', '", "'")} from a template, e.g., in an 'Evaluate template' operator."))
@@ -185,10 +194,10 @@ abstract class Modification {
     }
   }
 
-  /** The removed project variables that the task data reports as referenced, e.g., from an 'Evaluate template' operator. */
-  protected def referencedRemovedVariables(task: ProjectTask[_ <: TaskSpec],
+  /** The removed project variables among those a task reports as referenced, e.g., from an 'Evaluate template' operator. */
+  protected def referencedRemovedVariables(referencedVariables: Seq[TemplateVariableName],
                                            removedVariableNames: Set[String]): Seq[TemplateVariableName] = {
-    task.data.referencedVariables.filter(v => v.scope == VariableScope.project && removedVariableNames.contains(v.name)).distinct
+    referencedVariables.filter(v => v.scope == VariableScope.project && removedVariableNames.contains(v.name)).distinct
   }
 
   /**
