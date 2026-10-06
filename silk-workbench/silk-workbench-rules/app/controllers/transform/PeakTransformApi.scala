@@ -290,21 +290,21 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
                                              exampleEntities: Iterator[Entity],
                                              limit: Int)
                                             (implicit prefixes: Prefixes) = {
-    val rule = ruleExecution.operator
+    val sourcePaths = previewSourcePaths(ruleExecution.operator).map(serializePath)
     val (tryCounter, errorCounter, errorMessage, sourceAndTargetResults) = collectTransformationExamples(ruleExecution, exampleEntities, limit)
     if (sourceAndTargetResults.nonEmpty && errorMessage.nonEmpty) {
-      Ok(Json.toJson(PeakResults(Some(rule.sourcePaths.map(serializePath)), Some(sourceAndTargetResults),
+      Ok(Json.toJson(PeakResults(Some(sourcePaths), Some(sourceAndTargetResults),
         status = PeakStatus("with exceptions", errorMessage))))
     } else if (sourceAndTargetResults.nonEmpty) {
-      Ok(Json.toJson(PeakResults(Some(rule.sourcePaths.map(serializePath)), Some(sourceAndTargetResults),
+      Ok(Json.toJson(PeakResults(Some(sourcePaths), Some(sourceAndTargetResults),
         status = PeakStatus("success", ""))))
     } else if (errorCounter > 0) {
-      Ok(Json.toJson(PeakResults(Some(rule.sourcePaths.map(serializePath)), Some(sourceAndTargetResults),
+      Ok(Json.toJson(PeakResults(Some(sourcePaths), Some(sourceAndTargetResults),
         status = PeakStatus("empty with exceptions",
           s"Transformation result has always been empty or exceptions occurred. $tryCounter processed and $errorCounter exceptions occurred. " +
             "First exception: " + errorMessage))))
     } else {
-      Ok(Json.toJson(PeakResults(Some(rule.sourcePaths.map(serializePath)), Some(sourceAndTargetResults),
+      Ok(Json.toJson(PeakResults(Some(sourcePaths), Some(sourceAndTargetResults),
         status = PeakStatus("empty", s"Transformation result has always been empty. Processed first $tryCounter entities."))))
     }
   }
@@ -342,9 +342,6 @@ object PeakTransformApi {
    * @param ruleExecution   The contextualized transformation rule to execute on the example entities.
    * @param exampleEntities Entities to try executing the transform rule on
    * @param limit           Limit of examples to return
-   *
-   * For a rule where `readsOnlyEntityUri` is true, each returned [[PeakResult]]'s source values
-   * are the entity's own URI rather than the entity's fetched values.
    */
   def collectTransformationExamples(ruleExecution: TransformRuleExecution, exampleEntities: Iterator[Entity], limit: Int): (Int, Int, String, Seq[PeakResult]) = {
     // Number of examples collected
@@ -356,7 +353,7 @@ object PeakTransformApi {
     // Record the first error message
     var errorMessage: String = ""
     val resultBuffer = ArrayBuffer[PeakResult]()
-    val substituteEntityUriAsSourceValue = ruleExecution.operator.readsOnlyEntityUri
+    val sourcePaths = previewSourcePaths(ruleExecution.operator)
     while (exampleEntities.hasNext && exampleCounter < limit) {
       tryCounter += 1
       val entity = exampleEntities.next()
@@ -369,8 +366,7 @@ object PeakTransformApi {
           }
         }
         if (transformResult.values.nonEmpty) {
-          val sourceValues = if (substituteEntityUriAsSourceValue) IndexedSeq(Seq(entity.uri.toString)) else entity.values
-          resultBuffer.append(PeakResult(sourceValues, transformResult.values))
+          resultBuffer.append(PeakResult(sourcePaths.map(path => entity.evaluate(path)), transformResult.values))
           exampleCounter += 1
         }
       } catch {
@@ -382,6 +378,11 @@ object PeakTransformApi {
       }
     }
     (tryCounter, errorCounter, errorMessage, resultBuffer.toSeq)
+  }
+
+  /** The preview's source columns: the rule's source paths plus the empty path, i.e. the entity URI, if the rule reads it. */
+  private def previewSourcePaths(rule: TransformRule): Seq[UntypedPath] = {
+    rule.sourcePaths.map(path => UntypedPath(path.operators)) ++ Option.when(rule.readsEntityUri)(UntypedPath.empty)
   }
 }
 

@@ -119,6 +119,14 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
     )
   }
 
+  it should "add the entity URI to the source values of a rule mixing the empty path with a real path" in {
+    val mixed = TransformInput(transformer = ConcatTransformer(" "),
+      inputs = IndexedSeq(PathInput("uri", UntypedPath.empty), PathInput("a", UntypedPath("a"))))
+    val rule = ComplexMapping(operator = mixed).execution(TaskContext.empty)
+    val (_, _, _, peakResult) = PeakTransformApi.collectTransformationExamples(rule, Iterator(entity(Seq("aValue"), Seq("bValue"))), limit = 1)
+    peakResult mustBe Seq(PeakResult(Seq(Seq("aValue"), Seq("uri")), Seq("uri aValue")))
+  }
+
   it should "return results from the API" in {
     val peakResult = peakChildRuleRequest(PatternUriMapping(pattern = "urn:{Name}/{Events/Birth}"))
     peakResult.status.id mustBe "success"
@@ -137,6 +145,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
     val peakResult = peakRequest(transformXmlTask, "object")
     peakResult.status.id mustBe "success"
     val results = peakResult.results.get
+    peakResult.sourcePaths mustBe Some(Seq(Seq()))
     results must have size 3
     for(result <- results) {
       result.transformedValues must have size 1
