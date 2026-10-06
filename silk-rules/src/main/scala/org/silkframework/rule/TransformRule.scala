@@ -90,7 +90,7 @@ sealed trait TransformRule extends Operator with HasMetaData {
   }
 
   /**
-   * True if this rule's operator tree contains the empty/self path and no other, non-empty
+   * True if this rule's operator tree contains the empty/self path, with or without any other
    * path. Does not account for other input kinds, such as an unbound rule-block port — a
    * formula combining the empty path with one still evaluates this to true.
    */

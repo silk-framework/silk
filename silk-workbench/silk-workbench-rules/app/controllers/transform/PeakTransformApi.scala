@@ -366,7 +366,7 @@ object PeakTransformApi {
           }
         }
         if (transformResult.values.nonEmpty) {
-          resultBuffer.append(PeakResult(sourcePaths.map(path => entity.evaluate(path)), transformResult.values))
+          resultBuffer.append(PeakResult(sourcePaths.map(path => entity.evaluate(entity.schema.indexOfPath(path))), transformResult.values))
           exampleCounter += 1
         }
       } catch {
