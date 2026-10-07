@@ -3,6 +3,7 @@ package org.silkframework.serialization.json.changes
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.serialization.json.JsonParseException
 import org.silkframework.serialization.json.changes.ChangeJsonFormats.ChangeEntryJsonFormat
 import org.silkframework.workspace.changes._
 import play.api.libs.json.{JsObject, JsValue, Json}
@@ -46,6 +47,9 @@ class ChangeJsonFormatsTest extends AnyFlatSpec with Matchers {
     // The header survives, only the change is replaced
     val unknownVersion = readWith(Json.obj("version" -> 2))
     unknownVersion shouldBe proposal.copy(change = placeholder)
+    // A later version may not write the summary; the type stands in. The seq must be a whole number in any version
+    ChangeEntryJsonFormat.read(json - "summary" ++ Json.obj("version" -> 2)).change shouldBe placeholder.copy(summary = "ProposedWorkflowRun")
+    a[JsonParseException] should be thrownBy readWith(Json.obj("version" -> 2, "seq" -> 1.5))
     readWith(Json.obj("type" -> "Bogus")).change shouldBe placeholder.copy(changeType = "Bogus")
     val brokenRule = Json.obj("taskId" -> "t", "parentId" -> "root", "rule" -> Json.obj("type" -> "bogus"))
     readWith(Json.obj("type" -> "AddMapping", "change" -> brokenRule)).change shouldBe placeholder.copy(changeType = "AddMapping")

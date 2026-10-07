@@ -33,10 +33,12 @@ object ChangeJsonFormats {
   implicit object ChangeEntryJsonFormat extends JsonFormat[ChangeEntry] {
 
     override def read(value: JsValue)(implicit readContext: ReadContext): ChangeEntry = {
-      val seq = numberValue(value, "seq").toInt
+      val version = integer(value, "version")
+      // Whatever the version: an entry needs its seq and timestamp to be placed, and its type to be listed
+      val seq = integer(value, "seq")
+      val timestamp = Instant.parse(stringValue(value, "timestamp"))
       val changeType = stringValue(value, "type")
-      val summary = stringValue(value, "summary")
-      val version = numberValue(value, "version").toInt
+      def summary: String = stringValueOption(value, "summary").getOrElse(changeType)
       val change = {
         if(version != VERSION) {
           unreadable(seq, changeType, summary, s"version $version is not supported, this is version $VERSION")
@@ -48,9 +50,17 @@ object ChangeJsonFormats {
           }
         }
       }
-      ChangeEntry(seq, Instant.parse(stringValue(value, "timestamp")), stringValueOption(value, "user"),
-        stringValueOption(value, "origin"), change, numberValueOption(value, "reverts").map(_.toInt),
-        numberValueOption(value, "fulfils").map(_.toInt))
+      ChangeEntry(seq, timestamp, stringValueOption(value, "user"), stringValueOption(value, "origin"), change,
+        integerOption(value, "reverts"), integerOption(value, "fulfils"))
+    }
+
+    private def integer(json: JsValue, name: String): Int = toInt(name, numberValue(json, name))
+
+    private def integerOption(json: JsValue, name: String): Option[Int] = numberValueOption(json, name).map(toInt(name, _))
+
+    private def toInt(name: String, number: BigDecimal): Int = {
+      if(!number.isValidInt) throw JsonParseException(s"'$name' must be an integer, but is $number.")
+      number.toInt
     }
 
     private def unreadable(seq: Int, changeType: String, summary: String, reason: String)
