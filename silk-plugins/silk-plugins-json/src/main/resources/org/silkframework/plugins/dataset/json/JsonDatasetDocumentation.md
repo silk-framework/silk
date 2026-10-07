@@ -9,7 +9,7 @@ For reading, the JSON dataset supports a number of special paths:
 - `#text` retrieves the text of the selected node.
 - The backslash can be used to navigate to the parent JSON node, e.g., `\parent/key`. The name of the backslash key (here `parent`) is ignored.
 
-Keys that are an empty string (`"": ...`) are ignored: they are not offered as paths and cannot be addressed by a path. Their values are still included in `#text` and matched by `*`.
+Keys that are an empty string (`"": ...`) are ignored silently, without a warning or error: they are not offered as paths and cannot be addressed by a path. Their values are still included in `#text` and matched by `*`.
 
 ## Writing
 
