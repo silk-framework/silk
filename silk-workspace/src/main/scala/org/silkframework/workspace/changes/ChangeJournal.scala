@@ -77,6 +77,19 @@ class ChangeJournal(project: Project) {
     }
   }
 
+  /** How many entries the store's cap has dropped that were never reviewed. */
+  def droppedUnreviewed: Int = {
+    val (entries, watermark) = snapshot
+    droppedUnreviewed(entries, watermark)
+  }
+
+  /** Seqs are contiguous and a store drops a prefix, so every seq below the oldest kept entry is gone, and every one
+    * of them above the watermark was unreviewed when it went. User writes and reverted entries among them count too:
+    * the number bounds what the user has not seen rather than counting agent writes. */
+  def droppedUnreviewed(entries: Seq[ChangeEntry], watermark: Int): Int = {
+    entries.headOption.fold(0)(oldest => math.max(0, oldest.seq - 1 - watermark))
+  }
+
   /** For each reverted entry, the seq of the entry that reverted it. */
   def revertedBy: Map[Int, Int] = revertedBy(all)
 

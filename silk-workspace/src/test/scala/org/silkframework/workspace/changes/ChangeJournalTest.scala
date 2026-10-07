@@ -633,6 +633,24 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     journal.reviewedUpTo shouldBe 4
   }
 
+  it should "count the unreviewed entries the store's cap has dropped" in {
+    ConfigTestTrait.withConfig("workspace.changes.inMemoryChangeJournal.maxEntries" -> Some("2")) {
+      val project = retrieveOrCreateProject("journalDropped")
+      val journal = project.changeJournal
+      val agent = agentContext()
+      project.addTask[TransformSpec]("first", transform(name))(implicitly, agent)
+      project.addTask[TransformSpec]("second", transform(age))(implicitly, agent)
+      journal.droppedUnreviewed shouldBe 0
+      // The cap drops the oldest entry, which nobody has reviewed
+      project.addTask[TransformSpec]("third", transform(city))(implicitly, agent)
+      journal.all.map(_.seq) shouldBe Seq(2, 3)
+      journal.droppedUnreviewed shouldBe 1
+      // Marking all as reviewed accepts the dropped entry too
+      journal.markReviewed(3)
+      journal.droppedUnreviewed shouldBe 0
+    }
+  }
+
   it should "revert entries newest-first, skipping what cannot be reverted and stopping at a conflict" in {
     val project = retrieveOrCreateProject("journalRevertAll")
     val journal = project.changeJournal

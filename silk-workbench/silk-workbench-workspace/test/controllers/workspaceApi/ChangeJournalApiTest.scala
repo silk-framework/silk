@@ -119,14 +119,14 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     val listed = checkResponse(client.url(changesUrl(watermarkProjectId)).get()).json.as[ChangeListJson]
     listed.reviewedUpTo mustBe 0
     listed.changes.map(_.unreviewed) mustBe Seq(Some(true), Some(true))
-    summary() mustBe ChangeSummaryJson(reviewedUpTo = 0, latestSeq = 2, unreviewed = 2)
+    summary() mustBe ChangeSummaryJson(reviewedUpTo = 0, latestSeq = 2, unreviewed = 2, droppedUnreviewed = 0)
 
     val reviewedUrl = baseUrl + controllers.projectApi.routes.ChangeJournalApi.markReviewed(watermarkProjectId).url
     checkResponse(client.url(reviewedUrl).put(Json.obj("upTo" -> 1))).json mustBe Json.obj("reviewedUpTo" -> 1)
     val reviewed = checkResponse(client.url(changesUrl(watermarkProjectId)).get()).json.as[ChangeListJson]
     reviewed.reviewedUpTo mustBe 1
     reviewed.changes.map(_.unreviewed) mustBe Seq(Some(true), None)
-    summary() mustBe ChangeSummaryJson(reviewedUpTo = 1, latestSeq = 2, unreviewed = 1)
+    summary() mustBe ChangeSummaryJson(reviewedUpTo = 1, latestSeq = 2, unreviewed = 1, droppedUnreviewed = 0)
     // A review beyond the latest change is refused
     checkResponseExactStatusCode(client.url(reviewedUrl).put(Json.obj("upTo" -> 99)), CONFLICT)
 
@@ -146,7 +146,7 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     val afterRevert = checkResponse(client.url(changesUrl(watermarkProjectId)).get()).json.as[ChangeListJson]
     afterRevert.reviewedUpTo mustBe 1
     afterRevert.changes.flatMap(_.unreviewed) mustBe empty
-    summary() mustBe ChangeSummaryJson(reviewedUpTo = 1, latestSeq = 4, unreviewed = 0)
+    summary() mustBe ChangeSummaryJson(reviewedUpTo = 1, latestSeq = 4, unreviewed = 0, droppedUnreviewed = 0)
   }
 
   it should "journal a variable written through the variables API and revert it" in {
