@@ -14,19 +14,21 @@ import org.silkframework.rule.input.{PathInput, TransformInput}
 import org.silkframework.rule.plugins.distance.characterbased.QGramsMetric
 import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.similarity.Comparison
-import org.silkframework.runtime.activity.TestUserContextTrait
+import org.silkframework.runtime.activity.{SimpleUserContext, TestUserContextTrait, UserContext, UserExecutionContext}
 import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
 import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterTemplateValue, ParameterValues, PluginContext, PluginRegistry}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, TemplateVariables, VariableScope}
+import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.serialization.json.JsonSerializers.{GenericTaskJsonFormat, TransformRuleJsonFormat}
 import org.silkframework.serialization.json.TemplateVariableJson
 import org.silkframework.serialization.json.WorkflowSerializers.{WorkflowDatasetJsonFormat, WorkflowOperatorJsonFormat}
+import org.silkframework.serialization.json.changes.ChangeJsonFormats.ChangeEntryJsonFormat
 import org.silkframework.util.{ConfigTestTrait, DPair, Identifier, Uri}
 import org.silkframework.workspace.activity.workflow.{TaskIdentifierParameter, Workflow, WorkflowDataset, WorkflowOperator}
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
-import org.silkframework.workspace.changes.TaskChanges
-import org.silkframework.workspace.variables.UpdateVariableModification
+import org.silkframework.workspace.changes._
+import org.silkframework.workspace.variables.{DeleteVariableModification, UpdateVariableModification}
 import org.silkframework.workspace.{Project, TestWorkspaceProviderTestTrait, WorkspaceFactory}
 import play.api.libs.json.{JsValue, Json}
 
@@ -42,8 +44,11 @@ import java.time.Instant
 abstract class ChangePayloadRoundTripTrait extends AnyFlatSpec with Matchers with ConfigTestTrait
     with TestWorkspaceProviderTestTrait with TestUserContextTrait {
 
-  // The Jinja engine is not on every test classpath
-  override def propertyMap: Map[String, Option[String]] = Map("config.variables.engine" -> Some(SimpleSubstitutionTemplateEngine.id))
+  override def propertyMap: Map[String, Option[String]] = Map(
+    // The Jinja engine is not on every test classpath
+    "config.variables.engine" -> Some(SimpleSubstitutionTemplateEngine.id),
+    // No store is configured by default, which records nothing
+    "workspace.changes.plugin" -> Some("inMemoryChangeJournal"))
 
   private val projectId = Identifier("roundTrip")
 
@@ -128,6 +133,70 @@ abstract class ChangePayloadRoundTripTrait extends AnyFlatSpec with Matchers wit
     } finally {
       UpdateVariableModification(project, separator).execute()
     }
+  }
+
+  it should "write every journal entry as one line and read it back equal, with the same revert conflicts" in {
+    recordEveryChangeType()
+    val journal = project.changeJournal
+    implicit val readContext: ReadContext = ReadContext.fromProject(project)
+    implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
+    val entries = journal.all
+    entries.map(_.change.changeType).toSet should contain allElementsOf Seq("AddTask", "ReplaceTask", "RemoveTask",
+      "AddMapping", "UpdateMapping", "ReorderMappings", "RemoveMapping", "AddWorkflowNode", "ConnectWorkflowNodes",
+      "DisconnectWorkflowNodes", "RemoveWorkflowNode", "SetVariable", "RemoveVariable", "ResourceCreated",
+      "ResourceOverwritten", "ResourceDeleted", "ProposedWorkflowRun", "DiscardedWorkflowRun")
+    val read = for(entry <- entries) yield {
+      val line = Json.stringify(ChangeEntryJsonFormat.write(entry))
+      line should not include "\n"
+      val readEntry = ChangeEntryJsonFormat.read(Json.parse(line))
+      withClue(s"Entry ${entry.seq} written as\n$line\n") { readEntry shouldBe entry }
+      readEntry
+    }
+    journal.revertConflicts(read) shouldBe journal.revertConflicts(entries)
+  }
+
+  /** Records one entry of every change type that the project's writes produce; the recorded changes without a payload
+    * of their own (e.g. a workflow run) are covered by [[ChangeJsonFormatsTest]]. A task uses none of the variables
+    * changed here, so that no task is re-resolved and every stored task payload reads back as it was written. */
+  private def recordEveryChangeType(): Unit = {
+    val transform = project.task[TransformSpec]("transform")
+    val label = Some("Transform")
+    val age = DirectMapping("age", UntypedPath("age"), MappingTarget(Uri("http://example.org/age")))
+    transform.applyChange(AddMapping("transform", "root", age, Some(1), label))
+    transform.applyChange(UpdateMapping("transform", age, age.copy(sourcePath = UntypedPath("years")), label))
+    val order = transform.data.rules.propertyRules.map(_.id)
+    transform.applyChange(ReorderMappings("transform", "root", order, order.reverse, label))
+    transform.applyChange(RemoveMapping.of(transform, "age"))
+
+    val workflow = project.task[Workflow]("workflow")
+    val extra = WorkflowDataset(inputs = Seq.empty, task = "output", outputs = Seq.empty, position = (90, 90), nodeId = "extraNode",
+      configInputs = Seq.empty, dependencyInputs = Seq.empty)
+    workflow.applyChange(AddWorkflowNode("workflow", extra, taskLabel = Some("Workflow")))
+    val edges = Seq("linkingNode" -> WorkflowEdge.Data(Seq(0)), "transformNode" -> WorkflowEdge.Dependency,
+      "setVariableNode" -> WorkflowEdge.Config, "linkingNode" -> WorkflowEdge.Error)
+    for((source, edge) <- edges) workflow.applyChange(ConnectWorkflowNodes("workflow", source, "extraNode", edge, Some("Workflow")))
+    for((source, edge) <- edges.reverse) workflow.applyChange(DisconnectWorkflowNodes("workflow", source, "extraNode", edge, Some("Workflow")))
+    workflow.applyChange(RemoveWorkflowNode("workflow", workflow.data.nodes.find(_.nodeId == "extraNode").get, taskLabel = Some("Workflow")))
+
+    project.addTask[CustomTask]("tmp", SetExecutionVariableOperator("tmpVar"), MetaData(Some("Temporary")))
+    project.removeAnyTask("tmp", removeDependentTasks = false)
+    val linking = project.task[LinkSpec]("linking")
+    linking.update(linking.data.copy(linkLimit = 7), Some(MetaData(Some("Linking"), Some("Now with a limit\nand a second line"))))
+
+    UpdateVariableModification(project, project.templateVariables.all.map("secret").copy(value = "hunter3")).execute()
+    DeleteVariableModification(project, "secret").execute()
+
+    // File writes are recorded on behalf of a request only
+    ChangeJournal.onBehalfOf(implicitly[UserContext]) {
+      val notes = project.resources.get("notes.txt")
+      notes.writeString("a")
+      notes.writeString("ab")
+      notes.delete()
+    }
+
+    val agent = SimpleUserContext(Some(DefaultUserManager.get("urn:agent")), UserExecutionContext(origin = Some("mcp:test")))
+    val proposal = project.changeJournal.proposeRunIfAbsent("workflow", ProposedWorkflowRun("workflow", Some("Workflow")))(agent)
+    project.changeJournal.revert(proposal.seq)
   }
 
   /** A project with one task of every kind, nested rules, every workflow edge kind and every variable kind. */
