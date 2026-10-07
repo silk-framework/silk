@@ -613,8 +613,8 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     project.addTask[TransformSpec]("byAgent", transform(age))(implicitly, agent)
     project.addTask[TransformSpec]("alsoAgent", transform(city))(implicitly, agent)
 
-    // The user's own writes do not queue for review
-    journal.reviewedUpTo shouldBe 0
+    // The user's own writes do not queue for review: the watermark follows them while nothing waits, then stops
+    journal.reviewedUpTo shouldBe 1
     journal.unreviewed.map(_.change.describe) shouldBe Seq("Added transform 'byAgent': Mapping rule 'age' added", "Added transform 'alsoAgent': Mapping rule 'city' added")
 
     // Reviews only add up; a review beyond the latest change is refused
@@ -625,11 +625,9 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     journal.reviewedUpTo shouldBe 2
     a[ChangeConflictException] should be thrownBy journal.markReviewed(99)
 
-    // A reverted entry needs no review anymore; reverting does not move the watermark
+    // A reverted entry needs no review anymore; once nothing waits, the watermark moves on with the revert's entry
     journal.revert(3)
     journal.unreviewed shouldBe empty
-    journal.reviewedUpTo shouldBe 2
-    journal.markReviewed(4)
     journal.reviewedUpTo shouldBe 4
   }
 
@@ -638,16 +636,20 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
       val project = retrieveOrCreateProject("journalDropped")
       val journal = project.changeJournal
       val agent = agentContext()
-      project.addTask[TransformSpec]("first", transform(name))(implicitly, agent)
-      project.addTask[TransformSpec]("second", transform(age))(implicitly, agent)
-      journal.droppedUnreviewed(journal.all, journal.reviewedUpTo) shouldBe 0
-      // The cap drops the oldest entry, which nobody has reviewed
-      project.addTask[TransformSpec]("third", transform(city))(implicitly, agent)
+      def dropped: Int = journal.droppedUnreviewed(journal.all, journal.reviewedUpTo)
+      // A user write before any agent write is passed by the watermark, so the cap drops it uncounted
+      project.addTask[TransformSpec]("byUser", transform(name))
+      project.addTask[TransformSpec]("first", transform(age))(implicitly, agent)
+      project.addTask[TransformSpec]("second", transform(city))(implicitly, agent)
       journal.all.map(_.seq) shouldBe Seq(2, 3)
-      journal.droppedUnreviewed(journal.all, journal.reviewedUpTo) shouldBe 1
+      dropped shouldBe 0
+      // While agent entries wait, the watermark stays: the cap drops the oldest of them, which nobody has reviewed
+      project.addTask[TransformSpec]("third", transform(name))(implicitly, agent)
+      journal.all.map(_.seq) shouldBe Seq(3, 4)
+      dropped shouldBe 1
       // Marking all as reviewed accepts the dropped entry too
-      journal.markReviewed(3)
-      journal.droppedUnreviewed(journal.all, journal.reviewedUpTo) shouldBe 0
+      journal.markReviewed(4)
+      dropped shouldBe 0
     }
   }
 

@@ -60,8 +60,7 @@ object ChangeJsonFormats {
       UnreadableChange(changeType, summary)
     }
 
-    /** The payload is written with full URIs, whatever prefixes the caller's context holds: a stored rule must keep
-      * its meaning, and stay readable, after the project's prefixes change. */
+    /** The payload is written with full URIs, whatever the caller's prefixes: a stored rule must survive a change of the project's prefixes. */
     override def write(entry: ChangeEntry)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       val change = ChangeJsonFormat.write(entry.change)(writeContext.copy(prefixes = Prefixes.empty))
       JsObject(

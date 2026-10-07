@@ -332,7 +332,8 @@ object ChangeJournalApi {
   }
 
   @Schema(description = "The changes of a project, newest first.")
-  case class ChangeListJson(@Schema(description = "The seq up to which the user has reviewed the changes; 0 if never set.")
+  case class ChangeListJson(@Schema(description = "The seq up to which no change waits for review: set by a review, moved along while " +
+                              "no agent change waits; 0 at the start.")
                             reviewedUpTo: Int,
                             changes: Seq[ChangeEntryJson])
 
@@ -341,14 +342,15 @@ object ChangeJournalApi {
   }
 
   @Schema(description = "The state of a project's change journal in numbers.")
-  case class ChangeSummaryJson(@Schema(description = "The seq up to which the user has reviewed the changes; 0 if never set.")
+  case class ChangeSummaryJson(@Schema(description = "The seq up to which no change waits for review: set by a review, moved along while " +
+                                 "no agent change waits; 0 at the start.")
                                reviewedUpTo: Int,
                                @Schema(description = "The seq of the latest recorded change; 0 if there is none.")
                                latestSeq: Int,
                                @Schema(description = "How many changes are unreviewed: made by an agent after the reviewed watermark and not reverted.")
                                unreviewed: Int,
-                               @Schema(description = "How many changes after the reviewed watermark the journal's cap has dropped: they are no longer " +
-                                 "listed and were never reviewed. Marking all as reviewed accepts them unseen.")
+                               @Schema(description = "How many changes the journal's cap dropped while agent changes were waiting for review, " +
+                                 "so they were never reviewed. Marking all as reviewed accepts them unseen.")
                                droppedUnreviewed: Int)
 
   object ChangeSummaryJson {
@@ -364,7 +366,7 @@ object ChangeJournalApi {
   }
 
   @Schema(description = "The reviewed watermark of a project.")
-  case class ReviewedJson(@Schema(description = "The seq up to which the user has reviewed the changes.")
+  case class ReviewedJson(@Schema(description = "The seq up to which no change waits for review.")
                           reviewedUpTo: Int)
 
   object ReviewedJson {

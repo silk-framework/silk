@@ -53,7 +53,8 @@ class ChangeJournal(project: Project) {
 
   def entry(seq: Int): Option[ChangeEntry] = all.find(_.seq == seq)
 
-  /** The seq up to which the user has reviewed the changes; 0 if never set. */
+  /** The seq up to which no change waits for review: set by a review, moved along by `record` while no agent change
+    * waits; 0 at the start. */
   def reviewedUpTo: Int = store.reviewedUpTo(project.id)
 
   /** The entries and the reviewed watermark, read in one step, so that both describe the same journal state. */
@@ -180,13 +181,19 @@ class ChangeJournal(project: Project) {
       // The seq is taken under the store's monitor.
       // While a project is reloaded it can have two journals, which share the store.
       currentStore.synchronized {
+        val entries = currentStore.entries(project.id)
         // Links the change to the latest open proposal it fulfils, e.g. a workflow run to the proposal to run that workflow.
-        val fulfils = openProposals(currentStore.entries(project.id)).findLast { case (_, proposal) => change.fulfils(proposal) }
+        val fulfils = openProposals(entries).findLast { case (_, proposal) => change.fulfils(proposal) }
         val entry = ChangeEntry(currentStore.latestSeq(project.id) + 1, Instant.now, requester.user.map(_.uri),
           userContext.executionContext.origin, change, reverting.get(), fulfils.map(_._1.seq))
         // A revert can record several entries, one per task it writes. Only the first is marked as the revert.
         reverting.remove()
         currentStore.append(project.id, entry)
+        // While nothing waits for review, the watermark follows the journal, so the dropped count only covers what fell
+        // under the cap while agent changes waited. Checked before the cap: a just dropped agent change still blocks it.
+        if(unreviewed(entries :+ entry, currentStore.reviewedUpTo(project.id)).isEmpty) {
+          currentStore.setReviewedUpTo(project.id, entry.seq)
+        }
         Some(entry)
       }
     }

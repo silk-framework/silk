@@ -142,11 +142,11 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     results.last.entry.get.links mustBe empty
     changes(watermarkProjectId).flatMap(_.links) mustBe empty
 
-    // The reverted entries need no review anymore, although the watermark did not move
+    // The reverted entries need no review anymore, and the watermark moved on with the reverts since nothing waits
     val afterRevert = checkResponse(client.url(changesUrl(watermarkProjectId)).get()).json.as[ChangeListJson]
-    afterRevert.reviewedUpTo mustBe 1
+    afterRevert.reviewedUpTo mustBe 4
     afterRevert.changes.flatMap(_.unreviewed) mustBe empty
-    summary() mustBe ChangeSummaryJson(reviewedUpTo = 1, latestSeq = 4, unreviewed = 0, droppedUnreviewed = 0)
+    summary() mustBe ChangeSummaryJson(reviewedUpTo = 4, latestSeq = 4, unreviewed = 0, droppedUnreviewed = 0)
   }
 
   it should "journal a variable written through the variables API and revert it" in {
