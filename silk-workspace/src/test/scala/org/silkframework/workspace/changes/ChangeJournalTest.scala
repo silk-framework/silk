@@ -640,14 +640,14 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
       val agent = agentContext()
       project.addTask[TransformSpec]("first", transform(name))(implicitly, agent)
       project.addTask[TransformSpec]("second", transform(age))(implicitly, agent)
-      journal.droppedUnreviewed shouldBe 0
+      journal.droppedUnreviewed(journal.all, journal.reviewedUpTo) shouldBe 0
       // The cap drops the oldest entry, which nobody has reviewed
       project.addTask[TransformSpec]("third", transform(city))(implicitly, agent)
       journal.all.map(_.seq) shouldBe Seq(2, 3)
-      journal.droppedUnreviewed shouldBe 1
+      journal.droppedUnreviewed(journal.all, journal.reviewedUpTo) shouldBe 1
       // Marking all as reviewed accepts the dropped entry too
       journal.markReviewed(3)
-      journal.droppedUnreviewed shouldBe 0
+      journal.droppedUnreviewed(journal.all, journal.reviewedUpTo) shouldBe 0
     }
   }
 

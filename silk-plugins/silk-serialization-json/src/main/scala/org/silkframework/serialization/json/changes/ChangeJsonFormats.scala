@@ -1,6 +1,6 @@
 package org.silkframework.serialization.json.changes
 
-import org.silkframework.config.{PlainTask, TaskSpec}
+import org.silkframework.config.{PlainTask, Prefixes, TaskSpec}
 import org.silkframework.rule.TransformRule
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.templating.TemplateVariable
@@ -60,7 +60,10 @@ object ChangeJsonFormats {
       UnreadableChange(changeType, summary)
     }
 
+    /** The payload is written with full URIs, whatever prefixes the caller's context holds: a stored rule must keep
+      * its meaning, and stay readable, after the project's prefixes change. */
     override def write(entry: ChangeEntry)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      val change = ChangeJsonFormat.write(entry.change)(writeContext.copy(prefixes = Prefixes.empty))
       JsObject(
         Seq("version" -> JsNumber(VERSION), "seq" -> JsNumber(entry.seq), "timestamp" -> JsString(entry.timestamp.toString),
           "type" -> JsString(entry.change.changeType)) ++
@@ -68,7 +71,7 @@ object ChangeJsonFormats {
         field("origin", entry.origin) ++
         field("reverts", entry.reverts) ++
         field("fulfils", entry.fulfils) ++
-        Seq("summary" -> JsString(entry.change.summary), "change" -> ChangeJsonFormat.write(entry.change))
+        Seq("summary" -> JsString(entry.change.summary), "change" -> change)
       )
     }
   }

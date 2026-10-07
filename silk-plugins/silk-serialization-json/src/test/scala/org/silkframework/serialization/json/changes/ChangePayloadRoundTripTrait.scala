@@ -10,12 +10,12 @@ import org.silkframework.entity.{Restriction, ValueType}
 import org.silkframework.plugins.dataset.csv.CsvDataset
 import org.silkframework.plugins.operations.SetExecutionVariableOperator
 import org.silkframework.rule._
-import org.silkframework.rule.input.{PathInput, TransformInput}
+import org.silkframework.rule.input.{PathInput, RuleBlockBinding, RuleBlockInput, TransformInput}
 import org.silkframework.rule.plugins.distance.characterbased.QGramsMetric
 import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.runtime.activity.{SimpleUserContext, TestUserContextTrait, UserContext, UserExecutionContext}
-import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
+import org.silkframework.runtime.plugin.types.{IdentifierOptionParameter, PasswordParameter}
 import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterTemplateValue, ParameterValues, PluginContext, PluginRegistry}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.templating.{SimpleSubstitutionTemplateEngine, TemplateVariable, TemplateVariables, VariableScope}
@@ -29,7 +29,7 @@ import org.silkframework.workspace.activity.workflow.{TaskIdentifierParameter, W
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import org.silkframework.workspace.changes._
 import org.silkframework.workspace.variables.{DeleteVariableModification, UpdateVariableModification}
-import org.silkframework.workspace.{Project, TestWorkspaceProviderTestTrait, WorkspaceFactory}
+import org.silkframework.workspace.{Project, RuleBlockTestData, TestWorkspaceProviderTestTrait, WorkspaceFactory}
 import play.api.libs.json.{JsValue, Json}
 
 import java.time.Instant
@@ -65,7 +65,7 @@ abstract class ChangePayloadRoundTripTrait extends AnyFlatSpec with Matchers wit
     implicit val readContext: ReadContext = ReadContext.fromProject(project)
     implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
     val tasks = project.allTasks
-    tasks.map(_.id.toString).toSet shouldBe Set("persons", "output", "transform", "linking", "setVariable", "workflow")
+    tasks.map(_.id.toString).toSet shouldBe Set("persons", "output", "normalizeName", "transform", "linking", "setVariable", "described", "workflow")
     for(task <- tasks) {
       val json = GenericTaskJsonFormat.write(task)
       val read = GenericTaskJsonFormat.read(json)
@@ -148,6 +148,8 @@ abstract class ChangePayloadRoundTripTrait extends AnyFlatSpec with Matchers wit
     val read = for(entry <- entries) yield {
       val line = Json.stringify(ChangeEntryJsonFormat.write(entry))
       line should not include "\n"
+      // Full URIs although the writer's context has the 'ex' prefix: the project's prefixes may change later
+      line should not include "\"ex:"
       val readEntry = ChangeEntryJsonFormat.read(Json.parse(line))
       withClue(s"Entry ${entry.seq} written as\n$line\n") { readEntry shouldBe entry }
       readEntry
@@ -199,8 +201,11 @@ abstract class ChangePayloadRoundTripTrait extends AnyFlatSpec with Matchers wit
     project.changeJournal.revert(proposal.seq)
   }
 
-  /** A project with one task of every kind, nested rules, every workflow edge kind and every variable kind. */
+  /** A project with one task of every kind, nested rules, a rule block and a rule that uses it, a direct mapping with
+    * its own input id, a password parameter, every workflow edge kind and every variable kind. */
   private def createProject(): Unit = {
+    PluginRegistry.unregisterPlugin(classOf[DescribedTask])
+    PluginRegistry.registerPlugin(classOf[DescribedTask])
     val prefixes = Prefixes.default ++ Map("ex" -> "http://example.org/")
     val project = retrieveOrCreateProject(projectId, prefixes)
     project.templateVariables.put(TemplateVariables(Seq(
@@ -216,6 +221,8 @@ abstract class ChangePayloadRoundTripTrait extends AnyFlatSpec with Matchers wit
       "separator" -> ParameterTemplateValue("{{project.separator}}"))))
     project.addTask[GenericDatasetSpec]("persons", DatasetSpec(persons), MetaData(Some("Persons"), Some("The persons")))
     project.addTask[GenericDatasetSpec]("output", DatasetSpec(CsvDataset(file = project.resources.get("output.csv"))), MetaData(Some("Output")))
+    project.addTask[RuleBlockSpec]("normalizeName", RuleBlockTestData.sampleRuleBlockSpec(), MetaData(Some("Normalize name")))
+    project.addTask[CustomTask]("described", DescribedTask(name = "b", password = PasswordParameter.encrypt("secret")), MetaData(Some("Described")))
 
     val now = Instant.now()
     val user = Some(Uri("urn:elds-backend-users:alice"))
@@ -231,6 +238,13 @@ abstract class ChangePayloadRoundTripTrait extends AnyFlatSpec with Matchers wit
           typeRules = Seq(TypeMapping("type", Uri("http://example.org/Person"), ruleMetaData("Type"))),
           propertyRules = Seq(
             DirectMapping("name", UntypedPath("name"), MappingTarget(Uri("http://example.org/name")), ruleMetaData("Name")),
+            // A path operator with its own id, as the rule editor and older projects produce it
+            DirectMapping("country", UntypedPath("country"), MappingTarget(Uri("http://example.org/country")), ruleMetaData("Country"), inputId = Some("countryPath")),
+            ComplexMapping("normalizedName",
+              operator = RuleBlockInput("normalize", ruleBlockId = "normalizeName",
+                bindings = IndexedSeq(RuleBlockBinding("namePort", PathInput("nameForBlock", UntypedPath.parse("name"))))),
+              target = Some(MappingTarget(Uri("http://example.org/normalizedName"))),
+              metaData = ruleMetaData("Normalized name")),
             ComplexMapping("lowerName",
               operator = TransformInput("lower", LowerCaseTransformer(), IndexedSeq(PathInput("namePath", UntypedPath.parse("name")))),
               target = Some(MappingTarget(Uri("http://example.org/lowerName"))),
