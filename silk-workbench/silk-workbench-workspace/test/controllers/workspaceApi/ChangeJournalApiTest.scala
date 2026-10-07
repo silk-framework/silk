@@ -18,6 +18,9 @@ import org.silkframework.workspace.{ProjectConfig, WorkspaceFactory}
 import play.api.libs.json.Json
 import play.api.routing.Router
 
+import java.nio.file.Files
+import java.util.Comparator
+
 class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with IntegrationTestTrait with ApiClient with Matchers {
 
   behavior of "Change journal API"
@@ -25,7 +28,25 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
   override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   // No store is configured by default, which records nothing.
-  override def propertyMap: Map[String, Option[String]] = Map("workspace.changes.plugin" -> Some("inMemoryChangeJournal"))
+  private val journalDirectory = Files.createTempDirectory("changeJournal")
+
+  // The file store on a temporary directory; without a configured store nothing is recorded
+  override def propertyMap: Map[String, Option[String]] = Map(
+    "workspace.changes.plugin" -> Some("fileChangeJournal"),
+    "workspace.changes.fileChangeJournal.dir" -> Some(journalDirectory.toString))
+
+  override protected def afterAll(): Unit = {
+    try {
+      super.afterAll()
+    } finally {
+      val files = Files.walk(journalDirectory)
+      try {
+        files.sorted(Comparator.reverseOrder()).forEach(path => Files.delete(path))
+      } finally {
+        files.close()
+      }
+    }
+  }
 
   override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
 

@@ -6,7 +6,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource._
 import org.silkframework.runtime.validation.RequestException
 import org.silkframework.rule.RuleBlockSpec
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.{ConfigTestTrait, Identifier, Uri}
 import org.silkframework.workspace.{ProjectConfig, RuleBlockTestData, WorkspaceFactory}
 import org.silkframework.workspace.resources.ResourceRepository
 import play.api.libs.ws.WSResponse
@@ -16,14 +16,36 @@ import play.shaded.ahc.org.asynchttpclient.{AsyncCompletionHandler, AsyncHttpCli
 
 import java.io._
 import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.util.Comparator
 import java.util.zip.ZipInputStream
 import scala.concurrent.{Future, Promise}
 import scala.io.{Codec, Source}
 import scala.util.Try
 
-class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
+class ProjectMarshalingApiTest extends PlaySpec with ConfigTestTrait with IntegrationTestTrait {
 
   protected override def routes = Some(classOf[workspace.Routes])
+
+  private val journalDirectory = Files.createTempDirectory("changeJournal")
+
+  // The file store carries the journal in exports; without a configured store nothing is recorded
+  override def propertyMap: Map[String, Option[String]] = Map(
+    "workspace.changes.plugin" -> Some("fileChangeJournal"),
+    "workspace.changes.fileChangeJournal.dir" -> Some(journalDirectory.toString))
+
+  override protected def afterAll(): Unit = {
+    try {
+      super.afterAll()
+    } finally {
+      val files = Files.walk(journalDirectory)
+      try {
+        files.sorted(Comparator.reverseOrder()).forEach(path => Files.delete(path))
+      } finally {
+        files.close()
+      }
+    }
+  }
 
   /** Accessing resources with these names will fail during the tests. */
   @volatile
@@ -99,6 +121,24 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
 
     val importedTask = WorkspaceFactory().workspace.project(projectId).task[RuleBlockSpec](ruleBlockTaskId)
     importedTask.data mustBe ruleBlockSpec
+  }
+
+  "export and import the change journal of a project" in {
+    implicit val userContext: UserContext = UserContext.Empty
+    val projectId = "journalProject"
+    val project = WorkspaceFactory().workspace.createProject(ProjectConfig(projectId))
+    project.addTask[RuleBlockSpec]("normalizeName", RuleBlockTestData.sampleRuleBlockSpec())
+    val entries = project.changeJournal.all
+    entries.map(_.change.changeType) mustBe Seq("AddTask")
+
+    val exportedProject = exportProject(projectId)
+    getZipEntry(exportedProject, s"$projectId/changes/000000001.jsonl") must include("\"type\":\"AddTask\"")
+    clearWorkspace()
+    importProject(projectId, exportedProject)
+
+    val journal = WorkspaceFactory().workspace.project(projectId).changeJournal
+    journal.all mustBe entries
+    journal.reviewedUpTo mustBe 1
   }
 
   "export project without user data when exportUserData is false" in {

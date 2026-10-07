@@ -24,6 +24,7 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.TaskCleanupPlugin.CleanUpAfterTaskDeletionFunction
 import org.silkframework.workspace.access.{AccessControlConfig, ProjectAccessDeniedException}
 import org.silkframework.workspace.activity.{GlobalWorkspaceActivity, GlobalWorkspaceActivityFactory}
+import org.silkframework.workspace.changes.ChangeJournalStore
 import org.silkframework.workspace.exceptions.{IdentifierAlreadyExistsException, ProjectNotFoundException}
 import org.silkframework.workspace.metrics.WorkspaceMetrics
 import org.silkframework.workspace.resources.ResourceRepository
@@ -196,6 +197,8 @@ class Workspace(val provider: WorkspaceProvider,
     if(cachedProjects.exists(_.id == creationConfig.id)) {
       throw IdentifierAlreadyExistsException("Project " + creationConfig.id + " does already exist!")
     }
+    // A journal left behind by an older data directory, e.g. a restored backup, is not the history of the new project
+    ChangeJournalStore().remove(creationConfig.id)
     provider.putProject(creationConfig)(readWriteUser)
     val newProject = new Project(creationConfig, provider, repository.get(creationConfig.id), readWriteUser)
     for(groups <- initialGroups) {
