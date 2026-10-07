@@ -29,21 +29,26 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.{CyclicBarrier, TimeUnit}
 import scala.util.{Failure, Try}
 
-class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait with ConfigTestTrait {
+/**
+  * The behaviour of the change journal, run against the store a subclass configures. A store with a cap of its own
+  * tests the cap in the subclass.
+  */
+abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait with ConfigTestTrait {
 
   behavior of "ChangeJournal"
+
+  /** The store under test: its plugin id under `workspace.changes.plugin` and its parameters. */
+  protected def storeProperties: Map[String, Option[String]]
 
   override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   // The jinja engine is not on this module's classpath; the simple engine substitutes '{{scope.name}}' references.
   override def propertyMap: Map[String, Option[String]] = Map(
-    "config.variables.engine" -> Some(SimpleSubstitutionTemplateEngine.id),
-    // No store is configured by default, which records nothing.
-    "workspace.changes.plugin" -> Some("inMemoryChangeJournal")
-  )
+    "config.variables.engine" -> Some(SimpleSubstitutionTemplateEngine.id)
+  ) ++ storeProperties
 
   /** An agent's user context; without an origin the write does not queue for review. */
-  private def agentContext(origin: Option[String] = Some("mcp:test")): UserContext = {
+  protected def agentContext(origin: Option[String] = Some("mcp:test")): UserContext = {
     SimpleUserContext(Some(DefaultUserManager.get("urn:agent")), UserExecutionContext(origin = origin))
   }
 
@@ -51,11 +56,11 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     DirectMapping(id = name, sourcePath = UntypedPath(name), mappingTarget = MappingTarget("http://example.org/" + name))
   }
 
-  private val name = rule("name")
-  private val age = rule("age")
-  private val city = rule("city")
+  protected val name: DirectMapping = rule("name")
+  protected val age: DirectMapping = rule("age")
+  protected val city: DirectMapping = rule("city")
 
-  private def transform(rules: TransformRule*): TransformSpec = {
+  protected def transform(rules: TransformRule*): TransformSpec = {
     TransformSpec(mappingRule = RootMappingRule(MappingRules(propertyRules = rules)))
   }
 
@@ -629,28 +634,6 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     journal.revert(3)
     journal.unreviewed shouldBe empty
     journal.reviewedUpTo shouldBe 4
-  }
-
-  it should "count the unreviewed entries the store's cap has dropped" in {
-    ConfigTestTrait.withConfig("workspace.changes.inMemoryChangeJournal.maxEntries" -> Some("2")) {
-      val project = retrieveOrCreateProject("journalDropped")
-      val journal = project.changeJournal
-      val agent = agentContext()
-      def dropped: Int = journal.droppedUnreviewed(journal.all, journal.reviewedUpTo)
-      // A user write before any agent write is passed by the watermark, so the cap drops it uncounted
-      project.addTask[TransformSpec]("byUser", transform(name))
-      project.addTask[TransformSpec]("first", transform(age))(implicitly, agent)
-      project.addTask[TransformSpec]("second", transform(city))(implicitly, agent)
-      journal.all.map(_.seq) shouldBe Seq(2, 3)
-      dropped shouldBe 0
-      // While agent entries wait, the watermark stays: the cap drops the oldest of them, which nobody has reviewed
-      project.addTask[TransformSpec]("third", transform(name))(implicitly, agent)
-      journal.all.map(_.seq) shouldBe Seq(3, 4)
-      dropped shouldBe 1
-      // Marking all as reviewed accepts the dropped entry too
-      journal.markReviewed(4)
-      dropped shouldBe 0
-    }
   }
 
   it should "revert entries newest-first, skipping what cannot be reverted and stopping at a conflict" in {
