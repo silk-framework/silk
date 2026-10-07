@@ -60,7 +60,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, project
   private var cachedConfig: ProjectConfig = initialConfig
 
   /** The journal of changes to this project, which records every write and can revert it. */
-  val changeJournal: ChangeJournal = new ChangeJournal(this)
+  val changeJournal: ChangeJournal = new ChangeJournal(this, loadingUser)
 
   /** The file resources of this project. Every write is recorded in the change journal. */
   val resources: ResourceManager = new JournalingResourceManager(projectResources, changeJournal)

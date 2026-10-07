@@ -1,6 +1,7 @@
 package org.silkframework.workspace.changes
 
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.Project
@@ -31,8 +32,13 @@ case class ChangeEntry(seq: Int, timestamp: Instant, user: Option[String], origi
 /**
   * The change journal of a project: every write to the project is recorded as a [[Change]], which can be reverted.
   * The entries are held in the configured [[ChangeJournalStore]].
+  *
+  * @param loadingUser The user context the store reads the entries with, as the project loads its tasks.
   */
-class ChangeJournal(project: Project) {
+class ChangeJournal(project: Project, loadingUser: UserContext) {
+
+  // Built once, as task loading does: the store reads a project's entries once and keeps them.
+  private implicit lazy val readContext: PluginContext = PluginContext.fromProject(project)(loadingUser)
 
   // The seq of the entry that this thread is reverting, if any. The method `record` below copies it into the
   // `reverts` field of the first journal entry created during the revert. That links the new entry to the reverted one.
@@ -60,7 +66,7 @@ class ChangeJournal(project: Project) {
   /** The entries and the reviewed watermark, read in one step, so that both describe the same journal state. */
   def snapshot: (Seq[ChangeEntry], Int) = {
     val currentStore = store
-    currentStore.synchronized((currentStore.entries(project.id), currentStore.reviewedUpTo(project.id)))
+    currentStore.monitor(project.id).synchronized((currentStore.entries(project.id), currentStore.reviewedUpTo(project.id)))
   }
 
   /** The entries awaiting review, oldest first: the agent entries after the reviewed watermark.
@@ -119,7 +125,7 @@ class ChangeJournal(project: Project) {
     */
   def markReviewed(upTo: Int): Unit = {
     val currentStore = store
-    currentStore.synchronized {
+    currentStore.monitor(project.id).synchronized {
       val latestSeq = currentStore.latestSeq(project.id)
       if(upTo > latestSeq) {
         throw ChangeConflictException(s"Cannot mark the changes of project '${project.id}' as reviewed up to $upTo: " +
@@ -147,7 +153,7 @@ class ChangeJournal(project: Project) {
     */
   def proposeRunIfAbsent(taskId: Identifier, proposal: Proposal)(implicit userContext: UserContext): ChangeEntry = {
     val currentStore = store
-    currentStore.synchronized {
+    currentStore.monitor(project.id).synchronized {
       openRunProposal(taskId).getOrElse(propose(proposal))
     }
   }
@@ -178,9 +184,9 @@ class ChangeJournal(project: Project) {
       // A write may run as the provider user, e.g. the loading user when access control is on.
       // The entry names the user of the request being served, if there is one.
       val requester = ChangeJournal.requestUserContext.getOrElse(userContext)
-      // The seq is taken under the store's monitor.
-      // While a project is reloaded it can have two journals, which share the store.
-      currentStore.synchronized {
+      // The seq is taken under the store's monitor for the project.
+      // While a project is reloaded it can have two journals, which share the store and its monitor.
+      currentStore.monitor(project.id).synchronized {
         val entries = currentStore.entries(project.id)
         // Links the change to the latest open proposal it fulfils, e.g. a workflow run to the proposal to run that workflow.
         val fulfils = openProposals(entries).findLast { case (_, proposal) => change.fulfils(proposal) }
@@ -188,7 +194,7 @@ class ChangeJournal(project: Project) {
           userContext.executionContext.origin, change, reverting.get(), fulfils.map(_._1.seq))
         // A revert can record several entries, one per task it writes. Only the first is marked as the revert.
         reverting.remove()
-        currentStore.append(project.id, entry)
+        currentStore.append(project.id, entry)(PluginContext.fromProject(project)(userContext))
         // While nothing waits for review, the watermark follows the journal, so the dropped count only covers what fell
         // under the cap while agent changes waited. Checked before the cap: a just dropped agent change still blocks it.
         if(unreviewed(entries :+ entry, currentStore.reviewedUpTo(project.id)).isEmpty) {
@@ -293,19 +299,23 @@ class ChangeJournal(project: Project) {
     * so that an entry is reverted once even if it is reverted concurrently. The inverse is applied without the lock,
     * as it writes to the project.
     */
-  private def claimRevert(seq: Int): Change = ChangeJournal.synchronized {
-    val entries = all
-    val entry = entries.find(_.seq == seq).getOrElse(throw new NotFoundException(s"No change $seq in project '${project.id}'."))
-    if(ChangeJournal.revertsInProgress.contains((project.id, seq)) || revertedBy(entries).contains(seq)) {
-      throw ChangeConflictException(s"Change $seq in project '${project.id}' has been reverted already.")
+  private def claimRevert(seq: Int): Change = {
+    // Loads the journal, if the store has not yet, before the companion's monitor is taken, which all projects share
+    all
+    ChangeJournal.synchronized {
+      val entries = all
+      val entry = entries.find(_.seq == seq).getOrElse(throw new NotFoundException(s"No change $seq in project '${project.id}'."))
+      if(ChangeJournal.revertsInProgress.contains((project.id, seq)) || revertedBy(entries).contains(seq)) {
+        throw ChangeConflictException(s"Change $seq in project '${project.id}' has been reverted already.")
+      }
+      for(fulfilledBy <- fulfilledBy(entries).get(seq)) {
+        throw ChangeConflictException(s"Change $seq in project '${project.id}' has been fulfilled by change $fulfilledBy.")
+      }
+      val inverse = entry.change.inverse.getOrElse(
+        throw ChangeConflictException(s"Change $seq (${entry.change.describe}) in project '${project.id}' cannot be reverted."))
+      ChangeJournal.revertsInProgress += ((project.id, seq))
+      inverse
     }
-    for(fulfilledBy <- fulfilledBy(entries).get(seq)) {
-      throw ChangeConflictException(s"Change $seq in project '${project.id}' has been fulfilled by change $fulfilledBy.")
-    }
-    val inverse = entry.change.inverse.getOrElse(
-      throw ChangeConflictException(s"Change $seq (${entry.change.describe}) in project '${project.id}' cannot be reverted."))
-    ChangeJournal.revertsInProgress += ((project.id, seq))
-    inverse
   }
 
   private def revertOf(seq: Int): Option[ChangeEntry] = all.find(_.reverts.contains(seq))
