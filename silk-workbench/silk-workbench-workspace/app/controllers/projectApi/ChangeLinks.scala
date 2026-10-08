@@ -5,7 +5,7 @@ import org.silkframework.config.TaskSpec
 import org.silkframework.rule.{TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.changes.{ChangeHeader, RemoveVariable, SetVariable}
+import org.silkframework.workspace.changes.{ChangeHeader, RemoveVariable, ResourceDeleted, SetVariable}
 import org.silkframework.workspace.{Project, ProjectTask}
 
 /**
@@ -17,17 +17,18 @@ import org.silkframework.workspace.{Project, ProjectTask}
   */
 object ChangeLinks {
 
-  private val variableChanges = Set(classOf[SetVariable].getSimpleName, classOf[RemoveVariable].getSimpleName)
+  // The changes that link the project page alone: a deleted file has no download, whatever stands at its path now
+  private val projectPageOnly = Set(classOf[SetVariable], classOf[RemoveVariable], classOf[ResourceDeleted]).map(_.getSimpleName)
 
   def of(project: Project, header: ChangeHeader)(implicit userContext: UserContext): Seq[ItemLink] = {
     val projectPage = ItemType.itemDetailsPage(ItemType.project, project.id, project.id)
     (header.taskId, header.path) match {
       case (Some(taskId), _) =>
         project.anyTaskOption(taskId).map(taskLink(project, _, header.ruleId)).toSeq ++ reportLink(project, taskId, header.executionId)
+      case _ if projectPageOnly.contains(header.changeType) =>
+        Seq(projectPage)
       case (None, Some(path)) =>
         projectPage +: downloadLink(project, path).toSeq
-      case (None, None) if variableChanges.contains(header.changeType) =>
-        Seq(projectPage)
       case _ =>
         Seq.empty
     }

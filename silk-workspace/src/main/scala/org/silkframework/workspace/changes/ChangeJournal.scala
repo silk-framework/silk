@@ -135,13 +135,13 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
   }
 
   /** The proposals that are neither discarded nor fulfilled, oldest first, with their headers. The proposals themselves
-    * are read from the store; there is rarely more than one open. */
-  private def openProposals(headers: Seq[ChangeHeader]): Seq[(ChangeHeader, Proposal)] = {
+    * are read from the store the headers came from; there is rarely more than one open. */
+  private def openProposals(currentStore: ChangeJournalStore, headers: Seq[ChangeHeader]): Seq[(ChangeHeader, Proposal)] = {
     val reverted = revertedBy(headers)
     val fulfilled = fulfilledBy(headers)
     for {
       header <- headers if header.proposal && !reverted.contains(header.seq) && !fulfilled.contains(header.seq)
-      proposal <- entry(header.seq).map(_.change).collect { case proposal: Proposal => proposal }
+      proposal <- currentStore.entry(project.id, header.seq).map(_.change).collect { case proposal: Proposal => proposal }
     } yield header -> proposal
   }
 
@@ -171,7 +171,8 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
 
   /** The open proposal to run the task, if any: proposed, not discarded, and not fulfilled by a run of the task. */
   def openRunProposal(taskId: Identifier): Option[ChangeHeader] = {
-    openProposals(all).collect { case (header, ProposedWorkflowRun(`taskId`, _)) => header }.lastOption
+    val currentStore = store
+    openProposals(currentStore, currentStore.headers(project.id)).collect { case (header, ProposedWorkflowRun(`taskId`, _)) => header }.lastOption
   }
 
   /**
@@ -216,7 +217,7 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
       currentStore.monitor(project.id).synchronized {
         val headers = currentStore.headers(project.id)
         // Links the change to the latest open proposal it fulfils, e.g. a workflow run to the proposal to run that workflow.
-        val fulfils = openProposals(headers).findLast { case (_, proposal) => change.fulfils(proposal) }
+        val fulfils = openProposals(currentStore, headers).findLast { case (_, proposal) => change.fulfils(proposal) }
         val entry = ChangeEntry(currentStore.latestSeq(project.id) + 1, Instant.now, requester.user.map(_.uri),
           userContext.executionContext.origin, change, reverting.get(), fulfils.map(_._1.seq))
         // A revert can record several entries, one per task it writes. Only the first is marked as the revert.
@@ -246,11 +247,13 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
   }
 
   private def revertConflict(header: ChangeHeader, context: ConflictContext)(implicit userContext: UserContext): Option[String] = {
-    entry(header.seq).flatMap { entry =>
-      entry.change.inverse match {
+    if(!header.revertible) {
+      None
+    } else {
+      entry(header.seq).flatMap(_.change.inverse) match {
         case Some(inverse) => inverse.conflict(context)
-        case None if header.revertible => Some(s"Change ${header.seq} in project '${project.id}' cannot be reverted: its stored change cannot be read.")
-        case None => None
+        // The header says there is an inverse, but the stored line cannot be read, as a whole or as a change
+        case None => Some(s"Change ${header.seq} in project '${project.id}' cannot be reverted: its stored change cannot be read.")
       }
     }
   }

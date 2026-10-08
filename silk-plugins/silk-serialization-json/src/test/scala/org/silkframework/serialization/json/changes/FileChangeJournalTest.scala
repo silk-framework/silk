@@ -1,6 +1,7 @@
 package org.silkframework.serialization.json.changes
 
 import org.silkframework.rule.TransformSpec
+import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.FileUtils._
 import org.silkframework.workspace.changes.{AddMapping, ChangeConflictException, ChangeJournalTestTrait, RevertOutcome, UnreadableChange}
 
@@ -43,5 +44,13 @@ class FileChangeJournalTest extends ChangeJournalTestTrait {
     journal.revertConflicts(Seq(added)) shouldBe Map(added.seq -> refusal)
     (the[ChangeConflictException] thrownBy journal.revert(added.seq)).getMessage should include("cannot be reverted")
     journal.revertAll(Seq(added.seq)).head shouldBe a[RevertOutcome.Conflict]
+
+    // A line whose change is not even JSON still has its header; the conflict is the same, and there is no entry to revert
+    val damaged = Files.readAllLines(segment, UTF_8).asScala.toSeq
+    Files.write(segment, (damaged.head.replace(",\"change\":{", ",\"change\":{{") +: damaged.tail).mkString("", "\n", "\n").getBytes(UTF_8))
+    val taskAdded = journal.all.head
+    journal.entry(taskAdded.seq) shouldBe None
+    journal.revertConflicts(Seq(taskAdded)) shouldBe Map(taskAdded.seq -> refusal.replace(s"Change ${added.seq}", s"Change ${taskAdded.seq}"))
+    a[NotFoundException] should be thrownBy journal.revert(taskAdded.seq)
   }
 }

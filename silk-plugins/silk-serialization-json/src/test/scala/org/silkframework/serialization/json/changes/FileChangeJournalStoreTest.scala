@@ -82,28 +82,29 @@ class FileChangeJournalStoreTest extends AnyFlatSpec with Matchers with BeforeAn
     an[IllegalArgumentException] should be thrownBy second.append("p", entry(6))
   }
 
-  it should "roll segments at 1 MB and drop the oldest whole segments beyond the cap, never the newest" in {
-    val cap = 3 * segmentSize
-    val s = store("cap", maxSizeInMB = 3)
+  it should "roll segments at a tenth of the cap, at most 1 MB, and drop the oldest whole segments beyond the cap, never the newest" in {
+    val cap = 1024 * 1024
+    val s = store("cap", maxSizeInMB = 1)
     s.append("p", entry(1, size = 30 * 1024))
     val lineSize = Files.size(projectDir("cap", "p").resolve("000000001.jsonl"))
-    // A new segment starts once the newest has reached the segment size, checked before the append
-    val perSegment = math.ceil(segmentSize / lineSize.toDouble).toInt
+    // A new segment starts once the newest has reached a tenth of this small cap, checked before the append
+    val perSegment = math.ceil(cap / 10.0 / lineSize).toInt
     append(s, "p", 2 to 2 * perSegment, size = 30 * 1024)
     files("cap", "p") shouldBe Seq("000000001.jsonl", f"${perSegment + 1}%09d.jsonl")
     // An entry is read from the segment that holds it
     s.entry("p", perSegment + 1) shouldBe Some(entry(perSegment + 1, size = 30 * 1024))
 
-    // Beyond the cap, whole segments go, oldest first, until the rest fits; the kept seqs stay contiguous
-    append(s, "p", 2 * perSegment + 1 to 6 * perSegment, size = 30 * 1024)
+    // Beyond the cap, whole segments go, oldest first, until the rest fits: the kept seqs stay contiguous and the
+    // journal keeps at least nine tenths of the cap
+    append(s, "p", 2 * perSegment + 1 to 60, size = 30 * 1024)
     val kept = seqs(s, "p")
-    kept shouldBe (kept.head to 6 * perSegment)
+    kept shouldBe (kept.head to 60)
     (kept.head - 1) % perSegment shouldBe 0
     val size = files("cap", "p").map(file => Files.size(projectDir("cap", "p").resolve(file))).sum
     size should be <= cap.toLong
     size + perSegment * lineSize should be > cap.toLong
-    s.latestSeq("p") shouldBe 6 * perSegment
-    seqs(store("cap", maxSizeInMB = 3), "p") shouldBe kept
+    s.latestSeq("p") shouldBe 60
+    seqs(store("cap", maxSizeInMB = 1), "p") shouldBe kept
     s.entry("p", 1) shouldBe None
 
     // The newest segment stays even when it alone exceeds the cap; the one before it goes
@@ -112,6 +113,12 @@ class FileChangeJournalStoreTest extends AnyFlatSpec with Matchers with BeforeAn
     s.append("q", entry(2))
     seqs(s, "q") shouldBe Seq(2)
     files("cap", "q") shouldBe Seq("000000002.jsonl")
+
+    // With a large cap a segment rolls at 1 MB, so reading one entry reads about that much
+    val large = store("largeCap", maxSizeInMB = 20)
+    val perLargeSegment = math.ceil(segmentSize / lineSize.toDouble).toInt
+    append(large, "p", 1 to 2 * perLargeSegment, size = 30 * 1024)
+    files("largeCap", "p") shouldBe Seq("000000001.jsonl", f"${perLargeSegment + 1}%09d.jsonl")
   }
 
   it should "cut an unfinished last line, skip lines it cannot read and keep the seqs after them" in {

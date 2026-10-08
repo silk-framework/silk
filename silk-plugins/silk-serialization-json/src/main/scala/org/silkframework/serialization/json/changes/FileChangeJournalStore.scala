@@ -22,8 +22,9 @@ import scala.util.control.NonFatal
   * Keeps the journal of each project in a folder of its own under `dir`: append-only segment files named after the
   * seq of their first entry, one entry per line, and `reviewed.json` with the watermark. The headers of a project's
   * entries are read on first access and kept in memory; the change of an entry is read from its segment when the
-  * entry is asked for. A segment holds about 1 MB, and the oldest segments are deleted while the project exceeds the
-  * cap. See the file store section of the feature spec for the layout and the damage handling.
+  * entry is asked for. A segment holds about 1 MB, or a tenth of a smaller cap, and the oldest segments are deleted
+  * while the project exceeds the cap. See the file store section of the feature spec for the layout and the damage
+  * handling.
   */
 @Plugin(
   id = "fileChangeJournal",
@@ -49,6 +50,10 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
 
   private val capBytes: Long = maxSizeInMB.toLong * 1024 * 1024
 
+  // A new segment starts once the newest one has reached this size: 1 MB, so that reading one entry reads about that
+  // much, or a tenth of a smaller cap, so that the cap never drops more than a tenth of the journal at once
+  private val segmentBytes: Long = math.min(SEGMENT_BYTES, capBytes / 10)
+
   // One lock object per project, never removed: a lock replaced while a thread holds it would guard nothing
   private val monitors = new ConcurrentHashMap[Identifier, AnyRef]()
 
@@ -63,7 +68,7 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
     require(entry.seq == journal.latestSeq + 1, s"Entry ${entry.seq} does not follow the latest entry ${journal.latestSeq} of project '$project'.")
     val line = (Json.stringify(ChangeEntryJsonFormat.write(entry)(WriteContext.fromPluginContext[JsValue]())) + "\n").getBytes(UTF_8)
     val (segment, olderSegments) = journal.segments.lastOption match {
-      case Some(newest) if newest.size < SEGMENT_BYTES => (newest, journal.segments.init)
+      case Some(newest) if newest.size < segmentBytes => (newest, journal.segments.init)
       case _ =>
         Files.createDirectories(projectDir(project))
         (Segment(entry.seq, segmentFile(project, entry.seq), Vector.empty, 0, 0L), journal.segments)
@@ -94,7 +99,7 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
       segment <- loaded(project).segments.find(segment => segment.firstSeq <= seq && seq <= segment.lastSeq)
       if Files.exists(segment.file)
       line <- completeLines(Files.readAllBytes(segment.file)).lift(seq - segment.firstSeq)
-      entry <- readEntry(seq, line)(ReadContext.fromPluginContext()(context))
+      entry <- readEntry(project, seq, line)(ReadContext.fromPluginContext()(context))
     } yield entry
   }
 
@@ -236,9 +241,15 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
     }
   }
 
-  /** None for a line that is a gap, see [[readHeader]], which the load has warned about; a change that cannot be read is the placeholder. */
-  private def readEntry(seq: Int, line: String)(implicit readContext: ReadContext): Option[ChangeEntry] = {
-    Try(ChangeEntryJsonFormat.read(Json.parse(line))).toOption.filter(_.seq == seq)
+  /** None for a line that cannot be read as a whole or whose seq is not its position; a change that cannot be read is the placeholder. */
+  private def readEntry(project: Identifier, seq: Int, line: String)(implicit readContext: ReadContext): Option[ChangeEntry] = {
+    try {
+      Some(ChangeEntryJsonFormat.read(Json.parse(line))).filter(_.seq == seq)
+    } catch {
+      case NonFatal(ex) =>
+        log.warning(s"Change $seq of project '$project' cannot be read: ${Change.reason(ex)}")
+        None
+    }
   }
 
   // While over the cap and more than one segment exists, the oldest segment goes; the newest always stays
@@ -291,7 +302,7 @@ object FileChangeJournalStore {
 
   private val log = Logger.getLogger(classOf[FileChangeJournalStore].getName)
 
-  // A new segment starts once the newest one has reached this size, so reading one entry reads about this much
+  // The size at which a segment rolls, unless a tenth of the cap is smaller
   private val SEGMENT_BYTES: Long = 1024 * 1024
 
   private val SEGMENT_SUFFIX = ".jsonl"

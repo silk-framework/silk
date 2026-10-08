@@ -216,5 +216,16 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     // Deleted outside of a request, so not recorded: the entry stays, its download is gone
     file.delete()
     changes(filesProjectId).head.links mustBe Seq(projectPage)
+
+    // A recorded deletion links the project page only, even once a file stands at its path again
+    ChangeJournal.onBehalfOf(implicitly[UserContext]) {
+      file.writeString("again")
+      file.delete()
+      file.writeString("replaced")
+    }
+    val Seq(replaced, deleted) = changes(filesProjectId).take(2)
+    deleted.`type` mustBe "ResourceDeleted"
+    deleted.links mustBe Seq(projectPage)
+    replaced.links mustBe Seq(projectPage, ItemLink("download", "Download file", downloadUrl, openInNewTab = true))
   }
 }
