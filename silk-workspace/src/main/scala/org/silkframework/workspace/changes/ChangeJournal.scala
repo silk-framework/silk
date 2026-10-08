@@ -63,6 +63,10 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
     * waits and the cap has dropped nothing unreviewed; 0 at the start. */
   def reviewedUpTo: Int = store.reviewedUpTo(project.id)
 
+  /** The seq of the newest entry, 0 without entries. From the store, so it counts a newest entry whose stored line
+    * cannot be read and which `all` leaves out; `markReviewed` accepts seqs up to this one. */
+  def latestSeq: Int = store.latestSeq(project.id)
+
   /** The entries and the reviewed watermark, read in one step, so that both describe the same journal state. */
   def snapshot: (Seq[ChangeEntry], Int) = {
     val currentStore = store

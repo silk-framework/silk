@@ -143,7 +143,7 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
               projectId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val journal = WorkspaceFactory().workspace.project(projectId).changeJournal
     val (entries, reviewedUpTo) = journal.snapshot
-    Ok(Json.toJson(ChangeSummaryJson(reviewedUpTo, entries.lastOption.map(_.seq).getOrElse(0),
+    Ok(Json.toJson(ChangeSummaryJson(reviewedUpTo, journal.latestSeq,
       journal.unreviewed(entries, reviewedUpTo).size, journal.droppedUnreviewed(entries, reviewedUpTo))))
   }
 

@@ -18,6 +18,7 @@ import org.silkframework.workspace.{ProjectConfig, WorkspaceFactory}
 import play.api.libs.json.Json
 import play.api.routing.Router
 
+import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import java.util.Comparator
 
@@ -168,6 +169,21 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     afterRevert.reviewedUpTo mustBe 4
     afterRevert.changes.flatMap(_.unreviewed) mustBe empty
     summary() mustBe ChangeSummaryJson(reviewedUpTo = 4, latestSeq = 4, unreviewed = 0, droppedUnreviewed = 0)
+  }
+
+  it should "report the latest seq from the store, which counts a stored line that cannot be read" in {
+    val damagedProjectId = "changeJournalDamagedProject"
+    WorkspaceFactory().workspace.createProject(ProjectConfig(damagedProjectId))
+    // The store loads the project's files on first access: one unreadable line is seq 1 without an entry
+    val segment = journalDirectory.resolve(damagedProjectId).resolve("000000001.jsonl")
+    Files.createDirectories(segment.getParent)
+    Files.write(segment, "{not json\n".getBytes(UTF_8))
+    val summaryUrl = baseUrl + controllers.projectApi.routes.ChangeJournalApi.summary(damagedProjectId).url
+    checkResponse(client.url(summaryUrl).get()).json.as[ChangeSummaryJson] mustBe
+      ChangeSummaryJson(reviewedUpTo = 0, latestSeq = 1, unreviewed = 0, droppedUnreviewed = 0)
+    // A review up to the reported seq is accepted
+    val reviewedUrl = baseUrl + controllers.projectApi.routes.ChangeJournalApi.markReviewed(damagedProjectId).url
+    checkResponse(client.url(reviewedUrl).put(Json.obj("upTo" -> 1))).json mustBe Json.obj("reviewedUpTo" -> 1)
   }
 
   it should "journal a variable written through the variables API and revert it" in {
