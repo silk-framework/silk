@@ -72,7 +72,10 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
     }
     Files.write(segment.file, line, StandardOpenOption.CREATE, StandardOpenOption.APPEND)
     val appended = segment.copy(entries = segment.entries :+ entry, lines = segment.lines + 1, size = segment.size + line.length)
-    journals.put(project, capped(Journal(olderSegments :+ appended, journal.entries :+ entry)))
+    val written = Journal(olderSegments :+ appended, journal.entries :+ entry)
+    // Cached before the cap runs: a cap that fails leaves the entry in place, and the next append tries the cap again
+    journals.put(project, written)
+    journals.put(project, capped(written))
   }
 
   override def entries(project: Identifier)(implicit context: PluginContext): Seq[ChangeEntry] = monitor(project).synchronized {
