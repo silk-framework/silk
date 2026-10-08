@@ -87,7 +87,7 @@ object ChangeJsonFormats {
 
   /**
     * The payloads by change type. Reading throws for a type or a field it does not know; the envelope turns that
-    * into the placeholder.
+    * into the placeholder. Writing a type without a format stores an empty payload, which reads back as the placeholder.
     */
   object ChangeJsonFormat {
 
@@ -148,7 +148,9 @@ object ChangeJsonFormats {
       case DiscardedWorkflowRun(taskId, taskLabel) => JsObject(Seq("taskId" -> JsString(taskId)) ++ field("taskLabel", taskLabel))
       // It never had a readable payload, so it reads back as the placeholder it is
       case UnreadableChange(_, _) => Json.obj()
-      case other => throw new IllegalArgumentException(s"${other.changeType} is not a recorded change and has no JSON format.")
+      case other =>
+        logger.warning(s"Change type ${other.changeType} has no JSON format and is stored without its content: ${other.summary}")
+        Json.obj()
     }
 
     private def id(json: JsValue, name: String): Identifier = Identifier(stringValue(json, name))
