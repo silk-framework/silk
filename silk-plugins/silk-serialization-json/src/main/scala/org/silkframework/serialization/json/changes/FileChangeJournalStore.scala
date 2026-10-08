@@ -71,9 +71,17 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
         Files.createDirectories(projectDir(project))
         (Segment(entry.seq, segmentFile(project, entry.seq), Vector.empty, 0, 0L), journal.segments)
     }
-    Files.write(segment.file, line, StandardOpenOption.CREATE, StandardOpenOption.APPEND)
+    try {
+      Files.write(segment.file, line, StandardOpenOption.CREATE, StandardOpenOption.APPEND)
+    } catch {
+      case NonFatal(ex) =>
+        // The line may have landed although the write threw, e.g. on an interrupted thread: the next access reloads
+        // the files, which keeps a landed line at its position and cuts a fragment, so no seq is written twice
+        journals.remove(project)
+        throw ex
+    }
     val appended = segment.copy(entries = segment.entries :+ entry, lines = segment.lines + 1, size = segment.size + line.length)
-    val written = Journal(olderSegments :+ appended, journal.entries :+ entry)
+    val written = Journal(olderSegments :+ appended)
     // Cached before the cap runs: a cap that fails leaves the entry in place, and the next append tries the cap again
     journals.put(project, written)
     journals.put(project, capped(written))
@@ -159,7 +167,7 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
   private def load(project: Identifier)(implicit context: PluginContext): Journal = {
     val directory = projectDir(project)
     if(!Files.isDirectory(directory)) {
-      Journal(Vector.empty, Vector.empty)
+      Journal(Vector.empty)
     } else {
       implicit val readContext: ReadContext = ReadContext.fromPluginContext()(context)
       for(file <- listFiles(directory); name = file.getFileName.toString; if !isSegmentName(name) && name != REVIEWED_FILE) {
@@ -172,8 +180,8 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
       }
       val files = segmentFiles(project)
       val segments = for((file, index) <- files.zipWithIndex) yield readSegment(project, file, newest = index == files.size - 1)
-      val journal = Journal.of(segments.filter(_.lines > 0).toVector)
-      log.fine(s"Loaded ${journal.entries.size} changes of project '$project' from ${files.size} segment files.")
+      val journal = Journal(segments.filter(_.lines > 0).toVector)
+      log.fine(s"Loaded ${journal.segments.map(_.entries.size).sum} changes of project '$project' from ${files.size} segment files.")
       journal
     }
   }
@@ -221,7 +229,7 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
       Files.deleteIfExists(segments.head.file)
       segments = segments.tail
     }
-    if(segments.size == journal.segments.size) journal else Journal.of(segments)
+    if(segments.size == journal.segments.size) journal else Journal(segments)
   }
 
   private def projectDir(project: Identifier): Path = root.resolve(project.toString)
@@ -281,12 +289,9 @@ object FileChangeJournalStore {
     def lastSeq: Int = firstSeq + lines - 1
   }
 
-  /** A loaded project: its segments, oldest first, and their entries in one sequence. */
-  private case class Journal(segments: Vector[Segment], entries: Vector[ChangeEntry]) {
+  /** A loaded project: its segments, oldest first; their entries in one sequence are derived once per version. */
+  private case class Journal(segments: Vector[Segment]) {
+    lazy val entries: Vector[ChangeEntry] = segments.flatMap(_.entries)
     def latestSeq: Int = segments.lastOption.map(_.lastSeq).getOrElse(0)
-  }
-
-  private object Journal {
-    def of(segments: Vector[Segment]): Journal = Journal(segments, segments.flatMap(_.entries))
   }
 }
