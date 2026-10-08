@@ -93,14 +93,20 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
     loaded(project).headers
   }
 
-  /** Reads the line of the entry from its segment: the seqs within a segment are contiguous, so its position is known. */
-  override def entry(project: Identifier, seq: Int)(implicit context: PluginContext): Option[ChangeEntry] = monitor(project).synchronized {
-    for {
-      segment <- loaded(project).segments.find(segment => segment.firstSeq <= seq && seq <= segment.lastSeq)
-      if Files.exists(segment.file)
-      line <- completeLines(Files.readAllBytes(segment.file)).lift(seq - segment.firstSeq)
-      entry <- readEntry(project, seq, line)(ReadContext.fromPluginContext()(context))
-    } yield entry
+  /**
+    * Reads the line of the entry from its segment: the seqs within a segment are contiguous, so its position is known.
+    * Only the read runs under the monitor, which the cap's deletes run under too; the parse of the change, the slow
+    * part for a whole-task save, does not hold up the project's writes.
+    */
+  override def entry(project: Identifier, seq: Int)(implicit context: PluginContext): Option[ChangeEntry] = {
+    val line = monitor(project).synchronized {
+      for {
+        segment <- loaded(project).segments.find(segment => segment.firstSeq <= seq && seq <= segment.lastSeq)
+        if Files.exists(segment.file)
+        line <- completeLines(Files.readAllBytes(segment.file)).lift(seq - segment.firstSeq)
+      } yield line
+    }
+    line.flatMap(readEntry(project, seq, _)(ReadContext.fromPluginContext()(context)))
   }
 
   /** Without a loaded journal, the name of the newest segment plus its number of lines; no line is parsed. */
