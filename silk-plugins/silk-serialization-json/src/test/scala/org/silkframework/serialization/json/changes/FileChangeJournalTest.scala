@@ -1,9 +1,9 @@
 package org.silkframework.serialization.json.changes
 
+import org.silkframework.util.FileUtils._
 import org.silkframework.workspace.changes.ChangeJournalTestTrait
 
 import java.nio.file.Files
-import java.util.Comparator
 
 /** The journal against the file store on a temporary directory. */
 class FileChangeJournalTest extends ChangeJournalTestTrait {
@@ -18,12 +18,7 @@ class FileChangeJournalTest extends ChangeJournalTestTrait {
     try {
       super.afterAll()
     } finally {
-      val files = Files.walk(directory)
-      try {
-        files.sorted(Comparator.reverseOrder()).forEach(path => Files.delete(path))
-      } finally {
-        files.close()
-      }
+      directory.toFile.deleteRecursive()
     }
   }
 }

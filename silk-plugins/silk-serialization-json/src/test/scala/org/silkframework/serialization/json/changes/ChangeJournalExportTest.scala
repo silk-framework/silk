@@ -10,6 +10,7 @@ import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.templating.SimpleSubstitutionTemplateEngine
 import org.silkframework.util.{ConfigTestTrait, Identifier}
+import org.silkframework.util.FileUtils._
 import org.silkframework.workspace.changes.{ChangeEntry, ChangeJournalStore, DiscardedWorkflowRun}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
 import org.silkframework.workspace.xml.{XmlZipProjectMarshaling, XmlZipWithResourcesProjectMarshaling, XmlZipWithoutResourcesProjectMarshaling}
@@ -18,7 +19,6 @@ import org.silkframework.workspace.{InMemoryWorkspaceProvider, Project, ProjectC
 import java.io.FileOutputStream
 import java.nio.file.{Files, Path}
 import java.time.Instant
-import java.util.Comparator
 import java.util.zip.ZipFile
 import scala.jdk.CollectionConverters._
 
@@ -38,12 +38,7 @@ class ChangeJournalExportTest extends AnyFlatSpec with Matchers with ConfigTestT
     try {
       super.afterAll()
     } finally {
-      val files = Files.walk(directory)
-      try {
-        files.sorted(Comparator.reverseOrder()).forEach(path => Files.delete(path))
-      } finally {
-        files.close()
-      }
+      directory.toFile.deleteRecursive()
     }
   }
 

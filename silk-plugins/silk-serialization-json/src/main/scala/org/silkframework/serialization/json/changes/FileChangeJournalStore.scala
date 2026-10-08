@@ -5,13 +5,13 @@ import org.silkframework.runtime.plugin.{InvalidPluginParameterValueException, P
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.changes.ChangeJsonFormats.ChangeEntryJsonFormat
+import org.silkframework.util.FileUtils._
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.changes.{Change, ChangeEntry, ChangeJournalStore}
 import play.api.libs.json.{JsValue, Json}
 
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path, Paths, StandardCopyOption, StandardOpenOption}
-import java.util.Comparator
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Logger
 import scala.jdk.CollectionConverters._
@@ -257,16 +257,7 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
 
   private def countLines(file: Path): Int = Files.readAllBytes(file).count(_ == '\n'.toByte)
 
-  private def deleteDirectory(directory: Path): Unit = {
-    if(Files.exists(directory)) {
-      val stream = Files.walk(directory)
-      try {
-        stream.sorted(Comparator.reverseOrder[Path]()).forEach(path => Files.delete(path))
-      } finally {
-        stream.close()
-      }
-    }
-  }
+  private def deleteDirectory(directory: Path): Unit = directory.toFile.deleteRecursive()
 }
 
 object FileChangeJournalStore {

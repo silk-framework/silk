@@ -7,6 +7,7 @@ import org.silkframework.runtime.resource._
 import org.silkframework.runtime.validation.RequestException
 import org.silkframework.rule.RuleBlockSpec
 import org.silkframework.util.{ConfigTestTrait, Identifier, Uri}
+import org.silkframework.util.FileUtils._
 import org.silkframework.workspace.{ProjectConfig, RuleBlockTestData, WorkspaceFactory}
 import org.silkframework.workspace.resources.ResourceRepository
 import play.api.libs.ws.WSResponse
@@ -17,7 +18,6 @@ import play.shaded.ahc.org.asynchttpclient.{AsyncCompletionHandler, AsyncHttpCli
 import java.io._
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
-import java.util.Comparator
 import java.util.zip.ZipInputStream
 import scala.concurrent.{Future, Promise}
 import scala.io.{Codec, Source}
@@ -38,12 +38,7 @@ class ProjectMarshalingApiTest extends PlaySpec with ConfigTestTrait with Integr
     try {
       super.afterAll()
     } finally {
-      val files = Files.walk(journalDirectory)
-      try {
-        files.sorted(Comparator.reverseOrder()).forEach(path => Files.delete(path))
-      } finally {
-        files.close()
-      }
+      journalDirectory.toFile.deleteRecursive()
     }
   }
 

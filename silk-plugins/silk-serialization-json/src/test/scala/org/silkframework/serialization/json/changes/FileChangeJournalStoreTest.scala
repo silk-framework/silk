@@ -5,13 +5,13 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
+import org.silkframework.util.FileUtils._
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.changes.{ChangeEntry, FileState, ResourceDeleted, UnreadableChange}
 
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path}
 import java.time.Instant
-import java.util.Comparator
 import java.util.concurrent.CountDownLatch
 import scala.jdk.CollectionConverters._
 
@@ -30,12 +30,7 @@ class FileChangeJournalStoreTest extends AnyFlatSpec with Matchers with BeforeAn
   private val now = Instant.parse("2026-10-07T10:12:03Z")
 
   override protected def afterAll(): Unit = {
-    val files = Files.walk(directory)
-    try {
-      files.sorted(Comparator.reverseOrder()).forEach(path => Files.delete(path))
-    } finally {
-      files.close()
-    }
+    directory.toFile.deleteRecursive()
   }
 
   private def store(name: String, maxSizeInMB: Int = 10): FileChangeJournalStore = {

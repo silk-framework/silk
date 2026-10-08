@@ -13,6 +13,7 @@ import org.silkframework.runtime.templating.{TemplateVariable, VariableScope}
 import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.serialization.json.TemplateVariableJson
 import org.silkframework.util.ConfigTestTrait
+import org.silkframework.util.FileUtils._
 import org.silkframework.workspace.changes.{AddMapping, ChangeJournal, ProposedWorkflowRun, TestJournalAccess, WorkflowExecuted}
 import org.silkframework.workspace.{ProjectConfig, WorkspaceFactory}
 import play.api.libs.json.Json
@@ -20,7 +21,6 @@ import play.api.routing.Router
 
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
-import java.util.Comparator
 
 class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with IntegrationTestTrait with ApiClient with Matchers {
 
@@ -40,12 +40,7 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     try {
       super.afterAll()
     } finally {
-      val files = Files.walk(journalDirectory)
-      try {
-        files.sorted(Comparator.reverseOrder()).forEach(path => Files.delete(path))
-      } finally {
-        files.close()
-      }
+      journalDirectory.toFile.deleteRecursive()
     }
   }
 
