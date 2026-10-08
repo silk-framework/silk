@@ -685,6 +685,8 @@ object JsonSerializers {
   implicit object DirectMappingJsonFormat extends JsonFormat[DirectMapping] {
     final val SOURCE_PATH_PROPERTY: String = "sourcePath"
     final val MAPPING_TARGET_PROPERTY: String = "mappingTarget"
+    /** The id of the path operator, present only when it differs from the rule id. */
+    final val INPUT_ID_PROPERTY: String = "inputId"
 
     /**
       * Deserializes a value.
@@ -694,7 +696,9 @@ object JsonSerializers {
       val mappingName = mappingTarget.propertyUri.localName.getOrElse("ValueMapping")
       val id = identifier(value, mappingName)
       val sourcePath = silkPath(id, stringValue(value, SOURCE_PATH_PROPERTY))
-      DirectMapping(id, sourcePath, mappingTarget, metaData(value))
+      // As in TransformRule.simplify: an input id equal to the rule id is the default and is not kept
+      val inputId = stringValueOption(value, INPUT_ID_PROPERTY).map(Identifier(_)).filter(_ != id)
+      DirectMapping(id, sourcePath, mappingTarget, metaData(value), inputId)
     }
 
     /**
@@ -708,7 +712,8 @@ object JsonSerializers {
           SOURCE_PATH_PROPERTY -> JsString(value.sourcePath.serialize()(writeContext.prefixes)),
           MAPPING_TARGET_PROPERTY -> toJson(value.mappingTarget),
           METADATA -> toJson(value.metaData)
-        )
+        ) ++
+        value.inputId.map(inputId => INPUT_ID_PROPERTY -> JsString(inputId))
       )
     }
   }

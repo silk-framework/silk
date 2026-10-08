@@ -13,10 +13,14 @@ import org.silkframework.runtime.templating.{TemplateVariable, VariableScope}
 import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.serialization.json.TemplateVariableJson
 import org.silkframework.util.ConfigTestTrait
+import org.silkframework.util.FileUtils._
 import org.silkframework.workspace.changes.{AddMapping, ChangeJournal, ProposedWorkflowRun, TestJournalAccess, WorkflowExecuted}
 import org.silkframework.workspace.{ProjectConfig, WorkspaceFactory}
 import play.api.libs.json.Json
 import play.api.routing.Router
+
+import java.nio.charset.StandardCharsets.UTF_8
+import java.nio.file.Files
 
 class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with IntegrationTestTrait with ApiClient with Matchers {
 
@@ -25,7 +29,20 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
   override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
 
   // No store is configured by default, which records nothing.
-  override def propertyMap: Map[String, Option[String]] = Map("workspace.changes.plugin" -> Some("inMemoryChangeJournal"))
+  private val journalDirectory = Files.createTempDirectory("changeJournal")
+
+  // The file store on a temporary directory; without a configured store nothing is recorded
+  override def propertyMap: Map[String, Option[String]] = Map(
+    "workspace.changes.plugin" -> Some("fileChangeJournal"),
+    "workspace.changes.fileChangeJournal.dir" -> Some(journalDirectory.toString))
+
+  override protected def afterAll(): Unit = {
+    try {
+      super.afterAll()
+    } finally {
+      journalDirectory.toFile.deleteRecursive()
+    }
+  }
 
   override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
 
@@ -119,14 +136,14 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     val listed = checkResponse(client.url(changesUrl(watermarkProjectId)).get()).json.as[ChangeListJson]
     listed.reviewedUpTo mustBe 0
     listed.changes.map(_.unreviewed) mustBe Seq(Some(true), Some(true))
-    summary() mustBe ChangeSummaryJson(reviewedUpTo = 0, latestSeq = 2, unreviewed = 2)
+    summary() mustBe ChangeSummaryJson(reviewedUpTo = 0, latestSeq = 2, unreviewed = 2, droppedUnreviewed = 0)
 
     val reviewedUrl = baseUrl + controllers.projectApi.routes.ChangeJournalApi.markReviewed(watermarkProjectId).url
     checkResponse(client.url(reviewedUrl).put(Json.obj("upTo" -> 1))).json mustBe Json.obj("reviewedUpTo" -> 1)
     val reviewed = checkResponse(client.url(changesUrl(watermarkProjectId)).get()).json.as[ChangeListJson]
     reviewed.reviewedUpTo mustBe 1
     reviewed.changes.map(_.unreviewed) mustBe Seq(Some(true), None)
-    summary() mustBe ChangeSummaryJson(reviewedUpTo = 1, latestSeq = 2, unreviewed = 1)
+    summary() mustBe ChangeSummaryJson(reviewedUpTo = 1, latestSeq = 2, unreviewed = 1, droppedUnreviewed = 0)
     // A review beyond the latest change is refused
     checkResponseExactStatusCode(client.url(reviewedUrl).put(Json.obj("upTo" -> 99)), CONFLICT)
 
@@ -142,11 +159,26 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     results.last.entry.get.links mustBe empty
     changes(watermarkProjectId).flatMap(_.links) mustBe empty
 
-    // The reverted entries need no review anymore, although the watermark did not move
+    // The reverted entries need no review anymore, and the watermark moved on with the reverts since nothing waits
     val afterRevert = checkResponse(client.url(changesUrl(watermarkProjectId)).get()).json.as[ChangeListJson]
-    afterRevert.reviewedUpTo mustBe 1
+    afterRevert.reviewedUpTo mustBe 4
     afterRevert.changes.flatMap(_.unreviewed) mustBe empty
-    summary() mustBe ChangeSummaryJson(reviewedUpTo = 1, latestSeq = 4, unreviewed = 0)
+    summary() mustBe ChangeSummaryJson(reviewedUpTo = 4, latestSeq = 4, unreviewed = 0, droppedUnreviewed = 0)
+  }
+
+  it should "report the latest seq from the store, which counts a stored line that cannot be read" in {
+    val damagedProjectId = "changeJournalDamagedProject"
+    WorkspaceFactory().workspace.createProject(ProjectConfig(damagedProjectId))
+    // The store loads the project's files on first access: one unreadable line is seq 1 without an entry
+    val segment = journalDirectory.resolve(damagedProjectId).resolve("000000001.jsonl")
+    Files.createDirectories(segment.getParent)
+    Files.write(segment, "{not json\n".getBytes(UTF_8))
+    val summaryUrl = baseUrl + controllers.projectApi.routes.ChangeJournalApi.summary(damagedProjectId).url
+    checkResponse(client.url(summaryUrl).get()).json.as[ChangeSummaryJson] mustBe
+      ChangeSummaryJson(reviewedUpTo = 0, latestSeq = 1, unreviewed = 0, droppedUnreviewed = 0)
+    // A review up to the reported seq is accepted
+    val reviewedUrl = baseUrl + controllers.projectApi.routes.ChangeJournalApi.markReviewed(damagedProjectId).url
+    checkResponse(client.url(reviewedUrl).put(Json.obj("upTo" -> 1))).json mustBe Json.obj("reviewedUpTo" -> 1)
   }
 
   it should "journal a variable written through the variables API and revert it" in {
@@ -184,5 +216,16 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     // Deleted outside of a request, so not recorded: the entry stays, its download is gone
     file.delete()
     changes(filesProjectId).head.links mustBe Seq(projectPage)
+
+    // A recorded deletion links the project page only, even once a file stands at its path again
+    ChangeJournal.onBehalfOf(implicitly[UserContext]) {
+      file.writeString("again")
+      file.delete()
+      file.writeString("replaced")
+    }
+    val Seq(replaced, deleted) = changes(filesProjectId).take(2)
+    deleted.`type` mustBe "ResourceDeleted"
+    deleted.links mustBe Seq(projectPage)
+    replaced.links mustBe Seq(projectPage, ItemLink("download", "Download file", downloadUrl, openInNewTab = true))
   }
 }

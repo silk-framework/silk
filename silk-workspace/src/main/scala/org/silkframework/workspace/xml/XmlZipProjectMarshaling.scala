@@ -1,6 +1,7 @@
 package org.silkframework.workspace.xml
 
 import java.io.{File, OutputStream}
+import java.util.logging.{Level, Logger}
 import java.util.zip.ZipFile
 
 import org.silkframework.runtime.activity.UserContext
@@ -8,9 +9,17 @@ import org.silkframework.runtime.resource._
 import org.silkframework.runtime.resource.zip.{ZipFileResourceLoader, ZipOutputStreamResourceManager}
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.changes.ChangeJournalStore
 import org.silkframework.workspace.resources.ResourceRepository
+import org.silkframework.workspace.xml.XmlZipProjectMarshaling.{JOURNAL_FOLDER, log}
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, WorkspaceProvider}
 
+import scala.util.control.NonFatal
+
+/**
+  * Project and workspace archives as ZIP files of the XML workspace layout. The change journal of a project travels
+  * in a `changes` folder next to its task folders, with its user data: see [[exportJournal]] and [[importJournal]].
+  */
 abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
 
   def includeResources: Boolean
@@ -35,6 +44,7 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
       val exportResources = getProjectResources(outputWorkspaceProvider, project.config.id)
 
       exportProject(project, outputWorkspaceProvider, resourceManager, exportResources, includeResources, exportGroups = exportGroups, exportUserData = exportUserData)
+      exportJournal(project, zipResourceManager, exportUserData)
     } finally {
       zipResourceManager.close()
     }
@@ -57,20 +67,21 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
                                 (implicit userContext: UserContext): Unit = {
     val zip = new ZipFile(file)
     try {
-      var resourceLoader: ResourceLoader = ZipFileResourceLoader(zip)
-      if(!resourceLoader.list.contains("config.xml")) {
-        if (resourceLoader.listChildren.nonEmpty) {
-          resourceLoader = resourceLoader.child(resourceLoader.listChildren.head)
+      var projectLoader: ResourceLoader = ZipFileResourceLoader(zip)
+      if(!projectLoader.list.contains("config.xml")) {
+        if (projectLoader.listChildren.nonEmpty) {
+          projectLoader = projectLoader.child(projectLoader.listChildren.head)
         } else {
           throw new NotFoundException("No project found in given zip file. Imported nothing.")
         }
       }
-      resourceLoader = new CombinedResourceLoader(children = Map(projectName.toString -> resourceLoader))
+      val resourceLoader = new CombinedResourceLoader(children = Map(projectName.toString -> projectLoader))
       val importResources = ReadOnlyResourceManager(resourceLoader)
 
       val xmlWorkspaceProvider = new XmlWorkspaceProvider(importResources)
       val projectResources = getProjectResources(xmlWorkspaceProvider, projectName)
       importProject(projectName, workspaceProvider, importFromWorkspace = xmlWorkspaceProvider, resourceManager, importResources = projectResources, includeResources)
+      importJournal(projectName, projectLoader)
     } finally {
       zip.close()
     }
@@ -90,6 +101,7 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
       for (project <- projects) {
         val projectResources = resourceRepository.get(project.config.id)
         exportProject(project, xmlWorkspaceProvider, projectResources, getProjectResources(xmlWorkspaceProvider, project.config.id), exportResources = includeResources, exportGroups = exportGroups, exportUserData = exportUserData)
+        exportJournal(project, zipResourceManager, exportUserData)
       }
     } finally {
       // Close ZIP
@@ -106,7 +118,8 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
                                  (implicit userContext: UserContext): Unit = {
     val zip = new ZipFile(file)
     try {
-      val resourceManager: ResourceManager = ReadOnlyResourceManager(ZipFileResourceLoader(zip))
+      val zipLoader = ZipFileResourceLoader(zip)
+      val resourceManager: ResourceManager = ReadOnlyResourceManager(zipLoader)
       val xmlWorkspaceProvider = new XmlWorkspaceProvider(resourceManager)
       val projects = xmlWorkspaceProvider.readProjects()
 
@@ -114,6 +127,7 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
         val projectResources = getProjectResources(xmlWorkspaceProvider, project.id)
         importProject(project.id, workspaceProvider, importFromWorkspace = xmlWorkspaceProvider,
           resourceRepository.get(project.id), importResources = projectResources, includeResources)
+        importJournal(project.id, zipLoader.child(project.id))
       }
     } finally {
       zip.close()
@@ -124,6 +138,24 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
     provider.resources.child(project).child("resources")
   }
 
+  /** The journal is user data, who changed what and when, so it travels with the user data only. */
+  private def exportJournal(project: Project, zipResourceManager: ResourceManager, exportUserData: Boolean): Unit = {
+    if(exportUserData) {
+      ChangeJournalStore().exportJournal(project.id, zipResourceManager.child(project.id).child(JOURNAL_FOLDER))
+    }
+  }
+
+  /** Called for every import, so that an archive without a journal leaves the project with an empty one rather
+    * than a stale one. A journal that cannot be imported is logged and does not fail the import of the project. */
+  private def importJournal(project: Identifier, projectLoader: ResourceLoader): Unit = {
+    try {
+      ChangeJournalStore().importJournal(project, projectLoader.child(JOURNAL_FOLDER))
+    } catch {
+      case NonFatal(ex) =>
+        log.log(Level.WARNING, s"The change journal of project '$project' could not be imported from the archive; the project starts without history.", ex)
+    }
+  }
+
   /** Handler for file suffix */
   override def fileExtension: String = "zip"
 
@@ -131,6 +163,11 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
 }
 
 object XmlZipProjectMarshaling {
+
+  private val log = Logger.getLogger(classOf[XmlZipProjectMarshaling].getName)
+
+  /** The folder of a project's change journal in the archive, next to `resources` and the task folders. */
+  final val JOURNAL_FOLDER = "changes"
 
   def apply(includeResources: Boolean = true): XmlZipProjectMarshaling = {
     if(includeResources) {
