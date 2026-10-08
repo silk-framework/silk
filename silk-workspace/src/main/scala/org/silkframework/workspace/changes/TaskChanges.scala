@@ -295,8 +295,9 @@ private object TaskDiff {
     }
   }
 
-  /** The name of a resource-valued parameter, or None for any other value. */
-  private def resourceName(value: AnyRef): Option[String] = value match {
+  /** The name of a resource-valued parameter, or None for any other value. A resource is shown by name: its path is
+    * relative to the project's resources, which the diffs do not have. */
+  def resourceName(value: AnyRef): Option[String] = value match {
     case resource: Resource => Some(resource.name)
     case option: ResourceOption => Some(option.resource.map(_.name).getOrElse(""))
     case _ => None

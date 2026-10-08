@@ -3,6 +3,7 @@ package org.silkframework.workspace.changes
 import org.silkframework.util.Identifier
 
 import java.time.Instant
+import scala.util.control.NonFatal
 
 /**
   * A recorded change without the change itself: what the journal derives its state from and what a listing shows. A
@@ -63,7 +64,14 @@ object ChangeHeader {
       case WorkflowExecuted(_, executionId, _, _) => executionId
       case _ => None
     }
-    ChangeHeader(seq, timestamp, user, origin, change.changeType, change.summary, change.details,
+    // Display data rendered from arbitrary parameter values: a failure to render them must not fail the write being
+    // recorded, so the listing shows the failure where the details would be
+    val details = try {
+      change.details
+    } catch {
+      case NonFatal(ex) => Seq(ChangeDetail(s"The details could not be rendered: ${Change.reason(ex)}"))
+    }
+    ChangeHeader(seq, timestamp, user, origin, change.changeType, change.summary, details,
       change.inverse.isDefined, change.isInstanceOf[Proposal], taskId, ruleId, path, executionId, reverts, fulfils)
   }
 }

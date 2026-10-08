@@ -936,6 +936,12 @@ abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with Tes
     recreated.all shouldBe empty
     recreated.reviewedUpTo shouldBe 0
   }
+
+  it should "record a change whose details cannot be rendered, with the failure in their place" in {
+    val journal = retrieveOrCreateProject("journalBrokenDetails").changeJournal
+    journal.record(BrokenDetails).get.header.details shouldBe Seq(ChangeDetail("The details could not be rendered: cannot be rendered"))
+    journal.all.map(_.describe) shouldBe Seq("Broken details: The details could not be rendered: cannot be rendered")
+  }
 }
 
 /** A task with the parameter kinds an update description distinguishes: a value, a password and a nested object. */
@@ -947,4 +953,14 @@ case class DescribedTask(name: String = "a",
   override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
 
   override def outputPort: Option[Port] = None
+}
+
+/** A change whose details cannot be rendered; the journal records it without them. */
+case object BrokenDetails extends RecordedChange {
+
+  override def summary: String = "Broken details"
+
+  override def details: Seq[ChangeDetail] = throw new IllegalStateException("cannot be rendered")
+
+  override def inverse: Option[Change] = None
 }
