@@ -2,6 +2,8 @@ import "regenerator-runtime/runtime";
 import "@testing-library/jest-dom";
 import { TextEncoder, TextDecoder } from "util";
 
+process.env.I18NEXT_NO_SUPPORT_NOTICE = "true";
+
 jest.setTimeout(30000);
 
 if (window.document) {

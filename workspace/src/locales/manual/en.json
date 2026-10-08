@@ -1542,6 +1542,16 @@
         }
     },
     "MappingSuggestion": {
+        "selection": {
+            "targetPropertyFor": "Target property for {{element}}",
+            "sourcePathFor": "Source path for {{element}}",
+            "mappingTypeFor": "Mapping type for {{element}}",
+            "selectedFieldValue": "{{field}}, {{value}} selected",
+            "searchTargetProperties": "Search target properties",
+            "searchSourcePaths": "Search source paths",
+            "knownPrefix": "Use known prefix",
+            "searchPrefixes": "Search prefixes"
+        },
         "suggestionIssues": {
             "noFoundClass": "None of the target classes have been found in the target vocabularies. Falling back to matching against all properties instead.",
             "notAllClassesFound": "Following target classes have not been found in any of the target vocabularies: {{classesString}}.\n\nMatching only against {{numberOfFoundClasses}} of {{numberOfAllClasses}} target classes."
@@ -1575,6 +1585,10 @@
         "passwordCleared": "Password was removed because it would be visible in clear text"
     },
     "PathInputOperator": {
+        "filterByLanguage": "Filter by language",
+        "filterByLanguageNoFilter": "Filter by language, no filter.",
+        "selectedLanguageFilter": "Filter by language, {{language}} selected",
+        "searchLanguages": "Search languages",
         "languageButtonTooltip": "Set a language filter. Only values for the chosen language will be fetched.",
         "noFilter": "No language filter"
     },

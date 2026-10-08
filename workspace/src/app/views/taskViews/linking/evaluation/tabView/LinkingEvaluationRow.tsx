@@ -78,11 +78,11 @@ const linkStateButtons: {
     icon: ValidIconName;
     linkType: LinkType;
     intent?: IconButtonProps["intent"];
-    tooltip: string;
+    textKey: string;
 }[] = [
-    { icon: "state-confirmed", intent: "success", linkType: "positive", tooltip: "Confirm" },
-    { icon: "item-question", linkType: "unlabeled", tooltip: "Uncertain" },
-    { icon: "state-declined", intent: "danger", linkType: "negative", tooltip: "Decline" },
+    { icon: "state-confirmed", intent: "success", linkType: "positive", textKey: "ActiveLearning.feedback.confirm" },
+    { icon: "item-question", linkType: "unlabeled", textKey: "ActiveLearning.feedback.uncertain" },
+    { icon: "state-declined", intent: "danger", linkType: "negative", textKey: "ActiveLearning.feedback.decline" },
 ];
 
 /** A single row (link) in the linking evaluation view. */
@@ -560,11 +560,14 @@ export const LinkingEvaluationRow = React.memo(
                                     showSpinner={updateOperationPending}
                                     spinnerProps={{ size: "tiny", position: "inline", delay: 500 }}
                                 >
-                                    {linkStateButtons.map(({ linkType, icon, ...otherProps }, btnIndex) => (
+                                    {linkStateButtons.map(({ linkType, icon, textKey, ...otherProps }, btnIndex) => (
                                         <React.Fragment key={icon}>
                                             <IconButton
                                                 data-test-id={`link-state-button-${linkType}`}
                                                 name={icon}
+                                                text={t(textKey)}
+                                                tooltipAsTitle
+                                                aria-pressed={currentLinkType === linkType}
                                                 onClick={() => onLinkStateUpdate(linkType)}
                                                 {...otherProps}
                                                 outlined={currentLinkType !== linkType}

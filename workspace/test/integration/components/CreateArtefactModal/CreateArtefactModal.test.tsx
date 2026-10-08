@@ -23,7 +23,7 @@ import {
     renderWrapper,
 } from "../../TestHelper";
 import { CreateArtefactModal } from "../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal";
-import { act, fireEvent, RenderResult, waitFor, within } from "@testing-library/react";
+import { act, RenderResult, waitFor, within } from "@testing-library/react";
 import {
     IOverviewArtefactItemList,
     IPluginDetails,
@@ -258,9 +258,11 @@ describe("Task creation widget", () => {
         const tagSelection = findElement(wrapper, byTestId("task-tags-select"));
         const tagInput = findElement(tagSelection, "input") as HTMLInputElement;
 
-        clickRenderedElement(tagInput);
-        await pressKeyDown(tagInput, tag.label[0]);
-        changeInputValue(tagInput, tag.label);
+        await act(async () => {
+            clickRenderedElement(tagInput);
+            await pressKeyDown(tagInput, tag.label[0]);
+            changeInputValue(tagInput, tag.label);
+        });
         await respondWithProjectTags(PROJECT_ID, tag.label, [tag]);
 
         const tagOption = await waitFor(() => {
@@ -271,7 +273,7 @@ describe("Task creation widget", () => {
             expect(option).toBeTruthy();
             return option as HTMLElement;
         });
-        clickRenderedElement(tagOption);
+        await act(async () => clickRenderedElement(tagOption));
         await expectTaskTags(wrapper, tag.label);
     };
 
@@ -583,7 +585,6 @@ describe("Task creation widget", () => {
                 autoCompleteInput.focus();
             });
             changeInputValue(autoCompleteInput as HTMLInputElement, "abc");
-            const beforePortals = window.document.querySelectorAll(`div.${bluePrintClassPrefix}-portal`).length;
             await waitFor(() => {
                 expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(1);
             });

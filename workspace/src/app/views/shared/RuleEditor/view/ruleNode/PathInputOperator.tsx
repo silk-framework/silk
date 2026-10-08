@@ -1,7 +1,17 @@
 import { ParameterAutoCompletionProps } from "../../../modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
 import React from "react";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
-import { Button, CodeAutocompleteField, IconButton, MenuItem, Select, Spacing, Tag } from "@eccenca/gui-elements";
+import {
+    ApplicationViewability,
+    Button,
+    CLASSPREFIX as eccgui,
+    CodeAutocompleteField,
+    FieldItem,
+    MenuItem,
+    Select,
+    Spacing,
+    Tag,
+} from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { checkValuePathValidity } from "../../../../../views/pages/MappingEditor/HierarchicalMapping/store";
 import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
@@ -114,7 +124,7 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, inputPathFunct
         }
     }, [checkPathToShowFilterButton]);
 
-    const onLanguageChange = React.useCallback((langValue: string) => {
+    const onLanguageChange = React.useCallback((langValue: string | undefined) => {
         internalState.current.currentLanguageFilter = langValue;
         // Need to call onChange handler with changed language filter
         internalState.current.activeOnChangeHandler!(internalState.current.currentValue ?? { value: "" });
@@ -251,6 +261,7 @@ const languageFilterExpression = (lang: string | undefined) => {
 };
 
 const languageFilterItems = ["en", "de", "fr", NO_LANG];
+const languageItemPredicate = (query: string, item: string) => item.toLowerCase().includes(query.toLowerCase().trim());
 
 interface LanguageSwitcherProps {
     onLanguageChange: (lang: string | undefined) => void;
@@ -262,101 +273,144 @@ interface LanguageSwitcherContextProps {
     readOnly?: boolean;
 }
 
-const LanguageSwitcherContext = React.createContext<LanguageSwitcherContextProps>({
+export const LanguageSwitcherContext = React.createContext<LanguageSwitcherContextProps>({
     showLanguageFilterButton: false,
 });
 
-const LanguageSwitcher = ({ onLanguageChange, initialLanguage }: LanguageSwitcherProps) => {
-    const [t] = useTranslation();
+export const LanguageSwitcher = ({ onLanguageChange, initialLanguage }: LanguageSwitcherProps) => {
+    const [t, i18n] = useTranslation();
+    const languageFilterId = React.useId();
     const [languageFilter, setLanguageFilter] = React.useState<string | undefined>(initialLanguage);
+    // Blueprint supplies IDs for existing options, but its create-new option needs its own active descendant ID.
+    const [customLanguageActive, setCustomLanguageActive] = React.useState(false);
     const currentLanguageFilter = React.useRef<string | undefined>(undefined);
     currentLanguageFilter.current = languageFilter;
     const context = React.useContext(LanguageSwitcherContext);
+    let selectedLanguageName = languageFilter;
+    if (languageFilter && typeof Intl.DisplayNames === "function") {
+        try {
+            selectedLanguageName =
+                new Intl.DisplayNames(i18n.language, { type: "language" }).of(languageFilter) ?? languageFilter;
+        } catch {
+            // User-entered language tags may be invalid for Intl.DisplayNames; keep their original text.
+        }
+    }
 
     return context.showLanguageFilterButton ? (
-        <Select<string>
-            inputProps={{
-                id: "language-filter-input",
-                className: "nodrag",
+        <FieldItem
+            labelProps={{
+                text: languageFilter
+                    ? t("PathInputOperator.selectedLanguageFilter", { language: selectedLanguageName })
+                    : t("PathInputOperator.filterByLanguageNoFilter"),
+                hidden: true,
             }}
-            menuProps={{
-                className: "nodrag",
-            }}
-            items={languageFilterItems}
-            filterable={true}
-            itemPredicate={(query, item) => item.toLowerCase().includes(query.toLowerCase().trim())}
-            createNewItemFromQuery={(query) => {
-                return query;
-            }}
-            createNewItemRenderer={(
-                query: string,
-                active: boolean,
-                handleClick: React.MouseEventHandler<HTMLElement>,
-            ) => {
-                if (languageTagRegex.test(query)) {
-                    return (
+            helperText={
+                <ApplicationViewability hide="screen">
+                    <span>{t("PathInputOperator.languageButtonTooltip")}</span>
+                </ApplicationViewability>
+            }
+        >
+            <Select<string>
+                inputProps={{
+                    id: `${languageFilterId}-input`,
+                    className: "nodrag",
+                    "aria-label": t("PathInputOperator.searchLanguages"),
+                    ...(customLanguageActive ? { "aria-activedescendant": `${languageFilterId}-create-item` } : {}),
+                }}
+                menuProps={{
+                    className: "nodrag",
+                }}
+                items={languageFilterItems}
+                filterable={true}
+                itemPredicate={languageItemPredicate}
+                createNewItemFromQuery={(query) => {
+                    return query;
+                }}
+                createNewItemRenderer={(
+                    query: string,
+                    active: boolean,
+                    handleClick: React.MouseEventHandler<HTMLElement>,
+                ) => {
+                    if (languageTagRegex.test(query)) {
+                        return (
+                            <MenuItem
+                                roleStructure="none"
+                                role="option"
+                                id={`${languageFilterId}-create-item`}
+                                aria-selected={active}
+                                tabIndex={-1}
+                                data-test-id={"language-filter-custom"}
+                                icon={"item-add-artefact"}
+                                active={active}
+                                key={query}
+                                onClick={handleClick}
+                                text={query}
+                            />
+                        );
+                    }
+                    return undefined;
+                }}
+                itemRenderer={(lang, { handleClick, handleFocus, id, modifiers }) => {
+                    return lang === NO_LANG ? (
+                        currentLanguageFilter.current ? (
+                            <MenuItem
+                                key={lang}
+                                roleStructure="none"
+                                role="option"
+                                id={id}
+                                aria-selected={modifiers.active}
+                                tabIndex={-1}
+                                onFocus={handleFocus}
+                                data-test-id={"language-filter-remove"}
+                                active={modifiers.active}
+                                icon={"operation-filterremove"}
+                                text={t("PathInputOperator.noFilter")}
+                                onClick={handleClick}
+                            />
+                        ) : null
+                    ) : (
                         <MenuItem
-                            data-test-id={"language-filter-custom"}
-                            icon={"item-add-artefact"}
-                            active={active}
-                            key={query}
+                            key={lang}
+                            roleStructure="none"
+                            role="option"
+                            id={id}
+                            aria-selected={modifiers.active}
+                            tabIndex={-1}
+                            onFocus={handleFocus}
+                            data-test-id={`language-filter-${lang}`}
+                            active={modifiers.active}
+                            icon={"operation-filter"}
+                            text={lang}
                             onClick={handleClick}
-                            text={query}
                         />
                     );
-                }
-            }}
-            itemRenderer={(lang, { handleClick, modifiers }) => {
-                return lang === NO_LANG ? (
-                    currentLanguageFilter.current ? (
-                        <MenuItem
-                            data-test-id={"language-filter-remove"}
-                            active={modifiers.active}
-                            icon={"operation-filterremove"}
-                            text={t("PathInputOperator.noFilter")}
-                            onClick={handleClick}
-                        />
-                    ) : null
-                ) : (
-                    <MenuItem
-                        data-test-id={`language-filter-${lang}`}
-                        active={modifiers.active}
-                        icon={"operation-filter"}
-                        text={lang}
-                        onClick={handleClick}
-                    />
-                );
-            }}
-            onItemSelect={(lang) => {
-                const langValue = lang === "-" ? undefined : lang;
-                onLanguageChange(langValue);
-                setLanguageFilter(langValue);
-            }}
-            disabled={!!context.readOnly}
-            fill={false}
-            contextOverlayProps={{
-                hasBackdrop: true,
-            }}
-        >
-            {languageFilter ? (
+                }}
+                onItemSelect={(lang) => {
+                    const langValue = lang === "-" ? undefined : lang;
+                    onLanguageChange(langValue);
+                    setLanguageFilter(langValue);
+                    setCustomLanguageActive(false);
+                }}
+                onActiveItemChange={(_item, isCreateNewItem) => setCustomLanguageActive(isCreateNewItem)}
+                disabled={!!context.readOnly}
+                fill={false}
+                contextOverlayProps={{
+                    hasBackdrop: true,
+                    onClosing: () => setCustomLanguageActive(false),
+                }}
+            >
                 <Button
-                    className={"nodrag"}
+                    className={languageFilter ? "nodrag" : `nodrag ${eccgui}-button--icon`}
                     data-test-id={"language-filter-btn"}
-                    tooltip={t("PathInputOperator.languageButtonTooltip")}
+                    title={t("PathInputOperator.languageButtonTooltip")}
                     outlined={true}
+                    minimal={!languageFilter}
+                    icon={languageFilter ? undefined : "operation-translate"}
                 >
                     {languageFilter}
                 </Button>
-            ) : (
-                <IconButton
-                    className={"nodrag"}
-                    data-test-id={"language-filter-btn"}
-                    text={t("PathInputOperator.languageButtonTooltip")}
-                    name={"operation-translate"}
-                    outlined={true}
-                />
-            )}
-        </Select>
+            </Select>
+        </FieldItem>
     ) : null;
 };
 
