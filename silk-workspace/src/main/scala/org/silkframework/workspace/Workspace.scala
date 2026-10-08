@@ -444,6 +444,9 @@ class Workspace(val provider: WorkspaceProvider,
     for(resourceFailure <- Try(repository.removeProjectResources(projectId)).failed.toOption) {
       log.log(Level.WARNING, s"The resources of project '$projectId' could not be removed while rolling back its creation.", resourceFailure)
     }
+    for(journalFailure <- Try(ChangeJournalStore().remove(projectId)).failed.toOption) {
+      log.log(Level.WARNING, s"The change journal of project '$projectId' could not be removed while rolling back its creation.", journalFailure)
+    }
     provider.removeExternalTaskLoadingErrors(projectId)
     for(failure <- deletionFailure) {
       log.log(Level.SEVERE, s"Project '$projectId' could not be removed after a failure while creating it. " +

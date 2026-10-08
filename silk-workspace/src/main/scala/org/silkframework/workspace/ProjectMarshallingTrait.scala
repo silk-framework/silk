@@ -9,6 +9,7 @@ import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
+import org.silkframework.workspace.changes.ChangeJournalStore
 import org.silkframework.workspace.io.WorkspaceIO
 import org.silkframework.workspace.io.WorkspaceIO.copyResources
 import org.silkframework.workspace.resources.ResourceRepository
@@ -124,7 +125,8 @@ trait ProjectMarshallingTrait extends AnyPlugin {
       val targetProject = if (index == 0) projectName else projectName + index
       // Reset URI
       val projectConfig = project.copy(id = targetProject, projectResourceUriOpt = None)
-
+      // A journal left behind under the target name, e.g. by a restored backup, is not the history of the imported project
+      ChangeJournalStore().remove(targetProject)
       workspaceProvider.importProject(projectConfig, importFromWorkspace, importResources, resources, alsoCopyResources)
     }
   }

@@ -15,6 +15,7 @@ import java.util.Comparator
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Logger
 import scala.jdk.CollectionConverters._
+import scala.util.Try
 import scala.util.control.NonFatal
 
 /**
@@ -133,9 +134,16 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
     deleteDirectory(directory)
     val names = source.list.filter(name => isSegmentName(name) || name == REVIEWED_FILE)
     if(names.nonEmpty) {
-      Files.createDirectories(directory)
-      for(name <- names) {
-        Files.write(directory.resolve(name), source.get(name).loadAsBytes)
+      try {
+        Files.createDirectories(directory)
+        for(name <- names) {
+          Files.write(directory.resolve(name), source.get(name).loadAsBytes)
+        }
+      } catch {
+        case NonFatal(ex) =>
+          // No partial history: the project starts without one
+          Try(deleteDirectory(directory))
+          throw ex
       }
     }
   }
