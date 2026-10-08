@@ -28,8 +28,13 @@ trait ChangeJournalStore extends AnyPlugin {
     * project's, for a store that serializes the entry. */
   def append(project: Identifier, entry: ChangeEntry)(implicit context: PluginContext): Unit
 
-  /** All entries of a project, oldest first. The context is the project's, for a store that reads the entries back. */
-  def entries(project: Identifier)(implicit context: PluginContext): Seq[ChangeEntry]
+  /** The headers of all entries of a project, oldest first. Read on every write and by every listing, so a store keeps
+    * them at hand. */
+  def headers(project: Identifier): Seq[ChangeHeader]
+
+  /** An entry of a project with its change, or None if the journal holds no entry with this seq. The context is the
+    * project's, for a store that reads the change back. */
+  def entry(project: Identifier, seq: Int)(implicit context: PluginContext): Option[ChangeEntry]
 
   /** The seq of a project's newest entry, 0 if it has none. Read on every write and needs no context. */
   def latestSeq(project: Identifier): Int

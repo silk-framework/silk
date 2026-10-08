@@ -15,7 +15,9 @@ case class EmptyChangeJournalStore() extends ChangeJournalStore {
 
   override def append(project: Identifier, entry: ChangeEntry)(implicit context: PluginContext): Unit = { }
 
-  override def entries(project: Identifier)(implicit context: PluginContext): Seq[ChangeEntry] = Seq.empty
+  override def headers(project: Identifier): Seq[ChangeHeader] = Seq.empty
+
+  override def entry(project: Identifier, seq: Int)(implicit context: PluginContext): Option[ChangeEntry] = None
 
   override def latestSeq(project: Identifier): Int = 0
 

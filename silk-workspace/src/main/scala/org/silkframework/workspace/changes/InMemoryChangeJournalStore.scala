@@ -20,8 +20,12 @@ case class InMemoryChangeJournalStore(@Param("The number of entries kept per pro
     journals += project -> (journals.getOrElse(project, Vector.empty) :+ entry).takeRight(maxEntries)
   }
 
-  override def entries(project: Identifier)(implicit context: PluginContext): Seq[ChangeEntry] = synchronized {
-    journals.getOrElse(project, Vector.empty)
+  override def headers(project: Identifier): Seq[ChangeHeader] = synchronized {
+    journals.getOrElse(project, Vector.empty).map(_.header)
+  }
+
+  override def entry(project: Identifier, seq: Int)(implicit context: PluginContext): Option[ChangeEntry] = synchronized {
+    journals.getOrElse(project, Vector.empty).find(_.seq == seq)
   }
 
   override def latestSeq(project: Identifier): Int = synchronized {

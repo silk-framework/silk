@@ -67,7 +67,7 @@ abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with Tes
   private def ruleIds(task: ProjectTask[TransformSpec]): Seq[String] = task.data.mappingRule.rules.allRules.map(_.id.toString)
 
   /** The revert conflict of one entry, as a request about it alone would report it. */
-  private def revertConflict(journal: ChangeJournal, entry: ChangeEntry): Option[String] = journal.revertConflicts(Seq(entry)).get(entry.seq)
+  private def revertConflict(journal: ChangeJournal, header: ChangeHeader): Option[String] = journal.revertConflicts(Seq(header)).get(header.seq)
 
   /** Reverts an entry while this thread holds `monitor`, see [[duringWrite]]. */
   private def revertDuringWrite(journal: ChangeJournal, seq: Int, monitor: AnyRef)(write: => Unit): Try[ChangeEntry] = {
@@ -110,13 +110,20 @@ abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with Tes
     project.updateTask[TransformSpec]("transform", transform(name, age))
     project.removeTask[TransformSpec]("transform")
 
-    val entries = project.changeJournal.all
-    entries.map(_.seq) shouldBe Seq(1, 2, 3)
-    entries.map(_.change.describe) shouldBe
+    val journal = project.changeJournal
+    val headers = journal.all
+    headers.map(_.seq) shouldBe Seq(1, 2, 3)
+    headers.map(_.describe) shouldBe
       Seq("Added transform 'transform': Mapping rule 'name' added", "Updated transform 'transform': Mapping rule 'age' added", "Removed transform 'transform'")
-    entries.map(_.reverts) shouldBe Seq(None, None, None)
-    // The task parameters may be sensitive, so a change never prints the task data
+    headers.map(_.reverts) shouldBe Seq(None, None, None)
+    // The changes are read on demand; the task parameters may be sensitive, so a change never prints the task data
+    val entries = headers.flatMap(header => journal.entry(header.seq))
     entries.map(_.change.toString) shouldBe Seq("AddTask(transform)", "ReplaceTask(transform)", "RemoveTask(transform)")
+    // The header the store keeps is the one derived from the change it reads back
+    for(entry <- entries) {
+      ChangeEntry(entry.seq, entry.timestamp, entry.user, entry.origin, entry.change, entry.reverts, entry.fulfils) shouldBe entry
+    }
+    journal.entry(4) shouldBe None
   }
 
   it should "not record an update of a file based dataset that changes nothing" in {
@@ -127,7 +134,7 @@ abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with Tes
     }
     project.addTask[GenericDatasetSpec]("dataset", dataset)
     project.updateTask[GenericDatasetSpec]("dataset", dataset)
-    project.changeJournal.all.map(_.change.describe) shouldBe Seq("Added Text dataset 'dataset': File: 'data.txt'")
+    project.changeJournal.all.map(_.describe) shouldBe Seq("Added Text dataset 'dataset': File: 'data.txt'")
 
     // The recording wrapper keeps the value equality of the resources it wraps, also in sub directories
     project.resources.get("data.txt") shouldBe project.resources.get("data.txt")
@@ -161,7 +168,7 @@ abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with Tes
     removed.change shouldBe a[RemoveTask]
     project.anyTaskOption("other") shouldBe None
     // The restored task keeps its creation metadata and is stamped as modified by the reverting user
-    val created = added.change.asInstanceOf[AddTask].task.metaData
+    val created = journal.entry(added.seq).get.change.asInstanceOf[AddTask].task.metaData
     val agent = agentContext(origin = None)
     journal.revert(removed.seq)(agent)
     val restored = project.task[TransformSpec]("other")
@@ -250,7 +257,7 @@ abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with Tes
   }
 
   /** Removes the task 'transform' while a revert of the entry waits, and expects the revert to refuse without writing the task back. */
-  private def expectRefusedByRemoval(project: Project, entry: ChangeEntry): Unit = {
+  private def expectRefusedByRemoval(project: Project, entry: ChangeHeader): Unit = {
     implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
     val journal = project.changeJournal
     // A removal of the task holds the project's monitor and then the task's
@@ -281,8 +288,8 @@ abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with Tes
 
     outcome.get
     // The removal holds the task as the update left it
-    journal.all.map(_.change.toString) shouldBe Seq("AddTask(transform)", "ReplaceTask(transform)", "RemoveTask(transform)")
-    journal.all.last.change.asInstanceOf[RemoveTask].task.data shouldBe transform(name, age)
+    journal.all.map(_.changeType) shouldBe Seq("AddTask", "ReplaceTask", "RemoveTask")
+    journal.entry(journal.all.last.seq).get.change.asInstanceOf[RemoveTask].task.data shouldBe transform(name, age)
     // A write to the removed task is refused instead of writing it back
     a[TaskNotFoundException] should be thrownBy task.update(transform(name))
     a[TaskNotFoundException] should be thrownBy task.applyChange(AddMapping("transform", "root", city))
@@ -296,8 +303,8 @@ abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with Tes
     task.applyChange(AddMapping("transform", "root", age, index = Some(1)))
     ruleIds(task) shouldBe Seq("name", "age", "city")
     val added = project.changeJournal.all.last
-    added.change shouldBe AddMapping("transform", "root", age, Some(1))
-    added.change.describe shouldBe "Added value mapping 'age' (age → http://example.org/age) under 'root' in transform 'transform'"
+    project.changeJournal.entry(added.seq).get.change shouldBe AddMapping("transform", "root", age, Some(1))
+    added.describe shouldBe "Added value mapping 'age' (age → http://example.org/age) under 'root' in transform 'transform'"
 
     // A later change to another rule does not block the revert, as only the added rule is removed
     task.applyChange(UpdateMapping.of(task, "city", city.copy(id = "town")))
@@ -370,7 +377,7 @@ abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with Tes
     a[ChangeConflictException] should be thrownBy task.applyChange(AddMapping("transform", "unknown", age))
 
     ruleIds(task) shouldBe Seq("name", "address")
-    project.changeJournal.all.map(_.change.getClass.getSimpleName) shouldBe Seq("AddTask", "AddMapping")
+    project.changeJournal.all.map(_.changeType) shouldBe Seq("AddTask", "AddMapping")
   }
 
   it should "refuse to revert a rule update once the rule changed again" in {
@@ -416,14 +423,14 @@ abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with Tes
     journal.revertConflicts(journal.all) shouldBe Map(datasetAdded.seq -> referenced,
       transformAdded.seq -> "Task 'transform' in project 'journalRevertConflicts' has been changed since.",
       mappingAdded.seq -> "Rule 'name' in transform 'transform' has been changed since.")
-    // An entry without inverse has no conflict to report
-    revertConflict(journal, ChangeEntry(0, Instant.now, None, None, WorkflowExecuted("transform", None, failed = false))) shouldBe None
-
     // Reverting the changes that stood in the way clears it: the batch unwinds newest-first
     journal.revertAll(Seq(transformAdded.seq, mappingAdded.seq, journal.all.last.seq)).foreach(_ shouldBe a[RevertOutcome.Reverted])
     revertConflict(journal, datasetAdded) shouldBe None
     journal.revert(datasetAdded.seq)
     project.anyTaskOption("dataset") shouldBe None
+
+    // An entry without inverse has no conflict to report
+    revertConflict(journal, journal.record(WorkflowExecuted("transform", None, failed = false)).get.header) shouldBe None
   }
 
   it should "report a revert whose result the task refuses as a conflict instead of failing on it" in {
@@ -493,16 +500,16 @@ abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with Tes
     val project = retrieveOrCreateProject("journalLabels")
     val journal = project.changeJournal
     val task = project.addTask[TransformSpec]("transform", transform(name), MetaData(Some("Persons")))
-    journal.all.last.change.describe shouldBe "Added transform 'Persons': Mapping rule 'name' added"
+    journal.all.last.describe shouldBe "Added transform 'Persons': Mapping rule 'name' added"
 
     val labeledCity = city.copy(metaData = MetaData(Some("City")))
     task.applyChange(AddMapping.of(task, "root", labeledCity))
     val added = journal.all.last
-    added.change.describe shouldBe "Added value mapping 'City' (city → http://example.org/city) under 'root' in transform 'Persons'"
+    added.describe shouldBe "Added value mapping 'City' (city → http://example.org/city) under 'root' in transform 'Persons'"
 
     // A whole-task update names the task as the update left it; a revert keeps the label captured with the change
     project.updateTask[TransformSpec]("transform", transform(name, labeledCity), Some(MetaData(Some("People"))))
-    journal.all.last.change.describe shouldBe "Updated transform 'People', renamed from 'Persons'"
+    journal.all.last.describe shouldBe "Updated transform 'People', renamed from 'Persons'"
     journal.revert(added.seq).change.describe shouldBe "Removed mapping rule 'City' from transform 'Persons'"
   }
 
@@ -572,7 +579,8 @@ abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with Tes
     // A proposal queues for review like any other agent change
     val proposal = journal.propose(ProposedWorkflowRun("wf"))(agent)
     proposal.change.describe shouldBe "Proposed to run workflow 'wf'"
-    journal.openRunProposal("wf") shouldBe Some(proposal)
+    journal.openRunProposal("wf") shouldBe Some(proposal.header)
+    proposal.header.proposal shouldBe true
     journal.openRunProposal("other") shouldBe None
     journal.unreviewed.map(_.seq) shouldBe Seq(proposal.seq)
 
@@ -585,7 +593,7 @@ abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with Tes
 
     // A later run of the task consumes the open proposal; run under the approval, it needs no review of its own
     val again = journal.propose(ProposedWorkflowRun("wf"))(agent)
-    journal.openRunProposal("wf") shouldBe Some(again)
+    journal.openRunProposal("wf") shouldBe Some(again.header)
     journal.markReviewed(again.seq)
     val run = journal.record(WorkflowExecuted("wf", None, failed = false))(agent).get
     journal.openRunProposal("wf") shouldBe None
@@ -620,12 +628,12 @@ abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with Tes
 
     // The user's own writes do not queue for review: the watermark follows them while nothing waits, then stops
     journal.reviewedUpTo shouldBe 1
-    journal.unreviewed.map(_.change.describe) shouldBe Seq("Added transform 'byAgent': Mapping rule 'age' added", "Added transform 'alsoAgent': Mapping rule 'city' added")
+    journal.unreviewed.map(_.describe) shouldBe Seq("Added transform 'byAgent': Mapping rule 'age' added", "Added transform 'alsoAgent': Mapping rule 'city' added")
 
     // Reviews only add up; a review beyond the latest change is refused
     journal.markReviewed(2)
     journal.reviewedUpTo shouldBe 2
-    journal.unreviewed.map(_.change.describe) shouldBe Seq("Added transform 'alsoAgent': Mapping rule 'city' added")
+    journal.unreviewed.map(_.describe) shouldBe Seq("Added transform 'alsoAgent': Mapping rule 'city' added")
     journal.markReviewed(1)
     journal.reviewedUpTo shouldBe 2
     a[ChangeConflictException] should be thrownBy journal.markReviewed(99)
@@ -681,7 +689,7 @@ abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with Tes
     variables.put(TemplateVariables(Seq(variable("b", "3"), variable("c", "4"), variable("d", "3", Some("{{project.b}}")))))
     variables.put(TemplateVariables(Seq(variable("b", "3"), variable("c", "4"), variable("d", "other", Some("{{project.b}}")))))
 
-    project.changeJournal.all.map(_.change.describe) shouldBe Seq("Added variable 'a' = '1'", "Added variable 'b' = '2'",
+    project.changeJournal.all.map(_.describe) shouldBe Seq("Added variable 'a' = '1'", "Added variable 'b' = '2'",
       "Set variable 'b': '2' → '3'", "Added variable 'c' = '4'", "Removed variable 'a' ('1')",
       "Added variable 'd' = template '{{project.b}}'")
 
@@ -707,7 +715,7 @@ abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with Tes
 
     // Each modification reads, computes and writes; as one step, neither overwrites the other
     project.templateVariables.all.map.keySet shouldBe Set("a", "b")
-    project.changeJournal.all.map(_.change.describe).sorted shouldBe Seq("Added variable 'a' = '1'", "Added variable 'b' = '1'")
+    project.changeJournal.all.map(_.describe).sorted shouldBe Seq("Added variable 'a' = '1'", "Added variable 'b' = '1'")
   }
 
   it should "revert variable changes while the variable is unchanged" in {
@@ -717,7 +725,7 @@ abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with Tes
     UpdateVariableModification(project, variable("a", "1")).execute()
     UpdateVariableModification(project, variable("a", "2")).execute()
     val set = journal.all.last
-    set.change shouldBe SetVariable(Some(variable("a", "1")), variable("a", "2"))
+    journal.entry(set.seq).get.change shouldBe SetVariable(Some(variable("a", "1")), variable("a", "2"))
 
     // Revert the change, then revert the revert
     val reverted = journal.revert(set.seq)
@@ -777,11 +785,11 @@ abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with Tes
     // The dataset follows the variable; only the variable change is recorded
     UpdateVariableModification(project, variable("fileName", "b.csv")).execute()
     file shouldBe "b.csv"
-    journal.all.drop(recorded).map(_.change.describe) shouldBe Seq("Set variable 'fileName': 'a.csv' → 'b.csv'")
+    journal.all.drop(recorded).map(_.describe) shouldBe Seq("Set variable 'fileName': 'a.csv' → 'b.csv'")
     val reverted = journal.revert(journal.all.last.seq)
     file shouldBe "a.csv"
     reverted.reverts shouldBe Some(journal.all(recorded).seq)
-    journal.all.drop(recorded + 1).map(_.change.describe) shouldBe Seq("Set variable 'fileName': 'b.csv' → 'a.csv'")
+    journal.all.drop(recorded + 1).map(_.describe) shouldBe Seq("Set variable 'fileName': 'b.csv' → 'a.csv'")
 
     // A variable that a task uses cannot be removed by reverting its addition, which is told before the revert is tried
     val used = "Variable 'fileName' in project 'journalVariableTasks' is still used by task 'dataset'."
@@ -858,16 +866,16 @@ abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with Tes
       file.writeString("first")
       file.writeString("second!")
       file.delete()
-      journal.all.map(_.change.describe) shouldBe
+      journal.all.map(_.describe) shouldBe
         Seq("Added file 'data.txt' (5 B)", "Overwrote file 'data.txt' (5 B → 7 B)", "Deleted file 'data.txt' (7 B)")
       // The previous content is not kept, so only a creation has an inverse
-      journal.all.map(_.change.inverse.isDefined) shouldBe Seq(true, false, false)
+      journal.all.map(_.revertible) shouldBe Seq(true, false, false)
       (the[ChangeConflictException] thrownBy journal.revert(journal.all.last.seq)).getMessage should include("cannot be reverted")
 
       // Reverting a creation refuses once the file changed
       file.writeString("third")
       val created = journal.all.last
-      created.change shouldBe a[ResourceCreated]
+      created.changeType shouldBe "ResourceCreated"
       file.writeString("third, changed")
       a[ChangeConflictException] should be thrownBy journal.revert(created.seq)
       file.loadAsString() shouldBe "third, changed"
@@ -882,7 +890,7 @@ abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with Tes
       // Deleting a directory records the deletion of each file in it and removes the directory
       project.resources.child("folder").get("nested.txt").writeString("content")
       project.resources.delete("folder")
-      journal.all.map(_.change.describe).takeRight(2) shouldBe
+      journal.all.map(_.describe).takeRight(2) shouldBe
         Seq("Added file 'folder/nested.txt' (7 B)", "Deleted file 'folder/nested.txt' (7 B)")
       project.resources.listChildren should not contain "folder"
     }
@@ -906,8 +914,8 @@ abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with Tes
       file.writeString("content")
       a[RuntimeException] should be thrownBy failingWrite(file)
       journal.all should have size 2
-      journal.all.head.change shouldBe a[ResourceCreated]
-      journal.all.last.change shouldBe a[ResourceOverwritten]
+      journal.all.head.changeType shouldBe "ResourceCreated"
+      journal.all.last.changeType shouldBe "ResourceOverwritten"
     }
 
     // Outside a request, e.g. in an activity, nothing is recorded and a failed creation is left as it is

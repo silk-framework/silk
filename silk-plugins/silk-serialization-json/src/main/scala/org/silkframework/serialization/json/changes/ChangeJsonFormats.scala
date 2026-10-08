@@ -30,59 +30,108 @@ object ChangeJsonFormats {
 
   private val logger = Logger.getLogger(getClass.getName)
 
-  implicit object ChangeEntryJsonFormat extends JsonFormat[ChangeEntry] {
+  /** The header of an entry: every field of the envelope but `change`. */
+  implicit object ChangeHeaderJsonFormat extends JsonFormat[ChangeHeader] {
 
-    override def read(value: JsValue)(implicit readContext: ReadContext): ChangeEntry = {
+    /**
+      * The header of a stored line without parsing its change: the writer puts `change` last, so the header ends where
+      * `,"change":` begins. Inside a JSON string every quote is escaped, so the sequence cannot occur earlier in the line.
+      */
+    def readLine(line: String): ChangeHeader = {
+      val cut = line.indexOf(CHANGE_FIELD)
+      read(Json.parse(if(cut >= 0) line.substring(0, cut) + "}" else line))(ReadContext.empty)
+    }
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): ChangeHeader = {
       val version = integer(value, "version")
       // Whatever the version: an entry needs its seq and timestamp to be placed, and its type to be listed
       val seq = integer(value, "seq")
       val timestamp = Instant.parse(stringValue(value, "timestamp"))
       val changeType = stringValue(value, "type")
-      def summary: String = stringValueOption(value, "summary").getOrElse(changeType)
+      val summary = stringValueOption(value, "summary").getOrElse(changeType)
+      // The fields of this version; an entry of another version is listed as a placeholder, without details and not revertible
+      def ofThisVersion[T](field: => Option[T]): Option[T] = if(version == VERSION) field else None
+      val details = ofThisVersion(arrayValueOption(value, "details")).map(_.value.toSeq.map(detail =>
+        ChangeDetail(stringValue(detail, "label"), stringValueOption(detail, "before"), stringValueOption(detail, "after"))))
+      ChangeHeader(seq, timestamp, stringValueOption(value, "user"), stringValueOption(value, "origin"), changeType, summary,
+        details.getOrElse(Seq.empty),
+        revertible = ofThisVersion(booleanValueOption(value, "revertible")).getOrElse(false),
+        proposal = ofThisVersion(booleanValueOption(value, "proposal")).getOrElse(false),
+        taskId = ofThisVersion(stringValueOption(value, "taskId")).map(Identifier(_)),
+        ruleId = ofThisVersion(stringValueOption(value, "ruleId")).map(Identifier(_)),
+        path = ofThisVersion(stringValueOption(value, "path")),
+        executionId = ofThisVersion(stringValueOption(value, "executionId")),
+        reverts = integerOption(value, "reverts"), fulfils = integerOption(value, "fulfils"))
+    }
+
+    override def write(header: ChangeHeader)(implicit writeContext: WriteContext[JsValue]): JsValue = JsObject(fields(header))
+
+    /** The fields in the order they are written; optional ones are left out when unset. */
+    def fields(header: ChangeHeader): Seq[(String, JsValue)] = {
+      Seq("version" -> JsNumber(VERSION), "seq" -> JsNumber(header.seq), "timestamp" -> JsString(header.timestamp.toString),
+        "type" -> JsString(header.changeType)) ++
+      field("user", header.user) ++
+      field("origin", header.origin) ++
+      field("reverts", header.reverts) ++
+      field("fulfils", header.fulfils) ++
+      Seq("summary" -> JsString(header.summary)) ++
+      (if(header.details.nonEmpty) Seq("details" -> JsArray(header.details.map(detailJson))) else Seq.empty) ++
+      Seq("revertible" -> JsBoolean(header.revertible)) ++
+      (if(header.proposal) Seq("proposal" -> JsBoolean(true)) else Seq.empty) ++
+      field("taskId", header.taskId.map(_.toString)) ++
+      field("ruleId", header.ruleId.map(_.toString)) ++
+      field("path", header.path) ++
+      field("executionId", header.executionId)
+    }
+
+    private def detailJson(detail: ChangeDetail): JsObject = {
+      JsObject(Seq("label" -> JsString(detail.label)) ++ field("before", detail.before) ++ field("after", detail.after))
+    }
+  }
+
+  /** The whole entry: the header fields and the change under `change`, which comes last. */
+  implicit object ChangeEntryJsonFormat extends JsonFormat[ChangeEntry] {
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): ChangeEntry = {
+      val header = ChangeHeaderJsonFormat.read(value)
+      val version = integer(value, "version")
       val change = {
         if(version != VERSION) {
-          unreadable(seq, changeType, summary, s"version $version is not supported, this is version $VERSION")
+          unreadable(header, s"version $version is not supported, this is version $VERSION")
         } else {
           try {
-            ChangeJsonFormat.read(objectValue(value, "change"), changeType)
+            ChangeJsonFormat.read(objectValue(value, "change"), header.changeType)
           } catch {
-            case NonFatal(ex) => unreadable(seq, changeType, summary, Change.reason(ex))
+            case NonFatal(ex) => unreadable(header, Change.reason(ex))
           }
         }
       }
-      ChangeEntry(seq, timestamp, stringValueOption(value, "user"), stringValueOption(value, "origin"), change,
-        integerOption(value, "reverts"), integerOption(value, "fulfils"))
+      ChangeEntry(header, change)
     }
 
-    private def integer(json: JsValue, name: String): Int = toInt(name, numberValue(json, name))
-
-    private def integerOption(json: JsValue, name: String): Option[Int] = numberValueOption(json, name).map(toInt(name, _))
-
-    private def toInt(name: String, number: BigDecimal): Int = {
-      if(!number.isValidInt) throw JsonParseException(s"'$name' must be an integer, but is $number.")
-      number.toInt
-    }
-
-    private def unreadable(seq: Int, changeType: String, summary: String, reason: String)
-                          (implicit readContext: ReadContext): UnreadableChange = {
+    private def unreadable(header: ChangeHeader, reason: String)(implicit readContext: ReadContext): UnreadableChange = {
       val project = readContext.projectId.map(id => s" of project '$id'").getOrElse("")
-      logger.warning(s"Change $seq$project ($changeType) cannot be read and is listed without its content: $reason")
-      UnreadableChange(changeType, summary)
+      logger.warning(s"Change ${header.seq}$project (${header.changeType}) cannot be read and stands in without its content: $reason")
+      UnreadableChange(header.changeType, header.summary)
     }
 
     /** The payload is written with full URIs, whatever the caller's prefixes: a stored rule must survive a change of the project's prefixes. */
     override def write(entry: ChangeEntry)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       val change = ChangeJsonFormat.write(entry.change)(writeContext.copy(prefixes = Prefixes.empty))
-      JsObject(
-        Seq("version" -> JsNumber(VERSION), "seq" -> JsNumber(entry.seq), "timestamp" -> JsString(entry.timestamp.toString),
-          "type" -> JsString(entry.change.changeType)) ++
-        field("user", entry.user) ++
-        field("origin", entry.origin) ++
-        field("reverts", entry.reverts) ++
-        field("fulfils", entry.fulfils) ++
-        Seq("summary" -> JsString(entry.change.summary), "change" -> change)
-      )
+      JsObject(ChangeHeaderJsonFormat.fields(entry.header) :+ ("change" -> change))
     }
+  }
+
+  // The start of the change field within a stored line, which the writer puts last
+  private val CHANGE_FIELD = ",\"change\":"
+
+  private def integer(json: JsValue, name: String): Int = toInt(name, numberValue(json, name))
+
+  private def integerOption(json: JsValue, name: String): Option[Int] = numberValueOption(json, name).map(toInt(name, _))
+
+  private def toInt(name: String, number: BigDecimal): Int = {
+    if(!number.isValidInt) throw JsonParseException(s"'$name' must be an integer, but is $number.")
+    number.toInt
   }
 
   /**

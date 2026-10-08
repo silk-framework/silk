@@ -78,7 +78,7 @@ class ChangeJournalExportTest extends AnyFlatSpec with Matchers with ConfigTestT
     val source = workspace()
     val project = projectWithHistory(source, "exported")
     val entries = project.changeJournal.all
-    entries.map(_.change.changeType) shouldBe Seq("AddTask", "AddTask")
+    entries.map(_.changeType) shouldBe Seq("AddTask", "AddTask")
 
     // With and without resources the archive carries the journal; without user data it does not
     val withResources = exportProject(project, XmlZipWithResourcesProjectMarshaling())

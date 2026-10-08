@@ -23,7 +23,7 @@ import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.serialization.json.JsonSerializers.{GenericTaskJsonFormat, TransformRuleJsonFormat}
 import org.silkframework.serialization.json.TemplateVariableJson
 import org.silkframework.serialization.json.WorkflowSerializers.{WorkflowDatasetJsonFormat, WorkflowOperatorJsonFormat}
-import org.silkframework.serialization.json.changes.ChangeJsonFormats.ChangeEntryJsonFormat
+import org.silkframework.serialization.json.changes.ChangeJsonFormats.{ChangeEntryJsonFormat, ChangeHeaderJsonFormat}
 import org.silkframework.util.{ConfigTestTrait, DPair, Identifier, Uri}
 import org.silkframework.workspace.activity.workflow.{TaskIdentifierParameter, Workflow, WorkflowDataset, WorkflowOperator}
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
@@ -140,21 +140,30 @@ abstract class ChangePayloadRoundTripTrait extends AnyFlatSpec with Matchers wit
     val journal = project.changeJournal
     implicit val readContext: ReadContext = ReadContext.fromProject(project)
     implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
-    val entries = journal.all
-    entries.map(_.change.changeType).toSet should contain allElementsOf Seq("AddTask", "ReplaceTask", "RemoveTask",
+    val headers = journal.all
+    headers.map(_.changeType).toSet should contain allElementsOf Seq("AddTask", "ReplaceTask", "RemoveTask",
       "AddMapping", "UpdateMapping", "ReorderMappings", "RemoveMapping", "AddWorkflowNode", "ConnectWorkflowNodes",
       "DisconnectWorkflowNodes", "RemoveWorkflowNode", "SetVariable", "RemoveVariable", "ResourceCreated",
       "ResourceOverwritten", "ResourceDeleted", "ProposedWorkflowRun", "DiscardedWorkflowRun")
+    // The entries as the store reads them back; the header it kept for each is the one derived from the change read back
+    val entries = headers.flatMap(header => journal.entry(header.seq))
+    for(entry <- entries) {
+      withClue(s"Entry ${entry.seq}") { ChangeEntry(entry.seq, entry.timestamp, entry.user, entry.origin, entry.change, entry.reverts, entry.fulfils) shouldBe entry }
+    }
     val read = for(entry <- entries) yield {
       val line = Json.stringify(ChangeEntryJsonFormat.write(entry))
       line should not include "\n"
       // Full URIs although the writer's context has the 'ex' prefix: the project's prefixes may change later
       line should not include "\"ex:"
+      // The header is read without the change, details and keys included
+      withClue(s"Entry ${entry.seq} written as\n$line\n") { ChangeHeaderJsonFormat.readLine(line) shouldBe entry.header }
       val readEntry = ChangeEntryJsonFormat.read(Json.parse(line))
       withClue(s"Entry ${entry.seq} written as\n$line\n") { readEntry shouldBe entry }
       readEntry
     }
-    journal.revertConflicts(read) shouldBe journal.revertConflicts(entries)
+    // The inverses of the read entries conflict as those of the recorded ones do
+    val conflicts = new ConflictContext(project)
+    read.map(_.change.inverse.flatMap(_.conflict(conflicts))) shouldBe entries.map(_.change.inverse.flatMap(_.conflict(conflicts)))
   }
 
   /** Records one entry of every change type that the project's writes produce; the recorded changes without a payload

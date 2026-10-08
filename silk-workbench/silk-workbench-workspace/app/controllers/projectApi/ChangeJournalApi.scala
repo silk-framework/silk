@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.workspace.changes.{ChangeDetail, ChangeEntry, RevertOutcome}
+import org.silkframework.workspace.changes.{ChangeDetail, ChangeHeader, RevertOutcome}
 import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json.{Format, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
@@ -183,7 +183,7 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
              )
              seq: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectId)
-    Ok(Json.toJson(ChangeEntryJson.of(project, project.changeJournal.revert(seq), revertedBy = None)))
+    Ok(Json.toJson(ChangeEntryJson.of(project, project.changeJournal.revert(seq).header, revertedBy = None)))
   }
 
   @Operation(
@@ -306,12 +306,12 @@ object ChangeJournalApi {
 
     implicit val format: Format[ChangeEntryJson] = Json.format[ChangeEntryJson]
 
-    /** The JSON of an entry; a freshly recorded entry is neither reverted nor fulfilled yet. */
-    def of(project: Project, entry: ChangeEntry, revertedBy: Option[Int], fulfilledBy: Option[Int] = None, unreviewed: Boolean = false)
+    /** The JSON of an entry from its header; a freshly recorded entry is neither reverted nor fulfilled yet. */
+    def of(project: Project, header: ChangeHeader, revertedBy: Option[Int], fulfilledBy: Option[Int] = None, unreviewed: Boolean = false)
           (implicit userContext: UserContext): ChangeEntryJson = {
-      ChangeEntryJson(entry.seq, entry.timestamp.toString, entry.user, entry.origin, entry.change.changeType,
-        entry.change.describe, entry.change.summary, entry.change.details.map(ChangeDetailJson.of), ChangeLinks.of(project, entry.change),
-        entry.change.inverse.isDefined && fulfilledBy.isEmpty, entry.reverts, revertedBy, fulfilledBy,
+      ChangeEntryJson(header.seq, header.timestamp.toString, header.user, header.origin, header.changeType,
+        header.describe, header.summary, header.details.map(ChangeDetailJson.of), ChangeLinks.of(project, header),
+        header.revertible && fulfilledBy.isEmpty, header.reverts, revertedBy, fulfilledBy,
         unreviewed = if(unreviewed) Some(true) else None)
     }
   }
@@ -400,7 +400,7 @@ object ChangeJournalApi {
     def of(project: Project, outcome: RevertOutcome)(implicit userContext: UserContext): RevertOutcomeJson = {
       outcome match {
         case RevertOutcome.Reverted(seq, entry) =>
-          RevertOutcomeJson(seq, "reverted", None, Some(ChangeEntryJson.of(project, entry, revertedBy = None)))
+          RevertOutcomeJson(seq, "reverted", None, Some(ChangeEntryJson.of(project, entry.header, revertedBy = None)))
         case RevertOutcome.Skipped(seq, reason) =>
           RevertOutcomeJson(seq, "skipped", Some(reason), None)
         case RevertOutcome.Unchanged(seq, reason) =>

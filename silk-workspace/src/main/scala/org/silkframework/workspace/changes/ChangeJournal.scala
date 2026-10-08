@@ -11,22 +11,43 @@ import java.time.Instant
 import scala.util.control.NonFatal
 
 /**
-  * A recorded change.
-  *
-  * @param seq       The sequence number of this entry, unique and increasing within the project's journal.
-  * @param timestamp When the change was recorded.
-  * @param user      The URI of the user who made the change, if known.
-  * @param origin    The client the change came from, e.g. "mcp:<client name>", if known.
-  * @param change    The change that was applied.
-  * @param reverts   The seq of the entry this change reverts, if it was recorded by reverting one.
-  * @param fulfils   The seq of the proposal this change fulfilled, if any, e.g. a workflow run fulfils the proposal to run
-  *                  that workflow.
+  * A recorded change: its header, which a store keeps in memory, and the change that was applied, which a store reads
+  * when the entry is asked for. A new entry is built through the companion, which derives the header from the change;
+  * a store that reads an entry back pairs the stored header with the change.
   */
-case class ChangeEntry(seq: Int, timestamp: Instant, user: Option[String], origin: Option[String], change: Change,
-                       reverts: Option[Int] = None, fulfils: Option[Int] = None) {
+case class ChangeEntry(header: ChangeHeader, change: Change) {
 
-  /** Whether the change came in through a client that names itself, e.g. an MCP agent; these queue for user review. */
-  def agentWrite: Boolean = origin.isDefined
+  def seq: Int = header.seq
+
+  def timestamp: Instant = header.timestamp
+
+  def user: Option[String] = header.user
+
+  def origin: Option[String] = header.origin
+
+  def reverts: Option[Int] = header.reverts
+
+  def fulfils: Option[Int] = header.fulfils
+}
+
+object ChangeEntry {
+
+  /**
+    * A newly recorded change.
+    *
+    * @param seq       The sequence number of the entry, unique and increasing within the project's journal.
+    * @param timestamp When the change was recorded.
+    * @param user      The URI of the user who made the change, if known.
+    * @param origin    The client the change came from, e.g. "mcp:<client name>", if known.
+    * @param change    The change that was applied.
+    * @param reverts   The seq of the entry this change reverts, if it was recorded by reverting one.
+    * @param fulfils   The seq of the proposal this change fulfilled, if any, e.g. a workflow run fulfils the proposal to
+    *                  run that workflow.
+    */
+  def apply(seq: Int, timestamp: Instant, user: Option[String], origin: Option[String], change: Change,
+            reverts: Option[Int] = None, fulfils: Option[Int] = None): ChangeEntry = {
+    ChangeEntry(ChangeHeader.of(seq, timestamp, user, origin, change, reverts, fulfils), change)
+  }
 }
 
 /**
@@ -37,7 +58,7 @@ case class ChangeEntry(seq: Int, timestamp: Instant, user: Option[String], origi
   */
 class ChangeJournal(project: Project, loadingUser: UserContext) {
 
-  // Built once, as task loading does: the store reads a project's entries once and keeps them.
+  // Built once, as task loading does: the store reads an entry's change with it when the journal asks for the entry.
   private implicit lazy val readContext: PluginContext = PluginContext.fromProject(project)(loadingUser)
 
   // The seq of the entry that this thread is reverting, if any. The method `record` below copies it into the
@@ -54,10 +75,13 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
   // Resolved per call, so a config reload swaps the store.
   private def store: ChangeJournalStore = ChangeJournalStore()
 
-  /** All entries, oldest first. */
-  def all: Seq[ChangeEntry] = store.entries(project.id)
+  /** The headers of all entries, oldest first. */
+  def all: Seq[ChangeHeader] = store.headers(project.id)
 
-  def entry(seq: Int): Option[ChangeEntry] = all.find(_.seq == seq)
+  /** An entry with its change, read from the store on demand; None if the journal holds no entry with this seq. */
+  def entry(seq: Int): Option[ChangeEntry] = store.entry(project.id, seq)
+
+  private def header(seq: Int): Option[ChangeHeader] = all.find(_.seq == seq)
 
   /** The seq up to which no change waits for review: set by a review, moved along by `record` while no agent change
     * waits and the cap has dropped nothing unreviewed; 0 at the start. */
@@ -67,24 +91,24 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
     * cannot be read and which `all` leaves out; `markReviewed` accepts seqs up to this one. */
   def latestSeq: Int = store.latestSeq(project.id)
 
-  /** The entries and the reviewed watermark, read in one step, so that both describe the same journal state. */
-  def snapshot: (Seq[ChangeEntry], Int) = {
+  /** The headers and the reviewed watermark, read in one step, so that both describe the same journal state. */
+  def snapshot: (Seq[ChangeHeader], Int) = {
     val currentStore = store
-    currentStore.monitor(project.id).synchronized((currentStore.entries(project.id), currentStore.reviewedUpTo(project.id)))
+    currentStore.monitor(project.id).synchronized((currentStore.headers(project.id), currentStore.reviewedUpTo(project.id)))
   }
 
   /** The entries awaiting review, oldest first: the agent entries after the reviewed watermark.
     * Left out are reverted entries (their effect is undone) and runs that fulfil a reviewed proposal (approving the
     * proposal was the review). */
-  def unreviewed: Seq[ChangeEntry] = {
-    val (entries, watermark) = snapshot
-    unreviewed(entries, watermark)
+  def unreviewed: Seq[ChangeHeader] = {
+    val (headers, watermark) = snapshot
+    unreviewed(headers, watermark)
   }
 
-  def unreviewed(entries: Seq[ChangeEntry], watermark: Int): Seq[ChangeEntry] = {
-    val reverted = revertedBy(entries)
-    entries.filter { entry =>
-      entry.seq > watermark && entry.agentWrite && !reverted.contains(entry.seq) && !entry.fulfils.exists(_ <= watermark)
+  def unreviewed(headers: Seq[ChangeHeader], watermark: Int): Seq[ChangeHeader] = {
+    val reverted = revertedBy(headers)
+    headers.filter { header =>
+      header.seq > watermark && header.agentWrite && !reverted.contains(header.seq) && !header.fulfils.exists(_ <= watermark)
     }
   }
 
@@ -92,34 +116,33 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
     * prefix, so every seq below the oldest kept entry is gone, and every one of them above the watermark was
     * unreviewed when it went. User writes and reverted entries among them count too: the number bounds what the user
     * has not seen rather than counting agent writes. */
-  def droppedUnreviewed(entries: Seq[ChangeEntry], watermark: Int): Int = {
-    entries.headOption.fold(0)(oldest => math.max(0, oldest.seq - 1 - watermark))
+  def droppedUnreviewed(headers: Seq[ChangeHeader], watermark: Int): Int = {
+    headers.headOption.fold(0)(oldest => math.max(0, oldest.seq - 1 - watermark))
   }
 
   /** For each reverted entry, the seq of the entry that reverted it. */
   def revertedBy: Map[Int, Int] = revertedBy(all)
 
-  def revertedBy(entries: Seq[ChangeEntry]): Map[Int, Int] = {
-    entries.flatMap(entry => entry.reverts.map(_ -> entry.seq)).toMap
+  def revertedBy(headers: Seq[ChangeHeader]): Map[Int, Int] = {
+    headers.flatMap(header => header.reverts.map(_ -> header.seq)).toMap
   }
 
   /** For each fulfilled proposal, the seq of the entry that fulfilled it. A fulfilled proposal is final and cannot be discarded. */
   def fulfilledBy: Map[Int, Int] = fulfilledBy(all)
 
-  def fulfilledBy(entries: Seq[ChangeEntry]): Map[Int, Int] = {
-    entries.flatMap(entry => entry.fulfils.map(_ -> entry.seq)).toMap
+  def fulfilledBy(headers: Seq[ChangeHeader]): Map[Int, Int] = {
+    headers.flatMap(header => header.fulfils.map(_ -> header.seq)).toMap
   }
 
-  /** The proposals that are neither discarded nor fulfilled, oldest first, with their entries. */
-  private def openProposals(entries: Seq[ChangeEntry]): Seq[(ChangeEntry, Proposal)] = {
-    val reverted = revertedBy(entries)
-    val fulfilled = fulfilledBy(entries)
-    entries.flatMap { entry =>
-      entry.change match {
-        case proposal: Proposal if !reverted.contains(entry.seq) && !fulfilled.contains(entry.seq) => Some(entry -> proposal)
-        case _ => None
-      }
-    }
+  /** The proposals that are neither discarded nor fulfilled, oldest first, with their headers. The proposals themselves
+    * are read from the store; there is rarely more than one open. */
+  private def openProposals(headers: Seq[ChangeHeader]): Seq[(ChangeHeader, Proposal)] = {
+    val reverted = revertedBy(headers)
+    val fulfilled = fulfilledBy(headers)
+    for {
+      header <- headers if header.proposal && !reverted.contains(header.seq) && !fulfilled.contains(header.seq)
+      proposal <- entry(header.seq).map(_.change).collect { case proposal: Proposal => proposal }
+    } yield header -> proposal
   }
 
   /**
@@ -147,18 +170,18 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
   }
 
   /** The open proposal to run the task, if any: proposed, not discarded, and not fulfilled by a run of the task. */
-  def openRunProposal(taskId: Identifier): Option[ChangeEntry] = {
-    openProposals(all).collect { case (entry, ProposedWorkflowRun(`taskId`, _)) => entry }.lastOption
+  def openRunProposal(taskId: Identifier): Option[ChangeHeader] = {
+    openProposals(all).collect { case (header, ProposedWorkflowRun(`taskId`, _)) => header }.lastOption
   }
 
   /**
     * The open proposal to run the task, or a newly recorded one if there is none. Finding and recording is one
     * step under the store's monitor, so calls that arrive together share a proposal instead of stacking one each.
     */
-  def proposeRunIfAbsent(taskId: Identifier, proposal: Proposal)(implicit userContext: UserContext): ChangeEntry = {
+  def proposeRunIfAbsent(taskId: Identifier, proposal: Proposal)(implicit userContext: UserContext): ChangeHeader = {
     val currentStore = store
     currentStore.monitor(project.id).synchronized {
-      openRunProposal(taskId).getOrElse(propose(proposal))
+      openRunProposal(taskId).getOrElse(propose(proposal).header)
     }
   }
 
@@ -191,9 +214,9 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
       // The seq is taken under the store's monitor for the project.
       // While a project is reloaded it can have two journals, which share the store and its monitor.
       currentStore.monitor(project.id).synchronized {
-        val entries = currentStore.entries(project.id)
+        val headers = currentStore.headers(project.id)
         // Links the change to the latest open proposal it fulfils, e.g. a workflow run to the proposal to run that workflow.
-        val fulfils = openProposals(entries).findLast { case (_, proposal) => change.fulfils(proposal) }
+        val fulfils = openProposals(headers).findLast { case (_, proposal) => change.fulfils(proposal) }
         val entry = ChangeEntry(currentStore.latestSeq(project.id) + 1, Instant.now, requester.user.map(_.uri),
           userContext.executionContext.origin, change, reverting.get(), fulfils.map(_._1.seq))
         // A revert can record several entries, one per task it writes. Only the first is marked as the revert.
@@ -203,7 +226,7 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
         // under the cap while agent changes waited. Checked before the cap: a just dropped agent change still blocks it,
         // and once it is gone the dropped count blocks the move, so the count lasts until the next review.
         val watermark = currentStore.reviewedUpTo(project.id)
-        if(unreviewed(entries :+ entry, watermark).isEmpty && droppedUnreviewed(entries, watermark) == 0) {
+        if(unreviewed(headers :+ entry.header, watermark).isEmpty && droppedUnreviewed(headers, watermark) == 0) {
           currentStore.setReviewedUpTo(project.id, entry.seq)
         }
         Some(entry)
@@ -213,12 +236,23 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
 
   /**
     * The reason why each entry cannot be reverted as the project is now, by seq. Entries that can be reverted are absent.
-    * Asks [[Change.conflict]] of each inverse, with one [[ConflictContext]] shared by all entries.
-    * An entry without inverse is absent as well. Not checked: whether an entry has been reverted or fulfilled already.
+    * Reads each entry's change and asks [[Change.conflict]] of its inverse, with one [[ConflictContext]] shared by all
+    * entries. An entry without inverse is absent as well, unless its header says it has one and its stored change
+    * cannot be read. Not checked: whether an entry has been reverted or fulfilled already.
     */
-  def revertConflicts(entries: Seq[ChangeEntry])(implicit userContext: UserContext): Map[Int, String] = {
+  def revertConflicts(headers: Seq[ChangeHeader])(implicit userContext: UserContext): Map[Int, String] = {
     val context = new ConflictContext(project)
-    (for(entry <- entries; conflict <- entry.change.inverse.flatMap(_.conflict(context))) yield entry.seq -> conflict).toMap
+    (for(header <- headers; conflict <- revertConflict(header, context)) yield header.seq -> conflict).toMap
+  }
+
+  private def revertConflict(header: ChangeHeader, context: ConflictContext)(implicit userContext: UserContext): Option[String] = {
+    entry(header.seq).flatMap { entry =>
+      entry.change.inverse match {
+        case Some(inverse) => inverse.conflict(context)
+        case None if header.revertible => Some(s"Change ${header.seq} in project '${project.id}' cannot be reverted: its stored change cannot be read.")
+        case None => None
+      }
+    }
   }
 
   /**
@@ -250,7 +284,7 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
       reverting.remove()
       ChangeJournal.synchronized(ChangeJournal.revertsInProgress -= ((project.id, seq)))
     }
-    revertOf(seq).getOrElse(throw ChangeNotRevertedException(s"Change $seq in project '${project.id}' has not been " +
+    revertOf(seq).flatMap(header => entry(header.seq)).getOrElse(throw ChangeNotRevertedException(s"Change $seq in project '${project.id}' has not been " +
       "reverted: applying its inverse changed nothing that the journal records, so the state it restores is derived, " +
       "e.g. from a variable template."))
   }
@@ -270,11 +304,11 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
       if(stopped) {
         outcomes += RevertOutcome.NotAttempted(seq)
       } else {
-        entry(seq) match {
+        header(seq) match {
           case None =>
             outcomes += RevertOutcome.Skipped(seq, s"No change $seq in project '${project.id}'.")
-          case Some(e) if e.change.inverse.isEmpty =>
-            outcomes += RevertOutcome.Skipped(seq, s"Change $seq (${e.change.describe}) cannot be reverted.")
+          case Some(h) if !h.revertible =>
+            outcomes += RevertOutcome.Skipped(seq, s"Change $seq (${h.describe}) cannot be reverted.")
           case Some(_) if revertOf(seq).isDefined =>
             outcomes += RevertOutcome.Skipped(seq, s"Change $seq has been reverted already.")
           case Some(_) if fulfilled.contains(seq) =>
@@ -306,25 +340,25 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
     * as it writes to the project.
     */
   private def claimRevert(seq: Int): Change = {
-    // Loads the journal, if the store has not yet, before the companion's monitor is taken, which all projects share
-    all
+    // Read before the companion's monitor is taken, which all projects share: the first access loads the journal, and
+    // the change is read from the store. An entry's change never changes, so the checks below may follow the read.
+    val loaded = entry(seq).getOrElse(throw new NotFoundException(s"No change $seq in project '${project.id}'."))
     ChangeJournal.synchronized {
-      val entries = all
-      val entry = entries.find(_.seq == seq).getOrElse(throw new NotFoundException(s"No change $seq in project '${project.id}'."))
-      if(ChangeJournal.revertsInProgress.contains((project.id, seq)) || revertedBy(entries).contains(seq)) {
+      val headers = all
+      if(ChangeJournal.revertsInProgress.contains((project.id, seq)) || revertedBy(headers).contains(seq)) {
         throw ChangeConflictException(s"Change $seq in project '${project.id}' has been reverted already.")
       }
-      for(fulfilledBy <- fulfilledBy(entries).get(seq)) {
+      for(fulfilledBy <- fulfilledBy(headers).get(seq)) {
         throw ChangeConflictException(s"Change $seq in project '${project.id}' has been fulfilled by change $fulfilledBy.")
       }
-      val inverse = entry.change.inverse.getOrElse(
-        throw ChangeConflictException(s"Change $seq (${entry.change.describe}) in project '${project.id}' cannot be reverted."))
+      val inverse = loaded.change.inverse.getOrElse(
+        throw ChangeConflictException(s"Change $seq (${loaded.change.describe}) in project '${project.id}' cannot be reverted."))
       ChangeJournal.revertsInProgress += ((project.id, seq))
       inverse
     }
   }
 
-  private def revertOf(seq: Int): Option[ChangeEntry] = all.find(_.reverts.contains(seq))
+  private def revertOf(seq: Int): Option[ChangeHeader] = all.find(_.reverts.contains(seq))
 }
 
 /** The outcome of one entry within [[ChangeJournal.revertAll]]. */

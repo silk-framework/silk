@@ -4,10 +4,10 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.{InvalidPluginParameterValueException, PluginContext}
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
-import org.silkframework.serialization.json.changes.ChangeJsonFormats.ChangeEntryJsonFormat
+import org.silkframework.serialization.json.changes.ChangeJsonFormats.{ChangeEntryJsonFormat, ChangeHeaderJsonFormat}
 import org.silkframework.util.FileUtils._
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.changes.{Change, ChangeEntry, ChangeJournalStore}
+import org.silkframework.workspace.changes.{Change, ChangeEntry, ChangeHeader, ChangeJournalStore}
 import play.api.libs.json.{JsValue, Json}
 
 import java.nio.charset.StandardCharsets.UTF_8
@@ -20,10 +20,10 @@ import scala.util.control.NonFatal
 
 /**
   * Keeps the journal of each project in a folder of its own under `dir`: append-only segment files named after the
-  * seq of their first entry, one entry per line, and `reviewed.json` with the watermark. The entries of a project are
-  * parsed on first access and kept in memory; a segment holds about a tenth of the cap, and the oldest segments are
-  * deleted while the project exceeds the cap. See the file store section of the feature spec for the layout and the
-  * damage handling.
+  * seq of their first entry, one entry per line, and `reviewed.json` with the watermark. The headers of a project's
+  * entries are read on first access and kept in memory; the change of an entry is read from its segment when the
+  * entry is asked for. A segment holds about 1 MB, and the oldest segments are deleted while the project exceeds the
+  * cap. See the file store section of the feature spec for the layout and the damage handling.
   */
 @Plugin(
   id = "fileChangeJournal",
@@ -49,13 +49,10 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
 
   private val capBytes: Long = maxSizeInMB.toLong * 1024 * 1024
 
-  // A new segment starts once the newest one has reached a tenth of the cap
-  private val segmentBytes: Long = capBytes / 10
-
   // One lock object per project, never removed: a lock replaced while a thread holds it would guard nothing
   private val monitors = new ConcurrentHashMap[Identifier, AnyRef]()
 
-  // The loaded projects; a project is loaded on the first access to its entries and dropped by remove and import
+  // The loaded projects; a project is loaded on the first access to its headers and dropped by remove and import
   private val journals = new ConcurrentHashMap[Identifier, Journal]()
 
   override def monitor(project: Identifier): AnyRef = monitors.computeIfAbsent(project, _ => new Object)
@@ -66,7 +63,7 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
     require(entry.seq == journal.latestSeq + 1, s"Entry ${entry.seq} does not follow the latest entry ${journal.latestSeq} of project '$project'.")
     val line = (Json.stringify(ChangeEntryJsonFormat.write(entry)(WriteContext.fromPluginContext[JsValue]())) + "\n").getBytes(UTF_8)
     val (segment, olderSegments) = journal.segments.lastOption match {
-      case Some(newest) if newest.size < segmentBytes => (newest, journal.segments.init)
+      case Some(newest) if newest.size < SEGMENT_BYTES => (newest, journal.segments.init)
       case _ =>
         Files.createDirectories(projectDir(project))
         (Segment(entry.seq, segmentFile(project, entry.seq), Vector.empty, 0, 0L), journal.segments)
@@ -80,18 +77,28 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
         journals.remove(project)
         throw ex
     }
-    val appended = segment.copy(entries = segment.entries :+ entry, lines = segment.lines + 1, size = segment.size + line.length)
+    val appended = segment.copy(headers = segment.headers :+ entry.header, lines = segment.lines + 1, size = segment.size + line.length)
     val written = Journal(olderSegments :+ appended)
     // Cached before the cap runs: a cap that fails leaves the entry in place, and the next append tries the cap again
     journals.put(project, written)
     journals.put(project, capped(written))
   }
 
-  override def entries(project: Identifier)(implicit context: PluginContext): Seq[ChangeEntry] = monitor(project).synchronized {
-    loaded(project).entries
+  override def headers(project: Identifier): Seq[ChangeHeader] = monitor(project).synchronized {
+    loaded(project).headers
   }
 
-  /** Without a loaded journal, the name of the newest segment plus its number of lines; no payload is parsed. */
+  /** Reads the line of the entry from its segment: the seqs within a segment are contiguous, so its position is known. */
+  override def entry(project: Identifier, seq: Int)(implicit context: PluginContext): Option[ChangeEntry] = monitor(project).synchronized {
+    for {
+      segment <- loaded(project).segments.find(segment => segment.firstSeq <= seq && seq <= segment.lastSeq)
+      if Files.exists(segment.file)
+      line <- completeLines(Files.readAllBytes(segment.file)).lift(seq - segment.firstSeq)
+      entry <- readEntry(seq, line)(ReadContext.fromPluginContext()(context))
+    } yield entry
+  }
+
+  /** Without a loaded journal, the name of the newest segment plus its number of lines; no line is parsed. */
   override def latestSeq(project: Identifier): Int = monitor(project).synchronized {
     Option(journals.get(project)) match {
       case Some(journal) => journal.latestSeq
@@ -135,7 +142,7 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
     }
   }
 
-  /** Replaces the project's files with those of the source; the entries are parsed on the next access. */
+  /** Replaces the project's files with those of the source; the headers are read on the next access. */
   override def importJournal(project: Identifier, source: ResourceLoader): Unit = monitor(project).synchronized {
     journals.remove(project)
     val directory = projectDir(project)
@@ -156,7 +163,7 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
     }
   }
 
-  private def loaded(project: Identifier)(implicit context: PluginContext): Journal = {
+  private def loaded(project: Identifier): Journal = {
     Option(journals.get(project)).getOrElse {
       val journal = load(project)
       journals.put(project, journal)
@@ -164,12 +171,11 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
     }
   }
 
-  private def load(project: Identifier)(implicit context: PluginContext): Journal = {
+  private def load(project: Identifier): Journal = {
     val directory = projectDir(project)
     if(!Files.isDirectory(directory)) {
       Journal(Vector.empty)
     } else {
-      implicit val readContext: ReadContext = ReadContext.fromPluginContext()(context)
       for(file <- listFiles(directory); name = file.getFileName.toString; if !isSegmentName(name) && name != REVIEWED_FILE) {
         if(name == REVIEWED_FILE + TMP_SUFFIX) {
           // Left by a crash while the watermark was written; the old watermark is still in place
@@ -181,16 +187,16 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
       val files = segmentFiles(project)
       val segments = for((file, index) <- files.zipWithIndex) yield readSegment(project, file, newest = index == files.size - 1)
       val journal = Journal(segments.filter(_.lines > 0).toVector)
-      log.fine(s"Loaded ${journal.segments.map(_.entries.size).sum} changes of project '$project' from ${files.size} segment files.")
+      log.fine(s"Loaded the headers of ${journal.headers.size} changes of project '$project' from ${files.size} segment files.")
       journal
     }
   }
 
-  private def readSegment(project: Identifier, file: Path, newest: Boolean)(implicit readContext: ReadContext): Segment = {
+  private def readSegment(project: Identifier, file: Path, newest: Boolean): Segment = {
     val firstSeq = firstSeqOf(file)
     val bytes = Files.readAllBytes(file)
     // Whatever follows the last newline is not a line: an append that was cut short
-    val end = bytes.lastIndexOf('\n'.toByte) + 1
+    val end = lineEnd(bytes)
     if(end < bytes.length) {
       if(newest) {
         log.warning(s"The change journal segment '$file' of project '$project' ends with an unfinished line, which is removed.")
@@ -199,20 +205,28 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
         log.warning(s"The change journal segment '$file' of project '$project' ends with an unfinished line, which is ignored.")
       }
     }
-    // Every line counts, an empty one too, so the position of a line gives its seq
-    val lines = if(end == 0) Array.empty[String] else new String(bytes, 0, end, UTF_8).split("\n", -1).dropRight(1)
-    val entries = for((line, index) <- lines.zipWithIndex; entry <- readLine(project, firstSeq + index, line)) yield entry
-    Segment(firstSeq, file, entries.toVector, lines.length, end.toLong)
+    val lines = completeLines(bytes)
+    val headers = for((line, index) <- lines.zipWithIndex; header <- readHeader(project, firstSeq + index, line)) yield header
+    Segment(firstSeq, file, headers.toVector, lines.length, end.toLong)
   }
 
-  /** None for a line whose envelope cannot be read or whose seq is not its position; it keeps its seq as a gap. */
-  private def readLine(project: Identifier, seq: Int, line: String)(implicit readContext: ReadContext): Option[ChangeEntry] = {
+  /** The position after the last newline: where the complete lines end. */
+  private def lineEnd(bytes: Array[Byte]): Int = bytes.lastIndexOf('\n'.toByte) + 1
+
+  /** The complete lines of a segment. Every line counts, an empty one too, so the position of a line gives its seq. */
+  private def completeLines(bytes: Array[Byte]): Array[String] = {
+    val end = lineEnd(bytes)
+    if(end == 0) Array.empty[String] else new String(bytes, 0, end, UTF_8).split("\n", -1).dropRight(1)
+  }
+
+  /** None for a line whose header cannot be read or whose seq is not its position; it keeps its seq as a gap. */
+  private def readHeader(project: Identifier, seq: Int, line: String): Option[ChangeHeader] = {
     try {
-      val entry = ChangeEntryJsonFormat.read(Json.parse(line))
-      if(entry.seq == seq) {
-        Some(entry)
+      val header = ChangeHeaderJsonFormat.readLine(line)
+      if(header.seq == seq) {
+        Some(header)
       } else {
-        log.warning(s"Change $seq of project '$project' is skipped: its line carries seq ${entry.seq}.")
+        log.warning(s"Change $seq of project '$project' is skipped: its line carries seq ${header.seq}.")
         None
       }
     } catch {
@@ -220,6 +234,11 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
         log.warning(s"Change $seq of project '$project' is skipped, its line cannot be read: ${Change.reason(ex)}")
         None
     }
+  }
+
+  /** None for a line that is a gap, see [[readHeader]], which the load has warned about; a change that cannot be read is the placeholder. */
+  private def readEntry(seq: Int, line: String)(implicit readContext: ReadContext): Option[ChangeEntry] = {
+    Try(ChangeEntryJsonFormat.read(Json.parse(line))).toOption.filter(_.seq == seq)
   }
 
   // While over the cap and more than one segment exists, the oldest segment goes; the newest always stays
@@ -272,6 +291,9 @@ object FileChangeJournalStore {
 
   private val log = Logger.getLogger(classOf[FileChangeJournalStore].getName)
 
+  // A new segment starts once the newest one has reached this size, so reading one entry reads about this much
+  private val SEGMENT_BYTES: Long = 1024 * 1024
+
   private val SEGMENT_SUFFIX = ".jsonl"
 
   private val REVIEWED_FILE = "reviewed.json"
@@ -284,14 +306,14 @@ object FileChangeJournalStore {
 
   private def isSegmentName(name: String): Boolean = segmentName.matches(name)
 
-  /** A segment file: its first seq, its parsed entries and, as every line counts, its number of lines and bytes. */
-  private case class Segment(firstSeq: Int, file: Path, entries: Vector[ChangeEntry], lines: Int, size: Long) {
+  /** A segment file: its first seq, the headers of its entries and, as every line counts, its number of lines and bytes. */
+  private case class Segment(firstSeq: Int, file: Path, headers: Vector[ChangeHeader], lines: Int, size: Long) {
     def lastSeq: Int = firstSeq + lines - 1
   }
 
-  /** A loaded project: its segments, oldest first; their entries in one sequence are derived once per version. */
+  /** A loaded project: its segments, oldest first; their headers in one sequence are derived once per version. */
   private case class Journal(segments: Vector[Segment]) {
-    lazy val entries: Vector[ChangeEntry] = segments.flatMap(_.entries)
+    lazy val headers: Vector[ChangeHeader] = segments.flatMap(_.headers)
     def latestSeq: Int = segments.lastOption.map(_.lastSeq).getOrElse(0)
   }
 }

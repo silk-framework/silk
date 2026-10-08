@@ -124,7 +124,7 @@ class ProjectMarshalingApiTest extends PlaySpec with ConfigTestTrait with Integr
     val project = WorkspaceFactory().workspace.createProject(ProjectConfig(projectId))
     project.addTask[RuleBlockSpec]("normalizeName", RuleBlockTestData.sampleRuleBlockSpec())
     val entries = project.changeJournal.all
-    entries.map(_.change.changeType) mustBe Seq("AddTask")
+    entries.map(_.changeType) mustBe Seq("AddTask")
 
     val exportedProject = exportProject(projectId)
     getZipEntry(exportedProject, s"$projectId/changes/000000001.jsonl") must include("\"type\":\"AddTask\"")
