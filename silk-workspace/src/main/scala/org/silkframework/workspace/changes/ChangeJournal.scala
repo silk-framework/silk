@@ -60,7 +60,7 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
   def entry(seq: Int): Option[ChangeEntry] = all.find(_.seq == seq)
 
   /** The seq up to which no change waits for review: set by a review, moved along by `record` while no agent change
-    * waits; 0 at the start. */
+    * waits and the cap has dropped nothing unreviewed; 0 at the start. */
   def reviewedUpTo: Int = store.reviewedUpTo(project.id)
 
   /** The entries and the reviewed watermark, read in one step, so that both describe the same journal state. */
@@ -196,8 +196,10 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
         reverting.remove()
         currentStore.append(project.id, entry)(PluginContext.fromProject(project)(userContext))
         // While nothing waits for review, the watermark follows the journal, so the dropped count only covers what fell
-        // under the cap while agent changes waited. Checked before the cap: a just dropped agent change still blocks it.
-        if(unreviewed(entries :+ entry, currentStore.reviewedUpTo(project.id)).isEmpty) {
+        // under the cap while agent changes waited. Checked before the cap: a just dropped agent change still blocks it,
+        // and once it is gone the dropped count blocks the move, so the count lasts until the next review.
+        val watermark = currentStore.reviewedUpTo(project.id)
+        if(unreviewed(entries :+ entry, watermark).isEmpty && droppedUnreviewed(entries, watermark) == 0) {
           currentStore.setReviewedUpTo(project.id, entry.seq)
         }
         Some(entry)
