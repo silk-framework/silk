@@ -31,10 +31,10 @@ trait Change {
   def inverse: Option[Change]
 
   /**
-    * Whether this change fulfils the given proposal, e.g. a workflow run fulfils the proposal to run that workflow.
-    * Recorded as [[ChangeEntry.fulfils]].
+    * Whether this change fulfils the proposal with the given header, e.g. a workflow run fulfils the proposal to run
+    * that workflow. Asked of the headers of the open proposals and recorded as [[ChangeHeader.fulfils]].
     */
-  def fulfils(proposal: Proposal): Boolean = false
+  def fulfils(proposal: ChangeHeader): Boolean = false
 
   /**
     * Performs this change on the project through the regular write path, which records it in the journal.

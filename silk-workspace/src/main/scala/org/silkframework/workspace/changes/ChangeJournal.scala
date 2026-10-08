@@ -134,15 +134,11 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
     headers.flatMap(header => header.fulfils.map(_ -> header.seq)).toMap
   }
 
-  /** The proposals that are neither discarded nor fulfilled, oldest first, with their headers. The proposals themselves
-    * are read from the store the headers came from; there is rarely more than one open. */
-  private def openProposals(currentStore: ChangeJournalStore, headers: Seq[ChangeHeader]): Seq[(ChangeHeader, Proposal)] = {
+  /** The headers of the proposals that are neither discarded nor fulfilled, oldest first. */
+  private def openProposals(headers: Seq[ChangeHeader]): Seq[ChangeHeader] = {
     val reverted = revertedBy(headers)
     val fulfilled = fulfilledBy(headers)
-    for {
-      header <- headers if header.proposal && !reverted.contains(header.seq) && !fulfilled.contains(header.seq)
-      proposal <- currentStore.entry(project.id, header.seq).map(_.change).collect { case proposal: Proposal => proposal }
-    } yield header -> proposal
+    headers.filter(header => header.proposal && !reverted.contains(header.seq) && !fulfilled.contains(header.seq))
   }
 
   /**
@@ -171,8 +167,7 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
 
   /** The open proposal to run the task, if any: proposed, not discarded, and not fulfilled by a run of the task. */
   def openRunProposal(taskId: Identifier): Option[ChangeHeader] = {
-    val currentStore = store
-    openProposals(currentStore, currentStore.headers(project.id)).collect { case (header, ProposedWorkflowRun(`taskId`, _)) => header }.lastOption
+    openProposals(all).filter(ProposedWorkflowRun.proposesRunOf(_, taskId)).lastOption
   }
 
   /**
@@ -217,9 +212,9 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
       currentStore.monitor(project.id).synchronized {
         val headers = currentStore.headers(project.id)
         // Links the change to the latest open proposal it fulfils, e.g. a workflow run to the proposal to run that workflow.
-        val fulfils = openProposals(currentStore, headers).findLast { case (_, proposal) => change.fulfils(proposal) }
+        val fulfils = openProposals(headers).findLast(change.fulfils)
         val entry = ChangeEntry(currentStore.latestSeq(project.id) + 1, Instant.now, requester.user.map(_.uri),
-          userContext.executionContext.origin, change, reverting.get(), fulfils.map(_._1.seq))
+          userContext.executionContext.origin, change, reverting.get(), fulfils.map(_.seq))
         // A revert can record several entries, one per task it writes. Only the first is marked as the revert.
         reverting.remove()
         currentStore.append(project.id, entry)(PluginContext.fromProject(project)(userContext))
