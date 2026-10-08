@@ -43,7 +43,9 @@ class FileChangeJournalTest extends ChangeJournalTestTrait {
     val refusal = s"Change ${added.seq} in project 'journalUnreadableChange' cannot be reverted: its stored change cannot be read."
     journal.revertConflicts(Seq(added)) shouldBe Map(added.seq -> refusal)
     (the[ChangeConflictException] thrownBy journal.revert(added.seq)).getMessage should include("cannot be reverted")
-    journal.revertAll(Seq(added.seq)).head shouldBe a[RevertOutcome.Conflict]
+    // A batch skips it, as it skips a change without inverse
+    journal.revertAll(Seq(added.seq)) shouldBe
+      Seq(RevertOutcome.Skipped(added.seq, s"Change ${added.seq} (${added.describe}) cannot be reverted: its stored change cannot be read."))
 
     // A line whose change is not even JSON still has its header; the conflict is the same, and there is no entry to revert
     val damaged = Files.readAllLines(segment, UTF_8).asScala.toSeq
@@ -52,5 +54,7 @@ class FileChangeJournalTest extends ChangeJournalTestTrait {
     journal.entry(taskAdded.seq) shouldBe None
     journal.revertConflicts(Seq(taskAdded)) shouldBe Map(taskAdded.seq -> refusal.replace(s"Change ${added.seq}", s"Change ${taskAdded.seq}"))
     a[NotFoundException] should be thrownBy journal.revert(taskAdded.seq)
+    // A batch goes on past both: neither stops it
+    journal.revertAll(Seq(added.seq, taskAdded.seq)).map(_.getClass) shouldBe Seq(classOf[RevertOutcome.Skipped], classOf[RevertOutcome.Skipped])
   }
 }

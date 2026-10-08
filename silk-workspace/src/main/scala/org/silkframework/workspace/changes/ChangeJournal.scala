@@ -316,6 +316,9 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
             outcomes += RevertOutcome.Skipped(seq, s"Change $seq has been reverted already.")
           case Some(_) if fulfilled.contains(seq) =>
             outcomes += RevertOutcome.Skipped(seq, s"Change $seq has been fulfilled by change ${fulfilled(seq)}.")
+          // Read once here and again by the revert: an entry whose stored change cannot be read is skipped, not a conflict
+          case Some(h) if entry(seq).forall(_.change.inverse.isEmpty) =>
+            outcomes += RevertOutcome.Skipped(seq, s"Change $seq (${h.describe}) cannot be reverted: its stored change cannot be read.")
           case Some(_) =>
             try {
               outcomes += RevertOutcome.Reverted(seq, revert(seq))
