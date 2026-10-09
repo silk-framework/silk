@@ -920,16 +920,7 @@ object ProjectApi {
     def execute(project: Project)
                (implicit userContext: UserContext): Iterable[FullTag] = {
       for (tag <- tags) yield {
-        val normalizedLabel = tag.label.trim.replaceAll("\\s+", " ")
-        val uri = tag.uri match {
-          case Some(userUri) =>
-            userUri
-          case None =>
-            project.tagManager.generateTagUri(normalizedLabel)
-        }
-        val newTag = Tag(uri, normalizedLabel)
-        project.tagManager.putTag(newTag)
-        FullTag.fromTag(newTag)
+        FullTag.fromTag(project.tagManager.createTag(tag.label, tag.uri))
       }
     }
   }
