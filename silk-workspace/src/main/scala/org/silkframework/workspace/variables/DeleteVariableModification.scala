@@ -1,0 +1,157 @@
+package org.silkframework.workspace.variables
+
+import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
+import org.silkframework.runtime.templating.exceptions._
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariableName, TemplateVariables}
+import org.silkframework.workspace.{Project, ProjectTask}
+
+case class DeleteVariableModification(project: Project, variableName: String, taskId: Option[String] = None) extends Modification {
+
+  override def operation: String = s"Deleted variable '$variableName'"
+
+  /**
+    * Retrieves the variables that use this variable.
+    */
+  def dependentVariables()(implicit user: UserContext): Seq[String] = {
+    val manager = variablesManager()
+    try {
+      // Resolve against the same (sensitive-filtered) parent scope as the actual delete in Modification.execute.
+      // Dependent tasks are reported via invalidTasks(), so the task-dependency check is skipped here.
+      resolveWithoutVariable(manager.all, manager.parentVariables.withoutSensitiveVariables())
+      Seq.empty
+    } catch {
+      case ex: CannotDeleteUsedVariableException =>
+        ex.dependentVariables
+      case _: TemplateVariablesEvaluationException =>
+        Seq.empty
+    }
+  }
+
+  /**
+    * Retrieves the tasks that would become invalid by this modification.
+    */
+  def invalidTasks()(implicit user: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = invalidTasks(AffectableTasks.of(project))
+
+  /**
+    * The tasks that would become invalid by this modification, among those a project variable can affect at all,
+    * gathered by the caller ([[AffectableTasks.of]]) so that many checks against the same project share them, e.g.
+    * the change journal's. An execution variable only concerns its own task, so the given tasks are ignored for it.
+    */
+  def invalidTasks(affectable: AffectableTasks)(implicit user: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
+    taskId match {
+      case Some(id) =>
+        // Execution variables can only be referenced by parameter templates of the task itself.
+        val task = project.anyTask(id)
+        val currentVariables = task.executionVariables
+        val newVariables = TemplateVariables(currentVariables.variables.filter(_.name != variableName))
+        val baseVariables = project.combinedTemplateVariables.all
+        val context = PluginContext.fromTask(task, project)
+        try {
+          hasUpdatedTemplateValues(task.parameters(context), baseVariables merge currentVariables, baseVariables merge newVariables)
+          Seq.empty
+        } catch {
+          case _: TemplateEvaluationException =>
+            // Task update would fail with the modified variables.
+            Seq(task)
+        }
+      case None =>
+        // The variables as they are and without the deleted one, both with the global variables
+        val allCurrentVariables = affectable.globalVariables merge affectable.projectVariables
+        val allNewVariables = affectable.globalVariables merge
+          TemplateVariables(affectable.projectVariables.variables.filter(_.name != variableName))
+        // Match the resolution of execution-variable templates at save time (parent scopes without sensitive variables).
+        val saveTimeParents = allNewVariables.withoutSensitiveVariables()
+
+        // Report tasks whose parameter templates break or that still reference the deleted variable: the three uses AffectableTasks.of looks for.
+        affectable.tasks.filter { affected =>
+          val breaksParameterTemplates =
+            try {
+              hasUpdatedTemplateValues(affected.parameters, allCurrentVariables merge affected.task.executionVariables,
+                allNewVariables merge affected.task.executionVariables)
+              false
+            } catch {
+              case _: TemplateEvaluationException =>
+                // Task update would fail with the modified variables.
+                true
+            }
+          breaksParameterTemplates ||
+            dependentExecutionVariableIssues(affected.task, saveTimeParents, Set(variableName)).nonEmpty ||
+            referencedRemovedVariables(affected.referencedVariables, Set(variableName)).nonEmpty
+        }.map(_.task)
+    }
+  }
+
+  override protected def updateVariables(currentVariables: TemplateVariables, parentVariables: TemplateVariables)
+                                        (implicit user: UserContext): TemplateVariables = {
+    val resolvedVariables = resolveWithoutVariable(currentVariables, parentVariables)
+    // Block the deletion if a task still references the project variable.
+    checkRemovedVariableDependencies(resolvedVariables, Set(variableName))
+    resolvedVariables
+  }
+
+  /**
+    * Removes the variable and resolves the remaining variables.
+    * Throws a CannotDeleteUsedVariableException if any of them references the removed variable.
+    */
+  private def resolveWithoutVariable(currentVariables: TemplateVariables, parentVariables: TemplateVariables): TemplateVariables = {
+    // Make sure that variable exists
+    val variable = currentVariables.map.getOrElse(variableName,
+      throw new org.silkframework.runtime.validation.NotFoundException(s"No variable '$variableName' has been found."))
+
+    val updatedVariables = TemplateVariables(currentVariables.variables.filter(_.name != variableName))
+    try {
+      updatedVariables.resolved(parentVariables)
+    } catch {
+      case ex: TemplateVariablesEvaluationException =>
+        // Check if the evaluation failed because this variable is used in other variables.
+        val dependentVariables =
+          ex.issues.collect {
+            case TemplateVariableEvaluationException(dependentVar, unboundEx: UnboundVariablesException) if unboundEx.missingVars.contains(variable) =>
+              dependentVar.name
+          }
+        if (dependentVariables.nonEmpty) {
+          throw CannotDeleteUsedVariableException(variableName, dependentVariables)
+        } else {
+          // The remaining failures are unrelated to the deleted variable (e.g. templates referencing
+          // a sensitive parent variable, which is not available for template resolution).
+          // Those variables keep their stored values, so that unrelated variables can still be deleted.
+          updatedVariables.resolvedKeepingUnresolved(parentVariables)
+        }
+    }
+  }
+
+  override protected def generateException(task: Task[_ <: TaskSpec], cause: Throwable): CannotModifyVariablesUsedByTaskException = {
+    CannotDeleteVariableUsedByTaskException(variableName, task, cause)
+  }
+}
+
+/**
+  * A task a project variable can affect, with what a deletion check evaluates of it: its parameters, which need
+  * reflection, and the variables its data references, which need a walk over its rules.
+  */
+case class AffectableTask(task: ProjectTask[_ <: TaskSpec], parameters: ParameterValues, referencedVariables: Seq[TemplateVariableName])
+
+/**
+  * The tasks a project variable can affect at all, i.e. what [[DeleteVariableModification.invalidTasks]] looks for:
+  * those with an execution-variable template, a template in their rules or a parameter template. With them the
+  * variables their templates see now, global and project. Gathered once, so that many checks against the same
+  * project share it instead of each reading the tasks again.
+  */
+case class AffectableTasks(tasks: Seq[AffectableTask], globalVariables: TemplateVariables, projectVariables: TemplateVariables)
+
+object AffectableTasks {
+
+  def of(project: Project)(implicit user: UserContext): AffectableTasks = {
+    implicit val context: PluginContext = PluginContext.fromProject(project)
+    val tasks = project.allTasks.flatMap { task =>
+      val referenced = task.data.referencedVariables
+      val parameters = task.data.parameters
+      Option.when(task.executionVariables.variables.exists(_.template.isDefined) || referenced.nonEmpty || parameters.hasTemplates) {
+        AffectableTask(task, parameters, referenced)
+      }
+    }
+    AffectableTasks(tasks, GlobalTemplateVariables.all, project.templateVariables.all)
+  }
+}

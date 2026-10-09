@@ -60,9 +60,7 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
                     <Button text={t("common.action.cancel")} onClick={onClose} />,
                 ]}
             >
-                <p>
-                    {t("CreateModal.projectContext.configResetInfo")}
-                </p>
+                <p>{t("CreateModal.projectContext.configResetInfo")}</p>
             </AlertDialog>
         );
     };
@@ -112,7 +110,7 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
                 <Notification
                     message={t(
                         "CreateModal.projectContext.selectProjectInfo",
-                        "Please select project first, before configuration."
+                        "Please select project first, before configuration.",
                     )}
                 />
             )) ||

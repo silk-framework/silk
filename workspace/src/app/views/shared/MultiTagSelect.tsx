@@ -16,7 +16,13 @@ interface IProps {
 }
 
 /** Multi selection component for project and task tags. */
-export const MultiTagSelect = ({ projectId, handleTagSelectionChange, initialTags, selectedTags, dataTestId }: IProps) => {
+export const MultiTagSelect = ({
+    projectId,
+    handleTagSelectionChange,
+    initialTags,
+    selectedTags,
+    dataTestId,
+}: IProps) => {
     const modalContext = React.useContext(CreateArtefactModalContext);
     const { registerError: globalErrorHandler } = useErrorHandler();
     const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler;

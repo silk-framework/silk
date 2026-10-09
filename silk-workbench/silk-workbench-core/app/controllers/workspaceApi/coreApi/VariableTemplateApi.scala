@@ -13,8 +13,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.templating.exceptions._
-import org.silkframework.runtime.templating.operations.{DeleteVariableModification, UpdateVariableModification, UpdateVariablesModification}
-import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables, VariableScope}
+import org.silkframework.workspace.variables.{DeleteVariableModification, UpdateVariableModification, UpdateVariablesModification}
+import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables, TemplateVariablesManager, VariableScope}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.{JsonHelpers, TemplateVariableJson, TemplateVariablesJson}
 import org.silkframework.workspace.WorkspaceFactory

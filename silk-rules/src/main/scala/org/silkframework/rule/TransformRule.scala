@@ -89,6 +89,21 @@ sealed trait TransformRule extends Operator with HasMetaData {
     collectPaths(operator).distinct
   }
 
+  /**
+   * True if this rule's operator tree contains the empty/self path, with or without any other
+   * path. Does not account for other input kinds, such as an unbound rule-block port — a
+   * formula combining the empty path with one still evaluates this to true.
+   */
+  def readsEntityUri: Boolean = {
+    def hasEmptyPathInput(param: Input): Boolean = param match {
+      case p: PathInput => p.path.operators.isEmpty
+      case p: TransformInput => p.inputs.exists(hasEmptyPathInput)
+      case rb: RuleBlockInput => rb.bindings.exists(binding => hasEmptyPathInput(binding.input))
+      case _: InputPortInput => false
+    }
+    hasEmptyPathInput(operator)
+  }
+
   /** Throws ValidationException if this transform rule is not valid. */
   protected def validate(): Unit = {
     validateTargetUri()
@@ -663,9 +678,6 @@ object TransformRule {
     // Complex URI mapping
     case ComplexMapping(id, operator, None, metaData, layout, uiAnnotations) =>
       ComplexUriMapping(id, operator, metaData, layout, uiAnnotations)
-    // Object Mapping (old style, to be removed)
-    case ComplexMapping(id, TransformInput(_, ConcatTransformer("", false), inputs), Some(target), metaData, _, _) if UriPattern.isPattern(inputs) && target.valueType == ValueType.URI =>
-      ObjectMapping(id, UntypedPath.empty, Some(target), MappingRules(uriRule = Some(PatternUriMapping(id + "uri", UriPattern.build(inputs)))), metaData, prefixes = prefixes)
     // Type Mapping
     case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), IndexedSeq()), Some(MappingTarget(Uri(RDF_TYPE), _, false, _)), metaData, _, _) =>
       TypeMapping(id, typeUri, metaData)

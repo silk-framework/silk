@@ -22,10 +22,14 @@ case class RuleBlockBinding(portId: Identifier,
 
   private def validateInput(boundInput: Input): Unit = {
     boundInput match {
+      // Names both causes: inside a definition the real violation is the nesting, detected only later.
       case _: InputPortInput =>
-        throw new ValidationException("Input ports may only be used inside rule block definitions.")
+        throw new ValidationException("Input ports may only be used inside rule block definitions. " +
+          s"The binding of port '$portId' is fed by one; if this rule block usage is itself part of a rule block " +
+          "definition, then the actual problem is that nested rule block usages are not supported.")
       case _: RuleBlockInput =>
-        throw new ValidationException("Nested rule block usages are not supported in the first iteration.")
+        throw new ValidationException("Nested rule block usages are not supported in the first iteration. " +
+          s"The binding of port '$portId' uses another rule block.")
       case TransformInput(_, _, inputs) =>
         inputs.foreach(validateInput)
       case _: PathInput =>
@@ -96,7 +100,8 @@ case class RuleBlockInput(id: Identifier = Operator.generateId,
     val ruleBlockPortIds = ruleBlockTask.data.ports.map(_.id).toSet
     val unknownBindingPortIds = bindings.map(_.portId).filterNot(ruleBlockPortIds).distinct
     if(unknownBindingPortIds.nonEmpty) {
-      throw new ValidationException(s"Rule block '$ruleBlockId' does not define ports: ${unknownBindingPortIds.mkString(", ")}.")
+      throw new ValidationException(s"Rule block usage '$id' binds ports that rule block '$ruleBlockId' " +
+        s"does not define: ${unknownBindingPortIds.mkString(", ")}.")
     }
 
     val bindingExecutions = bindings.map(binding => RuleBlockBindingExecution(binding.portId, binding.input.execution(taskContext)))

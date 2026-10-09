@@ -16,7 +16,7 @@ import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.zip.ZipOutputStreamResource
-import org.silkframework.runtime.resource.{FileResource, ReadOnlyResource, WritableResource}
+import org.silkframework.runtime.resource.{ReadOnlyResource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -350,10 +350,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case None => throw new ValidationException(s"No graph defined on dataset $datasetLabelOrId of type '${dataset.plugin.pluginSpec.label}'!")
     }
     for(fileEntity <- files) {
-      val file = fileEntity.file match {
-        case FileResource(file) => file
-        case _ => throw new ValidationException(s"Cannot upload non-local file to GraphStore: $fileEntity")
-      }
+      val file = fileEntity.file.underlyingFile.getOrElse(
+        throw new ValidationException(s"Cannot upload non-local file to GraphStore: $fileEntity"))
       val mimeType = fileEntity.mimeType.getOrElse(throw new ValidationException(s"Cannot upload file to GraphStore that is missing the MIME type: $fileEntity"))
       graphStore.uploadFileToGraph(targetGraph, file, mimeType, None)
       reportUpdater.increaseEntityCounter()

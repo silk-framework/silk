@@ -2,7 +2,7 @@ package org.silkframework.runtime.plugin
 
 
 import org.silkframework.runtime.plugin.StringParameterType.StringType
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginType}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 
@@ -34,7 +34,45 @@ class PluginRegistryTest extends AnyFlatSpec with Matchers {
     // A parameter that is not shown in the UI can be nested arbitrarily since it does not need to be edited in the generic plugin dialog
     PluginRegistry.checkInvalidObjectPluginParameterType(classOf[TestObjectParameter], Seq(invisibleParameter)) mustBe empty
   }
+
+  // Looking a plugin up under the wrong base type is the common mix-up, and "not found" hides it.
+  it should "name the type an id is registered for when it is looked up under another one" in {
+    PluginRegistry.registerPlugin(classOf[OtherTypeTestPlugin])
+    try {
+      val ex = intercept[NoSuchElementException] {
+        PluginRegistry.pluginById[TestPluginType]("otherTypeTestPlugin")
+      }
+      ex.getMessage must include("otherTypeTestPlugin")
+      ex.getMessage must include("Other test plugin type")
+      ex.getMessage must include("TestPluginType")
+    } finally {
+      PluginRegistry.unregisterPlugin(classOf[OtherTypeTestPlugin])
+    }
+  }
+
+  // The full list of a type can be hundreds of ids; the listing endpoints exist for that.
+  it should "suggest the closest ids instead of the whole plugin type" in {
+    val available = (1 to 50).map(i => s"plugin$i") :+ "subtract"
+    val closest = PluginRegistry.closestPluginIds("subtrac", available)
+    closest must include("Closest ids")
+    closest must include("subtract")
+    closest must not include "plugin42"
+
+    // Nothing close: the ids are still capped and the total is named.
+    val capped = PluginRegistry.closestPluginIds("zzz", available)
+    capped must include("Available ids")
+    capped must include("51 plugins are available for this type")
+    capped.split(", ").length mustBe 10
+
+    PluginRegistry.closestPluginIds("anything", Seq.empty) mustBe "No plugins are available for this type."
+  }
 }
+
+@PluginType()
+class OtherTestPluginType extends AnyPlugin
+
+@Plugin(id = "otherTypeTestPlugin", label = "Other type test plugin")
+case class OtherTypeTestPlugin() extends OtherTestPluginType
 
 case class TestObjectParameter(param1: String,
                                param2: TestObjectParameterInner) extends PluginObjectParameter
