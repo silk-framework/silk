@@ -3,7 +3,9 @@ package org.silkframework.workspace.activity.workflow
 import org.silkframework.config.{FixedSchemaPort, PlainTask, Port, Task, TaskSpec}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin._
+import org.silkframework.workspace.ProjectTrait
 
 import scala.collection.mutable
 
@@ -61,14 +63,16 @@ object ReconfigureTasks {
 
     /**
      * Reconfigures a task based on entity values.
+     * Parameter templates that are not overwritten resolve as at load time, i.e. against the task's own execution variables.
      *
-     * @param task     The task to be reconfigured.
      * @param entities Task parameters will be updated based on the values in this entity.
      *                 Config parameters of later entities overwrite those of earlier inputs.
+     * @param project  The project of the task.
      * @return Task with updated parameters.
      */
-    def reconfigure(entities: Seq[Entity])
-                   (implicit pluginContext: PluginContext): Task[T] = {
+    def reconfigure(entities: Seq[Entity], project: ProjectTrait)
+                   (implicit user: UserContext): Task[T] = {
+      implicit val pluginContext: PluginContext = PluginContext.fromTask(task, project)
       val parameters = task.data.parameters
       val configParameters = entities.
         map(entityToParameterValues(parameters, _)).

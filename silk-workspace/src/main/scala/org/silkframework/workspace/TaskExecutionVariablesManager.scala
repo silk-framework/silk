@@ -1,7 +1,7 @@
 package org.silkframework.workspace
 
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.templating.{VariableScope, TemplateVariables, TemplateVariablesManager, TemplateVariablesReader}
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariables, TemplateVariablesManager, TemplateVariablesReader, VariableScope}
 
 /**
  * Manages the execution variables of a task.
@@ -47,5 +47,17 @@ class TaskExecutionVariablesManager(initialVariables: TemplateVariables,
   override def put(variables: TemplateVariables)(implicit user: UserContext): Unit = {
     validateScope(variables)
     this.variables = variables
+  }
+}
+
+object TaskExecutionVariablesManager {
+
+  /**
+    * The variables that a template of the execution scope may reference when it is resolved at save time:
+    * the global variables and the given project variables, without sensitive ones.
+    * Kept next to the parent readers above, so that both views of the parent scopes change together.
+    */
+  def templateParentVariables(projectVariables: TemplateVariables): TemplateVariables = {
+    (GlobalTemplateVariables.all merge projectVariables).withoutSensitiveVariables()
   }
 }
