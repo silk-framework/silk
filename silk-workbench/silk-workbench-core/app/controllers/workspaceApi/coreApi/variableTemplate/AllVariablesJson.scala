@@ -3,7 +3,6 @@ package controllers.workspaceApi.coreApi.variableTemplate
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.templating.exceptions.TemplateVariablesEvaluationException
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariable, TemplateVariables, TemplateVariablesManager, VariableScope}
 import org.silkframework.serialization.json.{TemplateVariableErrorJson, TemplateVariableJson, TemplateVariablesJson}
@@ -156,9 +155,10 @@ object TaskLoadingErrorJson {
 
 /**
   * Converts the variables of one scope to JSON.
-  * Templates are resolved against the non-sensitive parent variables. If the evaluation fails,
-  * the stored values are kept and the issues are returned as errors. When masking, the stored values of the
-  * failed variables are omitted, since a value that its template can no longer produce may hold a sensitive value,
+  * Templates are resolved against the non-sensitive parent variables. A variable whose template fails to evaluate
+  * keeps its stored value and is not available to the following templates; the issues are returned as errors.
+  * When masking, the stored values of the failed variables are omitted, since a value that its template can no
+  * longer produce may hold a sensitive value,
   * and the error message of a sensitive variable is replaced, since it may quote the template.
   */
 object ResolvedVariablesJson {
@@ -176,20 +176,16 @@ object ResolvedVariablesJson {
     */
   def apply(variables: TemplateVariables, parentVariables: TemplateVariables, masked: Boolean): (Seq[TemplateVariableJson], Seq[TemplateVariableErrorJson]) = {
     val toJson: TemplateVariable => TemplateVariableJson = if (masked) TemplateVariableJson.masked else TemplateVariableJson(_)
-    try {
-      (variables.resolved(parentVariables).variables.map(toJson), Seq.empty)
-    } catch {
-      case ex: TemplateVariablesEvaluationException =>
-        val failed = ex.issues.map(_.variable.name).toSet
-        val variablesJson = variables.variables.map { variable =>
-          val json = toJson(variable)
-          if (masked && failed.contains(variable.name)) json.copy(value = None) else json
-        }
-        val errors = ex.issues.map { issue =>
-          val message = if (masked && issue.variable.isSensitive) maskedErrorMessage else issue.ex.getMessage
-          TemplateVariableErrorJson(issue.variable.name, message)
-        }
-        (variablesJson, errors)
+    val (resolvedVariables, issues) = variables.resolvedWithIssues(parentVariables)
+    val failed = issues.map(_.variable.name).toSet
+    val variablesJson = resolvedVariables.variables.map { variable =>
+      val json = toJson(variable)
+      if (masked && failed.contains(variable.name)) json.copy(value = None) else json
     }
+    val errors = issues.map { issue =>
+      val message = if (masked && issue.variable.isSensitive) maskedErrorMessage else issue.ex.getMessage
+      TemplateVariableErrorJson(issue.variable.name, message)
+    }
+    (variablesJson, errors)
   }
 }

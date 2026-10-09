@@ -448,15 +448,23 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     val project = WorkspaceFactory().workspace.createProject(ProjectConfig(projectName))
     val password = projectVariable("password", secretValue, isSensitive = true)
     val derived = TemplateVariable("dbUrl", s"jdbc://u:$secretValue@host", Some("jdbc://u:{{project.password}}@host"), None, isSensitive = false, VariableScope.project)
-    // Stored without the write path, like a value resolved before the rule existed
-    project.templateVariables.put(TemplateVariables(Seq(password, derived, projectVariable("year", "2002"))))
+    // Stored without the write path, like a value resolved before the rule existed. The stale stored value of apiUrl must not be
+    // reported, and api2 is derived from the failed dbUrl and fails with it.
+    val stale = TemplateVariable("apiUrl", "stale", Some("{{project.year}}/api"), None, isSensitive = false, VariableScope.project)
+    val api2 = TemplateVariable("api2", "", Some("{{project.dbUrl}}/x"), None, isSensitive = false, VariableScope.project)
+    project.templateVariables.put(TemplateVariables(Seq(password, derived, projectVariable("year", "2002"), stale, api2)))
 
-    // The stored value is not disclosed by the masking endpoint, the error names the rule
+    // The stored value is not disclosed by the masking endpoint, the error names the rule, the other templates are resolved
     val response = checkResponse(createRequest(TemplateApi.allVariables(Some("project"), None)).get())
     response.body should not include secretValue
     val projectJson = Json.fromJson[AllVariablesJson](response.json).get.projects.find(_.id == projectName).get
-    projectJson.variables.map(_.map(v => (v.name, v.value))) shouldBe Some(Seq(("password", None), ("dbUrl", None), ("year", Some("2002"))))
-    projectJson.errors.map(_.map(_.variableName)) shouldBe Some(Seq("dbUrl"))
+    projectJson.variables.map(_.map(v => (v.name, v.value))) shouldBe
+      Some(Seq(("password", None), ("dbUrl", None), ("year", Some("2002")), ("apiUrl", Some("2002/api")), ("api2", None)))
+    projectJson.errors.map(_.map(_.variableName)) shouldBe Some(Seq("dbUrl", "api2"))
+    // Unmasked, the resolved values are reported too, the variable derived from the failed one keeps its stored value, both are errors
+    val unmasked = Json.fromJson[TemplateVariablesJson](checkResponse(createRequest(TemplateApi.getVariables(projectName, None, false)).get()).json).get
+    unmasked.variables.map(v => (v.name, v.value)).drop(2) shouldBe Seq(("year", Some("2002")), ("apiUrl", Some("2002/api")), ("api2", Some("")))
+    unmasked.errors.map(_.map(_.variableName)) shouldBe Some(Seq("dbUrl", "api2"))
     projectJson.errors.get.head.message should include("'project.password' is sensitive")
 
     // The error of a sensitive variable is not reported verbatim, since it may quote the template

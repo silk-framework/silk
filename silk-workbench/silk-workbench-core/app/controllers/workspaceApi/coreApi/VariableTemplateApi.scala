@@ -32,7 +32,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
 
   @Operation(
     summary = "Retrieve variables",
-    description = "Retrieves all variables at a specific scope.",
+    description = "Retrieves all variables at a specific scope. If a template fails to evaluate, the variable keeps its last saved value, variables of the same scope derived from it fail as well, and the errors list them.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",

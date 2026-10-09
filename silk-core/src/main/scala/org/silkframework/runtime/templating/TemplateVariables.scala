@@ -36,21 +36,35 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
     * @throws TemplateVariablesEvaluationException If at least one template variable could not be resolved.
     */
   def resolved(additionalVariables: TemplateVariables = TemplateVariables.empty): TemplateVariables = {
+    val (resolvedVariables, issues) = resolvedWithIssues(additionalVariables)
+    if (issues.isEmpty) {
+      resolvedVariables
+    } else {
+      throw TemplateVariablesEvaluationException(issues)
+    }
+  }
+
+  /**
+    * Resolves all templates like [[resolved]], but returns the issues instead of throwing. A variable whose template
+    * cannot be resolved keeps its stored value and, unlike in [[resolvedKeepingUnresolved]], is not available to the
+    * templates of the following variables, so a variable derived from it fails as well.
+    */
+  def resolvedWithIssues(additionalVariables: TemplateVariables = TemplateVariables.empty): (TemplateVariables, Seq[TemplateVariableEvaluationException]) = {
     val resolvedVariables = mutable.Buffer[TemplateVariable]()
+    val allVariables = mutable.Buffer[TemplateVariable]()
     val errors = mutable.Buffer[TemplateVariableEvaluationException]()
-    for(variable <- variables) {
+    for (variable <- variables) {
       try {
-        resolvedVariables.append(variable.copy(value = resolveTemplate(variable, additionalVariables, resolvedVariables.toSeq)))
+        val resolvedVariable = variable.copy(value = resolveTemplate(variable, additionalVariables, resolvedVariables.toSeq))
+        resolvedVariables.append(resolvedVariable)
+        allVariables.append(resolvedVariable)
       } catch {
         case ex: TemplateEvaluationException =>
           errors.append(TemplateVariableEvaluationException(variable, ex))
+          allVariables.append(variable)
       }
     }
-    if(errors.isEmpty) {
-      TemplateVariables(resolvedVariables.toSeq)
-    } else {
-      throw TemplateVariablesEvaluationException(errors.toSeq)
-    }
+    (TemplateVariables(allVariables.toSeq), errors.toSeq)
   }
 
   /**

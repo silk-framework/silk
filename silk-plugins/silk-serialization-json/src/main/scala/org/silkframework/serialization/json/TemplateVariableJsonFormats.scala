@@ -2,7 +2,6 @@ package org.silkframework.serialization.json
 
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
-import org.silkframework.runtime.templating.exceptions.TemplateVariablesEvaluationException
 import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables, VariableScope}
 import org.silkframework.runtime.validation.BadUserInputException
 import play.api.libs.json.{Json, OFormat}
@@ -91,10 +90,6 @@ case class TemplateVariablesJson(@ArraySchema(
 object TemplateVariablesJson {
   def apply(variables: TemplateVariables): TemplateVariablesJson = {
     TemplateVariablesJson(variables.variables.map(TemplateVariableJson(_)))
-  }
-
-  def apply(variables: TemplateVariables, ex: TemplateVariablesEvaluationException): TemplateVariablesJson = {
-    TemplateVariablesJson(variables.variables.map(TemplateVariableJson(_)), Some(ex.issues.map(e => TemplateVariableErrorJson(e.variable.name, e.ex.getMessage))))
   }
 
   implicit val templateVariablesFormat: OFormat[TemplateVariablesJson] = Json.format[TemplateVariablesJson]
