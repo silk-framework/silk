@@ -17,7 +17,9 @@ import scala.collection.mutable
   * when the run is started, or set by a 'Set execution variable' plugin before the referencing node runs, i.e. by a
   * node that precedes it in the workflow graph. Setters in parallel or disconnected branches run in no guaranteed order.
   * Execution variables defined on sub-tasks are ignored during a workflow run.
-  * The analysis is exact for the variables that the tasks report as referenced.
+  * The analysis is exact for the variables that the tasks report as referenced and assumes that every setter sets its
+  * variable; a setter only does so when its input yields a value, so a variable satisfied by a setter alone may still be
+  * unset at run time.
   */
 object WorkflowExecutionVariables {
 

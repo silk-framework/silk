@@ -48,7 +48,7 @@ case class WorkflowExecutionVariableJson(@Schema(description = "The variable nam
                                          referencedBy: Seq[TaskReferenceJson],
                                          @ArraySchema(
                                            schema = new Schema(
-                                             description = "Tasks that set the variable during the run, wherever they are placed. A variable that is set after or beside every referencing node is still required.",
+                                             description = "Tasks that set the variable during the run, wherever they are placed. They set it only when their input yields a value. A variable that is set after or beside every referencing node is still required.",
                                              requiredMode = RequiredMode.REQUIRED,
                                              implementation = classOf[TaskReferenceJson]
                                            ))
