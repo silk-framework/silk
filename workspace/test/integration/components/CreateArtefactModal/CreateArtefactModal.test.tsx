@@ -161,6 +161,15 @@ describe("Task creation widget", () => {
         return wrapper;
     };
 
+    it("exposes item types as buttons in a list with the current type marked", async () => {
+        const wrapper = await createMockedListWrapper();
+        const allType = within(wrapper.element).getByText("All").closest("button");
+        expect(allType).not.toBeNull();
+        expect(allType).toHaveAttribute("aria-pressed", "true");
+        expect(allType?.closest('[role="list"]')).not.toBeNull();
+        expect(allType?.closest('[role="menu"]')).toBeNull();
+    });
+
     const fetchDialog = async (wrapper: RenderResult | Element) => {
         return await waitFor(() => {
             return findElement(wrapper, byTestId("simpleDialogWidget"));

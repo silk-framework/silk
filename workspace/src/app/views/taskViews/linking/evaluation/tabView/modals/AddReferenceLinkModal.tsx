@@ -116,6 +116,7 @@ export const AddReferenceLinkModal = ({ projectId, linkingTaskId, onClose }: Pro
                     itemRenderer={(item, props) => {
                         return (
                             <MenuItem
+                                roleStructure="listoption"
                                 data-test-id={`add-reference-${item.label}`}
                                 text={t(`ReferenceLinks.${LinkTypeMapping[item.label]}`, LinkTypeMapping[item.label])}
                                 onClick={() => setNewLinkType(item.label as ReferenceLinkType)}

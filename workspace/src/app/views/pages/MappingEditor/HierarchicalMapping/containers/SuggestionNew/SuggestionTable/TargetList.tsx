@@ -108,6 +108,7 @@ export default function TargetList({ targets, onChange }: IProps) {
     const itemRenderer = (target: ITargetWithSelected, { handleClick }) => {
         return (
             <MenuItem
+                roleStructure="listoption"
                 text={
                     <div style={{ minWidth: "100%", width: "40rem", maxWidth: "90vw" }}>
                         {itemLabel(target, inputQuery)}

@@ -25,6 +25,7 @@ export const UriPatternSelectionModal = ({ uriPatterns, onSelect, onClose }: IPr
     const itemOption = (uriPattern: IUriPattern, query: string, modifiers) => {
         return (
             <MenuItem
+                roleStructure="listoption"
                 key={uriPattern.value}
                 onClick={() => handleSelect(uriPattern)}
                 active={modifiers.active}

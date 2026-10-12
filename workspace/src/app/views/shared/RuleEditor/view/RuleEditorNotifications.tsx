@@ -95,60 +95,66 @@ export const RuleEditorNotifications = ({
                         data-test-id={"ruleEditorToolbar-saveError-Btn"}
                         style={{ maxWidth: "39vw", padding: "0.5rem" }}
                     >
-                        {ruleEditorErrorMessages.length > 0 ? notifications : null}
-                        {queueEditorNotifications.map((editorNotification) => (
-                            <Notification intent="danger" key={"errorMessage"} icon={<Icon name="state-warning" />}>
-                                {editorNotification}
-                            </Notification>
-                        ))}
-                        {saveWarningMessages.map((warningMessage, index) => (
-                            <Notification
-                                intent="warning"
-                                key={`saveWarning-${index}`}
-                                icon={<Icon name="state-warning" />}
-                            >
-                                {warningMessage}
-                            </Notification>
-                        ))}
-                        {evaluationNotifications && evaluationNotifications.length > 0
-                            ? evaluationNotifications.map((notification) => {
-                                  const intentObject: Pick<NotificationProps, "intent"> = Object.create(null);
-                                  if (notification.intent !== "none") {
-                                      intentObject[notification.intent] = notification.intent;
-                                  }
-                                  return (
-                                      <Notification
-                                          {...intentObject}
-                                          onDismiss={(didTimeoutExpire) =>
-                                              !didTimeoutExpire && notification.onDiscard?.()
-                                          }
-                                      >
-                                          {notification.message}
-                                      </Notification>
-                                  );
-                              })
-                            : null}
-                        {queueNodeNotifications.map((nodeNotification) => (
-                            <div key={nodeNotification.nodeId}>
-                                <Spacing size={"tiny"} />
-                                <Notification
-                                    intent="warning"
-                                    icon={<Icon name="state-warning" />}
-                                    actions={
-                                        <IconButton
-                                            data-test-id={"RuleEditorToolbar-nodeError-btn"}
-                                            name="item-viewdetails"
-                                            text={t("RuleEditor.toolbar.saveError.nodeError.tooltip")}
-                                            onClick={() => {
-                                                nodeJumpToHandler(nodeNotification.nodeId);
-                                            }}
-                                        />
-                                    }
-                                >
-                                    <p>{nodeNotification.message}</p>
-                                </Notification>
-                            </div>
-                        ))}
+                        {/* Safari needs the explicit role when list markers are hidden. */}
+                        {/* eslint-disable-next-line jsx-a11y/no-redundant-roles */}
+                        <ul role="list" style={{ listStyle: "none", margin: 0, padding: 0 }}>
+                            {ruleEditorErrorMessages.length > 0 ? notifications : null}
+                            {queueEditorNotifications.map((editorNotification, index) => (
+                                <li key={`editor-${index}`}>
+                                    <Notification intent="danger" icon={<Icon name="state-warning" />}>
+                                        {editorNotification}
+                                    </Notification>
+                                </li>
+                            ))}
+                            {saveWarningMessages.map((warningMessage, index) => (
+                                <li key={`saveWarning-${index}`}>
+                                    <Notification intent="warning" icon={<Icon name="state-warning" />}>
+                                        {warningMessage}
+                                    </Notification>
+                                </li>
+                            ))}
+                            {evaluationNotifications && evaluationNotifications.length > 0
+                                ? evaluationNotifications.map((notification, index) => {
+                                      const intentObject: Pick<NotificationProps, "intent"> = Object.create(null);
+                                      if (notification.intent !== "none") {
+                                          intentObject[notification.intent] = notification.intent;
+                                      }
+                                      return (
+                                          <li key={`evaluation-${index}`}>
+                                              <Notification
+                                                  {...intentObject}
+                                                  onDismiss={(didTimeoutExpire) =>
+                                                      !didTimeoutExpire && notification.onDiscard?.()
+                                                  }
+                                              >
+                                                  {notification.message}
+                                              </Notification>
+                                          </li>
+                                      );
+                                  })
+                                : null}
+                            {queueNodeNotifications.map((nodeNotification) => (
+                                <li key={nodeNotification.nodeId}>
+                                    <Spacing size={"tiny"} />
+                                    <Notification
+                                        intent="warning"
+                                        icon={<Icon name="state-warning" />}
+                                        actions={
+                                            <IconButton
+                                                data-test-id={"RuleEditorToolbar-nodeError-btn"}
+                                                name="item-viewdetails"
+                                                text={t("RuleEditor.toolbar.saveError.nodeError.tooltip")}
+                                                onClick={() => {
+                                                    nodeJumpToHandler(nodeNotification.nodeId);
+                                                }}
+                                            />
+                                        }
+                                    >
+                                        <p>{nodeNotification.message}</p>
+                                    </Notification>
+                                </li>
+                            ))}
+                        </ul>
                     </div>
                 }
             >

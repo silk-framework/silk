@@ -16,7 +16,15 @@ export default function TypesList({ onChange, selected }: IProps) {
     };
 
     const itemRenderer = (type: string, { handleClick }) => {
-        return <MenuItem text={type} key={type} onClick={handleClick} active={selected === type} />;
+        return (
+            <MenuItem
+                roleStructure="listoption"
+                text={type}
+                key={type}
+                onClick={handleClick}
+                active={selected === type}
+            />
+        );
     };
 
     return (

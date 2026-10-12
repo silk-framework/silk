@@ -14,6 +14,8 @@ export const SidebarSearchField = ({ onQueryChange, searchSuggestions, activeTab
     const [textQuery, setTextQuery] = React.useState<string>("");
     const [suggestions, setSuggestions] = React.useState<CodeAutocompleteFieldSuggestionWithReplacementInfo[]>([]);
     const [hasFocus, setHasFocus] = React.useState(false);
+    const listboxId = React.useId();
+    const suggestionsOpen = hasFocus && suggestions.length > 0;
     const [t] = useTranslation();
     const inputRef = React.useRef<HTMLInputElement>(null);
 
@@ -52,6 +54,7 @@ export const SidebarSearchField = ({ onQueryChange, searchSuggestions, activeTab
             <SearchField
                 key={"search"}
                 inputRef={inputRef}
+                aria-controls={suggestionsOpen ? listboxId : undefined}
                 data-test-id={"rule-editor-operator-search"}
                 onChange={(e) => setTextQuery(e.target.value)}
                 value={textQuery}
@@ -70,10 +73,11 @@ export const SidebarSearchField = ({ onQueryChange, searchSuggestions, activeTab
                 }
             />
             <AutoSuggestionList
+                listboxId={listboxId}
                 itemToHighlight={(item) => {}}
                 currentlyFocusedIndex={0}
                 options={suggestions}
-                isOpen={hasFocus && suggestions.length > 0}
+                isOpen={suggestionsOpen}
                 onItemSelectionChange={(item) => {
                     setTextQuery(item.value + " ");
                 }}

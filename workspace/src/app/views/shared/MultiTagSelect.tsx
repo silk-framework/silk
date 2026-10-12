@@ -72,7 +72,6 @@ export const MultiTagSelect = ({
                 label: removeExtraSpaces(query),
             })}
             requestDelay={200}
-            clearQueryOnSelection={true} // workaround that another Tab does not uncheck matches
         />
     );
 };

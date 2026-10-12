@@ -112,10 +112,11 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                             <TitleSubsection title={t("navigation.side.dmBrowserTooltip", "")}>
                                 {t("navigation.side.dmBrowser", "Explore")}
                             </TitleSubsection>
-                            <Menu>
+                            <Menu role="list">
                                 {dmModuleLinks ? (
                                     dmModuleLinks.map((link) => (
                                         <MenuItem
+                                            roleStructure="listitem"
                                             icon={link.icon ? [link.icon] : undefined}
                                             text={t("navigation.side.dm." + link.path, link.defaultLabel)}
                                             htmlTitle={t("navigation.side.dm." + link.path + "Tooltip")}
@@ -125,6 +126,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                     ))
                                 ) : (
                                     <MenuItem
+                                        roleStructure="listitem"
                                         icon="application-explore"
                                         text={t("navigation.side.dm.explore", "Knowledge Graphs")}
                                         htmlTitle={t("navigation.side.dm.exploreTooltip")}
@@ -140,8 +142,9 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                     <TitleSubsection title={t("navigation.side.diBrowseTooltip", "")}>
                         {t("navigation.side.diBrowse", "")}
                     </TitleSubsection>
-                    <Menu>
+                    <Menu role="list">
                         <MenuItem
+                            roleStructure="listitem"
                             icon="artefact-project"
                             text={t("navigation.side.di.projects", "Projects")}
                             htmlTitle={t("navigation.side.di.projectsTooltip")}
@@ -154,6 +157,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                             active={location.pathname === SERVE_PATH && locationParams.get("itemType") === "project"}
                         />
                         <MenuItem
+                            roleStructure="listitem"
                             icon="artefact-dataset"
                             text={t("navigation.side.di.datasets", "Datasets")}
                             htmlTitle={t("navigation.side.di.datasetsTooltip")}
@@ -166,6 +170,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                             active={location.pathname === SERVE_PATH && locationParams.get("itemType") === "dataset"}
                         />
                         <MenuItem
+                            roleStructure="listitem"
                             icon="artefact-workflow"
                             text={t("navigation.side.di.workflows", "Workflows")}
                             htmlTitle={t("navigation.side.di.workflowsTooltip")}
@@ -178,6 +183,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                             active={location.pathname === SERVE_PATH && locationParams.get("itemType") === "workflow"}
                         />
                         <MenuItem
+                            roleStructure="listitem"
                             icon="application-activities"
                             text={t("navigation.side.di.activities", "Activities")}
                             htmlTitle={t("navigation.side.di.activitiesTooltip")}
@@ -220,11 +226,16 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                             >
                                 <Toolbar verticalStack={true} style={{ height: "100%" }}>
                                     <ToolbarSection canGrow={true} style={{ width: "100%" }}>
-                                        <Menu>
-                                            {languageSwitcher && <languageSwitcher.Component />}
+                                        <Menu role="list">
+                                            {languageSwitcher && (
+                                                <li>
+                                                    <languageSwitcher.Component />
+                                                </li>
+                                            )}
                                             <MenuDivider />
                                             {hotKeys.quickSearch && (
                                                 <MenuItem
+                                                    roleStructure="listitem"
                                                     text={t("RecentlyViewedModal.title")}
                                                     href={"#"}
                                                     onClick={(e) => {
@@ -246,6 +257,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                             )}
                                             {hotKeys.overview && (
                                                 <MenuItem
+                                                    roleStructure="listitem"
                                                     text={t("header.keyboardShortcutsModal.title")}
                                                     href={"#"}
                                                     onClick={(e) => {
@@ -266,12 +278,14 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                                 />
                                             )}
                                             <MenuItem
+                                                roleStructure="listitem"
                                                 text={t("common.action.showApiDoc", "API")}
                                                 href={CONTEXT_PATH + "/doc/api"}
                                                 icon={"application-homepage"}
                                             />
 
                                             <MenuItem
+                                                roleStructure="listitem"
                                                 text={t("common.action.listDeprecatedPlugins")}
                                                 href={CONTEXT_PATH + "/workbench/deprecatedPlugins"}
                                                 icon={"state-warning"}

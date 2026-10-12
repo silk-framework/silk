@@ -187,6 +187,7 @@ export function autoCompleteItemRendererFactory<T = {}>(
             );
         return (
             <MenuItem
+                roleStructure="listoption"
                 active={modifiers.active}
                 disabled={modifiers.disabled}
                 key={value ?? label}

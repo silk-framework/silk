@@ -43,6 +43,7 @@ export const ExampleProjectImportMenu = () => {
     };
     return exampleProjectLoaded !== null && !exampleProjectLoaded ? (
         <MenuItem
+            roleStructure="listitem"
             data-test-id={"import-example-project"}
             text={t("common.action.loadExampleProject")}
             icon={"item-add-artefact"}

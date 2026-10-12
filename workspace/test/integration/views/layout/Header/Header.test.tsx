@@ -1,17 +1,7 @@
 import React from "react";
-import { createBrowserHistory, createMemoryHistory } from "history";
+import { createBrowserHistory } from "history";
 import mockAxios from "../../../../__mocks__/axios";
-import {
-    byTestId,
-    clickFoundElement,
-    findElement,
-    mockedAxiosResponse,
-    renderWrapper,
-    setUseParams,
-    testWrapper,
-    withMount,
-    workspacePath,
-} from "../../../TestHelper";
+import { byTestId, mockedAxiosResponse, renderWrapper, setUseParams, workspacePath } from "../../../TestHelper";
 import { Header } from "../../../../../src/app/views/layout/Header/Header";
 import Task from "../../../../../src/app/views/pages/Task";
 import { APP_VIEWHEADER_ID, PageHeader } from "../../../../../src/app/views/shared/PageHeader/PageHeader";
@@ -63,6 +53,44 @@ describe("Header", () => {
     afterEach(() => {
         wrapper.unmount();
         mockAxios.reset();
+    });
+
+    it("exposes the fallback Data Manager entry as a link", () => {
+        const sidebar = wrapper.container.querySelector(".eccgui-application__menu__sidebar") as HTMLElement;
+        expect(sidebar.querySelectorAll('[role="list"]')).toHaveLength(2);
+        expect(sidebar.querySelectorAll('[role="menu"], [role="menuitem"]')).toHaveLength(0);
+        expect(sidebar.querySelector('a[href="http://docker.local"]')).not.toBeNull();
+    });
+
+    it("exposes sidebar navigation entries as links in lists", () => {
+        wrapper.unmount();
+        wrapper = renderWrapper(
+            <Header onClickApplicationSidebarExpand={() => {}} isApplicationSidebarExpanded={true} />,
+            history,
+            {
+                common: {
+                    initialSettings: {
+                        dmBaseUrl: "http://docker.local",
+                        dmModuleLinks: [{ path: "thesaurus", defaultLabel: "Thesauri" }],
+                    },
+                },
+            },
+        );
+
+        const sidebar = wrapper.container.querySelector(".eccgui-application__menu__sidebar") as HTMLElement;
+        expect(sidebar).not.toBeNull();
+        expect(sidebar.querySelectorAll('[role="list"]')).toHaveLength(2);
+        expect(sidebar.querySelectorAll('[role="menu"], [role="menuitem"]')).toHaveLength(0);
+        expect(sidebar.querySelectorAll("a[href]")).toHaveLength(5);
+        expect(sidebar.querySelector('a[href="http://docker.local/thesaurus"]')).not.toBeNull();
+    });
+
+    it("exposes the user panel as a list of links, not a menu", () => {
+        fireEvent.click(wrapper.container.querySelector("#headerUserMenu") as HTMLElement);
+        const panel = document.querySelector('[aria-label="User menu"]') as HTMLElement;
+        expect(panel).not.toBeNull();
+        expect(panel.querySelector('[role="list"]')).not.toBeNull();
+        expect(panel.querySelector('[role="menu"], [role="menuitem"]')).toBeNull();
     });
 
     it("should page title is correct", () => {
