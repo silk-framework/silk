@@ -13,6 +13,7 @@ import scala.util.Try
 
 /**
   * Manages the tags of a project.
+  * Every write holds the project monitor, so that a caller can check the tags and write as one step; only the project clones, which fill a new project, do not.
   *
   * @param changeJournal The journal that records each tag change.
   */

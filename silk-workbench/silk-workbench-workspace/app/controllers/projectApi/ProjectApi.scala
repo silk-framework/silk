@@ -623,7 +623,8 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
                 )
                 projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[CreateTagsRequest] { request =>
-      val response = request.execute(getProject(projectId))
+      val project = getProject(projectId)
+      val response = project.synchronized(request.execute(project))
       Ok(Json.toJson(response))
     }
   }
@@ -658,7 +659,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
                 )
                 tag: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = getProject(projectId)
-    project.tagManager.deleteTag(tag)
+    project.synchronized(project.tagManager.deleteTag(tag))
     NoContent
   }
 
