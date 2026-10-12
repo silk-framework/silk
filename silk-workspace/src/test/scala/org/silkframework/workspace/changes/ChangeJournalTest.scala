@@ -21,7 +21,7 @@ import org.silkframework.util.{ConfigTestTrait, Uri}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
 import org.silkframework.workspace.exceptions.TaskNotFoundException
 import org.silkframework.workspace.variables.{DeleteVariableModification, UpdateVariableModification}
-import org.silkframework.workspace.{Project, ProjectTask, TestWorkspaceProviderTestTrait, WorkspaceFactory}
+import org.silkframework.workspace.{Project, ProjectTask, TagManager, TestWorkspaceProviderTestTrait, WorkspaceFactory}
 
 import java.lang.management.ManagementFactory
 import java.time.Instant
@@ -232,8 +232,15 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     val project = retrieveOrCreateProject("journalRevertDuringRemoval")
     project.addTask[TransformSpec]("transform", transform(name))
     project.updateTask[TransformSpec]("transform", transform(name, age))
+    val update = project.changeJournal.all.last
 
-    expectRefusedByRemoval(project, project.changeJournal.all.last)
+    // The revert takes the project's monitor first, as the removal does, so it finds the task gone
+    val outcome = revertDuringWrite(project.changeJournal, update.seq, project) {
+      project.removeTask[TransformSpec]("transform")
+    }
+
+    outcome.failed.get.getMessage should include ("does not exist")
+    project.anyTaskOption("transform") shouldBe None
   }
 
   it should "refuse a typed revert whose task is removed while the revert waits for it" in {
@@ -550,7 +557,18 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
       TemplateVariables(Seq(TemplateVariable("limit", value, isSensitive = sensitive, scope = VariableScope.execution)))
     }
     describe(task(transform(name)), task(transform(name), MetaData(None, description = Some("d"), tags = Set(Uri("urn:tag"))), limit("10"))) shouldBe
-      "Updated transform 'task': description changed, tags changed, execution variable 'limit' '10' added"
+      "Updated transform 'task': description changed, tag 'urn:tag' added, execution variable 'limit' '10' added"
+    // A tag is named by the label that its generated URI carries, as the change does not hold the tags of the project
+    def tagged(labels: String*): PlainTask[TaskSpec] = {
+      task(transform(name), MetaData(None, tags = labels.map(label => Uri(TagManager.generateTagUri(label))).toSet))
+    }
+    describe(tagged("Cleanup", "Old"), tagged("Cleanup", "Needs review")) shouldBe
+      "Updated transform 'task': tag 'Needs review' added, tag 'Old' removed"
+    AddTask(tagged("Cleanup")).describe should endWith ("tag 'Cleanup' added")
+    // A long name is shortened: a label, or the URI of a tag that has no generated URI
+    describe(tagged(), tagged("x" * 60)) shouldBe s"Updated transform 'task': tag '${"x" * 50}…' added"
+    describe(task(transform(name), MetaData(None, tags = Set(Uri("http://example.org/tags/" + "y" * 60)))), tagged()) shouldBe
+      s"Updated transform 'task': tag 'http://example.org/tags/${"y" * 26}…' removed"
     describe(task(transform(name), variables = limit("10")), task(transform(name), variables = limit("100"))) shouldBe
       "Updated transform 'task': execution variable 'limit' '10' → '100'"
     describe(task(transform(name), variables = limit("10", sensitive = true)), task(transform(name), variables = limit("100", sensitive = true))) shouldBe
@@ -840,6 +858,82 @@ class ChangeJournalTest extends AnyFlatSpec with Matchers with TestWorkspaceProv
     revertConflict(journal, added) shouldBe Some(used)
     the[ChangeConflictException] thrownBy journal.revert(added.seq) should have message used
     project.templateVariables.all.map("base").value shouldBe "a.csv"
+  }
+
+  it should "record every tag addition, renaming and removal" in {
+    val project = retrieveOrCreateProject("journalTags")
+    val tags = project.tagManager
+    val tag = tags.createTag("Cleanup")
+    // Not recorded: the tag is there as given
+    tags.createTag(" Cleanup ")
+    tags.putTag(tag.copy(label = "Clean up"))
+    tags.deleteTag(tag.uri)
+    // Not recorded: there is no such tag
+    tags.deleteTag(tag.uri)
+
+    project.changeJournal.all.map(_.change.describe) shouldBe
+      Seq("Added tag 'Cleanup'", "Renamed tag 'Cleanup' to 'Clean up'", "Removed tag 'Clean up'")
+    SetTag(None, tag.copy(label = "x" * 60)).describe shouldBe s"Added tag '${"x" * 50}…'"
+  }
+
+  it should "revert tag changes while the tag is unchanged and no task has it" in {
+    val project = retrieveOrCreateProject("journalRevertTags")
+    val journal = project.changeJournal
+    val tags = project.tagManager
+    def labels: Seq[String] = tags.allTags().map(_.label).toSeq
+    val tag = tags.createTag("Cleanup")
+    val added = journal.all.last
+    val renamedTag = tag.copy(label = "Clean up")
+    tags.putTag(renamedTag)
+    val renamed = journal.all.last
+
+    // Revert the renaming, then revert the revert
+    val reverted = journal.revert(renamed.seq)
+    reverted.change shouldBe SetTag(Some(renamedTag), tag)
+    labels shouldBe Seq("Cleanup")
+    // The addition is not reverted while the tag differs from the added one
+    journal.revert(reverted.seq)
+    labels shouldBe Seq("Clean up")
+    revertConflict(journal, added) shouldBe Some("Tag 'Clean up' in project 'journalRevertTags' has been changed since.")
+    tags.putTag(tag)
+
+    // Nor while a task or the project itself has the tag, as the tag would stay there as a URI without a label
+    project.addTask[TransformSpec]("task", transform(name), MetaData(Some("Tagged task"), tags = Set(tag.uri)))
+    project.updateMetaData(project.config.metaData.copy(tags = Set(tag.uri)))
+    val used = "Tag 'Cleanup' in project 'journalRevertTags' is still used by task 'Tagged task' (task), the project itself."
+    revertConflict(journal, added) shouldBe Some(used)
+    the[ChangeConflictException] thrownBy journal.revert(added.seq) should have message used
+    labels shouldBe Seq("Cleanup")
+
+    // Reverting the addition removes the tag, reverting that adds it back
+    project.updateTaskMetaData("task")(_.copy(tags = Set.empty))
+    project.updateMetaData(project.config.metaData.copy(tags = Set.empty))
+    val removed = journal.revert(added.seq)
+    removed.change shouldBe RemoveTag(tag)
+    labels shouldBe empty
+    journal.revert(removed.seq).change shouldBe SetTag(None, tag)
+    labels shouldBe Seq("Cleanup")
+  }
+
+  it should "not revert a task change that gives the task a tag the project does not have" in {
+    val project = retrieveOrCreateProject("journalRevertTaskTags")
+    val journal = project.changeJournal
+    val tag = project.tagManager.createTag("Cleanup")
+    // A URI that the task holds already is not checked, so it stays
+    val dangling = Uri("urn:dangling")
+    project.addTask[TransformSpec]("task", transform(name), MetaData(Some("Tagged task"), tags = Set(tag.uri, dangling)))
+    project.updateTaskMetaData("task")(_.copy(tags = Set(dangling)))
+    val untagged = journal.all.last
+    project.tagManager.deleteTag(tag.uri)
+
+    // The revert would give the task the deleted tag back, as a URI without a label
+    val missing = "Task 'Tagged task' would get the tag 'Cleanup', which project 'journalRevertTaskTags' does not have. " +
+      "Revert the removal of the tag first, or create the tag again."
+    revertConflict(journal, untagged) shouldBe Some(missing)
+    the[ChangeConflictException] thrownBy journal.revert(untagged.seq) should have message missing
+    project.tagManager.putTag(tag)
+    journal.revert(untagged.seq)
+    project.anyTask("task").metaData.tags shouldBe Set(tag.uri, dangling)
   }
 
   it should "record the file writes and deletions of a request and revert a creation while the file is unchanged" in {

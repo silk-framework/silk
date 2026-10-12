@@ -10,8 +10,8 @@ import org.silkframework.workspace.{Project, ProjectTask}
 /**
   * Links to where the current state behind a change is seen, built here so no client needs to know the routes:
   * a task change links the task page as long as the task exists (a removed task has none until the removal is
-  * reverted), a mapping change the rule in the mapping editor instead while that rule exists, a variable or file
-  * change the project page holding their widgets, an existing file its download and a workflow run its report.
+  * reverted), a mapping change the rule in the mapping editor instead while that rule exists, a variable, file
+  * or tag change the project page, an existing file its download and a workflow run its report.
   */
 object ChangeLinks {
 
@@ -20,7 +20,7 @@ object ChangeLinks {
     change match {
       case names: NamesTask =>
         project.anyTaskOption(names.taskId).map(taskLink(project, _, names)).toSeq ++ reportLink(project, names)
-      case _: SetVariable | _: RemoveVariable | _: ResourceDeleted =>
+      case _: SetVariable | _: RemoveVariable | _: ResourceDeleted | _: SetTag | _: RemoveTag =>
         Seq(projectPage)
       case ResourceCreated(path, _) =>
         projectPage +: downloadLink(project, path).toSeq

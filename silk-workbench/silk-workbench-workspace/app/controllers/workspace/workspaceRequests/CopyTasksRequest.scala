@@ -109,9 +109,6 @@ object CopyTasksRequest {
             copyAllPrefixes()
           }
 
-          // Copy only those tags that do not exist in the target project
-          copyTags(tasksToCopy)
-
           // Tasks to be overwritten
           val overwrittenTasks =
             for {task <- tasksToCopy
@@ -122,6 +119,8 @@ object CopyTasksRequest {
             if (overwrittenTasks.nonEmpty && !overwriteConfirmed) {
               throw BadUserInputException("Please confirm that you intend to overwrite tasks in the target project.")
             }
+            // Copy only those tags that do not exist in the target project
+            copyTags(tasksToCopy)
             val copiedVariables = mutable.Set[TemplateVariableName]()
             for (task <- tasksToCopy) {
               copyTask(task, copiedVariables)

@@ -22,7 +22,7 @@ import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TaskReso
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.templating.{TemplateVariables, TemplateVariablesManager}
 import org.silkframework.runtime.validation.NotFoundException
-import org.silkframework.util.Identifier
+import org.silkframework.util.{Identifier, Uri}
 import org.silkframework.workspace.access.{AccessControlConfig, ProjectAccessControlManager, ProjectAccessDeniedException}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowValidator}
 import org.silkframework.workspace.activity.{ProjectActivity, ProjectActivityFactory}
@@ -52,8 +52,6 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, project
 
   val accessControl = new ProjectAccessControlManager(initialConfig.id, provider, loadingUser)
 
-  val tagManager = new TagManager(initialConfig.id, provider)
-
   val cacheResources: ResourceManager = provider.projectCache(initialConfig.id)
 
   @volatile
@@ -61,6 +59,9 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, project
 
   /** The journal of changes to this project, which records every write and can revert it. */
   val changeJournal: ChangeJournal = new ChangeJournal(this)
+
+  /** The tags of this project. Every change is recorded in the change journal. */
+  val tagManager = new TagManager(initialConfig.id, provider, changeJournal)
 
   /** The file resources of this project. Every write is recorded in the change journal. */
   val resources: ResourceManager = new JournalingResourceManager(projectResources, changeJournal)
@@ -370,18 +371,61 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, project
     */
   def updateAnyTask(name: Identifier, taskData: TaskSpec, metaData: Option[MetaData] = None,
                     executionVariables: Option[TemplateVariables] = None)
-                   (implicit userContext: UserContext): Unit = synchronized {
+                   (implicit userContext: UserContext): Unit = {
+    putAnyTask(name, taskData, executionVariables) {
+      case Some(currentMetaData) => mergeMetaData(currentMetaData, metaData)
+      case None => metaData.getOrElse(MetaData.empty)
+    }
+  }
+
+  /**
+    * Updates a task of any type in this project, or adds it if no task with the given name exists.
+    * The meta data is derived from the current one in the same step, so that no other update slips in between.
+    *
+    * @param name The name of the task. Must be unique for all tasks in this project.
+    * @param taskData The task data.
+    * @param executionVariables The execution variables of the task. If not provided, no changes to the variables are made.
+    * @param metaData Returns the meta data to write for the current one, which is None if the task does not exist yet.
+    */
+  def putAnyTask(name: Identifier, taskData: TaskSpec, executionVariables: Option[TemplateVariables] = None)
+                (metaData: Option[MetaData] => MetaData)
+                (implicit userContext: UserContext): Unit = synchronized {
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
       case Some(module) =>
         module.taskOption(name) match {
           case Some(task) =>
-            val mergedMetaData = mergeMetaData(task.metaData, metaData)
-            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(mergedMetaData.asUpdatedMetaData), executionVariables)
+            task.synchronized {
+              val newMetaData = metaData(Some(task.metaData))
+              task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(newMetaData.asUpdatedMetaData), executionVariables)
+            }
           case None =>
-            addAnyTask(name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData, executionVariables.getOrElse(TemplateVariables.empty))
+            addAnyTask(name, taskData, metaData(None).asNewMetaData, executionVariables.getOrElse(TemplateVariables.empty))
         }
       case None =>
         throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
+    }
+  }
+
+  /**
+    * Updates the meta data of an existing task of any type. Reading and writing it are one step,
+    * so that no other update slips in between. An update that changes nothing writes nothing:
+    * the task is not persisted again and its activities are not restarted.
+    *
+    * @param name The name of the task.
+    * @param update Returns the new meta data for the current one.
+    * @return The meta data of the task after the update.
+    * @throws TaskNotFoundException If no task with the given name has been found
+    */
+  def updateTaskMetaData(name: Identifier)(update: MetaData => MetaData)
+                        (implicit userContext: UserContext): MetaData = synchronized {
+    val task = anyTask(name)
+    task.synchronized {
+      val current = task.metaData
+      val updated = update(current)
+      if(updated != current) {
+        task.updateMetaData(updated.asUpdatedMetaData)
+      }
+      task.metaData
     }
   }
 
@@ -440,6 +484,14 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, project
         }
         provider.removeExternalTaskLoadingError(id, taskName)
         Set.empty
+    }
+  }
+
+  /** Removes a tag unless a task or the project itself still has it, else throws [[TagInUseException]]. */
+  def removeTag(uri: Uri)(implicit userContext: UserContext): Unit = synchronized {
+    for(tag <- tagManager.allTags().find(_.uri == uri)) {
+      TagInUseException.check(this, tag, allTasks.filter(_.metaData.tags.contains(uri)))
+      tagManager.deleteTag(uri)
     }
   }
 
