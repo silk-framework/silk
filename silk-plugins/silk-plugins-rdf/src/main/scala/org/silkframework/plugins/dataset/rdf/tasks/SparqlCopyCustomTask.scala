@@ -15,6 +15,7 @@ import scala.util.{Failure, Success, Try}
   description =
     "A task that executes a SPARQL Construct query on a SPARQL enabled data source and outputs the SPARQL result. " +
       "If the result should be written to the same RDF store it is read from, the SPARQL Update operator is preferable.", 
+  documentationFile = "SparqlCopyCustomTask.md",
   iconFile="construct.svg"
 )
 case class SparqlCopyCustomTask(
@@ -26,7 +27,8 @@ case class SparqlCopyCustomTask(
     query: SparqlCodeParameter,
     @Param(
       label = "Use temporary file",
-      value = "When copying directly to the same SPARQL Endpoint or when copying large amounts of triples, set to True by default"
+      value = "Save the complete CONSTRUCT result to a temporary file before passing it to the output. " +
+        "Useful when reading from and writing to the same store. Enabled by default."
     )
     tempFile: Boolean = true
 ) extends CustomTask {
