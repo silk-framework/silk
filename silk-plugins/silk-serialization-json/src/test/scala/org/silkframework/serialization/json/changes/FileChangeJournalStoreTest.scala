@@ -63,7 +63,7 @@ class FileChangeJournalStoreTest extends AnyFlatSpec with Matchers with BeforeAn
     append(first, "p", 1 to 3)
     first.setReviewedUpTo("p", 2)
     seqs(first, "p") shouldBe Seq(1, 2, 3)
-    files("restart", "p") shouldBe Seq("000000001.jsonl", "reviewed.json")
+    files("restart", "p") shouldBe Seq("000000001.jsonl", "state.json")
 
     // A second instance answers the latest seq and the watermark without loading, then loads the headers on the first read
     val second = store("restart")
@@ -129,7 +129,7 @@ class FileChangeJournalStoreTest extends AnyFlatSpec with Matchers with BeforeAn
     // Line 2 has a change that cannot be read, line 3 is not JSON, line 4 carries the seq of line 2, and a cut-short append follows
     val damaged = Seq(lines(0), lines(1).replace("\"type\":\"ResourceDeleted\"", "\"type\":\"Bogus\""), "{not json", lines(1)).mkString("\n") + "\n" + lines(0).take(20)
     Files.write(segment, damaged.getBytes(UTF_8))
-    Files.write(projectDir("damage", "p").resolve("reviewed.json.tmp"), "{}".getBytes(UTF_8))
+    Files.write(projectDir("damage", "p").resolve("state.json.tmp"), "{}".getBytes(UTF_8))
     Files.write(projectDir("damage", "p").resolve("notes.txt"), "kept".getBytes(UTF_8))
 
     val reloaded = store("damage")
@@ -168,7 +168,7 @@ class FileChangeJournalStoreTest extends AnyFlatSpec with Matchers with BeforeAn
     s.setReviewedUpTo("p", 2)
     val archive = InMemoryResourceManager()
     s.exportJournal("p", archive)
-    archive.list.sorted shouldBe Seq("000000001.jsonl", "reviewed.json")
+    archive.list.sorted shouldBe Seq("000000001.jsonl", "state.json")
     archive.get("000000001.jsonl").loadAsBytes shouldBe Files.readAllBytes(projectDir("transfer", "p").resolve("000000001.jsonl"))
 
     append(s, "q", 1 to 5)

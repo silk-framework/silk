@@ -83,7 +83,7 @@ class ChangeJournalExportTest extends AnyFlatSpec with Matchers with ConfigTestT
 
     // With and without resources the archive carries the journal; without user data it does not
     val withResources = exportProject(project, XmlZipWithResourcesProjectMarshaling())
-    zipEntries(withResources) should contain allOf("exported/changes/000000001.jsonl", "exported/changes/reviewed.json")
+    zipEntries(withResources) should contain allOf("exported/changes/000000001.jsonl", "exported/changes/state.json")
     zipEntries(exportProject(project, XmlZipWithoutResourcesProjectMarshaling())) should contain("exported/changes/000000001.jsonl")
     val withoutUserData = exportProject(project, XmlZipWithResourcesProjectMarshaling(), exportUserData = false)
     zipEntries(withoutUserData).filter(_.contains("/changes/")) shouldBe empty
@@ -118,7 +118,7 @@ class ChangeJournalExportTest extends AnyFlatSpec with Matchers with ConfigTestT
     } finally {
       out.close()
     }
-    zipEntries(file) should contain allOf("wsProject/changes/000000001.jsonl", "wsProject/changes/reviewed.json")
+    zipEntries(file) should contain allOf("wsProject/changes/000000001.jsonl", "wsProject/changes/state.json")
     val target = workspace()
     target.importWorkspace(file.toFile, XmlZipWithResourcesProjectMarshaling())
     target.project("wsProject").changeJournal.all shouldBe project.changeJournal.all

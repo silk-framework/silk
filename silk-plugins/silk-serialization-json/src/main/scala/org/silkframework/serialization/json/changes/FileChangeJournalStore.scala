@@ -20,7 +20,7 @@ import scala.util.control.NonFatal
 
 /**
   * Keeps the journal of each project in a folder of its own under `dir`: append-only segment files named after the
-  * seq of their first entry, one entry per line, and `reviewed.json` with the watermark. The headers of a project's
+  * seq of their first entry, one entry per line, and `state.json` with the reviewed watermark. The headers of a project's
   * entries are read on first access and kept in memory; the change of an entry is read from its segment when the
   * entry is asked for. A segment holds about 1 MB, or a tenth of a smaller cap, and the oldest segments are deleted
   * while the project exceeds the cap. See the file store section of the feature spec for the layout and the damage
@@ -118,7 +118,7 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
   }
 
   override def reviewedUpTo(project: Identifier): Int = monitor(project).synchronized {
-    val file = reviewedFile(project)
+    val file = stateFile(project)
     if(Files.exists(file)) {
       try {
         (Json.parse(Files.readAllBytes(file)) \ REVIEWED_UP_TO).as[Int]
@@ -134,7 +134,7 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
 
   /** Written to a temporary file that is moved into place, so a crash leaves the old watermark or the new one. */
   override def setReviewedUpTo(project: Identifier, seq: Int): Unit = monitor(project).synchronized {
-    val file = reviewedFile(project)
+    val file = stateFile(project)
     Files.createDirectories(file.getParent)
     val tmp = file.resolveSibling(file.getFileName.toString + TMP_SUFFIX)
     Files.write(tmp, Json.stringify(Json.obj(REVIEWED_UP_TO -> seq)).getBytes(UTF_8))
@@ -158,7 +158,7 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
     journals.remove(project)
     val directory = projectDir(project)
     deleteDirectory(directory)
-    val names = source.list.filter(name => isSegmentName(name) || name == REVIEWED_FILE)
+    val names = source.list.filter(name => isSegmentName(name) || name == STATE_FILE)
     if(names.nonEmpty) {
       try {
         Files.createDirectories(directory)
@@ -187,12 +187,12 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
     if(!Files.isDirectory(directory)) {
       Journal(Vector.empty)
     } else {
-      for(file <- listFiles(directory); name = file.getFileName.toString; if !isSegmentName(name) && name != REVIEWED_FILE) {
-        if(name == REVIEWED_FILE + TMP_SUFFIX) {
+      for(file <- listFiles(directory); name = file.getFileName.toString; if !isSegmentName(name) && name != STATE_FILE) {
+        if(name == STATE_FILE + TMP_SUFFIX) {
           // Left by a crash while the watermark was written; the old watermark is still in place
           Files.delete(file)
         } else {
-          log.warning(s"The file '$file' in the change journal of project '$project' is neither a segment nor the watermark and is ignored.")
+          log.warning(s"The file '$file' in the change journal of project '$project' is neither a segment nor the state file and is ignored.")
         }
       }
       val files = segmentFiles(project)
@@ -270,7 +270,7 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
 
   private def projectDir(project: Identifier): Path = root.resolve(project.toString)
 
-  private def reviewedFile(project: Identifier): Path = projectDir(project).resolve(REVIEWED_FILE)
+  private def stateFile(project: Identifier): Path = projectDir(project).resolve(STATE_FILE)
 
   private def segmentFile(project: Identifier, firstSeq: Int): Path = projectDir(project).resolve(f"$firstSeq%09d$SEGMENT_SUFFIX")
 
@@ -281,9 +281,9 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
     listFiles(projectDir(project)).filter(file => isSegmentName(file.getFileName.toString)).sortBy(_.getFileName.toString)
   }
 
-  /** The segments and the watermark file, the files an export carries. */
+  /** The segments and the state file, the files an export carries. */
   private def journalFiles(project: Identifier): Seq[Path] = {
-    segmentFiles(project) ++ Some(reviewedFile(project)).filter(Files.exists(_))
+    segmentFiles(project) ++ Some(stateFile(project)).filter(Files.exists(_))
   }
 
   private def listFiles(directory: Path): Seq[Path] = {
@@ -313,7 +313,8 @@ object FileChangeJournalStore {
 
   private val SEGMENT_SUFFIX = ".jsonl"
 
-  private val REVIEWED_FILE = "reviewed.json"
+  // The mutable state of a journal next to its append-only segments; so far only the reviewed watermark
+  private val STATE_FILE = "state.json"
 
   private val REVIEWED_UP_TO = "reviewedUpTo"
 
