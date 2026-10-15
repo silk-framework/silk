@@ -37,10 +37,11 @@ case class LogQuery(minLevel: Level,
 
   /** Case-insensitive substring test that does not copy the text, since it runs on every examined line. */
   private def containsIgnoreCase(text: String, term: String): Boolean = {
-    val last = text.length - term.length
-    var start = 0
-    while (start <= last && !text.regionMatches(true, start, term, 0, term.length)) start += 1
-    start <= last
+    // Tries every offset the term still fits at; regionMatches compares the window in place, so nothing is lower-cased
+    val lastOffset = text.length - term.length
+    var offset = 0
+    while (offset <= lastOffset && !text.regionMatches(true, offset, term, 0, term.length)) offset += 1
+    offset <= lastOffset
   }
 }
 
