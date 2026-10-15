@@ -2,6 +2,7 @@ package org.silkframework.serialization.json.changes
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.silkframework.config.Tag
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonParseException
 import org.silkframework.serialization.json.changes.ChangeJsonFormats.{ChangeEntryJsonFormat, ChangeHeaderJsonFormat, ChangeJsonFormat}
@@ -33,7 +34,10 @@ class ChangeJsonFormatsTest extends AnyFlatSpec with Matchers {
 
   private val recorded = Seq(proposal, run, overwritten,
     ChangeEntry(4, now, None, None, ResourceDeleted("a.csv", FileState(Some(12), Some(now)))),
-    ChangeEntry(5, now, None, None, DiscardedWorkflowRun("wf")))
+    ChangeEntry(5, now, None, None, DiscardedWorkflowRun("wf")),
+    ChangeEntry(6, now, None, None, SetTag(None, Tag("urn:tag:cleanup", "Cleanup"))),
+    ChangeEntry(7, now, None, None, SetTag(Some(Tag("urn:tag:cleanup", "Cleanup")), Tag("urn:tag:cleanup", "Clean up"))),
+    ChangeEntry(8, now, None, None, RemoveTag(Tag("urn:tag:cleanup", "Clean up"))))
 
   it should "round-trip the recorded changes, which need no project to read" in {
     for(entry <- recorded) {

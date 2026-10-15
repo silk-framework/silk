@@ -386,7 +386,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     val task = project.anyTask(taskName)
 
     validateJson[MetaDataPlain] { metaData =>
-      task.updateMetaData(metaData.toMetaData)
+      project.updateTaskMetaData(task.id)(_ => metaData.toMetaData)
       Ok(taskMetaDataJson(task, None))
     }
   }

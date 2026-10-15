@@ -5,20 +5,20 @@ import org.silkframework.config.TaskSpec
 import org.silkframework.rule.{TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.changes.{ChangeHeader, RemoveVariable, ResourceDeleted, SetVariable}
+import org.silkframework.workspace.changes.{ChangeHeader, RemoveTag, RemoveVariable, ResourceDeleted, SetTag, SetVariable}
 import org.silkframework.workspace.{Project, ProjectTask}
 
 /**
   * Links to where the current state behind a change is seen, built here so no client needs to know the routes:
   * a task change links the task page as long as the task exists (a removed task has none until the removal is
-  * reverted), a mapping change the rule in the mapping editor instead while that rule exists, a variable or file
-  * change the project page holding their widgets, an existing file its download and a workflow run its report.
+  * reverted), a mapping change the rule in the mapping editor instead while that rule exists, a variable, file
+  * or tag change the project page holding their widgets, an existing file its download and a workflow run its report.
   * Built from the header, which names the task, the rule, the file and the report the change concerns.
   */
 object ChangeLinks {
 
   // The changes that link the project page alone: a deleted file has no download, whatever stands at its path now
-  private val projectPageOnly = Set(classOf[SetVariable], classOf[RemoveVariable], classOf[ResourceDeleted]).map(_.getSimpleName)
+  private val projectPageOnly = Set(classOf[SetVariable], classOf[RemoveVariable], classOf[ResourceDeleted], classOf[SetTag], classOf[RemoveTag]).map(_.getSimpleName)
 
   def of(project: Project, header: ChangeHeader)(implicit userContext: UserContext): Seq[ItemLink] = {
     val projectPage = ItemType.itemDetailsPage(ItemType.project, project.id, project.id)

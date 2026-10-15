@@ -230,6 +230,49 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
     checkForValues(2, Seq("csv value 2"), response.body)
   }
 
+  it should "apply sink dataset parameters when the output type is given as query parameter" in {
+    val startResponse = executeVariableWorkflowAsync(outputOnlyWorkflow, "csv",
+      additionalQueryParameters = Map(s"${VariableWorkflowRequestUtils.QUERY_DATA_SINK_CONFIG_PREFIX}separator" -> "|"))
+    new ActivityClient(baseUrl, projectId, outputOnlyWorkflow).waitForActivity(startResponse.activityId, Some(startResponse.instanceId))
+    val response = checkResponseExactStatusCode(getVariableWorkflowResult(outputOnlyWorkflow, startResponse.instanceId))
+    response.body must startWith (s"${targetProp(1)}|${targetProp(2)}")
+  }
+
+  it should "return no content for the result of an asynchronously executed workflow without replaceable output" in {
+    val startResponse = executeVariableWorkflowAsync(inputOnlyWorkflow, "xml", parameters = Map(sourceProperty1 -> Seq("A")))
+    new ActivityClient(baseUrl, projectId, inputOnlyWorkflow).waitForActivity(startResponse.activityId, Some(startResponse.instanceId))
+    checkResponseExactStatusCode(getVariableWorkflowResult(inputOnlyWorkflow, startResponse.instanceId), NO_CONTENT)
+    project.resources.get(outputCsv).delete()
+  }
+
+  it should "return 404 for the result of an unknown execution instance" in {
+    checkResponseExactStatusCode(getVariableWorkflowResult(outputOnlyWorkflow, "unknownInstance"), NOT_FOUND)
+    checkResponseExactStatusCode(getVariableWorkflowResult(outputOnlyWorkflow, "no identifier!"), NOT_FOUND)
+  }
+
+  private val outputTypeParam = VariableWorkflowRequestUtils.QUERY_PARAM_OUTPUT_TYPE
+
+  it should "return the content type matching the output type given as query parameter" in {
+    val response = checkResponseExactStatusCode(
+      executeVariableWorkflow(outputOnlyWorkflow, acceptMimeType = APPLICATION_XML, additionalQueryParameters = Map(outputTypeParam -> "csv")))
+    response.contentType mustBe VariableWorkflowRequestUtils.csvMimeType
+    response.body must startWith (s"${targetProp(1)},${targetProp(2)}")
+  }
+
+  it should "reject an output type that is not a file-based dataset plugin" in {
+    checkResponseExactStatusCode(
+      executeVariableWorkflow(outputOnlyWorkflow, additionalQueryParameters = Map(outputTypeParam -> "sparqlEndpoint")), BAD_REQUEST)
+    checkResponseExactStatusCode(
+      executeVariableWorkflow(outputOnlyWorkflow, additionalQueryParameters = Map(outputTypeParam -> "noSuchPlugin")), BAD_REQUEST)
+  }
+
+  it should "not count reserved control query parameters as input entity parameters" in {
+    for (controlParam <- Seq(outputTypeParam -> "csv", s"${VariableWorkflowRequestUtils.QUERY_DATA_SOURCE_CONFIG_PREFIX}separator" -> ";")) {
+      checkResponseExactStatusCode(
+        executeVariableWorkflow(inputOutputWorkflow, additionalQueryParameters = Map(controlParam)), BAD_REQUEST)
+    }
+  }
+
   it should "support running variable workflows with marked datasets" in {
     val transformTask = "b944ba5e-87b1-4511-8d67-02cb00da6baf_Transform"
     val inputDataset = "inputDataset1"
@@ -656,10 +699,11 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
   private def executeVariableWorkflowAsync(workflowId: String,
                                            datasetType: String,
                                            parameters: Map[String, Seq[String]] = Map.empty,
-                                           contentOpt: Option[(String, String)] = None): StartActivityResponse = {
+                                           contentOpt: Option[(String, String)] = None,
+                                           additionalQueryParameters: Map[String, String] = Map.empty): StartActivityResponse = {
     val path =  controllers.workflowApi.routes.WorkflowApi.executeVariableWorkflowAsync(projectId, workflowId).url
     val request = client.url(s"$baseUrl$path")
-                        .withQueryStringParameters((VariableWorkflowRequestUtils.QUERY_PARAM_OUTPUT_TYPE -> datasetType))
+                        .withQueryStringParameters((VariableWorkflowRequestUtils.QUERY_PARAM_OUTPUT_TYPE -> datasetType) +: additionalQueryParameters.toSeq: _*)
     val response =
       contentOpt match {
         case Some(content) =>

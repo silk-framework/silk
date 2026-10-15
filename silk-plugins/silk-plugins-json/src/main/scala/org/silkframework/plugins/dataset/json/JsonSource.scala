@@ -65,6 +65,10 @@ abstract class JsonSource(taskId: Identifier, protected val basePath: String, pr
         case JsonToken.START_ARRAY => // Nothing to be done here
         case JsonToken.END_ARRAY =>
           stepBack()
+        case JsonToken.FIELD_NAME if jParser.getCurrentName.isEmpty =>
+          // An empty key cannot be addressed by a path, so it is skipped together with its value
+          jParser.nextToken()
+          jParser.skipChildren()
         case JsonToken.FIELD_NAME =>
           currentPath ::= URLEncoder.encode(jParser.getCurrentName, StandardCharsets.UTF_8.name)
           if (basePathMatches(currentPath) && !paths.contains(currentPath.dropRight(basePathLength))) {

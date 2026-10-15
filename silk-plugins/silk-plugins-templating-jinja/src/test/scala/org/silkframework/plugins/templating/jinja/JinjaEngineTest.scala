@@ -2,7 +2,7 @@ package org.silkframework.plugins.templating.jinja
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.silkframework.runtime.templating.{EvaluationConfig, TemplateVariableValue, VariableScope}
+import org.silkframework.runtime.templating.{EvaluationConfig, TemplateVariableName, TemplateVariableValue, VariableScope}
 import org.silkframework.runtime.templating.exceptions.{TemplateEvaluationException, TemplateSyntaxException, UnboundVariablesException}
 
 import java.io.{StringWriter, Writer}
@@ -27,6 +27,13 @@ class JinjaEngineTest extends AnyFlatSpec with Matchers {
         values = Map("firstName"-> Seq("John"))
       )
     ).missingVars.map(_.name) shouldBe Seq("name")
+  }
+
+  it should "report unbound scoped variables with their scope" in {
+    // TemplateVariables.resolveTemplate matches sensitive siblings on these names
+    val compiled = JinjaTemplateEngine().compile("jdbc://{{project.password}}@host")
+    intercept[UnboundVariablesException](compiled.evaluate(Seq.empty, new StringWriter())).missingVars shouldBe
+      Seq(new TemplateVariableName("password", VariableScope.project))
   }
 
   it should "let flat values take precedence over variable scopes of the same name" in {

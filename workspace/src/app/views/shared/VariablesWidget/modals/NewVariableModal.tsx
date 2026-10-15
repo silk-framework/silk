@@ -171,7 +171,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                 value: (isTemplate ? null : currentInputValue) || null,
                 description,
                 template: (isTemplate ? valueState.current.currentTemplateValue : null) || null,
-                isSensitive: false,
+                isSensitive: targetVariable?.isSensitive ?? false,
                 scope: taskId ? "execution" : "project",
             };
 
@@ -196,7 +196,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
         } finally {
             setLoading(false);
         }
-    }, [name, valueState, description, taskId, isEditMode]);
+    }, [name, valueState, description, taskId, isEditMode, targetVariable]);
 
     const handleModalClose = React.useCallback(() => {
         closeModal();

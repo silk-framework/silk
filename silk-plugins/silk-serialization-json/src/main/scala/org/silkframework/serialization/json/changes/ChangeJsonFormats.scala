@@ -1,6 +1,6 @@
 package org.silkframework.serialization.json.changes
 
-import org.silkframework.config.{PlainTask, Prefixes, TaskSpec}
+import org.silkframework.config.{PlainTask, Prefixes, Tag, TaskSpec}
 import org.silkframework.rule.TransformRule
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.templating.TemplateVariable
@@ -154,6 +154,8 @@ object ChangeJsonFormats {
       case "DisconnectWorkflowNodes" => DisconnectWorkflowNodes(id(value, "taskId"), stringValue(value, "sourceNodeId"), stringValue(value, "targetNodeId"), edge(objectValue(value, "edge")), taskLabel(value))
       case "SetVariable" => SetVariable(optionalValue(value, "before").map(variable), variable(requiredValue(value, "after")))
       case "RemoveVariable" => RemoveVariable(variable(requiredValue(value, "variable")))
+      case "SetTag" => SetTag(optionalValue(value, "before").map(tag), tag(requiredValue(value, "after")))
+      case "RemoveTag" => RemoveTag(tag(requiredValue(value, "tag")))
       case "ResourceCreated" => ResourceCreated(stringValue(value, "path"), fileState(objectValue(value, "after")))
       case "ResourceOverwritten" => ResourceOverwritten(stringValue(value, "path"), fileState(objectValue(value, "before")), fileState(objectValue(value, "after")))
       case "ResourceDeleted" => ResourceDeleted(stringValue(value, "path"), fileState(objectValue(value, "before")))
@@ -188,6 +190,9 @@ object ChangeJsonFormats {
       case SetVariable(before, after) =>
         JsObject(before.map(variable => "before" -> variableJson(variable)).toSeq :+ ("after" -> variableJson(after)))
       case RemoveVariable(variable) => Json.obj("variable" -> variableJson(variable))
+      case SetTag(before, after) =>
+        JsObject(before.map(tag => "before" -> tagJson(tag)).toSeq :+ ("after" -> tagJson(after)))
+      case RemoveTag(tag) => Json.obj("tag" -> tagJson(tag))
       case ResourceCreated(path, after) => Json.obj("path" -> path, "after" -> fileStateJson(after))
       case ResourceOverwritten(path, before, after) => Json.obj("path" -> path, "before" -> fileStateJson(before), "after" -> fileStateJson(after))
       case ResourceDeleted(path, before) => Json.obj("path" -> path, "before" -> fileStateJson(before))
@@ -252,6 +257,10 @@ object ChangeJsonFormats {
     private def variable(json: JsValue): TemplateVariable = json.as[TemplateVariableJson].convert
 
     private def variableJson(variable: TemplateVariable): JsValue = Json.toJson(TemplateVariableJson(variable))
+
+    private def tag(json: JsValue): Tag = Tag(stringValue(json, "uri"), stringValue(json, "label"))
+
+    private def tagJson(tag: Tag): JsObject = Json.obj("uri" -> tag.uri.toString, "label" -> tag.label)
 
     private def fileState(json: JsValue): FileState = FileState(numberValueOption(json, "size").map(_.toLong), instantValueOption(json, "modified"))
 

@@ -17,7 +17,7 @@ package org.silkframework.rule.plugins.transformer.variable
 import org.silkframework.rule.TaskContext
 import org.silkframework.rule.input.{Transformer, TransformerExecution}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.templating.{ExecutionTemplateVariables, TemplateVariable, VariableScope}
+import org.silkframework.runtime.templating.{ExecutionTemplateVariables, TemplateVariable, TemplateVariableName, VariableScope}
 import org.silkframework.runtime.validation.ValidationException
 
 @Plugin(
@@ -35,6 +35,10 @@ case class SetExecutionVariableTransformer(@Param("Name of the execution variabl
 
   override def execution(taskContext: TaskContext): TransformerExecution = {
     new SetExecutionVariableExecution(variableName, taskContext.pluginContext.templateVariables)
+  }
+
+  override def modifiedVariables: Seq[TemplateVariableName] = {
+    Seq(new TemplateVariableName(variableName, VariableScope.execution))
   }
 }
 

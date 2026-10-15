@@ -9,6 +9,8 @@ For reading, the JSON dataset supports a number of special paths:
 - `#text` retrieves the text of the selected node.
 - The backslash can be used to navigate to the parent JSON node, e.g., `\parent/key`. The name of the backslash key (here `parent`) is ignored.
 
+Keys that are an empty string (`"": ...`) are ignored silently, without a warning or error: they are not offered as paths and cannot be addressed by a path. Their values are still included in `#text` and matched by `*`.
+
 ## Writing
 
 When writing JSON, all entities need to possess a unique URI. Writing multiple root entities with the same URI will result in multiple entries in the generated JSON. If multiple nested entities with the same URI are written, only the last entity with a given URI will be written.
