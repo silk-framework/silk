@@ -22,7 +22,7 @@ class LogBuffer(val config: LogBufferConfig, loggerContext: => LoggerContext) {
 
   private val log = java.util.logging.Logger.getLogger(getClass.getName)
 
-  private lazy val context = loggerContext
+  private lazy val context: LoggerContext = loggerContext
 
   private val buffer: Option[LogRingBuffer] = if (config.enabled) Some(new LogRingBuffer(config.capacity)) else None
 
@@ -111,7 +111,7 @@ object LogBuffer {
   }
 
   /** Logger names whose output an administrator expects in the buffer. */
-  private val expectedLoggerPrefixes = Seq("org.silkframework", "com.eccenca", "controllers", "oauth")
+  private val expectedLoggerPrefixes: Seq[String] = Seq("org.silkframework", "com.eccenca", "controllers", "oauth")
 
   /** The Logback context SLF4J is bound to. */
   def loggerContext: LoggerContext = {

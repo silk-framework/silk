@@ -14,9 +14,9 @@ import ch.qos.logback.core.UnsynchronizedAppenderBase
   */
 class LogBufferAppender(writer: LogWriter, config: LogBufferConfig) extends UnsynchronizedAppenderBase[ILoggingEvent] {
 
-  private val threshold = Level.toLevel(config.level, Level.INFO)
+  private val threshold: Level = Level.toLevel(config.level, Level.INFO)
 
-  private val excludedPrefixes = config.excludedLoggers.map(_ + ".")
+  private val excludedPrefixes: Seq[String] = config.excludedLoggers.map(_ + ".")
 
   setName(LogBufferAppender.name)
 

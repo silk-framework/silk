@@ -16,10 +16,10 @@ import scala.collection.mutable.ArrayBuffer
 class LogRingBuffer(val capacity: Int) extends LogReader with LogWriter {
   require(capacity >= 1, s"capacity must be at least 1, was $capacity")
 
-  private val slots = new AtomicReferenceArray[LogLine](capacity)
+  private val slots: AtomicReferenceArray[LogLine] = new AtomicReferenceArray[LogLine](capacity)
 
   /** Next sequence to be handed out, i.e. one past the newest readable sequence. */
-  private val writeCursor = new AtomicLong(0)
+  private val writeCursor: AtomicLong = new AtomicLong(0)
 
   /** Appends a line, overwriting the oldest one once the ring is full. Returns the sequence of the line. */
   override def add(timestamp: Long,
