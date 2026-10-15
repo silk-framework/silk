@@ -16,6 +16,7 @@ class LogBufferAppender(writer: LogWriter, config: LogBufferConfig) extends Unsy
 
   private val threshold: Level = Level.toLevel(config.level, Level.INFO)
 
+  // Precomputed, so that isExcluded allocates nothing per event
   private val excludedPrefixes: Seq[String] = config.excludedLoggers.map(_ + ".")
 
   setName(LogBufferAppender.name)
@@ -33,7 +34,7 @@ class LogBufferAppender(writer: LogWriter, config: LogBufferConfig) extends Unsy
     }
   }
 
-  /** Excluding 'audit' also excludes 'audit.graph', matching how logger names nest. Allocation free, since it runs per event. */
+  /** Excluding 'audit' also excludes 'audit.graph', matching how logger names nest. */
   private def isExcluded(loggerName: String): Boolean = {
     config.excludedLoggers.contains(loggerName) || excludedPrefixes.exists(loggerName.startsWith)
   }
