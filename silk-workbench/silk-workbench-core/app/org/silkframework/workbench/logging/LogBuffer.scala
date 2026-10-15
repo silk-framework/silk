@@ -3,11 +3,8 @@ package org.silkframework.workbench.logging
 import ch.qos.logback.classic.spi.LoggerContextListener
 import ch.qos.logback.classic.{Level, Logger, LoggerContext}
 import org.slf4j.LoggerFactory
-import play.api.inject.{ApplicationLifecycle, SimpleModule, bind}
 
 import java.net.InetAddress
-import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
 import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.{Random, Try}
 
@@ -124,13 +121,3 @@ object LogBuffer {
     }
   }
 }
-
-/** The log buffer of the running application. Created at startup so that startup lines are captured as well. */
-@Singleton
-class LogBufferService @Inject()(lifecycle: ApplicationLifecycle) extends LogBuffer(LogBufferConfig(), LogBuffer.loggerContext) {
-  start()
-  lifecycle.addStopHook(() => Future.successful(stop()))
-}
-
-/** Installs the log buffer. Enabled via reference.conf. */
-class LogBufferModule extends SimpleModule(bind[LogBuffer].to[LogBufferService].eagerly())
