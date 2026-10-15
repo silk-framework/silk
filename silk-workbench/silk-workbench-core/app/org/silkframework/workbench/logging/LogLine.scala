@@ -2,7 +2,6 @@ package org.silkframework.workbench.logging
 
 /**
   * A captured log line.
-  * Holds strings only, so that no argument objects of the original logging call stay referenced.
   *
   * @param sequence  Position in the log stream of the capturing instance. Also the polling cursor.
   * @param timestamp Epoch millis the line was logged at.
