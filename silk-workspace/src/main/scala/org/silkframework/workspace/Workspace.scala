@@ -253,23 +253,28 @@ class Workspace(val provider: WorkspaceProvider,
     * @return
     */
   def exportProject(name: Identifier, outputStream: OutputStream, marshaller: ProjectMarshallingTrait,
-                    exportGroups: Boolean = false, exportUserData: Boolean = true)
+                    exportGroups: Boolean = false, exportUserData: Boolean = true, exportChangeJournal: Boolean = true)
                    (implicit userContext: UserContext): String = {
     initProjects()
-    if (exportGroups && !AccessControlConfig().enabled) {
-      throw BadUserInputException("Cannot export groups because access control is not enabled.")
-    }
-    marshaller.marshalProject(project(name), outputStream, repository.get(name), exportGroups, exportUserData)
+    checkExportFlags(exportGroups, exportUserData, exportChangeJournal)
+    marshaller.marshalProject(project(name), outputStream, repository.get(name), exportGroups, exportUserData, exportChangeJournal)
   }
 
   def exportWorkspace(outputStream: OutputStream, marshaller: ProjectMarshallingTrait,
-                      exportGroups: Boolean = false, exportUserData: Boolean = true)
+                      exportGroups: Boolean = false, exportUserData: Boolean = true, exportChangeJournal: Boolean = true)
                      (implicit userContext: UserContext): String = {
     initProjects()
+    checkExportFlags(exportGroups, exportUserData, exportChangeJournal)
+    marshaller.marshalWorkspace(outputStream, userProjects, repository, exportGroups, exportUserData, exportChangeJournal)
+  }
+
+  private def checkExportFlags(exportGroups: Boolean, exportUserData: Boolean, exportChangeJournal: Boolean): Unit = {
     if (exportGroups && !AccessControlConfig().enabled) {
       throw BadUserInputException("Cannot export groups because access control is not enabled.")
     }
-    marshaller.marshalWorkspace(outputStream, userProjects, repository, exportGroups, exportUserData)
+    if (exportChangeJournal && !exportUserData) {
+      throw BadUserInputException("Cannot export the change journal without user data, as it records who changed what and when.")
+    }
   }
 
   def importWorkspace(file: File, marshaller: ProjectMarshallingTrait, importGroups: Boolean = false)

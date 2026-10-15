@@ -9,6 +9,7 @@ import org.silkframework.rule.{DirectMapping, MappingRules, MappingTarget, RootM
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.templating.SimpleSubstitutionTemplateEngine
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.{ConfigTestTrait, Identifier}
 import org.silkframework.util.FileUtils._
 import org.silkframework.workspace.changes.{ChangeEntry, ChangeJournalStore, DiscardedWorkflowRun}
@@ -16,7 +17,7 @@ import org.silkframework.workspace.resources.InMemoryResourceRepository
 import org.silkframework.workspace.xml.{XmlZipProjectMarshaling, XmlZipWithResourcesProjectMarshaling, XmlZipWithoutResourcesProjectMarshaling}
 import org.silkframework.workspace.{InMemoryWorkspaceProvider, Project, ProjectConfig, Workspace}
 
-import java.io.FileOutputStream
+import java.io.{ByteArrayOutputStream, FileOutputStream}
 import java.nio.file.{Files, Path}
 import java.time.Instant
 import java.util.zip.ZipFile
@@ -54,11 +55,11 @@ class ChangeJournalExportTest extends AnyFlatSpec with Matchers with ConfigTestT
     project
   }
 
-  private def exportProject(project: Project, marshaller: XmlZipProjectMarshaling, exportUserData: Boolean = true): Path = {
+  private def exportProject(project: Project, marshaller: XmlZipProjectMarshaling, exportUserData: Boolean = true, exportChangeJournal: Boolean = true): Path = {
     val file = Files.createTempFile(directory, "project", ".zip")
     val out = new FileOutputStream(file.toFile)
     try {
-      marshaller.marshalProject(project, out, project.resources, exportUserData = exportUserData)
+      marshaller.marshalProject(project, out, project.resources, exportUserData = exportUserData, exportChangeJournal = exportChangeJournal)
     } finally {
       out.close()
     }
@@ -86,6 +87,13 @@ class ChangeJournalExportTest extends AnyFlatSpec with Matchers with ConfigTestT
     zipEntries(exportProject(project, XmlZipWithoutResourcesProjectMarshaling())) should contain("exported/changes/000000001.jsonl")
     val withoutUserData = exportProject(project, XmlZipWithResourcesProjectMarshaling(), exportUserData = false)
     zipEntries(withoutUserData).filter(_.contains("/changes/")) shouldBe empty
+    // Left out on request while the user data stays in; asked for without the user data, the export is refused
+    val withoutJournal = zipEntries(exportProject(project, XmlZipWithResourcesProjectMarshaling(), exportChangeJournal = false))
+    withoutJournal should contain("exported/config.xml")
+    withoutJournal.filter(_.contains("/changes/")) shouldBe empty
+    the[BadUserInputException] thrownBy source.exportProject("exported", new ByteArrayOutputStream(), XmlZipWithResourcesProjectMarshaling(),
+      exportUserData = false, exportChangeJournal = true) should have message
+      "Cannot export the change journal without user data, as it records who changed what and when."
 
     // Imported over a project with a history of its own, the archive's history and watermark replace it
     val target = workspace()

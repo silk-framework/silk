@@ -48,13 +48,17 @@ trait ProjectMarshallingTrait extends AnyPlugin {
     * @param project         The in-memory [[Project]] object from the workspace.
     * @param outputStream    The output stream the marshaled project data should be written to.
     * @param resourceManager The resource manager from which project resources should be marshaled.
+    * @param exportGroups    If true, the access control groups are exported.
+    * @param exportUserData  If true, the user data is exported.
+    * @param exportChangeJournal If true, the change journal is exported. It is user data, so it is only exported with the user data.
     * @return The proposed file name for the marshaled resource.
     */
   def marshalProject(project: Project,
                      outputStream: OutputStream,
                      resourceManager: ResourceManager,
                      exportGroups: Boolean = false,
-                     exportUserData: Boolean = true)
+                     exportUserData: Boolean = true,
+                     exportChangeJournal: Boolean = true)
                     (implicit userContext: UserContext): String
 
   /**
@@ -79,13 +83,15 @@ trait ProjectMarshallingTrait extends AnyPlugin {
     * @param exportGroups       If true, the access control groups are exported.
     * @param exportUserData     If true, the user data is exported.
    *                            In particular, this includes the created, modified, createdByUser and lastModifiedByUser fields of all MetaData objects.
+    * @param exportChangeJournal If true, the change journals are exported. They are user data, so they are only exported with the user data.
     * @return The proposed file name for the marshaled resource.
     */
   def marshalWorkspace(outputStream: OutputStream,
                        projects: Seq[Project],
                        resourceRepository: ResourceRepository,
                        exportGroups: Boolean = false,
-                       exportUserData: Boolean = true)
+                       exportUserData: Boolean = true,
+                       exportChangeJournal: Boolean = true)
                       (implicit userContext: UserContext): String
 
 

@@ -36,7 +36,8 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
                               outputStream: OutputStream,
                               resourceManager: ResourceManager,
                               exportGroups: Boolean = false,
-                              exportUserData: Boolean = true)
+                              exportUserData: Boolean = true,
+                              exportChangeJournal: Boolean = true)
                              (implicit userContext: UserContext): String = {
     val zipResourceManager = new ZipOutputStreamResourceManager(outputStream)
     try {
@@ -44,7 +45,7 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
       val exportResources = getProjectResources(outputWorkspaceProvider, project.config.id)
 
       exportProject(project, outputWorkspaceProvider, resourceManager, exportResources, includeResources, exportGroups = exportGroups, exportUserData = exportUserData)
-      exportJournal(project, zipResourceManager, exportUserData)
+      exportJournal(project, zipResourceManager, exportUserData && exportChangeJournal)
     } finally {
       zipResourceManager.close()
     }
@@ -91,7 +92,8 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
                                 projects: Seq[Project],
                                 resourceRepository: ResourceRepository,
                                 exportGroups: Boolean = false,
-                                exportUserData: Boolean = true)
+                                exportUserData: Boolean = true,
+                                exportChangeJournal: Boolean = true)
                                (implicit userContext: UserContext): String = {
     val zipResourceManager = new ZipOutputStreamResourceManager(outputStream)
     try {
@@ -101,7 +103,7 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
       for (project <- projects) {
         val projectResources = resourceRepository.get(project.config.id)
         exportProject(project, xmlWorkspaceProvider, projectResources, getProjectResources(xmlWorkspaceProvider, project.config.id), exportResources = includeResources, exportGroups = exportGroups, exportUserData = exportUserData)
-        exportJournal(project, zipResourceManager, exportUserData)
+        exportJournal(project, zipResourceManager, exportUserData && exportChangeJournal)
       }
     } finally {
       // Close ZIP
@@ -138,9 +140,9 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
     provider.resources.child(project).child("resources")
   }
 
-  /** The journal is user data, who changed what and when, so it travels with the user data only. */
-  private def exportJournal(project: Project, zipResourceManager: ResourceManager, exportUserData: Boolean): Unit = {
-    if(exportUserData) {
+  /** The journal is user data, who changed what and when, so it travels with the user data only, and only when asked for. */
+  private def exportJournal(project: Project, zipResourceManager: ResourceManager, exportJournal: Boolean): Unit = {
+    if(exportJournal) {
       ChangeJournalStore().exportJournal(project.id, zipResourceManager.child(project.id).child(JOURNAL_FOLDER))
     }
   }
