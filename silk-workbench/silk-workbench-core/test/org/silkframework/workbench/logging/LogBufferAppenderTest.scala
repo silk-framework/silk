@@ -26,12 +26,11 @@ class LogBufferAppenderTest extends AnyFlatSpec with Matchers {
     context
   }
 
-  private def attach(context: LoggerContext, writer: LogWriter, config: LogBufferConfig): LogBufferAppender = {
+  private def attach(context: LoggerContext, writer: LogWriter, config: LogBufferConfig): Unit = {
     val appender = new LogBufferAppender(writer, config)
     appender.setContext(context)
     appender.start()
     context.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).addAppender(appender)
-    appender
   }
 
   it should "capture lines at or above the threshold only" in {
