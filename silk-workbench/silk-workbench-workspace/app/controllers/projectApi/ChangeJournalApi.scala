@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.workspace.changes.{ChangeDetail, ChangeEntry, RevertOutcome}
+import org.silkframework.workspace.changes.{ChangeDetail, ChangeHeader, RevertOutcome}
 import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json.{Format, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
@@ -117,9 +117,10 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
 
   @Operation(
     summary = "Change summary",
-    description = "The state of the journal in numbers: the reviewed watermark, the latest change and how many changes are " +
-      "unreviewed, i.e. made by an agent after the watermark and not reverted. For clients that only need to know whether " +
-      "there is something to review, e.g. before a workflow run; it lists nothing and checks nothing.",
+    description = "The state of the journal in numbers: the reviewed watermark, the latest change, how many changes are " +
+      "unreviewed, i.e. made by an agent after the watermark and not reverted, and how many unreviewed changes the " +
+      "journal's cap has dropped. For clients that only need to know whether there is something to review, e.g. before " +
+      "a workflow run; it lists nothing and checks nothing.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -127,7 +128,7 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
         content = Array(new Content(
           mediaType = "application/json",
           schema = new Schema(implementation = classOf[ChangeSummaryJson]),
-          examples = Array(new ExampleObject("""{"reviewedUpTo": 2, "latestSeq": 4, "unreviewed": 1}"""))
+          examples = Array(new ExampleObject("""{"reviewedUpTo": 2, "latestSeq": 4, "unreviewed": 1, "droppedUnreviewed": 0}"""))
         ))
       ),
       new ApiResponse(responseCode = "404", description = "The project does not exist.")
@@ -142,8 +143,8 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
               projectId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val journal = WorkspaceFactory().workspace.project(projectId).changeJournal
     val (entries, reviewedUpTo) = journal.snapshot
-    Ok(Json.toJson(ChangeSummaryJson(reviewedUpTo, entries.lastOption.map(_.seq).getOrElse(0),
-      journal.unreviewed(entries, reviewedUpTo).size)))
+    Ok(Json.toJson(ChangeSummaryJson(reviewedUpTo, journal.latestSeq,
+      journal.unreviewed(entries, reviewedUpTo).size, journal.droppedUnreviewed(entries, reviewedUpTo))))
   }
 
   @Operation(
@@ -182,7 +183,7 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
              )
              seq: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectId)
-    Ok(Json.toJson(ChangeEntryJson.of(project, project.changeJournal.revert(seq), revertedBy = None)))
+    Ok(Json.toJson(ChangeEntryJson.of(project, project.changeJournal.revert(seq).header, revertedBy = None)))
   }
 
   @Operation(
@@ -305,12 +306,12 @@ object ChangeJournalApi {
 
     implicit val format: Format[ChangeEntryJson] = Json.format[ChangeEntryJson]
 
-    /** The JSON of an entry; a freshly recorded entry is neither reverted nor fulfilled yet. */
-    def of(project: Project, entry: ChangeEntry, revertedBy: Option[Int], fulfilledBy: Option[Int] = None, unreviewed: Boolean = false)
+    /** The JSON of an entry from its header; a freshly recorded entry is neither reverted nor fulfilled yet. */
+    def of(project: Project, header: ChangeHeader, revertedBy: Option[Int], fulfilledBy: Option[Int] = None, unreviewed: Boolean = false)
           (implicit userContext: UserContext): ChangeEntryJson = {
-      ChangeEntryJson(entry.seq, entry.timestamp.toString, entry.user, entry.origin, entry.change.changeType,
-        entry.change.describe, entry.change.summary, entry.change.details.map(ChangeDetailJson.of), ChangeLinks.of(project, entry.change),
-        entry.change.inverse.isDefined && fulfilledBy.isEmpty, entry.reverts, revertedBy, fulfilledBy,
+      ChangeEntryJson(header.seq, header.timestamp.toString, header.user, header.origin, header.changeType,
+        header.describe, header.summary, header.details.map(ChangeDetailJson.of), ChangeLinks.of(project, header),
+        header.revertible && fulfilledBy.isEmpty, header.reverts, revertedBy, fulfilledBy,
         unreviewed = if(unreviewed) Some(true) else None)
     }
   }
@@ -331,7 +332,8 @@ object ChangeJournalApi {
   }
 
   @Schema(description = "The changes of a project, newest first.")
-  case class ChangeListJson(@Schema(description = "The seq up to which the user has reviewed the changes; 0 if never set.")
+  case class ChangeListJson(@Schema(description = "The seq up to which no change waits for review: set by a review, moved along while " +
+                              "no agent change waits; 0 at the start.")
                             reviewedUpTo: Int,
                             changes: Seq[ChangeEntryJson])
 
@@ -340,12 +342,16 @@ object ChangeJournalApi {
   }
 
   @Schema(description = "The state of a project's change journal in numbers.")
-  case class ChangeSummaryJson(@Schema(description = "The seq up to which the user has reviewed the changes; 0 if never set.")
+  case class ChangeSummaryJson(@Schema(description = "The seq up to which no change waits for review: set by a review, moved along while " +
+                                 "no agent change waits; 0 at the start.")
                                reviewedUpTo: Int,
                                @Schema(description = "The seq of the latest recorded change; 0 if there is none.")
                                latestSeq: Int,
                                @Schema(description = "How many changes are unreviewed: made by an agent after the reviewed watermark and not reverted.")
-                               unreviewed: Int)
+                               unreviewed: Int,
+                               @Schema(description = "How many changes the journal's cap dropped while agent changes were waiting for review, " +
+                                 "so they were never reviewed. Marking all as reviewed accepts them unseen.")
+                               droppedUnreviewed: Int)
 
   object ChangeSummaryJson {
     implicit val format: Format[ChangeSummaryJson] = Json.format[ChangeSummaryJson]
@@ -360,7 +366,7 @@ object ChangeJournalApi {
   }
 
   @Schema(description = "The reviewed watermark of a project.")
-  case class ReviewedJson(@Schema(description = "The seq up to which the user has reviewed the changes.")
+  case class ReviewedJson(@Schema(description = "The seq up to which no change waits for review.")
                           reviewedUpTo: Int)
 
   object ReviewedJson {
@@ -394,7 +400,7 @@ object ChangeJournalApi {
     def of(project: Project, outcome: RevertOutcome)(implicit userContext: UserContext): RevertOutcomeJson = {
       outcome match {
         case RevertOutcome.Reverted(seq, entry) =>
-          RevertOutcomeJson(seq, "reverted", None, Some(ChangeEntryJson.of(project, entry, revertedBy = None)))
+          RevertOutcomeJson(seq, "reverted", None, Some(ChangeEntryJson.of(project, entry.header, revertedBy = None)))
         case RevertOutcome.Skipped(seq, reason) =>
           RevertOutcomeJson(seq, "skipped", Some(reason), None)
         case RevertOutcome.Unchanged(seq, reason) =>

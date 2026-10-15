@@ -664,7 +664,7 @@ object TransformRule {
   def simplify(complexMapping: ComplexMapping)(implicit prefixes: Prefixes): TransformRule = complexMapping match {
     // Direct Mapping
     case ComplexMapping(id, PathInput(pathId, path), Some(target), metaData, _, uiAnnotations) if uiAnnotations.stickyNotes.isEmpty =>
-      DirectMapping(id, path.asUntypedPath, target, metaData, Some(pathId))
+      DirectMapping(id, path.asUntypedPath, target, metaData, Some(pathId).filter(_ != id))
     // Rule with annotations or layout info is always treated as complex (URI) mapping rule
     case ComplexMapping(id, operator, targetOpt, metaData, layout, uiAnnotations) if layout.nodePositions.nonEmpty || uiAnnotations.stickyNotes.nonEmpty =>
       if(targetOpt.isEmpty) {

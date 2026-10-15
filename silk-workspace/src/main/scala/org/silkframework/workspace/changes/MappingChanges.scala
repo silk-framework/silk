@@ -343,7 +343,7 @@ private object MappingRuleDiff {
   private def parameters(transformer: Transformer)(implicit context: PluginContext): String = {
     val set = for {
       param <- transformer.pluginSpec.parameters
-      value = transformer.templateValues.getOrElse(param.name, param.stringValue(transformer))
+      value = transformer.templateValues.getOrElse(param.name, TaskDiff.resourceName(param(transformer)).getOrElse(param.stringValue(transformer)))
       if !param.stringDefaultValue.contains(value)
     } yield s"${param.name}=${quote(value)}"
     if(set.isEmpty) "" else set.mkString("[", ", ", "]")
