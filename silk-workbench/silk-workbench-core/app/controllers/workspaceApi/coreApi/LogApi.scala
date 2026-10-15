@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.validation.ServiceUnavailableException
-import org.silkframework.workbench.logging.{LogBuffer, LogPage, LogStore}
+import org.silkframework.workbench.logging.{LogBuffer, LogPage, LogReader}
 import org.silkframework.workbench.utils.ErrorResult.ErrorResultFormat
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, InjectedController}
@@ -90,13 +90,13 @@ class LogApi @Inject()(logBuffer: LogBuffer) extends InjectedController {
                 array = new ArraySchema(schema = new Schema(implementation = classOf[String]))
               )
               contains: List[String]): Action[AnyContent] = Action {
-    val store = availableStore()
+    val reader = availableReader()
     val query = LogQuery(level, logger, contains, limit)
     // Read before the page, so an eviction during the scan cannot overstate 'dropped'
-    val firstSequence = store.firstSequence
+    val firstSequence = reader.firstSequence
     val page = since match {
-      case Some(sinceSequence) => store.since(sinceSequence, query.limit, query.matches)
-      case None => store.last(query.limit, query.matches)
+      case Some(sinceSequence) => reader.since(sinceSequence, query.limit, query.matches)
+      case None => reader.last(query.limit, query.matches)
     }
     Ok(Json.toJson(LogTailResponse(
       serverTime = System.currentTimeMillis(),
@@ -125,18 +125,18 @@ class LogApi @Inject()(logBuffer: LogBuffer) extends InjectedController {
     ))
   def logBufferStatus(): Action[AnyContent] = Action {
     val config = logBuffer.config
-    val store = logBuffer.store
+    val reader = logBuffer.reader
     Ok(Json.toJson(LogBufferStatus(
       enabled = config.enabled,
       attached = logBuffer.isAttached,
       captureLevel = config.level,
       capacity = config.capacity,
       maxMessageChars = config.maxMessageChars,
-      size = store.map(_.size).getOrElse(0),
-      firstSequence = store.map(_.firstSequence).getOrElse(0L),
-      lastSequence = store.map(_.lastSequence).getOrElse(-1L),
-      firstTimestamp = store.flatMap(s => timestampOf(s.since(-1L, 1, _ => true))),
-      lastTimestamp = store.flatMap(s => timestampOf(s.last(1, _ => true))),
+      size = reader.map(_.size).getOrElse(0),
+      firstSequence = reader.map(_.firstSequence).getOrElse(0L),
+      lastSequence = reader.map(_.lastSequence).getOrElse(-1L),
+      firstTimestamp = reader.flatMap(r => timestampOf(r.since(-1L, 1, _ => true))),
+      lastTimestamp = reader.flatMap(r => timestampOf(r.last(1, _ => true))),
       instanceId = logBuffer.instanceId,
       excludedLoggers = config.excludedLoggers,
       nonAdditiveLoggers = logBuffer.nonAdditiveLoggers
@@ -153,8 +153,8 @@ class LogApi @Inject()(logBuffer: LogBuffer) extends InjectedController {
     since.map(s => math.max(0L, firstSequence - s - 1)).getOrElse(0L)
   }
 
-  private def availableStore(): LogStore = {
-    logBuffer.store.getOrElse {
+  private def availableReader(): LogReader = {
+    logBuffer.reader.getOrElse {
       throw ServiceUnavailableException("The in-memory log buffer is not active on this instance. Set 'logging.buffer.enabled' " +
         "to true and restart. See the 'logs/status' endpoint for the current state.")
     }

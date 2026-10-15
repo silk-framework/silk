@@ -33,7 +33,7 @@ class LogBufferTest extends AnyFlatSpec with Matchers {
     logBuffer.isAttached mustBe true
     rootAppender(context) mustBe defined
     context.getLogger("org.silkframework.test").info("hello")
-    logBuffer.store.get.last(10, all).lines.map(_.message) mustBe Seq("hello")
+    logBuffer.reader.get.last(10, all).lines.map(_.message) mustBe Seq("hello")
   }
 
   it should "re-attach after the logger context is reset" in {
@@ -45,7 +45,7 @@ class LogBufferTest extends AnyFlatSpec with Matchers {
     rootAppender(context) mustBe defined
     logBuffer.isAttached mustBe true
     context.getLogger("org.silkframework.test").info("after reset")
-    logBuffer.store.get.last(10, all).lines.map(_.message) mustBe Seq("before reset", "after reset")
+    logBuffer.reader.get.last(10, all).lines.map(_.message) mustBe Seq("before reset", "after reset")
   }
 
   it should "report non-additive application loggers, also when configured after a reset" in {
@@ -71,8 +71,8 @@ class LogBufferTest extends AnyFlatSpec with Matchers {
     first.isAttached mustBe false
     second.isAttached mustBe true
     context.getLogger("org.silkframework.test").info("second")
-    second.store.get.last(10, all).lines.map(_.message) mustBe Seq("second")
-    first.store.get.last(10, all).lines mustBe empty
+    second.reader.get.last(10, all).lines.map(_.message) mustBe Seq("second")
+    first.reader.get.last(10, all).lines mustBe empty
     second.stop()
     rootAppender(context) mustBe None
   }
@@ -87,7 +87,7 @@ class LogBufferTest extends AnyFlatSpec with Matchers {
     val context = newContext()
     val logBuffer = new LogBuffer(enabled.copy(enabled = false), throw new IllegalStateException("must not be resolved"))
     logBuffer.start()
-    logBuffer.store mustBe None
+    logBuffer.reader mustBe None
     logBuffer.isAttached mustBe false
     logBuffer.nonAdditiveLoggers mustBe empty
     logBuffer.stop()

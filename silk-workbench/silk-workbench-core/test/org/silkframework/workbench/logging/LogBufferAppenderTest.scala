@@ -26,8 +26,8 @@ class LogBufferAppenderTest extends AnyFlatSpec with Matchers {
     context
   }
 
-  private def attach(context: LoggerContext, buffer: LogRingBuffer, config: LogBufferConfig): LogBufferAppender = {
-    val appender = new LogBufferAppender(buffer, config)
+  private def attach(context: LoggerContext, writer: LogWriter, config: LogBufferConfig): LogBufferAppender = {
+    val appender = new LogBufferAppender(writer, config)
     appender.setContext(context)
     appender.start()
     context.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME).addAppender(appender)
@@ -89,10 +89,10 @@ class LogBufferAppenderTest extends AnyFlatSpec with Matchers {
 
   it should "never let a logging call fail" in {
     val context = newContext()
-    val failing = new LogRingBuffer(100) {
+    val failing = new LogWriter {
       override def add(timestamp: Long, level: String, logger: String, thread: Option[String], message: String,
                        throwable: Option[String]): Long = {
-        throw new RuntimeException("buffer failure")
+        throw new RuntimeException("writer failure")
       }
     }
     attach(context, failing, config())

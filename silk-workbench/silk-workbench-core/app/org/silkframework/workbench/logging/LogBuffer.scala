@@ -31,8 +31,8 @@ class LogBuffer(val config: LogBufferConfig, loggerContext: => LoggerContext) {
   /** Identifies the sequence space of this buffer: the host name with a suffix that differs on every start. */
   lazy val instanceId: String = s"${LogBuffer.hostName}-${Random.nextLong().toHexString}"
 
-  /** The store to read lines from, if capturing is enabled. */
-  def store: Option[LogStore] = buffer
+  /** Read access to the captured lines, if capturing is enabled. */
+  def reader: Option[LogReader] = buffer
 
   /** True, if the appender of this buffer is the one currently installed on the root logger. */
   def isAttached: Boolean = appender.exists(a => rootLogger.getAppender(LogBufferAppender.name) eq a)

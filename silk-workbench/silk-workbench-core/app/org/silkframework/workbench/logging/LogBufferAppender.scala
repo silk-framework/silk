@@ -5,14 +5,14 @@ import ch.qos.logback.classic.spi.{ILoggingEvent, ThrowableProxyUtil}
 import ch.qos.logback.core.UnsynchronizedAppenderBase
 
 /**
-  * Logback appender that captures lines into a [[LogRingBuffer]].
+  * Logback appender that captures lines into a [[LogWriter]].
   *
   * Renders every event to plain strings right away and keeps nothing else, since a retained event would pin the
   * argument objects of the logging call for as long as the line stays in the ring.
   * Runs on the logging hot path of every thread, so it does bounded work only. Logback reports a failing append
   * through its status manager instead of failing the logging call.
   */
-class LogBufferAppender(buffer: LogRingBuffer, config: LogBufferConfig) extends UnsynchronizedAppenderBase[ILoggingEvent] {
+class LogBufferAppender(writer: LogWriter, config: LogBufferConfig) extends UnsynchronizedAppenderBase[ILoggingEvent] {
 
   private val threshold = Level.toLevel(config.level, Level.INFO)
 
@@ -22,7 +22,7 @@ class LogBufferAppender(buffer: LogRingBuffer, config: LogBufferConfig) extends 
 
   override protected def append(event: ILoggingEvent): Unit = {
     if (event.getLevel.isGreaterOrEqual(threshold) && !isExcluded(event.getLoggerName)) {
-      buffer.add(
+      writer.add(
         timestamp = event.getTimeStamp,
         level = event.getLevel.toString,
         logger = event.getLoggerName,

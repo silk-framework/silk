@@ -13,7 +13,7 @@ import scala.collection.mutable.ArrayBuffer
   * being looked for, which detects overwritten lines without any bookkeeping. Memory is bounded by construction:
   * capacity lines, each capped by the appender while rendering.
   */
-class LogRingBuffer(val capacity: Int) extends LogStore {
+class LogRingBuffer(val capacity: Int) extends LogReader with LogWriter {
   require(capacity >= 1, s"capacity must be at least 1, was $capacity")
 
   private val slots = new AtomicReferenceArray[LogLine](capacity)
@@ -22,12 +22,12 @@ class LogRingBuffer(val capacity: Int) extends LogStore {
   private val writeCursor = new AtomicLong(0)
 
   /** Appends a line, overwriting the oldest one once the ring is full. Returns the sequence of the line. */
-  def add(timestamp: Long,
-          level: String,
-          logger: String,
-          thread: Option[String],
-          message: String,
-          throwable: Option[String]): Long = {
+  override def add(timestamp: Long,
+                   level: String,
+                   logger: String,
+                   thread: Option[String],
+                   message: String,
+                   throwable: Option[String]): Long = {
     val sequence = writeCursor.getAndIncrement()
     slots.set(slotOf(sequence), LogLine(sequence, timestamp, level, logger, thread, message, throwable))
     sequence

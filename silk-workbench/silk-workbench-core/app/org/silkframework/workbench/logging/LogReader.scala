@@ -1,11 +1,11 @@
 package org.silkframework.workbench.logging
 
 /**
-  * Read access to captured log lines.
+  * Read access to captured log lines, the counterpart of [[LogWriter]].
   * Backends, such as the in-memory ring or a file-based store, implement this.
   * Lines are addressed by a sequence that increases monotonically within one instance.
   */
-trait LogStore {
+trait LogReader {
 
   /** The most recent matching lines, oldest first. The limit keeps the newest lines. */
   def last(limit: Int, filter: LogLine => Boolean): LogPage
