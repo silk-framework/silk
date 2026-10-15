@@ -94,9 +94,13 @@ const DraggableItem = (props) => {
         [expanded, props.type, props.id],
     );
 
-    // Call updateQueryOnExpansion when expanded changes
+    // Call updateQueryOnExpansion when expanded changes; a row mounting collapsed would only re-set the parent id.
+    const mounted = useRef(false);
     useEffect(() => {
-        updateQueryOnExpansion();
+        if (expanded || mounted.current) {
+            updateQueryOnExpansion();
+        }
+        mounted.current = true;
     }, [expanded]);
 
     // Create provided and snapshot objects compatible with the existing MappingRule component

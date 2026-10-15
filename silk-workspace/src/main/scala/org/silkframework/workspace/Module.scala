@@ -1,13 +1,14 @@
 package org.silkframework.workspace
 
-import org.silkframework.config.{CustomTask, MetaData, TaskSpec}
+import org.silkframework.config.{CustomTask, MetaData, PlainTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariables}
+import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.TaskCleanupPlugin.CleanUpAfterTaskDeletionFunction
 import org.silkframework.workspace.activity.workflow.Workflow
+import org.silkframework.workspace.changes.{AddTask, RemoveTask}
 import org.silkframework.workspace.exceptions.TaskNotFoundException
 
 import java.util.logging.{Level, Logger}
@@ -94,14 +95,14 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
          (implicit userContext: UserContext) : ProjectTask[TaskData] = {
     assertLoaded()
     // Variable templates are resolved at save time; unresolvable templates keep the provided value.
-    val parentVariables = (GlobalTemplateVariables.all merge project.templateVariables.all).withoutSensitiveVariables()
-    val resolvedVariables = executionVariables.resolvedKeepingUnresolved(parentVariables)
+    val resolvedVariables = executionVariables.resolvedKeepingUnresolved(TaskExecutionVariablesManager.templateParentVariables(project.templateVariables.all))
     val task = new ProjectTask(name, taskData, metaData, resolvedVariables, this)
     task.executionVariablesValueHolder.validateScope(resolvedVariables)
     validator.validate(project, task)
     provider.putTask(project.id, task, project.resources)
     task.startActivities()
     cachedTasks += ((name, task))
+    project.changeJournal.record(AddTask(PlainTask.fromTask(task)))
     logger.info(s"Added task '$name' to project ${project.id}." + userContext.logInfo)
     task
   }
@@ -112,18 +113,22 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
   def remove(taskId: Identifier)
             (implicit userContext: UserContext): Unit = {
     assertLoaded()
-    // Cancel all activities
-    for {
-      task <- cachedTasks.get(taskId)
-      activity <- task.activities
-    } {
-      activity.control.cancel()
+    taskOption(taskId) match {
+      case Some(task) =>
+        // Under the task's monitor: an update in progress completes first, a later one is refused.
+        task.synchronized {
+          // Cancelled under the monitor, so that no update restarts the activities afterwards
+          task.cancelActivities()
+          provider.deleteTask(project.id, taskId)
+          cachedTasks -= taskId
+          task.markRemoved()
+          project.changeJournal.record(RemoveTask(PlainTask.fromTask(task)))
+        }
+        cleanUpAfterTaskDeletion(project.id, taskId, task)
+      case None =>
+        // A task that failed to load is held by the provider only
+        provider.deleteTask(project.id, taskId)
     }
-    // Delete task
-    val taskOpt = taskOption(taskId)
-    provider.deleteTask(project.id, taskId)
-    cachedTasks -= taskId
-    taskOpt.foreach(task => cleanUpAfterTaskDeletion(project.id, taskId, task))
     logger.info(s"Removed task '$taskId' from project ${project.id}." + userContext.logInfo)
   }
 

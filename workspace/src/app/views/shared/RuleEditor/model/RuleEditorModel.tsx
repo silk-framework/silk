@@ -164,7 +164,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         stickyNotes: StickyNote[];
         externalSavedState?: unknown;
     }>();
-    const unsavedChanges = savedStatePosition !== "current" || (!savedOnce && ruleEditorContext.saveInitiallyEnabled);
+    // Nothing can be unsaved before the editor has loaded; reporting it would arm the navigation prompts meanwhile.
+    const unsavedChanges =
+        !initializing && (savedStatePosition !== "current" || (!savedOnce && ruleEditorContext.saveInitiallyEnabled));
     const hotkeyContext = React.useContext(ReactFlowHotkeyContext);
     const onRuleOperatorNodesChangeRef = React.useRef(ruleEditorContext.onRuleOperatorNodesChange);
     onRuleOperatorNodesChangeRef.current = ruleEditorContext.onRuleOperatorNodesChange;

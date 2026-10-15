@@ -223,6 +223,7 @@ class Workspace(val provider: WorkspaceProvider,
     // A resource deletion failure is rethrown only after the remaining cleanup, so the removed project cannot stay half-registered
     val resourceRemoval = Try(repository.removeProjectResources(name))
     provider.removeExternalTaskLoadingErrors(name)
+    project(name).changeJournal.clear()
     removeProjectFromCache(name)
     for(task <- projectTasks) {
       cleanUpAfterTaskDeletion(name, task.id, task.data)

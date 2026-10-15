@@ -117,7 +117,10 @@ module.exports = function createWebpackConfig(webpackEnv, isWatch = false, diagn
             plugins: [
                 new ModuleScopePlugin(sourcePaths, [
                     paths.appPackageJson,
-                    require.resolve("@babel/runtime/package.json"),
+                    // Babel emits absolute helper imports from the runtime resolved by its preset.
+                    require.resolve("@babel/runtime/package.json", {
+                        paths: [require.resolve("babel-preset-react-app")],
+                    }),
                 ]),
             ],
         },

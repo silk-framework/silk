@@ -1,5 +1,5 @@
 import { IArtefactModal, ICommonState } from "./typings";
-import { fetchStoredLang } from "../../../../language";
+import i18n from "../../../../language";
 
 export function initialArtefactModalState(): IArtefactModal {
     return {
@@ -19,7 +19,7 @@ export function initialCommonState(): ICommonState {
     return {
         userMenuDisplay: false,
         notificationMenuDisplay: false,
-        locale: fetchStoredLang(),
+        locale: i18n.resolvedLanguage ?? "en",
         currentProjectId: undefined,
         currentTaskId: undefined,
         authenticated: true,

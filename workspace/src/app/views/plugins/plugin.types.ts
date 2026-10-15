@@ -1,6 +1,6 @@
 import { IArtefactItemProperty, ICompanionFrontendConfig, IDmLink } from "@ducks/common/typings";
 import { IViewActions } from "../../views/plugins/PluginRegistry";
-import { TestableComponent } from "@eccenca/gui-elements";
+import { LabelProps, TestableComponent } from "@eccenca/gui-elements";
 import { AccessControlConfig } from "@ducks/workspace/requests";
 
 /** Host integration parameters for a feature rendered in the global application toolbar. */
@@ -169,6 +169,8 @@ export interface ProjectAccessControlProps {
 
 /** Project ACL management plugin props. */
 export interface ProjectAccessControlManagementProps {
+    /** Visual emphasis of the groups field label. */
+    labelEmphasis?: LabelProps["emphasis"];
     projectId?: string;
     readOnly?: boolean;
     onChange: (projectAcl: AccessControlConfig) => void;

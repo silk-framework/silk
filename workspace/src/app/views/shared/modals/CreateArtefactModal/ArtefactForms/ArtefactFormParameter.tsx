@@ -412,6 +412,7 @@ export const TemplateInputComponent = memo(
                 checkInput={checkTemplate}
                 autoCompletionRequestDelay={200}
                 multiline={multiline}
+                useTabForCompletions={multiline}
                 intent={intent}
                 outerDivAttributes={
                     {
