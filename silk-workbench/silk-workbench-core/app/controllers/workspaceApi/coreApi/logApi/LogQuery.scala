@@ -7,7 +7,7 @@ import org.silkframework.workbench.logging.{LogBufferConfig, LogLine}
 import java.util.Locale
 
 /**
-  * A validated set of log filters.
+  * The validated parameters of a log request: the conditions a line has to match, and the page size.
   *
   * @param minLevel       Minimum level a line has to be logged at.
   * @param loggerPrefixes Logger name prefixes, of which one has to match.

@@ -40,7 +40,7 @@ class LogApi @Inject()(logBuffer: LogBuffer) extends InjectedController {
       ),
       new ApiResponse(
         responseCode = "400",
-        description = "If a filter is not valid.",
+        description = "If a parameter is not valid.",
         content = Array(new Content(mediaType = "application/json", schema = new Schema(implementation = classOf[ErrorResultFormat])))
       ),
       new ApiResponse(
