@@ -10,6 +10,11 @@ object InitApiDoc {
         "dmBaseUrl": "http://docker.local",
         "maxFileUploadSize": 1000000000,
         "templatingEnabled": true,
+        "companion": {
+          "enabled": true,
+          "apiBasePath": "/dataplatform/api/companion",
+          "streamPath": "/dataplatform/companion-websocket"
+        },
         "version": "v21.11",
         "dmModuleLinks": [
                 {
