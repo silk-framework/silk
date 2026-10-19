@@ -15,5 +15,4 @@ This means that e.g. integers such as `1` or `2` will be converted to `1.0` and 
 This also regards the _output_ of the operation, as in `1 + 1` leading to `2.0` rather than the integer `2`.
 
 _**Only** the five listed aggregation operations are allowed_ (and understood) by this numeric transformer plugin. If an
-_invalid operation_ is given, an error or exception will occur. On the other hand, if any _values_ aren't (valid)
-numbers, they will be ignored.
+_invalid operation_ is given, an error or exception will occur. On the other hand, any non-numeric _values_ are ignored.
