@@ -18,10 +18,7 @@ case class WorkflowExecuted(taskId: Identifier, executionId: Option[String], fai
 
   override def inverse: Option[Change] = None
 
-  override def fulfils(proposal: Proposal): Boolean = proposal match {
-    case ProposedWorkflowRun(proposedTaskId, _) => proposedTaskId == taskId
-    case _ => false
-  }
+  override def fulfils(proposal: ChangeHeader): Boolean = ProposedWorkflowRun.proposesRunOf(proposal, taskId)
 }
 
 /**
@@ -34,6 +31,14 @@ case class ProposedWorkflowRun(taskId: Identifier, taskLabel: Option[String] = N
   override def summary: String = s"Proposed to run workflow '$taskName'"
 
   override def inverse: Option[Change] = Some(DiscardedWorkflowRun(taskId, taskLabel))
+}
+
+object ProposedWorkflowRun {
+
+  /** Whether the header is that of a proposal to run the task; what the journal matches on, so no change is read for it. */
+  def proposesRunOf(header: ChangeHeader, taskId: Identifier): Boolean = {
+    header.changeType == classOf[ProposedWorkflowRun].getSimpleName && header.taskId.contains(taskId)
+  }
 }
 
 /** Discards a proposed workflow run. Recorded by reverting the proposal; it only records itself, as the proposal changed nothing. */
