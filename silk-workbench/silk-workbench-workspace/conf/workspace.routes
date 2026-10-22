@@ -140,7 +140,6 @@ POST          /activities/config                                                
 GET           /activities/status                                                controllers.workspace.ActivityApi.getActivityStatus(project ?= "", task ?= "", activity: String, instance: String ?= "")
 GET           /activities/value                                                 controllers.workspace.ActivityApi.getActivityValue(project ?= "", task ?= "", activity: String, instance: String ?= "")
 GET           /activities/recent                                                controllers.workspace.ActivityApi.recentActivities(maxCount: Int ?= 10)
-GET           /activities/log                                                   controllers.workspace.ActivityApi.activityLog()
 GET           /activities/updates                                               controllers.workspace.ActivityApi.getActivityStatusUpdates(project: String ?= "", task: String ?= "", activity: String ?= "", instance: String ?= "", timestamp: Long ?= 0L)
 GET           /activities/updatesWebSocket                                      controllers.workspace.ActivityApi.activityStatusUpdatesWebSocket(project: String ?= "", task: String ?= "", activity: String ?= "", instance: String ?= "")
 GET           /activities/valueUpdates                                          controllers.workspace.ActivityApi.getActivityValueUpdates(project: String ?= "", task: String ?= "", activity: String ?= "", instance: String ?= "", timestamp: Long ?= 0L)
