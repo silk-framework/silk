@@ -684,6 +684,10 @@
             "title": "Changes",
             "loading": "Loading changes.",
             "noChanges": "No changes have been recorded for this project.",
+            "noMatch": "No changes match the search.",
+            "sort": {
+                "newestFirst": "Newest first"
+            },
             "reload": "Reload changes",
             "help": {
                 "open": "About the change journal",
@@ -725,6 +729,8 @@
             },
             "markReviewed": {
                 "button": "Mark all as reviewed",
+                "hidden": "Unreviewed changes hidden by the current search: {{count}}. Clear it to mark all as reviewed.",
+                "hidden_plural": "Unreviewed changes hidden by the current search: {{count}}. Clear it to mark all as reviewed.",
                 "title": "Mark changes as reviewed",
                 "confirmText": "Mark all listed changes as reviewed?"
             },
@@ -1133,6 +1139,26 @@
         },
         "FacetsList": {
             "facet": {
+                "changeKind": {
+                    "description": "What the change did: added, updated, removed or run.",
+                    "label": "Kind"
+                },
+                "changeOrigin": {
+                    "description": "A person, or the client an agent change came from.",
+                    "label": "Origin"
+                },
+                "changeState": {
+                    "description": "Whether the change awaits review, has been reverted, reverts another change, or proposes a run.",
+                    "label": "State"
+                },
+                "changeTask": {
+                    "description": "The task the change concerns.",
+                    "label": "Task"
+                },
+                "changeUser": {
+                    "description": "The user who made the change.",
+                    "label": "User"
+                },
                 "createdBy": {
                     "description": "The user who created the item.",
                     "label": "Created by",

@@ -5,6 +5,7 @@ import {
     ContextMenu,
     ElapsedDateTimeDisplay,
     ElapsedDateTimeDisplayUnits,
+    Highlighter,
     Icon,
     IconButton,
     MenuItem,
@@ -23,19 +24,19 @@ interface IProps {
     entry: IChangeEntry;
     /** Why the entry cannot be reverted as the project is now, if the server said so. */
     conflict?: string;
-    /** The entries to revert to return to the state before the entry; left out for the latest entry, which has none. */
-    revertBackEntries?: IChangeEntry[];
+    /** The text query the entry matched, to highlight it. */
+    searchValue?: string;
     /** Asks to revert the entry alone. */
     onRevert: () => void;
-    /** Asks to revert back to before the entry. */
-    onRevertBack: () => void;
+    /** Asks to revert back to before the entry; left out for the latest entry, which has nothing newer. */
+    onRevertBack?: () => void;
 }
 
 /** How many detail lines an entry shows before the rest is behind a 'more' link, as the tag list does it. */
 const DETAILS_PREVIEW_LIMIT = 6;
 
 /** A change as a row of the change list: when and by whom, what changed, its links and its revert actions. */
-const ChangeRow = ({ entry, conflict, revertBackEntries, onRevert, onRevertBack }: IProps) => {
+const ChangeRow = ({ entry, conflict, searchValue, onRevert, onRevertBack }: IProps) => {
     const [t] = useTranslation();
 
     /** A value of a detail: the previous one marked as gone, the new one as current; an empty value spelled out. */
@@ -127,7 +128,7 @@ const ChangeRow = ({ entry, conflict, revertBackEntries, onRevert, onRevertBack 
                 onClick={onRevert}
             />,
         ];
-        if (revertBackEntries) {
+        if (onRevertBack) {
             items.push(
                 <MenuItem
                     key="revertBack"
@@ -135,7 +136,6 @@ const ChangeRow = ({ entry, conflict, revertBackEntries, onRevert, onRevertBack 
                     icon="operation-undo"
                     intent="danger"
                     text={t("pages.changes.revertBack.action")}
-                    disabled={!revertBackEntries.some(hasInverse)}
                     onClick={onRevertBack}
                 />,
             );
@@ -168,7 +168,9 @@ const ChangeRow = ({ entry, conflict, revertBackEntries, onRevert, onRevertBack 
                 )}
             </TableCell>
             <TableCell alignVertical="middle">
-                <div title={entry.type}>{entry.summary}</div>
+                <div title={entry.type}>
+                    <Highlighter label={entry.summary} searchValue={searchValue} />
+                </div>
                 {entry.details.length <= DETAILS_PREVIEW_LIMIT ? (
                     detailLines()
                 ) : (
@@ -183,8 +185,8 @@ const ChangeRow = ({ entry, conflict, revertBackEntries, onRevert, onRevertBack 
                 <Spacing size="tiny" />
                 <div>
                     <TagList>
-                        <Tag small intent={kindIntent[changeKind(entry.type)]} htmlTitle={entry.type}>
-                            {t(`pages.changes.kind.${changeKind(entry.type)}`)}
+                        <Tag small intent={kindIntent[changeKind(entry.type, entry.summary)]} htmlTitle={entry.type}>
+                            {t(`pages.changes.kind.${changeKind(entry.type, entry.summary)}`)}
                         </Tag>
                         {entry.unreviewed && (
                             <Tag small intent="warning" htmlTitle={t("pages.changes.unreviewedTooltip")}>

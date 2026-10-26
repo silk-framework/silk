@@ -9,11 +9,18 @@ export const userDisplayName = (uri: string): string => {
 
 export type ChangeKind = "added" | "updated" | "removed" | "run";
 
-/** The kind of change by its type name, e.g. 'AddMapping' adds, 'ResourceDeleted' removes, 'WorkflowExecuted' and its proposal are runs. */
-export const changeKind = (type: string): ChangeKind => {
+/**
+ * The kind of change by its type name, e.g. 'AddMapping' adds, 'ResourceDeleted' removes, 'WorkflowExecuted' and its proposal
+ * are runs; a variable or tag set for the first time is an addition, which only its summary tells.
+ */
+export const changeKind = (type: string, summary: string = ""): ChangeKind => {
     if (type === "WorkflowExecuted" || type === "ProposedWorkflowRun") {
         return "run";
-    } else if (type.startsWith("Add") || type === "ResourceCreated") {
+    } else if (
+        type.startsWith("Add") ||
+        type === "ResourceCreated" ||
+        ((type === "SetVariable" || type === "SetTag") && summary.startsWith("Added "))
+    ) {
         return "added";
     } else if (
         type.startsWith("Remove") ||

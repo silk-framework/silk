@@ -2,6 +2,7 @@ import { projectApi } from "../../../utils/getApiEndpoint";
 import fetch from "../../../services/fetch";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { IItemLink } from "@ducks/shared/typings";
+import { ISearchListRequest, ISearchListResponse } from "@ducks/workspace/requests";
 
 /** One thing a change changed: what, and the value before and after where there is one to show. */
 export interface IChangeDetail {
@@ -123,3 +124,25 @@ export interface IChangeSummary {
 /** The journal's numbers without the entries, for a client that only needs to know whether there is something to review. */
 export const requestChangeSummary = (projectId: string): Promise<FetchResponse<IChangeSummary>> =>
     fetch({ url: projectApi(`/${projectId}/changes/summary`) });
+
+/** The facet of the change search that holds the states, and its value for the changes awaiting review. */
+export const STATE_FACET = "changeState";
+export const UNREVIEWED_STATE = "unreviewed";
+
+/** A page of the change search: the entries that match, the facets of what matches, and the journal's numbers. */
+export interface IChangeSearchResult extends Omit<ISearchListResponse, "results"> {
+    results: IChangeEntry[];
+    /** The seq up to which no change waits for review. */
+    reviewedUpTo: number;
+    /** The seq of the latest recorded change; 0 if there is none. */
+    latestSeq: number;
+    /** How many changes are unreviewed in the whole journal, whatever the search matches. */
+    unreviewed: number;
+}
+
+/** Searches the changes of a project: text query, facets, sort and a page window, as the workspace search does it. */
+export const searchChanges = (
+    projectId: string,
+    payload: ISearchListRequest,
+): Promise<FetchResponse<IChangeSearchResult>> =>
+    fetch({ url: projectApi(`/${projectId}/changes/search`), method: "post", body: payload });

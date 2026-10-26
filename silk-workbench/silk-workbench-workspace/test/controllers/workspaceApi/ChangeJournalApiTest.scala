@@ -2,6 +2,8 @@ package controllers.workspaceApi
 
 import controllers.projectApi.ChangeJournalApi.{ChangeEntryJson, ChangeListJson, ChangeSummaryJson, RevertConflictJson, RevertConflictsJson, RevertResultsJson}
 import controllers.util.{ItemLink, ItemType}
+import controllers.workspaceApi.search.KeywordFacetValue
+import controllers.workspaceApi.search.changes.ChangeSearchRequest.ChangeSearchResult
 import controllers.workspaceApi.coreApi.routes.{VariableTemplateApi => TemplateApi}
 import helper.{ApiClient, IntegrationTestTrait}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -16,7 +18,7 @@ import org.silkframework.util.ConfigTestTrait
 import org.silkframework.util.FileUtils._
 import org.silkframework.workspace.changes.{AddMapping, ChangeJournal, ProposedWorkflowRun, TestJournalAccess, WorkflowExecuted}
 import org.silkframework.workspace.{ProjectConfig, WorkspaceFactory}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 import play.api.routing.Router
 
 import java.nio.charset.StandardCharsets.UTF_8
@@ -227,5 +229,35 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     deleted.`type` mustBe "ResourceDeleted"
     deleted.links mustBe Seq(projectPage)
     replaced.links mustBe Seq(projectPage, ItemLink("download", "Download file", downloadUrl, openInNewTab = true))
+  }
+  it should "search the changes with a text query, facets, a sort property and a page window" in {
+    val searchProjectId = "changeJournalSearchProject"
+    val project = WorkspaceFactory().workspace.createProject(ProjectConfig(searchProjectId))
+    val agent = SimpleUserContext(Some(DefaultUserManager.get("urn:agent")), UserExecutionContext(origin = Some("mcp:test")))
+    def transform(ruleName: String): TransformSpec =
+      TransformSpec(mappingRule = RootMappingRule(MappingRules(propertyRules = Seq(rule(ruleName)))))
+    project.addTask[TransformSpec]("persons", transform("a"))
+    project.addTask[TransformSpec]("places", transform("b"))(implicitly, agent)
+    TestJournalAccess.record(project.changeJournal, WorkflowExecuted("persons", None, failed = false))(agent)
+    val searchUrl = baseUrl + controllers.projectApi.routes.ChangeJournalApi.search(searchProjectId).url
+    def search(body: JsObject): ChangeSearchResult = checkResponse(client.url(searchUrl).post(body)).json.as[ChangeSearchResult]
+    def seqs(body: JsObject): Seq[Int] = search(body).results.map(_.seq)
+    // Everything, newest first, with the journal's numbers and the facet counts of what matches
+    val all = search(Json.obj())
+    all.total mustBe 3
+    all.results.map(_.seq) mustBe Seq(3, 2, 1)
+    (all.reviewedUpTo, all.latestSeq, all.unreviewed) mustBe ((1, 3, 2))
+    val kinds = all.facets.find(_.id == "changeKind").get.values.collect { case KeywordFacetValue(id, _, count) => id -> count }
+    kinds mustBe Seq("added" -> Some(2), "run" -> Some(1))
+    // The text query matches the description and the task name; a facet narrows the result and the numbers stay the journal's
+    seqs(Json.obj("textQuery" -> "places")) mustBe Seq(2)
+    val unreviewed = search(Json.obj("facets" -> Json.arr(Json.obj("type" -> "keyword", "facetId" -> "changeState", "keywordIds" -> Json.arr("unreviewed")))))
+    unreviewed.results.map(_.seq) mustBe Seq(3, 2)
+    unreviewed.unreviewed mustBe 2
+    // Sorted by task, newest first among equals; by time ascending, oldest first; a page window keeps the total
+    seqs(Json.obj("sortBy" -> "task")) mustBe Seq(3, 1, 2)
+    seqs(Json.obj("sortBy" -> "time")) mustBe Seq(1, 2, 3)
+    val page = search(Json.obj("offset" -> 1, "limit" -> 1))
+    (page.total, page.results.map(_.seq)) mustBe ((3, Seq(2)))
   }
 }

@@ -3,6 +3,8 @@ package controllers.projectApi
 import controllers.core.UserContextActions
 import controllers.projectApi.ChangeJournalApi.{ChangeDetailJson, ChangeEntryJson, ChangeListJson, ChangeSummaryJson, MarkReviewedJson, ReviewedJson, RevertConflictJson, RevertConflictsJson, RevertOutcomeJson, RevertRequestJson, RevertResultsJson}
 import controllers.util.ItemLink
+import controllers.workspaceApi.search.changes.ChangeSearchRequest
+import controllers.workspaceApi.search.changes.ChangeSearchRequest.ChangeSearchResult
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
@@ -261,6 +263,43 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
     val project = WorkspaceFactory().workspace.project(projectId)
     val outcomes = project.changeJournal.revertAll(request.body.as[RevertRequestJson].seqs)
     Ok(Json.toJson(RevertResultsJson(outcomes.map(RevertOutcomeJson.of(project, _)))))
+  }
+
+  @Operation(
+    summary = "Search changes",
+    description = "The changes of the project that match a text query and facets, sorted and paged, with the facets of what " +
+      "matches and the journal's numbers: the reviewed watermark, the latest change and how many changes are unreviewed in " +
+      "the whole journal. An entry is served as the listing serves it. Without a sort property the changes come newest first.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(implementation = classOf[ChangeSearchResult])
+        ))
+      ),
+      new ApiResponse(responseCode = "400", description = "An unknown facet."),
+      new ApiResponse(responseCode = "404", description = "The project does not exist.")
+    ))
+  @RequestBody(
+    description = "The search request.",
+    required = true,
+    content = Array(new Content(
+      mediaType = "application/json",
+      schema = new Schema(implementation = classOf[ChangeSearchRequest]),
+      examples = Array(new ExampleObject("""{"textQuery": "persons", "facets": [{"type": "keyword", "facetId": "changeState", "keywordIds": ["unreviewed"]}], "sortBy": "time", "sortOrder": "ASC", "offset": 0, "limit": 25}"""))
+    )))
+  def search(@Parameter(
+               name = "projectId",
+               description = "The project identifier",
+               required = true,
+               in = ParameterIn.PATH,
+               schema = new Schema(implementation = classOf[String])
+             )
+             projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectId)
+    Ok(Json.toJson(request.body.as[ChangeSearchRequest].apply(project)))
   }
 }
 

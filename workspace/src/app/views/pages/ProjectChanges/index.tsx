@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
+import { batch, useDispatch, useSelector } from "react-redux";
 import {
     Divider,
     Grid,
@@ -14,22 +15,38 @@ import {
     WorkspaceMain,
     WorkspaceSide,
 } from "@eccenca/gui-elements";
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import { routerSel } from "@ducks/router";
+import { filtersSlice } from "@ducks/workspace/filtersSlice";
+import { previewSlice } from "@ducks/workspace/previewSlice";
+import { AppDispatch } from "store/configureStore";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { requestProjectMetadata } from "@ducks/shared/requests";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { absoluteProjectPath, getFullRoutePath } from "../../../utils/routerUtils";
 import NotFound from "../NotFound";
 import MarkdownModal from "../../shared/modals/MarkdownModal";
+import SearchBar from "../../shared/SearchBar";
+import Filterbar from "../Workspace/Filterbar";
 import ChangeList from "./ChangeList";
 import { changeJournalHelpMarkdown } from "./changeJournalHelp";
 
-/** The change journal of a project: what has been changed, and reverting single changes. */
+const PAGE_SIZE = 25;
+
+/** The change journal of a project: what has been changed, searched and filtered, and reverting single changes. */
 const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
     const [t] = useTranslation();
+    const dispatch = useDispatch<AppDispatch>();
     const { registerError } = useErrorHandler();
+    const qs = useSelector(routerSel.routerSearchSelector);
+    const sorters = useSelector(workspaceSel.sortersSelector);
+    const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
+    const { clearSearchResults } = previewSlice.actions;
     const [notFound, setNotFound] = React.useState(false);
     const [refreshKey, setRefreshKey] = React.useState(0);
     const [helpOpen, setHelpOpen] = React.useState(false);
+    // The search store is shared with the workspace search and the activities page: the list waits until it is this page's
+    const [ready, setReady] = React.useState(false);
 
     const breadcrumbs = [
         {
@@ -72,6 +89,35 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
             });
     }, [projectId]);
 
+    React.useEffect(() => {
+        // Starts from this page's URL, not from what another page left in the store; the results are dropped on leaving
+        batch(() => {
+            dispatch(workspaceOp.resetFilters());
+            dispatch(filtersSlice.actions.changePage(1));
+            dispatch(workspaceOp.changeLimitOp(PAGE_SIZE));
+            dispatch(workspaceOp.setupFiltersFromQs(qs));
+        });
+        setReady(true);
+        return () => {
+            dispatch(clearSearchResults());
+        };
+    }, [projectId]);
+
+    // The store's default sorter is the workspace search's recently viewed order; here it is the journal's own order
+    const changeSorters = {
+        ...sorters,
+        list: sorters.list.map((sorter) =>
+            sorter.id ? sorter : { ...sorter, label: t("pages.changes.sort.newestFirst", "Newest first") },
+        ),
+    };
+
+    const handleSearch = (query: string) => {
+        batch(() => {
+            dispatch(workspaceOp.applyFiltersOp({ textQuery: query }));
+            dispatch(workspaceOp.changePageOp(1));
+        });
+    };
+
     if (notFound) {
         return <NotFound />;
     }
@@ -88,7 +134,16 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
                                     <TitleMainsection>{t("pages.changes.title", "Changes")}</TitleMainsection>
                                 </GridColumn>
                                 <GridColumn>
-                                    <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                                    <div style={{ display: "flex", alignItems: "center" }}>
+                                        <div style={{ width: "100%" }}>
+                                            <SearchBar
+                                                focusOnCreation
+                                                textQuery={ready ? textQuery : ""}
+                                                sorters={changeSorters}
+                                                onSearch={handleSearch}
+                                                globalTableKey={"changes"}
+                                            />
+                                        </div>
                                         <IconButton
                                             data-test-id={"changes-reload-btn"}
                                             name="item-reload"
@@ -109,8 +164,11 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
                     <Divider addSpacing="medium" />
                     <Grid>
                         <GridRow>
+                            <GridColumn small>
+                                <Filterbar facetsOnly projectId={projectId} />
+                            </GridColumn>
                             <GridColumn>
-                                <ChangeList projectId={projectId} refreshKey={refreshKey} />
+                                <ChangeList projectId={projectId} ready={ready} refreshKey={refreshKey} />
                             </GridColumn>
                         </GridRow>
                     </Grid>

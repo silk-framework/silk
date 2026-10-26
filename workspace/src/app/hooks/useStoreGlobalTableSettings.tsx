@@ -11,6 +11,7 @@ export const defaultGlobalTableSettings: GlobalTableSettings = {
     activities: { ...defaultConfig, pageSize: 25 },
     workbench: { ...defaultConfig },
     files: { ...defaultConfig, pageSize: 5 },
+    changes: { ...defaultConfig, pageSize: 25 },
 } as const;
 
 export type GlobalTableBaseConfig = {
@@ -23,13 +24,14 @@ export interface GlobalTableSettings {
     activities: GlobalTableBaseConfig;
     workbench: GlobalTableBaseConfig;
     files: GlobalTableBaseConfig;
+    changes: GlobalTableBaseConfig;
 }
 
 const LOCAL_STORAGE_KEYS = {
     GLOBAL_TABLE_SETTINGS: "global_table_settings",
 };
 
-export type GlobalTableTypes = "workbench" | "files" | "activities";
+export type GlobalTableTypes = "workbench" | "files" | "activities" | "changes";
 
 interface GlobalTableSettingFunctions {
     /** Set the table settings for a specific global table. Specify table explicitly, else it will be derived from the path if possible. */
@@ -50,7 +52,8 @@ export const useStoreGlobalTableSettings: () => GlobalTableSettingFunctions = ()
 
     // Extracts the table key from the location path
     const extractTableKey = (): GlobalTableTypes => {
-        return location.pathname.split("/").slice(-1)[0] === "activities" ? "activities" : "workbench";
+        const page = location.pathname.split("/").slice(-1)[0];
+        return page === "activities" || page === "changes" ? page : "workbench";
     };
     const updateGlobalTableSettings = React.useCallback(
         (settings: GlobalTableBaseConfig, customKey?: GlobalTableTypes) => {
