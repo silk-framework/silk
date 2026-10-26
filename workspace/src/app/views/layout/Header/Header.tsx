@@ -42,14 +42,16 @@ import { AppDispatch } from "store/configureStore";
 interface IProps {
     onClickApplicationSidebarExpand: any;
     isApplicationSidebarExpanded: boolean;
+    /** Where a toolbar panel can dock, s. AppLayout. */
+    panelContainer: HTMLElement | null;
 }
 
-export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarExpanded }: IProps) {
+export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarExpanded, panelContainer }: IProps) {
     const dispatch = useDispatch<AppDispatch>();
     const location = useLocation();
     const locationParams = new URLSearchParams(location.search?.substring(1));
     const { hotKeys } = useSelector(commonSel.initialSettingsSelector);
-    const { companion, dmBaseUrl, dmModuleLinks, version } = useSelector(commonSel.initialSettingsSelector);
+    const { dmBaseUrl, dmModuleLinks, version } = useSelector(commonSel.initialSettingsSelector);
     const [t] = useTranslation();
     const displayUserMenu = useSelector(commonSel.userMenuDisplaySelector);
     const displayNotifications = useSelector(commonSel.notificationMenuSelector);
@@ -208,13 +210,11 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         <CreateButton onClick={handleCreateDialog} />
                     </ApplicationToolbarSection>
                     <NotificationsMenu />
-                    {companion?.enabled && companionToolbar && (
+                    {companionToolbar && (
                         <companionToolbar.Component
-                            companionConfig={companion}
                             closeOtherToolbarPanels={closeOtherToolbarPanels}
-                            dmBaseUrl={dmBaseUrl}
-                            dmModuleLinks={dmModuleLinks}
                             isAnotherToolbarPanelOpen={displayNotifications || displayUserMenu}
+                            panelContainer={panelContainer}
                         />
                     )}
                     {displayUserMenu ? (
