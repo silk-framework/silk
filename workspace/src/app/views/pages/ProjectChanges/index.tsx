@@ -17,7 +17,7 @@ import {
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { requestProjectMetadata } from "@ducks/shared/requests";
 import useErrorHandler from "../../../hooks/useErrorHandler";
-import { SERVE_PATH } from "../../../constants/path";
+import { absoluteProjectPath, getFullRoutePath } from "../../../utils/routerUtils";
 import NotFound from "../NotFound";
 import MarkdownModal from "../../shared/modals/MarkdownModal";
 import ChangeList from "./ChangeList";
@@ -33,8 +33,8 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
 
     const breadcrumbs = [
         {
-            text: t("navigation.side.diBrowse"),
-            href: SERVE_PATH,
+            text: t("common.app.build", "Workbench"),
+            href: getFullRoutePath("?itemType=project"),
         },
         {
             text: t("pages.changes.title"),
@@ -56,7 +56,7 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
                         breadcrumbs[0],
                         {
                             text: res.data.label,
-                            href: `${SERVE_PATH}/projects/${projectId}`,
+                            href: absoluteProjectPath(projectId),
                         },
                         breadcrumbs[1],
                     ],

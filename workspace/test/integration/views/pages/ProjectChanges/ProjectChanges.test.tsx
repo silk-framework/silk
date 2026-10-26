@@ -18,10 +18,12 @@ import ProjectChanges from "../../../../../src/app/views/pages/ProjectChanges";
 import ChangeList from "../../../../../src/app/views/pages/ProjectChanges/ChangeList";
 import { IChangeEntry } from "../../../../../src/app/views/pages/ProjectChanges/changesRequests";
 import { triggerHotkeyHandler } from "../../../../../src/app/views/shared/HotKeyHandler/HotKeyHandler";
+import { APP_VIEWHEADER_ID } from "../../../../../src/app/views/shared/PageHeader/PageHeader";
 
 describe("Project changes", () => {
     afterEach(() => {
         mockAxios.reset();
+        document.getElementById(APP_VIEWHEADER_ID)?.remove();
     });
 
     const PROJECT_ID = "cmem";
@@ -439,6 +441,28 @@ describe("Project changes", () => {
             const dialog = findElement(document.body, byTestId("changes-help-modal"));
             expect(dialog.textContent).toContain("The change journal");
             expect(dialog.textContent).toContain("Mark all as reviewed");
+        });
+    });
+
+    it("should link the breadcrumbs to the project list and to the project's default page", async () => {
+        // The page header renders into the application's header slot
+        const headerRoot = document.body.appendChild(document.createElement("div"));
+        headerRoot.id = APP_VIEWHEADER_ID;
+        setUseParams(PROJECT_ID, "");
+        renderWrapper(<ProjectChanges />);
+        const metaDataUrl = apiUrl(`/workspace/projects/${PROJECT_ID}/metaData`);
+        await waitFor(() => checkRequestMade(metaDataUrl, "GET"));
+        mockAxiosResponse(metaDataUrl, mockedAxiosResponse({ data: { label: "CMEM" } }));
+        await waitFor(() => expect(headerRoot.textContent).toContain("Changes: CMEM"));
+        // Without a layout, the breadcrumbs before the current one are collapsed into a menu
+        fireEvent.click(findElement(headerRoot, '[aria-label="collapsed breadcrumbs"]'));
+        await waitFor(() => {
+            const links = Array.from(document.body.querySelectorAll('a[role="menuitem"][href]')).map((link) =>
+                link.getAttribute("href"),
+            );
+            expect(links).toEqual(
+                expect.arrayContaining(["/workbench?itemType=project", `/workbench/projects/${PROJECT_ID}`]),
+            );
         });
     });
 

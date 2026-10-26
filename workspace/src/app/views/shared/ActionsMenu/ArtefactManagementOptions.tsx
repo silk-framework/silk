@@ -222,6 +222,16 @@ export function ArtefactManagementOptions({
                     dispatch(routerOp.goToPage(projectPath));
                 },
             });
+            fullMenu.push({
+                icon: "artefact-commit",
+                text: t("pages.changes.title", "Changes"),
+                "data-test-id": "header-item-changes-button",
+                actionHandler: (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dispatch(routerOp.goToPage(`projects/${projectId}/changes`));
+                },
+            });
         }
 
         if (itemType === DATA_TYPES.PROJECT && !!exportTypes.length) {
