@@ -253,6 +253,19 @@ describe("Project changes", () => {
         );
     });
 
+    it("should highlight the related entries while one is hovered", async () => {
+        const wrapper = await loadChangeList();
+        const isRelated = (seq: number) =>
+            findElement(wrapper, byTestId(`change-row-${seq}`)).className.includes("diapp-changes__row--related");
+        // The revert and the change it reverted belong together; the proposal and its run too
+        fireEvent.mouseEnter(findElement(wrapper, byTestId("change-row-4")));
+        expect([3, 4, 5].map(isRelated)).toEqual([true, false, false]);
+        fireEvent.mouseLeave(findElement(wrapper, byTestId("change-row-4")));
+        expect(isRelated(3)).toBe(false);
+        fireEvent.mouseEnter(findElement(wrapper, byTestId("change-row-2")));
+        expect([1, 2, 3].map(isRelated)).toEqual([true, false, false]);
+    });
+
     it("should show only the first details of a long entry until expanded", async () => {
         const details = Array.from({ length: 8 }, (_, i) => ({ label: `Mapping rule 'rule-${i}' added` }));
         const longChange: IChangeEntry = { ...mappingChange, details };

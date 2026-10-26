@@ -71,3 +71,19 @@ export const entriesBackTo = (entries: IChangeEntry[], seq: number): IChangeEntr
         });
     return heads.sort((a, b) => b.seq - a.seq);
 };
+
+/**
+ * The entries related to one on the page: what it reverts or is reverted by, and the run of a proposal or the proposal
+ * of a run. Both directions, as a run does not name the proposal it fulfilled.
+ */
+export const relatedSeqs = (entries: IChangeEntry[], seq: number): Set<number> => {
+    const related = new Set<number>();
+    const entry = entries.find((candidate) => candidate.seq === seq);
+    [entry?.reverts, entry?.revertedBy, entry?.fulfilledBy].forEach((other) => other != null && related.add(other));
+    entries.forEach((other) => {
+        if (other.reverts === seq || other.revertedBy === seq || other.fulfilledBy === seq) {
+            related.add(other.seq);
+        }
+    });
+    return related;
+};

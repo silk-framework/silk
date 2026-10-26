@@ -36,7 +36,7 @@ import {
     STATE_FACET,
     UNREVIEWED_STATE,
 } from "./changesRequests";
-import { entriesBackTo, hasInverse } from "./changeListUtils";
+import { entriesBackTo, hasInverse, relatedSeqs } from "./changeListUtils";
 import ChangeRow from "./ChangeRow";
 import BatchRevertModal from "./BatchRevertModal";
 
@@ -92,6 +92,8 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
     const { sortOrder, pageSize } = tableSettings;
     const [journal, setJournal] = React.useState<IJournalNumbers>({ latestSeq: 0, unreviewed: 0 });
     const [revertEntry, setRevertEntry] = React.useState<IChangeEntry | undefined>(undefined);
+    // The entry the pointer is on: its related entries on the page are highlighted with it
+    const [hoveredSeq, setHoveredSeq] = React.useState<number | undefined>(undefined);
     const [revertLoading, setRevertLoading] = React.useState<boolean>(false);
     const [revertError, setRevertError] = React.useState<ErrorResponse | undefined>(undefined);
     const [markReviewedOpen, setMarkReviewedOpen] = React.useState<boolean>(false);
@@ -294,6 +296,8 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
         });
     };
 
+    const related = hoveredSeq != null ? relatedSeqs(entries, hoveredSeq) : new Set<number>();
+
     /** The row of an entry; the latest entry has nothing newer, so no state before it to return to. */
     const changeRow = (entry: IChangeEntry): React.ReactNode => (
         <ChangeRow
@@ -301,6 +305,8 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
             entry={entry}
             conflict={conflicts.get(entry.seq)}
             searchValue={appliedFilters.textQuery}
+            related={related.has(entry.seq)}
+            onHover={(hovered) => setHoveredSeq(hovered ? entry.seq : undefined)}
             onRevert={() => openRevertDialog(entry)}
             onRevertBack={entry.seq !== journal.latestSeq ? () => openRevertBack(entry) : undefined}
         />

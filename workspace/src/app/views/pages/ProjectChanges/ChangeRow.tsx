@@ -26,6 +26,10 @@ interface IProps {
     conflict?: string;
     /** The text query the entry matched, to highlight it. */
     searchValue?: string;
+    /** Whether the entry is related to the hovered one: a revert and what it reverted, a proposal and its run. */
+    related?: boolean;
+    /** Tells when the pointer enters or leaves the row. */
+    onHover?: (hovered: boolean) => void;
     /** Asks to revert the entry alone. */
     onRevert: () => void;
     /** Asks to revert back to before the entry; left out for the latest entry, which has nothing newer. */
@@ -36,7 +40,7 @@ interface IProps {
 const DETAILS_PREVIEW_LIMIT = 6;
 
 /** A change as a row of the change list: when and by whom, what changed, its links and its revert actions. */
-const ChangeRow = ({ entry, conflict, searchValue, onRevert, onRevertBack }: IProps) => {
+const ChangeRow = ({ entry, conflict, searchValue, related, onHover, onRevert, onRevertBack }: IProps) => {
     const [t] = useTranslation();
 
     /** A value of a detail: the previous one marked as gone, the new one as current; an empty value spelled out. */
@@ -152,7 +156,16 @@ const ChangeRow = ({ entry, conflict, searchValue, onRevert, onRevertBack }: IPr
     };
 
     return (
-        <TableRow className={entry.unreviewed ? "diapp-changes__row--unreviewed" : undefined}>
+        <TableRow
+            data-test-id={`change-row-${entry.seq}`}
+            className={
+                [entry.unreviewed ? "diapp-changes__row--unreviewed" : "", related ? "diapp-changes__row--related" : ""]
+                    .filter(Boolean)
+                    .join(" ") || undefined
+            }
+            onMouseEnter={() => onHover?.(true)}
+            onMouseLeave={() => onHover?.(false)}
+        >
             <TableCell alignVertical="middle">{entry.seq}</TableCell>
             <TableCell alignVertical="middle">{timestamp(entry.timestamp)}</TableCell>
             <TableCell alignVertical="middle">
