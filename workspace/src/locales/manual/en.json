@@ -1103,9 +1103,13 @@
             "view": "View project activities"
         },
         "ChangesWidget": {
-            "titleWithUnreviewed": "Changes ({{count}} unreviewed)",
-            "titleWithUnreviewed_plural": "Changes ({{count}} unreviewed)",
+            "allReviewed": "Recorded changes: {{count}}. Nothing awaits your review.",
+            "allReviewed_plural": "Recorded changes: {{count}}. Nothing awaits your review.",
+            "noChanges": "No changes recorded yet.",
+            "review": "Review changes",
             "title": "Changes",
+            "unreviewed": "Changes made by an agent awaiting your review: {{count}}",
+            "unreviewed_plural": "Changes made by an agent awaiting your review: {{count}}",
             "view": "View project changes"
         },
         "ConfigWidget": {
