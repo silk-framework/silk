@@ -20,6 +20,7 @@ import { routerSel } from "@ducks/router";
 import { filtersSlice } from "@ducks/workspace/filtersSlice";
 import { previewSlice } from "@ducks/workspace/previewSlice";
 import { AppDispatch } from "store/configureStore";
+import { GlobalTableContext } from "../../../GlobalContextsWrapper";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { requestProjectMetadata } from "@ducks/shared/requests";
 import useErrorHandler from "../../../hooks/useErrorHandler";
@@ -42,6 +43,7 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
     const sorters = useSelector(workspaceSel.sortersSelector);
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
     const { clearSearchResults } = previewSlice.actions;
+    const { globalTableSettings } = React.useContext(GlobalTableContext);
     const [notFound, setNotFound] = React.useState(false);
     const [refreshKey, setRefreshKey] = React.useState(0);
     const [helpOpen, setHelpOpen] = React.useState(false);
@@ -93,8 +95,9 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
         // Starts from this page's URL, not from what another page left in the store; the results are dropped on leaving
         batch(() => {
             dispatch(workspaceOp.resetFilters());
+            dispatch(filtersSlice.actions.updateSorters([]));
             dispatch(filtersSlice.actions.changePage(1));
-            dispatch(workspaceOp.changeLimitOp(PAGE_SIZE));
+            dispatch(workspaceOp.changeLimitOp(globalTableSettings["changes"]?.pageSize ?? PAGE_SIZE));
             dispatch(workspaceOp.setupFiltersFromQs(qs));
         });
         setReady(true);
@@ -111,7 +114,13 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
         ),
     };
 
+    // The search bar also fires for a query it was handed, e.g. the URL's; applying it again would clear the facets
+    const appliedQuery = React.useRef(textQuery);
+    appliedQuery.current = textQuery;
     const handleSearch = (query: string) => {
+        if ((query || "") === (appliedQuery.current || "")) {
+            return;
+        }
         batch(() => {
             dispatch(workspaceOp.applyFiltersOp({ textQuery: query }));
             dispatch(workspaceOp.changePageOp(1));

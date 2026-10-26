@@ -64,6 +64,9 @@ interface IJournalNumbers {
 
 const PAGE_SIZES = [25, 50, 100];
 
+/** The sort properties of the change search; a property persisted on another page is not sent. */
+const CHANGE_SORT_PROPERTIES = ["time", "user", "task", "kind"];
+
 /**
  * The changes of a project that match the search store's query, facets and sort, one page at a time, with revert actions
  * per entry and review actions for the agent changes.
@@ -81,7 +84,12 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
     const facets = useSelector(workspaceSel.facetsSelector);
     const { globalTableSettings } = React.useContext(GlobalTableContext);
     // Settings stored before this page existed lack its key
-    const { sortBy, sortOrder } = globalTableSettings["changes"] ?? {};
+    const tableSettings = globalTableSettings["changes"] ?? {};
+    const sortBy =
+        tableSettings.sortBy && CHANGE_SORT_PROPERTIES.includes(tableSettings.sortBy)
+            ? tableSettings.sortBy
+            : undefined;
+    const { sortOrder, pageSize } = tableSettings;
     const [journal, setJournal] = React.useState<IJournalNumbers>({ latestSeq: 0, unreviewed: 0 });
     const [revertEntry, setRevertEntry] = React.useState<IChangeEntry | undefined>(undefined);
     const [revertLoading, setRevertLoading] = React.useState<boolean>(false);
@@ -100,15 +108,21 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
     /** Answers the store's search with the journal's page, keeping the numbers that come with it. */
     const fetcher = React.useCallback(
         async (payload: ISearchListRequest): Promise<FetchResponse<ISearchListResponse>> => {
-            const response = await searchChanges(projectId, payload);
-            setJournal({ latestSeq: response.data.latestSeq, unreviewed: response.data.unreviewed });
-            // The entries take the place of the search items in the store
-            return response as unknown as FetchResponse<ISearchListResponse>;
+            try {
+                const response = await searchChanges(projectId, payload);
+                setJournal({ latestSeq: response.data.latestSeq, unreviewed: response.data.unreviewed });
+                // The entries take the place of the search items in the store
+                return response as unknown as FetchResponse<ISearchListResponse>;
+            } catch (ex) {
+                registerError("ChangeList.loadChanges", t("pages.changes.errors.fetchChanges"), ex);
+                // The store shows the detail of an error, which a fetch error holds in its response
+                throw ex?.errorResponse ?? ex;
+            }
         },
         [projectId],
     );
 
-    const loadChanges = () => dispatch(workspaceOp.fetchListAsync({ sortBy, sortOrder }, fetcher));
+    const loadChanges = () => dispatch(workspaceOp.fetchListAsync({ sortBy, sortOrder, pageSize }, fetcher));
 
     // Fetched again whenever the query, a facet, the sort or the page changes
     React.useEffect(() => {
@@ -124,6 +138,7 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
         appliedFacets,
         sortBy,
         sortOrder,
+        pageSize,
         refreshKey,
     ]);
 
@@ -175,10 +190,16 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
     /** The filters are on: what the page shows is a selection, not the journal. */
     const filtered = !!appliedFilters.textQuery || appliedFacets.length > 0;
 
-    /** The unreviewed entries the current query and facets match, as the state facet counts them. */
+    /**
+     * The unreviewed entries the current query and facets match, as the state facet counts them. The facet counts its
+     * own values as if it were not applied, so a state facet applied without the unreviewed value hides them all.
+     */
+    const stateFacet = appliedFacets.find((facet) => facet.facetId === STATE_FACET);
     const shownUnreviewed =
-        facets.find((facet) => facet.id === STATE_FACET)?.values.find((value) => value.id === UNREVIEWED_STATE)
-            ?.count ?? 0;
+        stateFacet && !stateFacet.keywordIds.includes(UNREVIEWED_STATE)
+            ? 0
+            : (facets.find((facet) => facet.id === STATE_FACET)?.values.find((value) => value.id === UNREVIEWED_STATE)
+                  ?.count ?? 0);
     /** The unreviewed entries a filter hides: marking all as reviewed would approve them unseen. */
     const hiddenUnreviewed = filtered ? Math.max(0, journal.unreviewed - shownUnreviewed) : 0;
 

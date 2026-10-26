@@ -1,37 +1,10 @@
 import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
-import { IChangeEntry } from "./changesRequests";
+import { ChangeKind, IChangeEntry } from "./changesRequests";
 
 /** The last segment of a user URI, e.g. 'alice' for 'urn:user:alice'. */
 export const userDisplayName = (uri: string): string => {
     const idx = Math.max(uri.lastIndexOf("/"), uri.lastIndexOf(":"), uri.lastIndexOf("#"));
     return idx >= 0 && idx < uri.length - 1 ? uri.substring(idx + 1) : uri;
-};
-
-export type ChangeKind = "added" | "updated" | "removed" | "run";
-
-/**
- * The kind of change by its type name, e.g. 'AddMapping' adds, 'ResourceDeleted' removes, 'WorkflowExecuted' and its proposal
- * are runs; a variable or tag set for the first time is an addition, which only its summary tells.
- */
-export const changeKind = (type: string, summary: string = ""): ChangeKind => {
-    if (type === "WorkflowExecuted" || type === "ProposedWorkflowRun") {
-        return "run";
-    } else if (
-        type.startsWith("Add") ||
-        type === "ResourceCreated" ||
-        ((type === "SetVariable" || type === "SetTag") && summary.startsWith("Added "))
-    ) {
-        return "added";
-    } else if (
-        type.startsWith("Remove") ||
-        type.startsWith("Discarded") ||
-        type === "ResourceDeleted" ||
-        type === "DisconnectWorkflowNodes"
-    ) {
-        return "removed";
-    } else {
-        return "updated";
-    }
 };
 
 export const kindIntent: Record<ChangeKind, "success" | "danger" | "info" | undefined> = {

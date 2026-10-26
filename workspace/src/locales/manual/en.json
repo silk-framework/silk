@@ -739,6 +739,7 @@
                 "title": "Revert unreviewed changes",
                 "confirmText": "The following unreviewed changes will be reverted, newest first:",
                 "blocked": "Nothing can be reverted: the newest of these changes cannot be reverted now, and no newer change is left whose revert could clear that. {{reason}}",
+                "nothing": "None of these changes can be reverted.",
                 "skippedNote": "Skipped as not revertible: {{count}}.",
                 "skippedNote_plural": "Skipped as not revertible: {{count}}.",
                 "resultReverted": "Reverted changes: {{count}}.",
@@ -1141,15 +1142,31 @@
             "facet": {
                 "changeKind": {
                     "description": "What the change did: added, updated, removed or run.",
-                    "label": "Kind"
+                    "label": "Kind",
+                    "valueLabels": {
+                        "added": "Added",
+                        "updated": "Updated",
+                        "removed": "Removed",
+                        "run": "Run"
+                    }
                 },
                 "changeOrigin": {
                     "description": "A person, or the client an agent change came from.",
-                    "label": "Origin"
+                    "label": "Origin",
+                    "valueLabels": {
+                        "person": "Person"
+                    }
                 },
                 "changeState": {
                     "description": "Whether the change awaits review, has been reverted, reverts another change, or proposes a run.",
-                    "label": "State"
+                    "label": "State",
+                    "valueLabels": {
+                        "unreviewed": "Unreviewed",
+                        "reverted": "Reverted",
+                        "revert": "Reverts a change",
+                        "proposal": "Proposed run",
+                        "fulfilled": "Run as proposed"
+                    }
                 },
                 "changeTask": {
                     "description": "The task the change concerns.",

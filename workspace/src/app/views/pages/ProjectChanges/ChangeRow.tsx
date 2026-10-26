@@ -18,7 +18,7 @@ import {
 } from "@eccenca/gui-elements";
 import { getDateData } from "../../shared/Metadata/Metadata";
 import { IChangeDetail, IChangeEntry } from "./changesRequests";
-import { changeKind, hasInverse, kindIntent, linkIcon, userDisplayName } from "./changeListUtils";
+import { hasInverse, kindIntent, linkIcon, userDisplayName } from "./changeListUtils";
 
 interface IProps {
     entry: IChangeEntry;
@@ -185,8 +185,8 @@ const ChangeRow = ({ entry, conflict, searchValue, onRevert, onRevertBack }: IPr
                 <Spacing size="tiny" />
                 <div>
                     <TagList>
-                        <Tag small intent={kindIntent[changeKind(entry.type, entry.summary)]} htmlTitle={entry.type}>
-                            {t(`pages.changes.kind.${changeKind(entry.type, entry.summary)}`)}
+                        <Tag small intent={kindIntent[entry.kind]} htmlTitle={entry.type}>
+                            {t(`pages.changes.kind.${entry.kind}`)}
                         </Tag>
                         {entry.unreviewed && (
                             <Tag small intent="warning" htmlTitle={t("pages.changes.unreviewedTooltip")}>

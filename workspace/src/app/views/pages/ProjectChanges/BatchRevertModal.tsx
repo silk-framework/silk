@@ -87,9 +87,9 @@ const BatchRevertModal = ({ projectId, title, confirmText, entries, onClose, onR
             removeLoading={loading}
             errorMessage={error?.detail}
             // Only the revert waits for the check; the dialog stays closable meanwhile
-            deleteDisabled={checking || blocked != null}
+            deleteDisabled={!head || checking || blocked != null}
             // The dialog's Enter key ignores the disabled button, so it is off while the revert is not offered or under way
-            submitOnEnter={!checking && blocked == null && !loading}
+            submitOnEnter={head != null && !checking && blocked == null && !loading}
             notifications={
                 blocked != null && (
                     <Notification data-test-id={"changes-revert-batch-blocked"} intent="warning">
@@ -108,6 +108,9 @@ const BatchRevertModal = ({ projectId, title, confirmText, entries, onClose, onR
                         ))}
                     </ul>
                     {skipped > 0 && <p>{t("pages.changes.revertAll.skippedNote", { count: skipped })}</p>}
+                    {!head && (
+                        <p data-test-id={"changes-revert-batch-nothing"}>{t("pages.changes.revertAll.nothing")}</p>
+                    )}
                 </div>
             )}
         />

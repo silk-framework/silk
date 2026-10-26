@@ -34,11 +34,32 @@ case class ChangeHeader(seq: Int, timestamp: Instant, user: Option[String], orig
   /** Whether the change came in through a client that names itself, e.g. an MCP agent; these queue for user review. */
   def agentWrite: Boolean = origin.isDefined
 
+  /** The kind of change, as the changes page tags it: added, updated, removed or run. */
+  def kind: String = ChangeHeader.kind(changeType, summary)
+
   /** One line for display, the summary with the details, see [[Change.describe]]. */
   def describe: String = Change.describe(summary, details)
 }
 
 object ChangeHeader {
+
+  /**
+    * The kind of a change by its type name, e.g. an `AddMapping` adds, a `ResourceDeleted` removes, a `WorkflowExecuted` and
+    * its proposal are runs; a variable or tag set for the first time is an addition, which only the summary tells.
+    */
+  def kind(changeType: String, summary: String): String = {
+    if(changeType == "WorkflowExecuted" || changeType == "ProposedWorkflowRun") {
+      "run"
+    } else if(changeType.startsWith("Add") || changeType == "ResourceCreated" ||
+      ((changeType == "SetVariable" || changeType == "SetTag") && summary.startsWith("Added "))) {
+      "added"
+    } else if(changeType.startsWith("Remove") || changeType.startsWith("Discarded") || changeType == "ResourceDeleted" ||
+      changeType == "DisconnectWorkflowNodes") {
+      "removed"
+    } else {
+      "updated"
+    }
+  }
 
   /** The header of a new entry, derived from its change; see [[ChangeEntry.apply]] for the parameters. */
   def of(seq: Int, timestamp: Instant, user: Option[String], origin: Option[String], change: Change,

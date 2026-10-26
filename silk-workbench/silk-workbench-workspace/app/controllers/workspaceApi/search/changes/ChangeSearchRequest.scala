@@ -90,7 +90,7 @@ case class ChangeSearchRequest(@Schema(
       sortByProperties = ChangeSearchRequest.sortableProperties,
       facets = collectors.result,
       reviewedUpTo = reviewedUpTo,
-      latestSeq = journal.latestSeq,
+      latestSeq = headers.lastOption.map(_.seq).getOrElse(0),
       unreviewed = unreviewed.size
     )
   }
@@ -126,21 +126,6 @@ object ChangeSearchRequest {
     SortableProperty(ChangeSortBy.kind.toString, "Kind")
   )
 
-  /** The kind of a change, as the changes page tags it: what the type name says the change did; a variable or tag set for the first time is an addition. */
-  def kind(changeType: String, summary: String): String = {
-    if(changeType == "WorkflowExecuted" || changeType == "ProposedWorkflowRun") {
-      "run"
-    } else if(changeType.startsWith("Add") || changeType == "ResourceCreated" ||
-      ((changeType == "SetVariable" || changeType == "SetTag") && summary.startsWith("Added "))) {
-      "added"
-    } else if(changeType.startsWith("Remove") || changeType.startsWith("Discarded") || changeType == "ResourceDeleted" ||
-      changeType == "DisconnectWorkflowNodes") {
-      "removed"
-    } else {
-      "updated"
-    }
-  }
-
   /** Names a user for display as the changes page does: the last segment of the URI. */
   def userLabel(uri: String): String = {
     val idx = Seq(uri.lastIndexOf('/'), uri.lastIndexOf(':'), uri.lastIndexOf('#')).max
@@ -151,7 +136,7 @@ object ChangeSearchRequest {
   case class ChangeItem(header: ChangeHeader, revertedBy: Option[Int], fulfilledBy: Option[Int], unreviewed: Boolean,
                         taskLabel: Option[String]) {
 
-    def kind: String = ChangeSearchRequest.kind(header.changeType, header.summary)
+    def kind: String = header.kind
 
     def userLabel: String = header.user.map(ChangeSearchRequest.userLabel).getOrElse("")
 
@@ -179,7 +164,7 @@ object ChangeSearchRequest {
                                 facets: Seq[FacetResult],
                                 @Schema(description = "The seq up to which no change waits for review.")
                                 reviewedUpTo: Int,
-                                @Schema(description = "The seq of the latest recorded change; 0 if there is none.")
+                                @Schema(description = "The seq of the newest change of the snapshot the page was taken from, which marking reviewed sends; 0 if there is none.")
                                 latestSeq: Int,
                                 @Schema(description = "How many changes are unreviewed in the whole journal, whatever the query matches.")
                                 unreviewed: Int)

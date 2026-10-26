@@ -55,6 +55,7 @@ describe("Project changes", () => {
             user: "urn:user:alice",
             origin: "mcp:claude-code",
             type: "AddMapping",
+            kind: "added",
             description:
                 "Added value mapping 'name' (name → http://xmlns.com/foaf/0.1/name) under 'root' in transform 'persons'",
             summary:
@@ -69,6 +70,7 @@ describe("Project changes", () => {
             timestamp: "2026-08-26T09:50:40.000Z",
             user: "urn:user:alice",
             type: "ReplaceTask",
+            kind: "updated",
             description: "Updated transform 'persons': Output dataset 'out' → ''",
             summary: "Updated transform 'persons'",
             details: [{ label: "Output dataset", before: "out", after: "" }],
@@ -83,6 +85,7 @@ describe("Project changes", () => {
             user: "urn:user:alice",
             origin: "mcp:claude-code",
             type: "ReplaceTask",
+            kind: "updated",
             description: "Updated transform 'persons': Output dataset '' → 'out', Mapping rule changed",
             summary: "Updated transform 'persons'",
             details: [{ label: "Output dataset", before: "", after: "out" }, { label: "Mapping rule changed" }],
@@ -96,6 +99,7 @@ describe("Project changes", () => {
             user: "urn:user:alice",
             origin: "mcp:claude-code",
             type: "WorkflowExecuted",
+            kind: "run",
             description: "Executed workflow 'workflow'",
             summary: "Executed workflow 'workflow'",
             details: [],
@@ -118,6 +122,7 @@ describe("Project changes", () => {
             user: "urn:user:alice",
             origin: "mcp:claude-code",
             type: "ProposedWorkflowRun",
+            kind: "run",
             description: "Proposed to run workflow 'workflow'",
             summary: "Proposed to run workflow 'workflow'",
             details: [],
@@ -397,6 +402,56 @@ describe("Project changes", () => {
         expect(wrapper.container.textContent).toContain("Unreviewed changes: 2");
         expect(findElement(wrapper, byTestId("changes-mark-reviewed-btn"))).toBeDisabled();
         expect(findElement(wrapper, byTestId("changes-revert-unreviewed-btn"))).toBeEnabled();
+    });
+
+    it("should not mark reviewed while the state facet hides the unreviewed changes, whatever the facet counts", async () => {
+        const wrapper = renderWrapper(<ChangeList projectId={PROJECT_ID} />, createBrowserHistory(), {
+            workspace: {
+                filters: { appliedFacets: [{ facetId: "changeState", type: "keyword", keywordIds: ["reverted"] }] },
+            },
+        });
+        await waitFor(() => checkRequestMade(searchUrl, "POST"));
+        // The state facet counts its values as if it were not applied, so the count still says 2 while none is shown
+        const reverted = changes.filter((change) => change.revertedBy != null);
+        mockAxios.mockResponseFor(
+            { url: searchUrl },
+            mockedAxiosResponse({
+                data: { ...searchAnswer(reverted, 0, 2), facets: searchAnswer(unreviewedChanges).facets },
+            }),
+        );
+        await waitFor(() => {
+            expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(reverted.length);
+        });
+        expect(findElement(wrapper, byTestId("changes-mark-reviewed-btn"))).toBeDisabled();
+    });
+
+    it("should report a failed search instead of an empty journal", async () => {
+        const wrapper = renderWrapper(<ChangeList projectId={PROJECT_ID} />);
+        await waitFor(() => checkRequestMade(searchUrl, "POST"));
+        mockAxiosResponse(
+            searchUrl,
+            mockedAxiosError(500, { title: "Server error", detail: "The journal is unreadable." }),
+        );
+        await waitFor(() => {
+            expect(wrapper.container.textContent).toContain("The journal is unreadable.");
+        });
+        expect(wrapper.container.textContent).not.toContain("No changes have been recorded");
+    });
+
+    it("should not offer an empty batch when nothing newer can be reverted", async () => {
+        // The run and the proposal it fulfilled: nothing after the proposal can be reverted
+        const runAndProposal = changes.slice(3);
+        const wrapper = await loadChangeList(runAndProposal, []);
+        fireEvent.click(await openMenuItem(wrapper, 1, "change-revert-back-btn-1"));
+        await waitFor(() => checkRequestMade(changesUrl, "GET"));
+        mockAxios.mockResponseFor(
+            { url: changesUrl },
+            mockedAxiosResponse({ data: { reviewedUpTo: 0, changes: runAndProposal } }),
+        );
+        await waitFor(() => {
+            expect(findElement(document.body, byTestId("changes-revert-batch-nothing"))).toBeInTheDocument();
+        });
+        expect(findElement(document.body, byTestId("remove-item-button"))).toBeDisabled();
     });
 
     it("should not keep an earlier answer when a later check fails", async () => {

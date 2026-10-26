@@ -1,6 +1,7 @@
 package controllers.projectApi
 
 import controllers.core.UserContextActions
+import controllers.core.util.ControllerUtilsTrait
 import controllers.projectApi.ChangeJournalApi.{ChangeDetailJson, ChangeEntryJson, ChangeListJson, ChangeSummaryJson, MarkReviewedJson, ReviewedJson, RevertConflictJson, RevertConflictsJson, RevertOutcomeJson, RevertRequestJson, RevertResultsJson}
 import controllers.util.ItemLink
 import controllers.workspaceApi.search.changes.ChangeSearchRequest
@@ -22,7 +23,7 @@ import javax.inject.Inject
 
 /** The change journal of a project: what has been changed, and reverting single changes. */
 @Tag(name = "Project changes", description = "The changes made to a project, and reverting them.")
-class ChangeJournalApi @Inject()() extends InjectedController with UserContextActions {
+class ChangeJournalApi @Inject()() extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   @Operation(
     summary = "List changes",
@@ -279,7 +280,7 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
           schema = new Schema(implementation = classOf[ChangeSearchResult])
         ))
       ),
-      new ApiResponse(responseCode = "400", description = "An unknown facet."),
+      new ApiResponse(responseCode = "400", description = "An invalid request, e.g. an unknown facet or sort property."),
       new ApiResponse(responseCode = "404", description = "The project does not exist.")
     ))
   @RequestBody(
@@ -299,7 +300,9 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
              )
              projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectId)
-    Ok(Json.toJson(request.body.as[ChangeSearchRequest].apply(project)))
+    validateJson[ChangeSearchRequest] { search =>
+      Ok(Json.toJson(search(project)))
+    }
   }
 }
 
@@ -316,6 +319,8 @@ object ChangeJournalApi {
                              origin: Option[String],
                              @Schema(description = "The kind of change, e.g. 'AddMapping', 'ReplaceTask' or 'SetVariable'.")
                              `type`: String,
+                             @Schema(description = "The kind of change, as the changes page tags it: added, updated, removed or run.")
+                             kind: String,
                              @Schema(description = "What has been changed, in one line: the summary with the details.")
                              description: String,
                              @Schema(description = "What has been changed, without the details.")
@@ -348,7 +353,7 @@ object ChangeJournalApi {
     /** The JSON of an entry from its header; a freshly recorded entry is neither reverted nor fulfilled yet. */
     def of(project: Project, header: ChangeHeader, revertedBy: Option[Int], fulfilledBy: Option[Int] = None, unreviewed: Boolean = false)
           (implicit userContext: UserContext): ChangeEntryJson = {
-      ChangeEntryJson(header.seq, header.timestamp.toString, header.user, header.origin, header.changeType,
+      ChangeEntryJson(header.seq, header.timestamp.toString, header.user, header.origin, header.changeType, header.kind,
         header.describe, header.summary, header.details.map(ChangeDetailJson.of), ChangeLinks.of(project, header),
         header.revertible && fulfilledBy.isEmpty, header.reverts, revertedBy, fulfilledBy,
         unreviewed = if(unreviewed) Some(true) else None)
@@ -493,6 +498,7 @@ object ChangeJournalApi {
           "user": "urn:user:alice",
           "origin": "mcp:claude-code",
           "type": "WorkflowExecuted",
+          "kind": "run",
           "description": "Executed workflow 'workflow'",
           "summary": "Executed workflow 'workflow'",
           "details": [],
@@ -508,6 +514,7 @@ object ChangeJournalApi {
           "timestamp": "2026-08-26T09:51:02.417Z",
           "user": "urn:user:alice",
           "type": "RemoveMapping",
+          "kind": "removed",
           "description": "Removed mapping rule 'name' from transform 'persons'",
           "summary": "Removed mapping rule 'name' from transform 'persons'",
           "details": [],
@@ -521,6 +528,7 @@ object ChangeJournalApi {
           "user": "urn:user:alice",
           "origin": "mcp:claude-code",
           "type": "AddMapping",
+          "kind": "added",
           "description": "Added value mapping 'name' (name → http://xmlns.com/foaf/0.1/name) under 'root' in transform 'persons'",
           "summary": "Added value mapping 'name' (name → http://xmlns.com/foaf/0.1/name) under 'root' in transform 'persons'",
           "details": [],
@@ -555,6 +563,7 @@ object ChangeJournalApi {
         "timestamp": "2026-08-26T09:51:02.417Z",
         "user": "urn:user:alice",
         "type": "RemoveMapping",
+        "kind": "removed",
         "description": "Removed mapping rule 'name' from transform 'persons'",
           "summary": "Removed mapping rule 'name' from transform 'persons'",
           "details": [],
@@ -576,6 +585,7 @@ object ChangeJournalApi {
             "timestamp": "2026-08-26T09:51:02.417Z",
             "user": "urn:user:alice",
             "type": "RemoveMapping",
+            "kind": "removed",
             "description": "Removed mapping rule 'name' from transform 'persons'",
           "summary": "Removed mapping rule 'name' from transform 'persons'",
           "details": [],

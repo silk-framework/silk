@@ -15,6 +15,8 @@ export interface IChangeDetail {
 }
 
 /** A recorded change of a project, see ChangeJournalApi. */
+export type ChangeKind = "added" | "updated" | "removed" | "run";
+
 export interface IChangeEntry {
     /** Sequence number of the change, ascending in the order the changes were made. */
     seq: number;
@@ -24,8 +26,10 @@ export interface IChangeEntry {
     user?: string;
     /** The client the change came from, e.g. 'mcp:<user agent>'. */
     origin?: string;
-    /** The kind of change, e.g. 'AddMapping' or 'ReplaceTask'. */
+    /** The type of change, e.g. 'AddMapping' or 'ReplaceTask'. */
     type: string;
+    /** The kind of change, as the page tags it. */
+    kind: ChangeKind;
     /** What has been changed, in one line: the summary with the details. */
     description: string;
     /** What has been changed, without the details. */
