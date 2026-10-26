@@ -97,8 +97,10 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
         if (!tableSettings.sortBy) {
             updateGlobalTableSettings({ sortBy: "time", sortOrder: "DESC" }, "changes");
         }
-        // Starts from this page's URL, not from what another page left in the store; the results are dropped on leaving
+        // Starts from this page's URL, not from what another page left in the store, whose results are not changes;
+        // the results are dropped on leaving as well
         batch(() => {
+            dispatch(clearSearchResults());
             dispatch(workspaceOp.resetFilters());
             dispatch(filtersSlice.actions.updateSorters([]));
             dispatch(filtersSlice.actions.changePage(1));

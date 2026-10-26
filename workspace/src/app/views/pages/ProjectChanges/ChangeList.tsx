@@ -75,7 +75,9 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
     const [t] = useTranslation();
     const dispatch = useDispatch<AppDispatch>();
     const { registerError } = useErrorHandler();
-    const entries = useSelector(workspaceSel.resultsSelector) as unknown as IChangeEntry[];
+    const results = useSelector(workspaceSel.resultsSelector) as unknown as IChangeEntry[];
+    // Until the page has taken the store over, its results are another page's items
+    const entries = ready ? results : [];
     const isLoading = useSelector(workspaceSel.isLoadingSelector);
     const error = useSelector(workspaceSel.errorSelector);
     const pagination = useSelector(workspaceSel.paginationSelector);
@@ -315,7 +317,7 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
     if (error?.detail) {
         return <Notification intent="danger" message={error.detail} />;
     }
-    if (isLoading && !entries.length) {
+    if (!ready || (isLoading && !entries.length)) {
         return <Loading description={t("pages.changes.loading")} />;
     }
     return (

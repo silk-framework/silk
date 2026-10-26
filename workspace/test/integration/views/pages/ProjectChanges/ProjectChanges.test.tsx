@@ -574,6 +574,20 @@ describe("Project changes", () => {
         expect(document.body.querySelector('[data-test-id^="sort-option-default"]')).toBeNull();
     });
 
+    it("should not take the items another page left in the search store for changes", async () => {
+        setUseParams(PROJECT_ID, "");
+        // As after the project page: its tasks are the store's results until this page has searched
+        const wrapper = renderWrapper(<ProjectChanges />, createBrowserHistory(), {
+            workspace: { preview: { searchResults: [{ id: "persons", label: "Persons", type: "dataset" }] } },
+        });
+        await waitFor(() => checkRequestMade(searchUrl, "POST"));
+        expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(0);
+        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(changes) }));
+        await waitFor(() => {
+            expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(changes.length);
+        });
+    });
+
     it("should set the search up from the page's URL", async () => {
         setUseParams(PROJECT_ID, "");
         // The review link of the MCP server opens the page filtered to the changes awaiting review
