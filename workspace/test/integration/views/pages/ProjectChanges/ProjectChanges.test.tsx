@@ -431,6 +431,17 @@ describe("Project changes", () => {
         });
     });
 
+    it("should explain the change journal in a help dialog", async () => {
+        setUseParams(PROJECT_ID, "");
+        const wrapper = renderWrapper(<ProjectChanges />);
+        clickFoundElement(wrapper, byTestId("changes-help-btn"));
+        await waitFor(() => {
+            const dialog = findElement(document.body, byTestId("changes-help-modal"));
+            expect(dialog.textContent).toContain("The change journal");
+            expect(dialog.textContent).toContain("Mark all as reviewed");
+        });
+    });
+
     it("should keep nothing of the previous project when the project changes", async () => {
         const metaDataUrl = (projectId: string) => apiUrl(`/workspace/projects/${projectId}/metaData`);
         const notFoundPage = () => wrapper.container.querySelector(byTestId("not-found-page"));

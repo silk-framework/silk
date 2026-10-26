@@ -685,6 +685,10 @@
             "loading": "Loading changes.",
             "noChanges": "No changes have been recorded for this project.",
             "reload": "Reload changes",
+            "help": {
+                "open": "About the change journal",
+                "title": "The change journal"
+            },
             "originTooltip": "The client the change came from",
             "emptyValue": "empty",
             "emptyValueTooltip": "The value is empty",

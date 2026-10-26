@@ -19,7 +19,9 @@ import { requestProjectMetadata } from "@ducks/shared/requests";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { SERVE_PATH } from "../../../constants/path";
 import NotFound from "../NotFound";
+import MarkdownModal from "../../shared/modals/MarkdownModal";
 import ChangeList from "./ChangeList";
+import { changeJournalHelpMarkdown } from "./changeJournalHelp";
 
 /** The change journal of a project: what has been changed, and reverting single changes. */
 const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
@@ -27,6 +29,7 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
     const { registerError } = useErrorHandler();
     const [notFound, setNotFound] = React.useState(false);
     const [refreshKey, setRefreshKey] = React.useState(0);
+    const [helpOpen, setHelpOpen] = React.useState(false);
 
     const breadcrumbs = [
         {
@@ -92,6 +95,12 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
                                             text={t("pages.changes.reload")}
                                             onClick={() => setRefreshKey((key) => key + 1)}
                                         />
+                                        <IconButton
+                                            data-test-id={"changes-help-btn"}
+                                            name="item-question"
+                                            text={t("pages.changes.help.open")}
+                                            onClick={() => setHelpOpen(true)}
+                                        />
                                     </div>
                                 </GridColumn>
                             </GridRow>
@@ -108,6 +117,14 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide></WorkspaceSide>
+            <MarkdownModal
+                data-test-id={"changes-help-modal"}
+                isOpen={helpOpen}
+                onDiscard={() => setHelpOpen(false)}
+                title={t("pages.changes.help.title")}
+                markdown={changeJournalHelpMarkdown}
+                size="large"
+            />
         </WorkspaceContent>
     );
 };
