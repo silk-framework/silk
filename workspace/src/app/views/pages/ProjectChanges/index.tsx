@@ -42,7 +42,7 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
     const qs = useSelector(routerSel.routerSearchSelector);
     const sorters = useSelector(workspaceSel.sortersSelector);
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
-    const { clearSearchResults } = previewSlice.actions;
+    const { clearSearchResults, setError } = previewSlice.actions;
     const { globalTableSettings, updateGlobalTableSettings } = React.useContext(GlobalTableContext);
     const tableSettings = globalTableSettings["changes"] ?? {};
     const [notFound, setNotFound] = React.useState(false);
@@ -101,7 +101,9 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
         // the results are dropped on leaving as well
         batch(() => {
             dispatch(clearSearchResults());
+            dispatch(setError({}));
             dispatch(workspaceOp.resetFilters());
+            dispatch(filtersSlice.actions.updateFacets([]));
             dispatch(filtersSlice.actions.updateSorters([]));
             dispatch(filtersSlice.actions.changePage(1));
             dispatch(workspaceOp.changeLimitOp(tableSettings.pageSize ?? PAGE_SIZE));
@@ -120,7 +122,8 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
         applied: { sortBy: tableSettings.sortBy || "time", sortOrder: tableSettings.sortOrder || "DESC" },
     };
 
-    // The search bar also fires for a query it was handed, e.g. the URL's; applying it again would clear the facets
+    // The search bar also fires for the query it was handed, e.g. the URL's; applying it again would clear the facets.
+    // Enter, whose default would search the unchanged query as well, reloads the list instead (onEnter)
     const appliedQuery = React.useRef(textQuery);
     appliedQuery.current = textQuery;
     const handleSearch = (query: string) => {
@@ -156,6 +159,7 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
                                                 textQuery={ready ? textQuery : ""}
                                                 sorters={changeSorters}
                                                 onSearch={handleSearch}
+                                                onEnter={() => setRefreshKey((key) => key + 1)}
                                                 globalTableKey={"changes"}
                                             />
                                         </div>

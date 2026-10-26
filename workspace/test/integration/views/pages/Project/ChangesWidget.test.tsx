@@ -14,17 +14,24 @@ describe("Changes widget", () => {
         mockAxios.reset();
     });
 
-    const answerSummary = (unreviewed: number, latestSeq: number = 5) =>
+    const answerSummary = (unreviewed: number, latestSeq: number = 5, droppedUnreviewed: number = 0) =>
         mockAxios.mockResponseFor(
             { url: summaryUrl },
-            mockedAxiosResponse({ data: { reviewedUpTo: latestSeq - unreviewed, latestSeq, unreviewed } }),
+            mockedAxiosResponse({
+                data: { reviewedUpTo: latestSeq - unreviewed, latestSeq, unreviewed, droppedUnreviewed },
+            }),
         );
 
-    const renderWidget = (unreviewed: number, history = createBrowserHistory(), latestSeq: number = 5) => {
+    const renderWidget = (
+        unreviewed: number,
+        history = createBrowserHistory(),
+        latestSeq: number = 5,
+        droppedUnreviewed: number = 0,
+    ) => {
         // The project id is taken from the URL by the router
         history.location.pathname = workspacePath(`/projects/${PROJECT_ID}`);
         const wrapper = renderWrapper(<ChangesWidget />, history);
-        answerSummary(unreviewed, latestSeq);
+        answerSummary(unreviewed, latestSeq, droppedUnreviewed);
         return wrapper;
     };
 
@@ -47,6 +54,24 @@ describe("Changes widget", () => {
             expect(status(wrapper)).toBe("Recorded changes: 5. Nothing awaits your review.");
         });
         expect(wrapper.container.querySelector(byTestId("review-project-changes-btn"))).toBeNull();
+    });
+
+    it("should ask for the review when the journal dropped unreviewed changes, although none is left to show", async () => {
+        const wrapper = renderWidget(0, createBrowserHistory(), 5, 2);
+        await waitFor(() => {
+            expect(status(wrapper)).toContain(
+                "Changes made by an agent that the journal dropped before your review: 2",
+            );
+        });
+        expect(wrapper.container.querySelector(byTestId("review-project-changes-btn"))).toBeInTheDocument();
+    });
+
+    it("should name the dropped changes next to those awaiting review", async () => {
+        const wrapper = renderWidget(1, createBrowserHistory(), 5, 2);
+        await waitFor(() => {
+            expect(status(wrapper)).toContain("Changes made by an agent awaiting your review: 1");
+        });
+        expect(status(wrapper)).toContain("Changes made by an agent that the journal dropped before your review: 2");
     });
 
     it("should say so when no change has been recorded", async () => {

@@ -51,7 +51,7 @@ POST          /:projectId/dataset/autoConfigure                        controlle
 POST          /:projectId/taskContext                                  controllers.projectApi.ProjectTaskApi.taskContext(projectId: String)
 
 # Change journal
-GET           /:projectId/changes                                      controllers.projectApi.ChangeJournalApi.changes(projectId: String)
+GET           /:projectId/changes                                      controllers.projectApi.ChangeJournalApi.changes(projectId: String, fromSeq: Option[Int])
 GET           /:projectId/changes/summary                              controllers.projectApi.ChangeJournalApi.summary(projectId: String)
 POST          /:projectId/changes/search                               controllers.projectApi.ChangeJournalApi.search(projectId: String)
 GET           /:projectId/changes/conflicts                            controllers.projectApi.ChangeJournalApi.conflicts(projectId: String, seq: Seq[Int])

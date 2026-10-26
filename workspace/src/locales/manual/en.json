@@ -1109,6 +1109,8 @@
         "ChangesWidget": {
             "allReviewed": "Recorded changes: {{count}}. Nothing awaits your review.",
             "allReviewed_plural": "Recorded changes: {{count}}. Nothing awaits your review.",
+            "dropped": "Changes made by an agent that the journal dropped before your review: {{count}}",
+            "dropped_plural": "Changes made by an agent that the journal dropped before your review: {{count}}",
             "noChanges": "No changes recorded yet.",
             "review": "Review changes",
             "title": "Changes",

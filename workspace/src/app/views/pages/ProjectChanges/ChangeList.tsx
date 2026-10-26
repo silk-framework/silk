@@ -67,6 +67,9 @@ const PAGE_SIZES = [25, 50, 100];
 /** The sort properties of the change search; a property persisted on another page is not sent. */
 const CHANGE_SORT_PROPERTIES = ["time"];
 
+/** The list before the page has taken the store over: one instance, so that an effect keyed on the entries runs once. */
+const NO_ENTRIES: IChangeEntry[] = [];
+
 /**
  * The changes of a project that match the search store's query, facets and sort, one page at a time, with revert actions
  * per entry and review actions for the agent changes.
@@ -77,8 +80,16 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
     const { registerError } = useErrorHandler();
     const results = useSelector(workspaceSel.resultsSelector) as unknown as IChangeEntry[];
     // Until the page has taken the store over, its results are another page's items
-    const entries = ready ? results : [];
+    const entries = ready ? results : NO_ENTRIES;
     const isLoading = useSelector(workspaceSel.isLoadingSelector);
+    // The store empties its results while it fetches: the rows of the last answer stay until the next arrives
+    const lastEntries = React.useRef<IChangeEntry[]>(NO_ENTRIES);
+    React.useEffect(() => {
+        if (!isLoading) {
+            lastEntries.current = entries;
+        }
+    }, [isLoading, entries]);
+    const shown = isLoading ? lastEntries.current : entries;
     const error = useSelector(workspaceSel.errorSelector);
     const pagination = useSelector(workspaceSel.paginationSelector);
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
@@ -118,7 +129,6 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
                 // The entries take the place of the search items in the store
                 return response as unknown as FetchResponse<ISearchListResponse>;
             } catch (ex) {
-                registerError("ChangeList.loadChanges", t("pages.changes.errors.fetchChanges"), ex);
                 // The store shows the detail of an error, which a fetch error holds in its response
                 throw ex?.errorResponse ?? ex;
             }
@@ -148,12 +158,16 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
 
     // Asked again whenever the page changes; an answer that a later request has overtaken is dropped
     React.useEffect(() => {
-        const request = ++conflictsRequest.current;
         const seqs = entries.filter(hasInverse).map((entry) => entry.seq);
         if (seqs.length === 0) {
-            setConflicts(new Map());
+            // While a page loads, the rows still shown keep their reasons, an answer under way included
+            if (!isLoading) {
+                conflictsRequest.current++;
+                setConflicts(new Map());
+            }
             return;
         }
+        const request = ++conflictsRequest.current;
         (async () => {
             try {
                 const answer = await requestRevertConflicts(projectId, seqs);
@@ -245,14 +259,14 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
         }
     };
 
-    /** Back to before an entry: the entries newer than it, which the page may not hold, come from the whole journal. */
+    /** Back to before an entry: the entries from it upwards, which the page may not hold, come from the journal. */
     const openRevertBack = async (entry: IChangeEntry) => {
         try {
-            const all = (await requestProjectChanges(projectId)).data.changes;
+            const fromEntry = (await requestProjectChanges(projectId, entry.seq)).data.changes;
             setBatchRevert({
                 title: t("pages.changes.revertBack.title", { seq: entry.seq }),
                 confirmText: t("pages.changes.revertBack.confirmText"),
-                entries: entriesBackTo(all, entry.seq),
+                entries: entriesBackTo(fromEntry, entry.seq),
             });
         } catch (ex) {
             registerError("ChangeList.loadNewer", t("pages.changes.errors.fetchChanges"), ex);
@@ -298,7 +312,7 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
         });
     };
 
-    const related = hoveredSeq != null ? relatedSeqs(entries, hoveredSeq) : new Set<number>();
+    const related = hoveredSeq != null ? relatedSeqs(shown, hoveredSeq) : new Set<number>();
 
     /** The row of an entry; the latest entry has nothing newer, so no state before it to return to. */
     const changeRow = (entry: IChangeEntry): React.ReactNode => (
@@ -314,11 +328,11 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
         />
     );
 
+    if (!ready || (isLoading && !shown.length)) {
+        return <Loading description={t("pages.changes.loading")} />;
+    }
     if (error?.detail) {
         return <Notification intent="danger" message={error.detail} />;
-    }
-    if (!ready || (isLoading && !entries.length)) {
-        return <Loading description={t("pages.changes.loading")} />;
     }
     return (
         <>
@@ -360,7 +374,7 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
                     <Spacing size="small" />
                 </>
             )}
-            {!entries.length ? (
+            {!shown.length ? (
                 <Notification message={t(filtered ? "pages.changes.noMatch" : "pages.changes.noChanges")} />
             ) : (
                 <TableContainer>
@@ -374,7 +388,7 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
                                 <TableHeader>{""}</TableHeader>
                             </TableRow>
                         </TableHead>
-                        <TableBody>{entries.map(changeRow)}</TableBody>
+                        <TableBody>{shown.map(changeRow)}</TableBody>
                     </Table>
                 </TableContainer>
             )}

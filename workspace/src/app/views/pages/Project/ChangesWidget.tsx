@@ -75,12 +75,22 @@ const ChangesWidget = () => {
 
     /** The state of the journal in one line: the changes awaiting review with the way to them, else what has been recorded. */
     const status = (summary: IChangeSummary): React.ReactNode => {
-        if (summary.unreviewed > 0) {
+        // Changes the cap dropped unreviewed wait for the review as well: until it, the watermark stays put
+        if (summary.unreviewed > 0 || summary.droppedUnreviewed > 0) {
             return (
                 <Notification
                     data-test-id={"project-changes-unreviewed"}
                     intent="warning"
-                    message={t("widget.ChangesWidget.unreviewed", { count: summary.unreviewed })}
+                    message={
+                        <>
+                            {summary.unreviewed > 0 && (
+                                <div>{t("widget.ChangesWidget.unreviewed", { count: summary.unreviewed })}</div>
+                            )}
+                            {summary.droppedUnreviewed > 0 && (
+                                <div>{t("widget.ChangesWidget.dropped", { count: summary.droppedUnreviewed })}</div>
+                            )}
+                        </>
+                    }
                     actions={
                         <Button
                             data-test-id={"review-project-changes-btn"}

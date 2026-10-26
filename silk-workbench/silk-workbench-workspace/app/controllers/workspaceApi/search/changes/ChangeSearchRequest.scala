@@ -6,6 +6,7 @@ import controllers.workspaceApi.search.changes.ChangeSearchRequest.{ChangeItem, 
 import controllers.workspaceApi.search.{FacetCollector, FacetResult, IdAndLabelKeywordFacetCollector, ItemTypeFacetCollector, ItemTypeFacetCollectors}
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workspace.Project
 import org.silkframework.workspace.changes.ChangeHeader
 import play.api.libs.json.{Format, Json, Reads}
@@ -64,8 +65,15 @@ case class ChangeSearchRequest(@Schema(
 
   /** Runs the search over the journal of the project. */
   def apply(project: Project)(implicit userContext: UserContext): ChangeSearchResult = {
+    val facetSettings = facets.getOrElse(Seq.empty)
+    // A facet of another search would match everything rather than fail
+    val unknownFacets = facetSettings.map(_.facetId).filterNot(ChangeSearchRequest.facetIds.contains)
+    if(unknownFacets.nonEmpty) {
+      throw BadUserInputException(s"Unknown facets for the change search: ${unknownFacets.mkString(", ")}. " +
+        s"Available: ${ChangeSearchRequest.facetIds.mkString(", ")}.")
+    }
     val journal = project.changeJournal
-    val (headers, reviewedUpTo) = journal.snapshot
+    val (headers, reviewedUpTo, latestSeq) = journal.snapshotWithLatestSeq
     val revertedBy = journal.revertedBy(headers)
     val fulfilledBy = journal.fulfilledBy(headers)
     val unreviewed = journal.unreviewed(headers, reviewedUpTo).map(_.seq).toSet
@@ -80,7 +88,6 @@ case class ChangeSearchRequest(@Schema(
       items = items.filter(item => matchesSearchTerm(terms, item.searchIn: _*))
     }
     val collectors = ItemTypeFacetCollectors(Seq(ChangeFacetCollector()))
-    val facetSettings = facets.getOrElse(Seq.empty)
     items = items.filter(item => collectors.filterAndCollect(item, facetSettings))
     val sorted = sort(items)
     val window = if(workingLimit != 0) sorted.slice(workingOffset, workingOffset + workingLimit) else sorted.drop(workingOffset)
@@ -90,7 +97,7 @@ case class ChangeSearchRequest(@Schema(
       sortByProperties = ChangeSearchRequest.sortableProperties,
       facets = collectors.result,
       reviewedUpTo = reviewedUpTo,
-      latestSeq = headers.lastOption.map(_.seq).getOrElse(0),
+      latestSeq = latestSeq,
       unreviewed = unreviewed.size
     )
   }
@@ -113,6 +120,9 @@ object ChangeSearchRequest {
   }
 
   val sortableProperties: Seq[SortableProperty] = Seq(SortableProperty(ChangeSortBy.time.toString, "Time"))
+
+  /** The ids of the facets the search offers; the request validation accepts every registered facet. */
+  val facetIds: Seq[String] = ChangeFacetCollector().facetCollectors.map(_.appliesForFacet.id)
 
   /** Names a user for display as the changes page does: the last segment of the URI. */
   def userLabel(uri: String): String = {
@@ -152,7 +162,7 @@ object ChangeSearchRequest {
                                 facets: Seq[FacetResult],
                                 @Schema(description = "The seq up to which no change waits for review.")
                                 reviewedUpTo: Int,
-                                @Schema(description = "The seq of the newest change of the snapshot the page was taken from, which marking reviewed sends; 0 if there is none.")
+                                @Schema(description = "The latest seq of the journal as the store counts it, read with the snapshot the page was taken from; marking reviewed sends it. 0 if there is none.")
                                 latestSeq: Int,
                                 @Schema(description = "How many changes are unreviewed in the whole journal, whatever the query matches.")
                                 unreviewed: Int)

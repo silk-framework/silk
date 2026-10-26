@@ -66,9 +66,9 @@ export interface IRevertOutcome {
     entry?: IChangeEntry;
 }
 
-/** The changes made to a project, newest first. */
-export const requestProjectChanges = (projectId: string): Promise<FetchResponse<IChangeList>> =>
-    fetch({ url: projectApi(`/${projectId}/changes`) });
+/** The changes made to a project, newest first; from a seq upwards if given, with the flags of the whole journal. */
+export const requestProjectChanges = (projectId: string, fromSeq?: number): Promise<FetchResponse<IChangeList>> =>
+    fetch({ url: projectApi(`/${projectId}/changes`), query: fromSeq != null ? { fromSeq } : undefined });
 
 /** Why a change cannot be reverted as the project is now, see ChangeJournalApi.conflicts. */
 export interface IRevertConflict {
@@ -123,6 +123,8 @@ export interface IChangeSummary {
     latestSeq: number;
     /** How many changes are unreviewed: made by an agent after the reviewed watermark and not reverted. */
     unreviewed: number;
+    /** How many unreviewed changes the journal's cap dropped before a review; until one, the watermark stays put. */
+    droppedUnreviewed: number;
 }
 
 /** The journal's numbers without the entries, for a client that only needs to know whether there is something to review. */

@@ -50,7 +50,8 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
 
   private val projectId = "changeJournalProject"
 
-  private def changesUrl(project: String): String = baseUrl + controllers.projectApi.routes.ChangeJournalApi.changes(project).url
+  private def changesUrl(project: String, fromSeq: Option[Int] = None): String =
+    baseUrl + controllers.projectApi.routes.ChangeJournalApi.changes(project, fromSeq).url
 
   private def revertUrl(seq: Int, project: String = projectId): String =
     baseUrl + controllers.projectApi.routes.ChangeJournalApi.revert(project, seq).url
@@ -74,6 +75,8 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
 
     val listed = changes()
     listed.map(_.`type`) mustBe Seq("AddMapping", "AddTask")
+    // From a seq upwards, for reverting back to before a change
+    checkResponse(client.url(changesUrl(projectId, fromSeq = Some(listed.head.seq))).get()).json.as[ChangeListJson].changes.map(_.seq) mustBe Seq(listed.head.seq)
     listed.head.description mustBe
       s"Added value mapping 'b' (b → http://example.org/b) under '${task.data.mappingRule.id}' in transform 'transform'"
     listed.head.revertedBy mustBe None
@@ -178,6 +181,10 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     val summaryUrl = baseUrl + controllers.projectApi.routes.ChangeJournalApi.summary(damagedProjectId).url
     checkResponse(client.url(summaryUrl).get()).json.as[ChangeSummaryJson] mustBe
       ChangeSummaryJson(reviewedUpTo = 0, latestSeq = 1, unreviewed = 0, droppedUnreviewed = 0)
+    // The search reports the same seq, so that a page marks reviewed up to it
+    val searchUrl = baseUrl + controllers.projectApi.routes.ChangeJournalApi.search(damagedProjectId).url
+    val searched = checkResponse(client.url(searchUrl).post(Json.obj())).json.as[ChangeSearchResult]
+    (searched.results, searched.latestSeq) mustBe ((Seq.empty, 1))
     // A review up to the reported seq is accepted
     val reviewedUrl = baseUrl + controllers.projectApi.routes.ChangeJournalApi.markReviewed(damagedProjectId).url
     checkResponse(client.url(reviewedUrl).put(Json.obj("upTo" -> 1))).json mustBe Json.obj("reviewedUpTo" -> 1)
@@ -261,5 +268,8 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     seqs(Json.obj("sortBy" -> "time")) mustBe Seq(1, 2, 3)
     val page = search(Json.obj("offset" -> 1, "limit" -> 1))
     (page.total, page.results.map(_.seq)) mustBe ((3, Seq(2)))
+    // A facet of another search is refused rather than ignored
+    val foreignFacet = Json.obj("type" -> "keyword", "facetId" -> "createdBy", "keywordIds" -> Json.arr("urn:user:x"))
+    checkResponseExactStatusCode(client.url(searchUrl).post(Json.obj("facets" -> Json.arr(foreignFacet))), BAD_REQUEST)
   }
 }

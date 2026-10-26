@@ -27,7 +27,8 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
 
   @Operation(
     summary = "List changes",
-    description = "The changes made to the project, as far as the configured store keeps them, newest first. A change can be reverted while " +
+    description = "The changes made to the project, as far as the configured store keeps them, newest first; with 'fromSeq' only those " +
+      "from that seq upwards, e.g. for reverting back to before a change. A change can be reverted while " +
       "'revertible' is true and 'revertedBy' does not name the change that reverted it already; whether its inverse applies " +
       "as the project is now is asked per change (see the conflicts operation), the listing itself checks nothing. " +
       "'reverts' names the change a revert undid.",
@@ -50,7 +51,15 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
                 in = ParameterIn.PATH,
                 schema = new Schema(implementation = classOf[String])
               )
-              projectId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+              projectId: String,
+              @Parameter(
+                name = "fromSeq",
+                description = "Only the changes from this seq upwards, e.g. for reverting back to before a change; the flags are still those of the whole journal.",
+                required = false,
+                in = ParameterIn.QUERY,
+                schema = new Schema(implementation = classOf[Int])
+              )
+              fromSeq: Option[Int]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectId)
     val journal = project.changeJournal
     // Derived from one snapshot, so that a write landing meanwhile cannot skew the flags against the entries.
@@ -59,7 +68,7 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
     val fulfilledBy = journal.fulfilledBy(entries)
     val unreviewed = journal.unreviewed(entries, reviewedUpTo).map(_.seq).toSet
     Ok(Json.toJson(ChangeListJson(reviewedUpTo,
-      entries.reverse.map { entry =>
+      entries.reverse.filter(entry => fromSeq.forall(entry.seq >= _)).map { entry =>
         ChangeEntryJson.of(project, entry, revertedBy.get(entry.seq), fulfilledBy.get(entry.seq), unreviewed.contains(entry.seq))
       })))
   }
@@ -145,8 +154,8 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
               )
               projectId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val journal = WorkspaceFactory().workspace.project(projectId).changeJournal
-    val (entries, reviewedUpTo) = journal.snapshot
-    Ok(Json.toJson(ChangeSummaryJson(reviewedUpTo, journal.latestSeq,
+    val (entries, reviewedUpTo, latestSeq) = journal.snapshotWithLatestSeq
+    Ok(Json.toJson(ChangeSummaryJson(reviewedUpTo, latestSeq,
       journal.unreviewed(entries, reviewedUpTo).size, journal.droppedUnreviewed(entries, reviewedUpTo))))
   }
 
