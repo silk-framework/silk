@@ -43,7 +43,8 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
     const sorters = useSelector(workspaceSel.sortersSelector);
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
     const { clearSearchResults } = previewSlice.actions;
-    const { globalTableSettings } = React.useContext(GlobalTableContext);
+    const { globalTableSettings, updateGlobalTableSettings } = React.useContext(GlobalTableContext);
+    const tableSettings = globalTableSettings["changes"] ?? {};
     const [notFound, setNotFound] = React.useState(false);
     const [refreshKey, setRefreshKey] = React.useState(0);
     const [helpOpen, setHelpOpen] = React.useState(false);
@@ -92,12 +93,16 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
     }, [projectId]);
 
     React.useEffect(() => {
+        // Settings stored before the page sorted by time name no property; the sort button needs the one it shows
+        if (!tableSettings.sortBy) {
+            updateGlobalTableSettings({ sortBy: "time", sortOrder: "DESC" }, "changes");
+        }
         // Starts from this page's URL, not from what another page left in the store; the results are dropped on leaving
         batch(() => {
             dispatch(workspaceOp.resetFilters());
             dispatch(filtersSlice.actions.updateSorters([]));
             dispatch(filtersSlice.actions.changePage(1));
-            dispatch(workspaceOp.changeLimitOp(globalTableSettings["changes"]?.pageSize ?? PAGE_SIZE));
+            dispatch(workspaceOp.changeLimitOp(tableSettings.pageSize ?? PAGE_SIZE));
             dispatch(workspaceOp.setupFiltersFromQs(qs));
         });
         setReady(true);
@@ -106,12 +111,11 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
         };
     }, [projectId]);
 
-    // The store's default sorter is the workspace search's recently viewed order; here it is the journal's own order
+    // The store's default sorter is the workspace search's recently viewed order, which the journal has not: its one
+    // sort property, time, is active from the start, newest first, which is also the server's order without a property
     const changeSorters = {
-        ...sorters,
-        list: sorters.list.map((sorter) =>
-            sorter.id ? sorter : { ...sorter, label: t("pages.changes.sort.newestFirst", "Newest first") },
-        ),
+        list: sorters.list.filter((sorter) => sorter.id),
+        applied: { sortBy: tableSettings.sortBy || "time", sortOrder: tableSettings.sortOrder || "DESC" },
     };
 
     // The search bar also fires for a query it was handed, e.g. the URL's; applying it again would clear the facets

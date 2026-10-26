@@ -685,9 +685,6 @@
             "loading": "Loading changes.",
             "noChanges": "No changes have been recorded for this project.",
             "noMatch": "No changes match the search.",
-            "sort": {
-                "newestFirst": "Newest first"
-            },
             "reload": "Reload changes",
             "help": {
                 "open": "About the change journal",

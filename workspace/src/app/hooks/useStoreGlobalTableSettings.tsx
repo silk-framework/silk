@@ -11,7 +11,7 @@ export const defaultGlobalTableSettings: GlobalTableSettings = {
     activities: { ...defaultConfig, pageSize: 25 },
     workbench: { ...defaultConfig },
     files: { ...defaultConfig, pageSize: 5 },
-    changes: { ...defaultConfig, pageSize: 25 },
+    changes: { ...defaultConfig, pageSize: 25, sortBy: "time", sortOrder: "DESC" },
 } as const;
 
 export type GlobalTableBaseConfig = {

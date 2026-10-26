@@ -559,6 +559,21 @@ describe("Project changes", () => {
         });
     });
 
+    it("should offer time as the only sort property, active newest first", async () => {
+        setUseParams(PROJECT_ID, "");
+        const wrapper = renderWrapper(<ProjectChanges />);
+        await waitFor(() => checkRequestMade(searchUrl, "POST"));
+        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(changes) }));
+        await waitFor(() => {
+            expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(changes.length);
+        });
+        clickFoundElement(wrapper, `${byTestId("sortButton")} button`);
+        await waitFor(() => {
+            expect(findElement(document.body, byTestId("sort-option-time-DESC"))).toBeInTheDocument();
+        });
+        expect(document.body.querySelector('[data-test-id^="sort-option-default"]')).toBeNull();
+    });
+
     it("should set the search up from the page's URL", async () => {
         setUseParams(PROJECT_ID, "");
         // The review link of the MCP server opens the page filtered to the changes awaiting review
