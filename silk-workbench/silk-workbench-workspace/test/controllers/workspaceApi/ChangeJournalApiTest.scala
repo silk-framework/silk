@@ -233,7 +233,7 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
   it should "search the changes with a text query, facets, a sort property and a page window" in {
     val searchProjectId = "changeJournalSearchProject"
     val project = WorkspaceFactory().workspace.createProject(ProjectConfig(searchProjectId))
-    val agent = SimpleUserContext(Some(DefaultUserManager.get("urn:agent")), UserExecutionContext(origin = Some("mcp:test")))
+    val agent = SimpleUserContext(Some(DefaultUserManager.get("urn:agent")), UserExecutionContext(origin = Some("mcp:test/1.0 (cli)")))
     def transform(ruleName: String): TransformSpec =
       TransformSpec(mappingRule = RootMappingRule(MappingRules(propertyRules = Seq(rule(ruleName)))))
     project.addTask[TransformSpec]("persons", transform("a"))
@@ -249,13 +249,15 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     (all.reviewedUpTo, all.latestSeq, all.unreviewed) mustBe ((1, 3, 2))
     val kinds = all.facets.find(_.id == "changeKind").get.values.collect { case KeywordFacetValue(id, _, count) => id -> count }
     kinds mustBe Seq("added" -> Some(2), "run" -> Some(1))
+    // The agent client without its version, and the person
+    val origins = all.facets.find(_.id == "changeOrigin").get.values.collect { case KeywordFacetValue(id, _, count) => id -> count }
+    origins mustBe Seq("mcp:test" -> Some(2), "person" -> Some(1))
     // The text query matches the description and the task name; a facet narrows the result and the numbers stay the journal's
     seqs(Json.obj("textQuery" -> "places")) mustBe Seq(2)
     val unreviewed = search(Json.obj("facets" -> Json.arr(Json.obj("type" -> "keyword", "facetId" -> "changeState", "keywordIds" -> Json.arr("unreviewed")))))
     unreviewed.results.map(_.seq) mustBe Seq(3, 2)
     unreviewed.unreviewed mustBe 2
-    // Sorted by task, newest first among equals; by time ascending, oldest first; a page window keeps the total
-    seqs(Json.obj("sortBy" -> "task")) mustBe Seq(3, 1, 2)
+    // By time ascending, oldest first; a page window keeps the total
     seqs(Json.obj("sortBy" -> "time")) mustBe Seq(1, 2, 3)
     val page = search(Json.obj("offset" -> 1, "limit" -> 1))
     (page.total, page.results.map(_.seq)) mustBe ((3, Seq(2)))

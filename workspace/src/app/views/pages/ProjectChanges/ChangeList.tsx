@@ -65,7 +65,7 @@ interface IJournalNumbers {
 const PAGE_SIZES = [25, 50, 100];
 
 /** The sort properties of the change search; a property persisted on another page is not sent. */
-const CHANGE_SORT_PROPERTIES = ["time", "user", "task", "kind"];
+const CHANGE_SORT_PROPERTIES = ["time"];
 
 /**
  * The changes of a project that match the search store's query, facets and sort, one page at a time, with revert actions

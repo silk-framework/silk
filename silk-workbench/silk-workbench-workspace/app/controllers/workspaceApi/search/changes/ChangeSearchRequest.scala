@@ -37,7 +37,7 @@ case class ChangeSearchRequest(@Schema(
                                @Schema(
                                  description = "The property to sort by. Without one the changes come newest first; 'time' ascending is oldest first.",
                                  nullable = true,
-                                 allowableValues = Array("time", "user", "task", "kind")
+                                 allowableValues = Array("time")
                                )
                                sortBy: Option[ChangeSortBy.Value] = None,
                                @Schema(
@@ -95,20 +95,13 @@ case class ChangeSearchRequest(@Schema(
     )
   }
 
-  // Newest first without a sort property. A property sorts ascending by default, newest first among equal values.
+  // Newest first without a sort property; by time, ascending is oldest first. A journal is read in its order, so the
+  // other properties are facets rather than sort properties.
   private def sort(items: Seq[ChangeItem]): Seq[ChangeItem] = {
     val newestFirst = items.sortBy(-_.header.seq)
     sortBy match {
-      case None =>
-        newestFirst
-      case Some(property) =>
-        val ascending = property match {
-          case ChangeSortBy.time => newestFirst.reverse
-          case ChangeSortBy.user => newestFirst.sortBy(_.userLabel.toLowerCase)
-          case ChangeSortBy.task => newestFirst.sortBy(_.taskLabel.getOrElse("").toLowerCase)
-          case ChangeSortBy.kind => newestFirst.sortBy(_.kind)
-        }
-        if(sortOrder.contains(SortOrder.DESC)) ascending.reverse else ascending
+      case Some(ChangeSortBy.time) if !sortOrder.contains(SortOrder.DESC) => newestFirst.reverse
+      case _ => newestFirst
     }
   }
 }
@@ -116,15 +109,10 @@ case class ChangeSearchRequest(@Schema(
 object ChangeSearchRequest {
 
   object ChangeSortBy extends Enumeration {
-    val time, user, task, kind = Value
+    val time = Value
   }
 
-  val sortableProperties: Seq[SortableProperty] = Seq(
-    SortableProperty(ChangeSortBy.time.toString, "Time"),
-    SortableProperty(ChangeSortBy.user.toString, "User"),
-    SortableProperty(ChangeSortBy.task.toString, "Task"),
-    SortableProperty(ChangeSortBy.kind.toString, "Kind")
-  )
+  val sortableProperties: Seq[SortableProperty] = Seq(SortableProperty(ChangeSortBy.time.toString, "Time"))
 
   /** Names a user for display as the changes page does: the last segment of the URI. */
   def userLabel(uri: String): String = {
@@ -209,13 +197,15 @@ case class ChangeStateCollector() extends IdAndLabelKeywordFacetCollector[Change
   }
 }
 
-/** A person, or the client an agent change came from. */
+/** A person, or the client an agent change came from, without the client's version, so that one client is one value. */
 case class ChangeOriginCollector() extends IdAndLabelKeywordFacetCollector[ChangeItem] {
   override def appliesForFacet: Facet = Facets.changeOrigin
 
   override protected def extractIdAndLabel(item: ChangeItem)(implicit user: UserContext): Set[(String, String)] = {
     item.header.origin match {
-      case Some(origin) => Set((origin, origin))
+      case Some(origin) =>
+        val client = ChangeOriginCollector.client(origin)
+        Set((client, client))
       case None => Set((ChangeOriginCollector.person, "Person"))
     }
   }
@@ -223,6 +213,9 @@ case class ChangeOriginCollector() extends IdAndLabelKeywordFacetCollector[Chang
 
 object ChangeOriginCollector {
   final val person = "person"
+
+  /** The client of an origin without its version, e.g. 'mcp:claude-code' of 'mcp:claude-code/2.1.309 (cli)'. */
+  def client(origin: String): String = origin.takeWhile(_ != '/').trim
 }
 
 case class ChangeUserCollector() extends IdAndLabelKeywordFacetCollector[ChangeItem] {
