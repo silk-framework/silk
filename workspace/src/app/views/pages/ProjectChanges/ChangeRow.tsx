@@ -219,20 +219,23 @@ const ChangeRow = ({ entry, conflict, searchValue, related, onHover, onRevert, o
                 </div>
             </TableCell>
             <TableCell alignVertical="middle">
-                {/* Every link opens in a new tab, so the review keeps its place */}
-                {entry.links.map((link) => (
-                    <IconButton
-                        key={link.id}
-                        data-test-id={`change-link-${entry.seq}-${link.id}`}
-                        name={linkIcon(link.id)}
-                        small
-                        text={link.label}
-                        href={link.path}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    />
-                ))}
-                {revertMenu()}
+                {/* Right-aligned, so that the menu sits in the same place whatever the number of links before it */}
+                <div className="diapp-changes__actions">
+                    {/* Every link opens in a new tab, so the review keeps its place */}
+                    {entry.links.map((link) => (
+                        <IconButton
+                            key={link.id}
+                            data-test-id={`change-link-${entry.seq}-${link.id}`}
+                            name={linkIcon(link.id)}
+                            small
+                            text={link.label}
+                            href={link.path}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        />
+                    ))}
+                    {revertMenu()}
+                </div>
             </TableCell>
         </TableRow>
     );

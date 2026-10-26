@@ -30,3 +30,10 @@
             )};
     }
 }
+
+// The links and the menu of an entry, right-aligned so that the menu stays in one place however many links precede it
+.diapp-changes__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
