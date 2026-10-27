@@ -121,7 +121,7 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
 
   it should "enforce project access for both the filtered list and the websocket" in {
     import TestWebUserManager._
-    PluginRegistry.registerPlugin(classOf[TestWebUserManager])
+    TestWebUserManager.register()
     ConfigTestTrait.withConfig("workspace.accessControl.enabled" -> Some("true"),
       "user.manager.web.plugin" -> Some("testWebUserManager")) {
       val agent = SimpleUserContext(Some(admin), UserExecutionContext(origin = Some("mcp:test"), conversationId = Some("conversation-1")))
