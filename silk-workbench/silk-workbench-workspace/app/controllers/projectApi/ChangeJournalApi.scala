@@ -27,11 +27,11 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
 
   @Operation(
     summary = "List changes",
-    description = "The changes made to the project, as far as the configured store keeps them, newest first; with 'fromSeq' only those " +
-      "from that seq upwards, e.g. for reverting back to before a change. A change can be reverted while " +
-      "'revertible' is true and 'revertedBy' does not name the change that reverted it already; whether its inverse applies " +
-      "as the project is now is asked per change (see the conflicts operation), the listing itself checks nothing. " +
-      "'reverts' names the change a revert undid.",
+    description = "The changes made to the project, newest first, as far as the configured store keeps them. " +
+      "With 'fromSeq' only the changes from that seq upwards are listed, e.g. to revert back to before a change. " +
+      "A change can be reverted if 'revertible' is true and 'revertedBy' is absent, i.e. it has not been reverted yet. " +
+      "Whether its inverse still applies to the project as it is now is not checked by this listing but per change " +
+      "by the conflicts operation. 'reverts' names the change that a revert undid.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
