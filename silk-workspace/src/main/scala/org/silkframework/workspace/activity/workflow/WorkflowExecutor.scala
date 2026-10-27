@@ -362,11 +362,10 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
   // Records the operations that are still in progress when the workflow is cancelled. Held in a val, as subscriptions are weak.
   private val cancellationListener: Status => Unit = { status =>
     if(status.isInstanceOf[Canceling]) {
-      val running = runningOperations.reverse
+      val running = runningOperations.reverse.distinct // A task may be in progress twice, e.g. during its error output pass
       if(running.nonEmpty) {
-        val warning = s"The workflow was cancelled while the following tasks were still running: ${running.mkString(", ")}. " +
-          "The workflow stops once they have finished."
-        updateReport(report => report.copy(workflowWarnings = report.workflowWarnings :+ warning, version = report.version + 1))
+        updateReport(_.addWarning(s"The workflow was cancelled while the following tasks were still running: ${running.mkString(", ")}. " +
+          "The workflow stops once they have finished."))
       }
     }
   }

@@ -54,11 +54,13 @@ class WorkflowRunContextTest extends AnyFlatSpec with Matchers {
     runContext.operationStarted("Writing 'output'")
     runContext.operationStarted("Reading 'input'")
     runContext.operationFinished() // The input has been read completely
+    runContext.operationStarted("Executing 'plugin'") // The plugin is executed a second time, e.g. for its error output
 
     monitor.status.update(Canceling(None))
 
     monitor.value().workflowWarnings shouldBe Seq("The workflow was cancelled while the following tasks were still running: " +
       "Executing 'plugin', Writing 'output'. The workflow stops once they have finished.")
+    monitor.value().version shouldBe 1 // Report consumers rely on a version bump for every change
   }
 
   private def reportUpdater(taskContext: ActivityContext[ExecutionReport], singular: String, plural: String): ExecutionReportUpdater = {
