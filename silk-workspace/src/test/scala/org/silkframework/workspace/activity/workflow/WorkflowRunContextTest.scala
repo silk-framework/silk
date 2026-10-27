@@ -50,13 +50,14 @@ class WorkflowRunContextTest extends AnyFlatSpec with Matchers {
   it should "record the tasks that are still running when the workflow is cancelled" in {
     val monitor = new ActivityMonitor[WorkflowExecutionReport]("workflowRun", initialValue = Some(WorkflowExecutionReport(workflowTask)))
     val runContext = WorkflowRunContext(monitor, WorkflowTest.testWorkflow, UserContext.Empty)
-    runContext.operationStarted("Executing 'plugin'")
-    runContext.operationStarted("Writing 'output'")
-    runContext.operationStarted("Reading 'input'")
-    runContext.operationFinished() // The input has been read completely
-    runContext.operationStarted("Executing 'plugin'") // The plugin is executed a second time, e.g. for its error output
-
-    monitor.status.update(Canceling(None))
+    runContext.trackOperation("Executing 'plugin'") {
+      runContext.trackOperation("Writing 'output'") {
+        runContext.trackOperation("Reading 'input'") {} // The input has been read completely
+        runContext.trackOperation("Executing 'plugin'") { // The plugin is executed a second time, e.g. for its error output
+          monitor.status.update(Canceling(None))
+        }
+      }
+    }
 
     monitor.value().workflowWarnings shouldBe Seq("The workflow was cancelled while the following tasks were still running: " +
       "Executing 'plugin', Writing 'output'. The workflow stops once they have finished.")

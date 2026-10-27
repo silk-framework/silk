@@ -59,12 +59,14 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
   @volatile
   private var runningOperations: List[String] = Nil
 
-  def operationStarted(operation: String): Unit = {
+  /** Runs an operation on a task, e.g. "Executing 'My task'", and tracks it as in progress until it returns. */
+  def trackOperation[T](operation: String)(body: => T): T = {
     runningOperations = operation :: runningOperations
-  }
-
-  def operationFinished(): Unit = {
-    runningOperations = runningOperations.drop(1)
+    try {
+      body
+    } finally {
+      runningOperations = runningOperations.drop(1)
+    }
   }
 
   /**

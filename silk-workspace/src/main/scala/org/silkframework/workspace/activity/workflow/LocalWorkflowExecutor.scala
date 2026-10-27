@@ -148,7 +148,9 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     for { currentWorkflow <- workflow +: workflow.subWorkflows(project).map(_.data)
           datasetTask <- currentWorkflow.outputDatasets(project)(workflowRunContext.userContext) } {
       val usedDatasetTask = resolveDataset(datasetTask, replaceSinks)
-      ExecutorRegistry.access(usedDatasetTask, executionContext).entitySink.clear()
+      workflowRunContext.trackOperation(s"Clearing '${usedDatasetTask.fullLabel}'") {
+        ExecutorRegistry.access(usedDatasetTask, executionContext).entitySink.clear()
+      }
     }
   }
 

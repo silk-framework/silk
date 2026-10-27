@@ -104,8 +104,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
                                                                   output: ExecutorOutput)
                                                                  (process: Option[ExecType#DataType] => ResultType)
                                                                  (implicit workflowRunContext: WorkflowRunContext, prefixes: Prefixes): ResultType = {
-    workflowRunContext.operationStarted(operationMessage(operation, task))
-    try {
+    workflowRunContext.trackOperation(operationMessage(operation, task)) {
       val result = execute(operation, nodeId, task, inputs, output)
       try {
         process(result)
@@ -114,8 +113,6 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
           r.close()
         }
       }
-    } finally {
-      workflowRunContext.operationFinished()
     }
   }
 
