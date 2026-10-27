@@ -18,9 +18,14 @@ class LocalNestedWorkflowExecutionTest extends NestedWorkflowExecutionTest {
     val context = new ActivityMonitor[WorkflowExecutionReport]("nested", parent = Some(enclosingContext),
       initialValue = Some(WorkflowExecutionReport(nestedWorkflow)))
 
-    LocalWorkflowExecutor(nestedWorkflow, clearDatasets = false).run(context)(UserContext.Empty)
+    val error = intercept[WorkflowExecutionException] {
+      LocalWorkflowExecutor(nestedWorkflow, clearDatasets = false).run(context)(UserContext.Empty)
+    }
 
+    // The nested run is incomplete and fails, so that the enclosing report marks its node as failed
+    error.getMessage shouldBe "The workflow has been cancelled. Executed 0 of 3 nodes."
     context.value().taskReports shouldBe empty // No node has been executed
+    context.value().error shouldBe Some(error.getMessage)
     context.value().isDone shouldBe true
   }
 

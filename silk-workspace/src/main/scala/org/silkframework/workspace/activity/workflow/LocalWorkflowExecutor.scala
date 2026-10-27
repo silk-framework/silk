@@ -117,12 +117,12 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         }
       }
       if (workflowRunContext.alreadyExecuted.size != workflow.nodes.size) {
-        throw WorkflowExecutionException("Not all workflow nodes were executed! Executed " +
-            workflowRunContext.alreadyExecuted.size + " of " + workflow.nodes.size + " nodes.")
+        val reason = if(cancellationRequested) "The workflow has been cancelled." else "Not all workflow nodes were executed!"
+        throw WorkflowExecutionException(s"$reason Executed ${workflowRunContext.alreadyExecuted.size} of ${workflow.nodes.size} nodes.")
       }
     } catch {
       case e: WorkflowExecutionException =>
-        if(!cancellationRequested) {
+        if(!cancelled) {
           workflowRunContext.updateReport(_.copy(error = Some(e.getMessage)))
           throw e // Only rethrow exception if the activity was not cancelled, else the error could be due to the cancellation.
         }
