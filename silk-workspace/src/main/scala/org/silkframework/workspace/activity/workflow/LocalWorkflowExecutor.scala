@@ -118,11 +118,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     } catch {
       case e: WorkflowExecutionException =>
         if(!cancellationRequested) {
-          context.value.updateWith(_.copy(error = Some(e.getMessage)))
+          workflowRunContext.updateReport(_.copy(error = Some(e.getMessage)))
           throw e // Only rethrow exception if the activity was not cancelled, else the error could be due to the cancellation.
         }
     } finally {
-      context.value.updateWith(_.withAuthDiagnostics(userContext).asDone())
+      workflowRunContext.updateReport(_.withAuthDiagnostics(userContext).asDone())
       this.executionContext.executeShutdownHooks()
       workflowRunContext.taskExecutors.foreach { case (taskId, exec) =>
         try {

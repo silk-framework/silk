@@ -88,12 +88,12 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
         }
       } catch {
         case NonFatal(ex) =>
-          workflowRunContext.activityContext.value.updateWith(_.addFailedNode(nodeId, ex))
+          workflowRunContext.updateReport(_.addFailedNode(nodeId, ex))
           throw ex
       }
     for(error <- taskContext.value.get.flatMap(_.error)) {
       val ex = WorkflowExecutionException(error)
-      workflowRunContext.activityContext.value.updateWith(_.addFailedNode(nodeId, ex))
+      workflowRunContext.updateReport(_.addFailedNode(nodeId, ex))
       throw ex
     }
     result
@@ -122,6 +122,8 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   }
 
   protected def createRunContext(implicit userContext: UserContext, context: ActivityContext[WorkflowExecutionReport]): WorkflowRunContext = {
+    ClearDatasetOrderingCheck.warnInReport(currentWorkflow, project, context)
+
     val workflowRunContext = WorkflowRunContext(
       activityContext = context,
       workflow = currentWorkflow,
@@ -130,8 +132,6 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
       workflowVariables = WorkflowExecutor.buildExecutionVariables(workflowTask.executionVariables, workflowVariables),
       parentExecutionVariablesHolder = parentExecutionVariablesHolder
     )
-
-    ClearDatasetOrderingCheck.warnInReport(currentWorkflow, project, context)
 
     for (node <- workflowNodes) {
       val taskOpt: Option[Task[_ <: TaskSpec]] = node match {
@@ -351,6 +351,14 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
     runningOperations = runningOperations.drop(1)
   }
 
+  /**
+    * Updates the workflow execution report. The report is also updated by the task report listeners and, on
+    * cancellation, by the cancelling thread, so every update must take the lock of the report value.
+    */
+  def updateReport(update: WorkflowExecutionReport => WorkflowExecutionReport): Unit = activityContext.value.synchronized {
+    activityContext.value.updateWith(update)
+  }
+
   // Records the operations that are still in progress when the workflow is cancelled. Held in a val, as subscriptions are weak.
   private val cancellationListener: Status => Unit = { status =>
     if(status.isInstanceOf[Canceling]) {
@@ -358,9 +366,7 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
       if(running.nonEmpty) {
         val warning = s"The workflow was cancelled while the following tasks were still running: ${running.mkString(", ")}. " +
           "The workflow stops once they have finished."
-        activityContext.value.synchronized {
-          activityContext.value.updateWith(report => report.copy(workflowWarnings = report.workflowWarnings :+ warning, version = report.version + 1))
-        }
+        updateReport(report => report.copy(workflowWarnings = report.workflowWarnings :+ warning, version = report.version + 1))
       }
     }
   }
