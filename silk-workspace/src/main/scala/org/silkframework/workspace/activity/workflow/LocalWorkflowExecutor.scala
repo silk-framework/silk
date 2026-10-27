@@ -88,10 +88,15 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
   /**
     * True, if this run or an enclosing workflow run has been cancelled. A nested run is not an activity of its own, so
-    * it learns about the cancellation only through the Canceling status of its context, which the enclosing run sets.
+    * it learns about the cancellation only through the Canceling status of its context, which the enclosing run sets,
+    * or of an enclosing context, if the cancel arrived before its own context was running.
     */
   private def cancellationRequested(implicit workflowRunContext: WorkflowRunContext): Boolean = {
-    cancelled || workflowRunContext.activityContext.status.isCanceling
+    cancelled || isCanceling(workflowRunContext.activityContext)
+  }
+
+  private def isCanceling(context: ActivityContext[_]): Boolean = {
+    context.status.isCanceling || context.parent.exists(isCanceling)
   }
 
   private def runWorkflow(implicit context: ActivityContext[WorkflowExecutionReport], userContext: UserContext): Unit = {
