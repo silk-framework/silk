@@ -78,8 +78,11 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
   }
 
   // Set when the workflow is cancelled while tasks are running: these tasks (as listed in the warning) and the time of the cancel.
-  @volatile
+  // Guarded by the lock of the report value, as is 'finished', so that the cancelling thread and the workflow thread see the same state.
   private var cancelledWhileRunning: Option[(String, Instant)] = None
+
+  // Set once the run has ended, so that a cancel arriving at that moment does not record tasks as still running.
+  private var finished = false
 
   private val stopsOnceFinished = "The workflow stops once they have finished."
 
@@ -90,11 +93,13 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
   // Records the operations that are still in progress when the workflow is cancelled. Held in a val, as subscriptions are weak.
   private val cancellationListener: Status => Unit = { status =>
     if(status.isInstanceOf[Canceling]) {
-      val running = runningOperations.reverse.distinct // A task may be in progress twice, e.g. during its error output pass
-      if(running.nonEmpty) {
-        val tasks = running.mkString(", ")
-        cancelledWhileRunning = Some((tasks, Instant.now()))
-        updateReport(_.addWarning(runningTasksWarning(tasks, stopsOnceFinished)))
+      activityContext.value.synchronized {
+        val running = runningOperations.reverse.distinct // A task may be in progress twice, e.g. during its error output pass
+        if(!finished && running.nonEmpty) {
+          val tasks = running.mkString(", ")
+          cancelledWhileRunning = Some((tasks, Instant.now()))
+          updateReport(_.addWarning(runningTasksWarning(tasks, stopsOnceFinished)))
+        }
       }
     }
   }
@@ -104,10 +109,11 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
     * Marks the end of the run. If the workflow was cancelled while tasks were still running, the warning is updated
     * with the time these tasks took to finish, which tells a blocking task apart from a cancel that went through at once.
     */
-  def runFinished(): Unit = {
+  def runFinished(): Unit = activityContext.value.synchronized {
+    finished = true
     for((tasks, cancelledAt) <- cancelledWhileRunning) {
-      val finished = s"They finished after ${Timer.formatDuration(Duration.between(cancelledAt, Instant.now()).toMillis)}."
-      updateReport(_.replaceWarning(runningTasksWarning(tasks, stopsOnceFinished), runningTasksWarning(tasks, finished)))
+      val finishedAfter = s"They finished after ${Timer.formatDuration(Duration.between(cancelledAt, Instant.now()).toMillis)}."
+      updateReport(_.replaceWarning(runningTasksWarning(tasks, stopsOnceFinished), runningTasksWarning(tasks, finishedAfter)))
       cancelledWhileRunning = None
     }
   }
