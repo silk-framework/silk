@@ -86,6 +86,14 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     )
   }
 
+  /**
+    * True, if this run or an enclosing workflow run has been cancelled. A nested run is not an activity of its own, so
+    * it learns about the cancellation only through the Canceling status of its context, which the enclosing run sets.
+    */
+  private def cancellationRequested(implicit workflowRunContext: WorkflowRunContext): Boolean = {
+    cancelled || workflowRunContext.activityContext.status.isCanceling
+  }
+
   private def runWorkflow(implicit context: ActivityContext[WorkflowExecutionReport], userContext: UserContext): Unit = {
     implicit val workflowRunContext: WorkflowRunContext = createRunContext
 
@@ -109,7 +117,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       }
     } catch {
       case e: WorkflowExecutionException =>
-        if(!cancelled) {
+        if(!cancellationRequested) {
           context.value.updateWith(_.copy(error = Some(e.getMessage)))
           throw e // Only rethrow exception if the activity was not cancelled, else the error could be due to the cancellation.
         }
@@ -155,7 +163,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     // First execute all execution dependencies of this node
     node.dependencyInputNodes.foreach(executeAsDependency)
     // Execute this node
-    if (!cancelled) {
+    if (!cancellationRequested) {
       node.workflowNode match {
         case _: WorkflowDataset =>
           executeWorkflowDataset(node, output)(process)
@@ -201,7 +209,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       // Check if this is a nested workflow that has been executed already.
       val isExecutedWorkflow = operatorTask.data.isInstanceOf[Workflow] && workflowRunContext.alreadyExecuted.contains(operatorNode.workflowNode)
 
-      if (!cancelled && !isExecutedWorkflow) {
+      if (!cancellationRequested && !isExecutedWorkflow) {
         try {
           val registry = MeterRegistryProvider.meterRegistry
           val stopwatch: Timer.Sample = Timer.start()
