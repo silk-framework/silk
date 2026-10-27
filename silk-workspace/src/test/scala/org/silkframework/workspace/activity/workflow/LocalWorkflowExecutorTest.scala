@@ -93,12 +93,14 @@ class LocalWorkflowExecutorTest extends AnyFlatSpec with Matchers with SinglePro
     outputDataset.clearFn = () => throw new IllegalStateException("Clearing failed")
     val context = new ActivityMonitor[WorkflowExecutionReport]("workflowRun", initialValue = Some(WorkflowExecutionReport(workflow)))
 
-    val error = intercept[IllegalStateException] {
+    val error = intercept[WorkflowExecutionException] {
       LocalWorkflowExecutor(workflow, replaceSinks = Map("output" -> outputDataset)).run(context)(UserContext.Empty)
     }
 
-    error.getMessage shouldBe "Clearing failed"
+    error.getMessage shouldBe "Failed to clear dataset 'output': Clearing failed"
+    error.getCause shouldBe a[IllegalStateException]
     context.value().taskReports shouldBe empty // No node has been executed
+    context.value().error shouldBe Some(error.getMessage)
     context.value().isDone shouldBe true // The run has ended, although the clearing failed
   }
 

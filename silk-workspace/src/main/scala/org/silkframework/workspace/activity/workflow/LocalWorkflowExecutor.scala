@@ -126,7 +126,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
           throw e // Only rethrow exception if the activity was not cancelled, else the error could be due to the cancellation.
         } else if(parentExecution.isDefined) {
           // A nested run that is cut short by the cancellation fails, so that the enclosing report marks its node as failed.
-          val cancelledException = WorkflowExecutionException(s"The workflow has been cancelled. Executed ${workflowRunContext.alreadyExecuted.size} of ${workflow.nodes.size} nodes.")
+          val cancelledException = WorkflowExecutionException(s"The workflow has been cancelled. Executed ${workflowRunContext.alreadyExecuted.size} of ${workflow.nodes.size} nodes.", Some(e))
           workflowRunContext.updateReport(_.copy(error = Some(cancelledException.getMessage)))
           throw cancelledException
         }
@@ -153,7 +153,12 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
           datasetTask <- currentWorkflow.outputDatasets(project)(workflowRunContext.userContext) } {
       val usedDatasetTask = resolveDataset(datasetTask, replaceSinks)
       workflowRunContext.trackOperation(s"Clearing '${usedDatasetTask.fullLabel}'") {
-        ExecutorRegistry.access(usedDatasetTask, executionContext).entitySink.clear()
+        try {
+          ExecutorRegistry.access(usedDatasetTask, executionContext).entitySink.clear()
+        } catch {
+          case NonFatal(ex) =>
+            throw WorkflowExecutionException(s"Failed to clear dataset '${usedDatasetTask.label()}': " + ex.getMessage, Some(ex))
+        }
       }
     }
   }
