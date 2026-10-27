@@ -105,12 +105,12 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
     checkReadOnlyDatasets()
     checkVariableDatasets()
-    if(clearDatasets) {
-      clearOutputDatasets()
-    }
 
     val DAG = workflow.workflowDependencyGraph
     try {
+      if(clearDatasets) {
+        clearOutputDatasets()
+      }
       for (endNode <- DAG.endNodes) {
         executeWorkflowNode(endNode, ExecutorOutput.empty) { _ =>
           // result ignored

@@ -1,8 +1,10 @@
 package org.silkframework.workspace.activity.workflow
 
 
+import org.silkframework.dataset.{MockDataset, MockDatasetExecutor}
 import org.silkframework.rule.execution.TransformReport
-import org.silkframework.runtime.plugin.{PluginContext, TestPluginContext}
+import org.silkframework.runtime.activity.{ActivityMonitor, UserContext}
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TestPluginContext}
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
@@ -81,6 +83,23 @@ class LocalWorkflowExecutorTest extends AnyFlatSpec with Matchers with SinglePro
     executed.executionId shouldBe workflow.activity[LocalWorkflowExecutorGeneratingProvenance].value().reportId.map(_.time.toString)
     executed.failed shouldBe false
     a[ChangeConflictException] should be thrownBy journal.revert(entries.head.seq)
+  }
+
+  it should "end the run if the clearing of an output dataset fails" in {
+    PluginRegistry.unregisterPlugin(classOf[MockDatasetExecutor])
+    PluginRegistry.registerPlugin(classOf[MockDatasetExecutor])
+    val workflow = project.task[Workflow]("workflow")
+    val outputDataset = MockDataset()
+    outputDataset.clearFn = () => throw new IllegalStateException("Clearing failed")
+    val context = new ActivityMonitor[WorkflowExecutionReport]("workflowRun", initialValue = Some(WorkflowExecutionReport(workflow)))
+
+    val error = intercept[IllegalStateException] {
+      LocalWorkflowExecutor(workflow, replaceSinks = Map("output" -> outputDataset)).run(context)(UserContext.Empty)
+    }
+
+    error.getMessage shouldBe "Clearing failed"
+    context.value().taskReports shouldBe empty // No node has been executed
+    context.value().isDone shouldBe true // The run has ended, although the clearing failed
   }
 
   override def propertyMap: Map[String, Option[String]] = {
