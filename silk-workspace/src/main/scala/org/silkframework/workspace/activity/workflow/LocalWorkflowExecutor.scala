@@ -127,6 +127,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
           throw e // Only rethrow exception if the activity was not cancelled, else the error could be due to the cancellation.
         }
     } finally {
+      workflowRunContext.runFinished()
       workflowRunContext.updateReport(_.withAuthDiagnostics(userContext).asDone())
       this.executionContext.executeShutdownHooks()
       workflowRunContext.taskExecutors.foreach { case (taskId, exec) =>

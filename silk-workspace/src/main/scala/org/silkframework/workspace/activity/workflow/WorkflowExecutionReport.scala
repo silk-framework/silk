@@ -105,6 +105,11 @@ case class WorkflowExecutionReport(task: Task[TaskSpec],
     copy(workflowWarnings = workflowWarnings :+ warning, version = version + 1)
   }
 
+  /** Replaces a workflow warning, e.g. with its final wording once the run has ended. */
+  def replaceWarning(warning: String, replacement: String): WorkflowExecutionReport = {
+    copy(workflowWarnings = workflowWarnings.map(w => if(w == warning) replacement else w), version = version + 1)
+  }
+
   def withAuthDiagnostics(userContext: UserContext): WorkflowExecutionReport = {
     copy(authDiagnostics = WorkflowExecutionReport.authDiagnostics(userContext).orElse(authDiagnostics))
   }
