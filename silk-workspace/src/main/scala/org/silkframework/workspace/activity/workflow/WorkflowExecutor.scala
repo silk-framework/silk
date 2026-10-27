@@ -106,13 +106,18 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
                                                                   output: ExecutorOutput)
                                                                  (process: Option[ExecType#DataType] => ResultType)
                                                                  (implicit workflowRunContext: WorkflowRunContext, prefixes: Prefixes): ResultType = {
-    val result = execute(operation, nodeId, task, inputs, output)
+    workflowRunContext.operationStarted(operationMessage(operation, task))
     try {
-      process(result)
-    } finally {
-      for(r <- result) {
-        r.close()
+      val result = execute(operation, nodeId, task, inputs, output)
+      try {
+        process(result)
+      } finally {
+        for(r <- result) {
+          r.close()
+        }
       }
+    } finally {
+      workflowRunContext.operationFinished()
     }
   }
 
@@ -153,9 +158,13 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     * @param workflowRunContext Workflow Context
     */
   protected def updateProgress(operation: String, task: Task[_ >: TaskSpec])(implicit workflowRunContext: WorkflowRunContext): Unit = {
-    val taskLabel = task.fullLabel
     val progress = (workflowRunContext.alreadyExecuted.size.toDouble + 1) / (workflowNodes.size + 1)
-    workflowRunContext.activityContext.status.update(s"$operation '$taskLabel'", progress)
+    workflowRunContext.activityContext.status.update(operationMessage(operation, task), progress)
+  }
+
+  // The status message of an operation on a task, e.g. "Executing 'My task'"
+  private def operationMessage(operation: String, task: Task[_ >: TaskSpec]): String = {
+    s"$operation '${task.fullLabel}'"
   }
 
   /** Make sure that the workflow does not try to write into a read-only dataset. */
@@ -326,6 +335,36 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
    * We need to hold them to prevent their garbage collection.
    */
   private val statusListeners: mutable.Buffer[WorkflowStatusListener] = mutable.Buffer.empty
+
+  /**
+    * The operations in progress, innermost first, e.g. "Executing 'My task'". An operation is in progress until the
+    * result of its task has been consumed, so a task whose entities are still being pulled by a later task counts as well.
+    */
+  @volatile
+  private var runningOperations: List[String] = Nil
+
+  def operationStarted(operation: String): Unit = {
+    runningOperations = operation :: runningOperations
+  }
+
+  def operationFinished(): Unit = {
+    runningOperations = runningOperations.drop(1)
+  }
+
+  // Records the operations that are still in progress when the workflow is cancelled. Held in a val, as subscriptions are weak.
+  private val cancellationListener: Status => Unit = { status =>
+    if(status.isInstanceOf[Canceling]) {
+      val running = runningOperations.reverse
+      if(running.nonEmpty) {
+        val warning = s"The workflow was cancelled while the following tasks were still running: ${running.mkString(", ")}. " +
+          "The workflow stops once they have finished."
+        activityContext.value.synchronized {
+          activityContext.value.updateWith(report => report.copy(workflowWarnings = report.workflowWarnings :+ warning, version = report.version + 1))
+        }
+      }
+    }
+  }
+  activityContext.status.subscribe(cancellationListener)
 
   /** Creates an activity context for a specific task that will be executed in the workflow.
     * Also wires the task execution report to the workflow execution report. */

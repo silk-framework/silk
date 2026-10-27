@@ -4,6 +4,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater}
+import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
 import org.silkframework.util.Identifier
 
@@ -44,6 +45,20 @@ class WorkflowRunContextTest extends AnyFlatSpec with Matchers {
     reports.map(_.report.isDone) shouldBe IndexedSeq(true, true)
     reports.head.report.operationDesc should include ("clear instruction")
     reports.last.report.operationDesc should include ("update query")
+  }
+
+  it should "record the tasks that are still running when the workflow is cancelled" in {
+    val monitor = new ActivityMonitor[WorkflowExecutionReport]("workflowRun", initialValue = Some(WorkflowExecutionReport(workflowTask)))
+    val runContext = WorkflowRunContext(monitor, WorkflowTest.testWorkflow, UserContext.Empty)
+    runContext.operationStarted("Executing 'plugin'")
+    runContext.operationStarted("Writing 'output'")
+    runContext.operationStarted("Reading 'input'")
+    runContext.operationFinished() // The input has been read completely
+
+    monitor.status.update(Canceling(None))
+
+    monitor.value().workflowWarnings shouldBe Seq("The workflow was cancelled while the following tasks were still running: " +
+      "Executing 'plugin', Writing 'output'. The workflow stops once they have finished.")
   }
 
   private def reportUpdater(taskContext: ActivityContext[ExecutionReport], singular: String, plural: String): ExecutionReportUpdater = {
