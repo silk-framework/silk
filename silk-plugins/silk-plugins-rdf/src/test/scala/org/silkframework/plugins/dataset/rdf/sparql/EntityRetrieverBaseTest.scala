@@ -77,6 +77,14 @@ abstract class EntityRetrieverBaseTest extends AnyFlatSpec with Matchers with Be
     entities.map(_.uri.toString) mustBe Seq(person1, person2)
   }
 
+  it should "fetch root entities with no typed paths" in {
+    val entitySchema = schema(Person, Seq())
+    val entities = retriever.retrieve(entitySchema, entities = Seq(), limit = None).toArray.toSeq
+    entities.size mustBe 2
+    entities.map(_.uri.toString) mustBe Seq(person1, person2)
+    entities.head.values mustBe IndexedSeq()
+  }
+
   it should "fetch multi-hop paths" in {
     val entitySchema = schema(Person, Seq(path(Seq(address, city)), path(Seq(address, country))))
     val entities = retriever.retrieve(entitySchema, entities = Seq(), limit = None).toArray.toSeq

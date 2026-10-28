@@ -31,7 +31,7 @@ import {
     FlexibleLayoutItem,
     Label,
 } from "@eccenca/gui-elements";
-import { TFunction } from "react-i18next";
+import type { TFunction } from "i18next";
 import { ActiveValueSelection } from "./ExampleValuesDialog.state";
 import { IRuleBlockInputExample, RuleBlockPort } from "./ruleBlock.types";
 

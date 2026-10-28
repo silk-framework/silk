@@ -1,31 +1,43 @@
 package org.silkframework.runtime.resource
 
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.must.Matchers
+import org.silkframework.util.FileUtils._
+import org.silkframework.util.TestFileUtils
 
 import java.io.File
 import java.nio.file.Files
+import java.util.concurrent.atomic.AtomicInteger
 
-class FileResourceManagerTest extends AnyFlatSpec with Matchers {
-  behavior of "file resource manager"
+class FileResourceManagerTest extends AnyFlatSpec with ResourceManagerTestTrait with BeforeAndAfterAll {
+
+  private val root = TestFileUtils.createTempDirectoryForTest("fileResourceManagerTest", "")
+
+  private val dirCounter = new AtomicInteger()
+
+  /** Each test gets its own base directory below the temporary root. */
+  override protected def createResourceManager(): ResourceManager = {
+    val baseDir = new File(root, "base" + dirCounter.incrementAndGet())
+    baseDir.mkdir()
+    FileResourceManager(baseDir)
+  }
+
+  override def afterAll(): Unit = {
+    root.deleteRecursive()
+    super.afterAll()
+  }
 
   /** Creates a fresh base directory with a sibling directory that shares its name prefix. */
   private def withBaseAndSiblingDir(test: (File, File) => Unit): Unit = {
-    val root = Files.createTempDirectory("fileResourceManagerTest").toFile
-    val baseDir = new File(root, "resources")
-    val siblingDir = new File(root, "resources-backup")
-    baseDir.mkdir()
+    val dir = new File(root, "sibling" + dirCounter.incrementAndGet())
+    val baseDir = new File(dir, "resources")
+    val siblingDir = new File(dir, "resources-backup")
+    baseDir.mkdirs()
     siblingDir.mkdir()
-    try {
-      test(baseDir, siblingDir)
-    } finally {
-      def deleteRecursive(file: File): Unit = {
-        if (file.isDirectory) Option(file.listFiles).foreach(_.foreach(deleteRecursive))
-        file.delete()
-      }
-      deleteRecursive(root)
-    }
+    test(baseDir, siblingDir)
   }
+
+  behavior of "File resource manager"
 
   it should "not allow access outside of its base path" in {
     val tempDir = File.createTempFile("prefix", "").getParentFile
@@ -73,13 +85,13 @@ class FileResourceManagerTest extends AnyFlatSpec with Matchers {
       intercept[ResourceAccessDeniedException] {
         manager.delete("")
       }
-      baseDir must exist
-      siblingDir must exist
-      siblingFile must exist
+      baseDir should exist
+      siblingDir should exist
+      siblingFile should exist
 
       // Deleting a file inside the base directory still works
       manager.delete("own.csv")
-      ownFile mustNot exist
+      ownFile shouldNot exist
     }
   }
 
@@ -99,7 +111,7 @@ class FileResourceManagerTest extends AnyFlatSpec with Matchers {
       intercept[ResourceAccessDeniedException] {
         manager.delete("../resources-backup/secret.csv")
       }
-      siblingFile must exist
+      siblingFile should exist
     }
   }
 }

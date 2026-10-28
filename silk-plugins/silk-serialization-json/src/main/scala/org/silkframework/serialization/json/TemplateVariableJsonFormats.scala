@@ -2,7 +2,6 @@ package org.silkframework.serialization.json
 
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
-import org.silkframework.runtime.templating.exceptions.TemplateVariablesEvaluationException
 import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables, VariableScope}
 import org.silkframework.runtime.validation.BadUserInputException
 import play.api.libs.json.{Json, OFormat}
@@ -15,7 +14,7 @@ case class TemplateVariableJson(@Schema(
                                 )
                                 name: String,
                                 @Schema(
-                                  description = "The value of the variable.",
+                                  description = "The value of the variable. Omitted where sensitive values are masked: for sensitive variables and for variables whose template fails to evaluate.",
                                   example = "example value",
                                   requiredMode = RequiredMode.NOT_REQUIRED
                                 )
@@ -32,7 +31,7 @@ case class TemplateVariableJson(@Schema(
                                 )
                                 description: Option[String],
                                 @Schema(
-                                  description = "True, if this is a sensitive variable that should not be exposed to the user.",
+                                  description = "True, if this is a sensitive variable that should not be exposed to the user. Its value is only available to templates of other sensitive variables of the same scope and to password parameters.",
                                   example = "false",
                                   requiredMode = RequiredMode.REQUIRED
                                 )
@@ -54,6 +53,15 @@ case class TemplateVariableJson(@Schema(
 object TemplateVariableJson {
   def apply(variable: TemplateVariable): TemplateVariableJson = {
     TemplateVariableJson(variable.name, Some(variable.value), variable.template, variable.description, variable.isSensitive, variable.scope.toString)
+  }
+
+  /** Like [[apply]], but omits the value and template of sensitive variables. */
+  def masked(variable: TemplateVariable): TemplateVariableJson = {
+    if (variable.isSensitive) {
+      TemplateVariableJson(variable.name, None, None, variable.description, isSensitive = true, variable.scope.toString)
+    } else {
+      apply(variable)
+    }
   }
 
   implicit val templateVariableFormat: OFormat[TemplateVariableJson] = Json.format[TemplateVariableJson]
@@ -82,10 +90,6 @@ case class TemplateVariablesJson(@ArraySchema(
 object TemplateVariablesJson {
   def apply(variables: TemplateVariables): TemplateVariablesJson = {
     TemplateVariablesJson(variables.variables.map(TemplateVariableJson(_)))
-  }
-
-  def apply(variables: TemplateVariables, ex: TemplateVariablesEvaluationException): TemplateVariablesJson = {
-    TemplateVariablesJson(variables.variables.map(TemplateVariableJson(_)), Some(ex.issues.map(e => TemplateVariableErrorJson(e.variable.name, e.ex.getMessage))))
   }
 
   implicit val templateVariablesFormat: OFormat[TemplateVariablesJson] = Json.format[TemplateVariablesJson]

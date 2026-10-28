@@ -32,6 +32,11 @@ trait Resource {
   def entryPath: Option[String] = None
 
   /**
+    * The local file holding this resource's content as-is, if there is one.
+    */
+  def underlyingFile: Option[File] = None
+
+  /**
     * Checks if this resource exists.
     */
   def exists: Boolean

@@ -13,11 +13,10 @@ import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.users.DefaultUserManager
-import org.silkframework.runtime.validation.ConflictRequestException
-import org.silkframework.util.{ConfigTestTrait, Identifier}
+import org.silkframework.util.{ConfigTestTrait, Identifier, Uri}
 import org.silkframework.workspace.WorkspaceTest.RecordingWorkspaceProvider
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowOperator}
-import org.silkframework.workspace.exceptions.CircularDependencyException
+import org.silkframework.workspace.exceptions.{CircularDependencyException, TaskNotFoundException}
 
 class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait {
 
@@ -87,6 +86,68 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
       project.removeAnyTask("task1", removeDependentTasks = false)(regularUser)
       recordingProvider.recordedUsers should contain(("deleteTask", adminUser))
     }
+  }
+
+  it should "derive the meta data of a task from its current meta data when putting it" in {
+    val project = retrieveOrCreateProject("PutAnyTaskTest")
+    val tag1 = Uri("urn:tag:1")
+    def stored = {
+      val metaData = project.anyTask("task1").metaData
+      (metaData.label, metaData.description, metaData.tags)
+    }
+
+    // A new task has no current meta data
+    project.putAnyTask("task1", ProjectTestTask()) { current =>
+      current shouldBe None
+      MetaData(Some("label"), Some("description"), tags = Set(tag1))
+    }
+    stored shouldBe ((Some("label"), Some("description"), Set(tag1)))
+
+    // An existing task hands in its current meta data
+    project.putAnyTask("task1", ProjectTestTask("updated"))(_.get.copy(description = None))
+    project.anyTask("task1").data shouldBe ProjectTestTask("updated")
+    stored shouldBe ((Some("label"), None, Set(tag1)))
+
+    // updateAnyTask takes the label and the description of the given meta data, but keeps the tags of an existing task
+    project.updateAnyTask("task1", ProjectTestTask(), Some(MetaData(Some("new label"), tags = Set(Uri("urn:tag:2")))))
+    stored shouldBe ((Some("new label"), None, Set(tag1)))
+  }
+
+  it should "update the meta data of a task, leaving the task itself as it is" in {
+    val project = retrieveOrCreateProject("UpdateMetaDataTest")
+    project.addAnyTask("task1", ProjectTestTask("param"), MetaData(Some("label"), Some("description")))
+    val created = project.anyTask("task1").metaData.created
+
+    val written = project.updateTaskMetaData("task1")(_.copy(label = Some("new label"), tags = Set(Uri("urn:tag:1"))))
+    val task = project.anyTask("task1")
+    written shouldBe task.metaData
+    task.data shouldBe ProjectTestTask("param")
+    task.metaData.label shouldBe Some("new label")
+    task.metaData.description shouldBe Some("description")
+    task.metaData.tags shouldBe Set(Uri("urn:tag:1"))
+    task.metaData.created shouldBe created
+
+    a[TaskNotFoundException] should be thrownBy project.updateTaskMetaData("noSuchTask")(identity)
+  }
+
+  it should "not write a task whose meta data update changes nothing" in {
+    val recordingProvider = new RecordingWorkspaceProvider()
+    val projectConfig = ProjectConfig("NoOpMetaDataUpdateTest", metaData = MetaData(Some("project")))
+    recordingProvider.putProject(projectConfig)
+    val project = new Project(projectConfig, recordingProvider, new InMemoryResourceManager, userContext)
+    project.addAnyTask("task1", ProjectTestTask("param"), MetaData(Some("label"), tags = Set(Uri("urn:tag:1"))))
+    val metaData = project.anyTask("task1").metaData
+    def taskWrites: Int = recordingProvider.recordedUsers.count(_._1 == "putTask")
+    val writesBefore = taskWrites
+
+    // Neither is the task persisted, which would also restart its activities, nor is its modification date moved
+    project.updateTaskMetaData("task1")(identity) shouldBe metaData
+    project.updateTaskMetaData("task1")(current => current.copy(tags = current.tags + Uri("urn:tag:1"))) shouldBe metaData
+    taskWrites shouldBe writesBefore
+    project.anyTask("task1").metaData shouldBe metaData
+
+    project.updateTaskMetaData("task1")(_.copy(label = Some("new label")))
+    taskWrites shouldBe writesBefore + 1
   }
 
   it should "remove a task that failed to load" in {
@@ -177,16 +238,18 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
 
     // Deleting the rule block would leave the transforms calling a task that no longer exists.
     // The rejection names every referencing task and the whole set that removeDependentTasks=true would delete.
-    val ruleBlockError = the[ConflictRequestException] thrownBy
+    val ruleBlockError = the[TaskReferencedException] thrownBy
       project.removeAnyTask("normalizeLabel", removeDependentTasks = false)
     ruleBlockError.getMessage should include("normalizeLabel")
     ruleBlockError.getMessage should include("tasks otherTransformUsingRuleBlock (in its rules or configuration), " +
       "transformUsingRuleBlock (in its rules or configuration)")
     ruleBlockError.getMessage should include("removeDependentTasks=true")
     ruleBlockError.getMessage should endWith("depend on it: otherTransformUsingRuleBlock, pipeline, transformUsingRuleBlock.")
+    // The refusal carries what it names, so a caller can word it its own way
+    ruleBlockError.referencingTasks.map(_.task.id.toString) shouldBe Seq("otherTransformUsingRuleBlock", "transformUsingRuleBlock")
 
     // Deleting the dataset the transform writes to is just as breaking as deleting its input.
-    val outputError = the[ConflictRequestException] thrownBy project.removeAnyTask("sink", removeDependentTasks = false)
+    val outputError = the[TaskReferencedException] thrownBy project.removeAnyTask("sink", removeDependentTasks = false)
     outputError.getMessage should include("as output")
 
     // All are deletable together with their dependents, as they always were.
@@ -205,7 +268,7 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
       inputs = Seq.empty, task = "lonelyTask", outputs = Seq.empty, errorOutputs = Seq.empty,
       position = (0, 0), nodeId = "lonelyTask", configInputs = Seq.empty, dependencyInputs = Seq.empty))))
 
-    val error = the[ConflictRequestException] thrownBy project.removeAnyTask("lonelyTask", removeDependentTasks = false)
+    val error = the[TaskReferencedException] thrownBy project.removeAnyTask("lonelyTask", removeDependentTasks = false)
     error.getMessage should include("canvas")
     error.getMessage should include("as a workflow node without connections")
   }
@@ -221,10 +284,27 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
     workspaceProvider.putTask(projectId, PlainTask[Workflow]("b", workflowUsing("a")), resources)
     val project = new Project(config, workspaceProvider, resources, userContext)
 
-    val error = the[ConflictRequestException] thrownBy project.removeAnyTask("root", removeDependentTasks = false)
+    val error = the[TaskReferencedException] thrownBy project.removeAnyTask("root", removeDependentTasks = false)
     error.getMessage should endWith("depend on it: a, b.")
     project.removeAnyTask("root", removeDependentTasks = true) shouldBe Set[Identifier]("root", "a", "b")
     project.allTasks shouldBe empty
+  }
+
+  it should "refuse to update a task that has been removed" in {
+    val project = retrieveOrCreateProject("RemovedTaskUpdateTest")
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
+    val task = project.addAnyTask("task", ProjectTestTask())
+    project.removeAnyTask("task", removeDependentTasks = false)
+
+    // The removed task must not be written back to the provider
+    a[TaskNotFoundException] should be thrownBy task.update(ProjectTestTask("updated"))
+    a[TaskNotFoundException] should be thrownBy task.updateMetaData(MetaData(Some("label")))
+    workspaceProvider.readAllTasks(project.id) shouldBe empty
+
+    // A task that is added under the same name afterwards is a task of its own
+    val readded = project.addAnyTask("task", ProjectTestTask())
+    readded.update(ProjectTestTask("updated"))
+    project.anyTask("task").data shouldBe ProjectTestTask("updated")
   }
 
   private def workflowUsing(tasks: String*): Workflow = {

@@ -83,6 +83,7 @@ describe("RuleBlockEditor integration", () => {
             </RuleBlockEditorOptionalContextValue.Provider>,
         );
 
+        await waitFor(() => expect(screen.getByRole("button", { name: "remove-normal-node" })).toBeInTheDocument());
         await waitFor(() => expect(screen.getByRole("button", { name: "Save" })).toBeDisabled());
         expect(screen.queryByTestId("context-overlay")).not.toBeInTheDocument();
 
@@ -239,9 +240,10 @@ const setupRuleBlockEditorIntegrationTest = () => {
     jest.resetModules();
     jest.doMock("react", () => React);
     jest.doMock("react-i18next", () => {
-        const translationResult = Object.assign([jestTestUtils.testTranslate], {
+        const i18n = { language: "en", exists: () => false };
+        const translationResult = Object.assign([jestTestUtils.testTranslate, i18n], {
             t: jestTestUtils.testTranslate,
-            i18n: { language: "en" },
+            i18n,
         });
         return {
             useTranslation: () => translationResult,

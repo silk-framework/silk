@@ -78,8 +78,17 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
   override protected def afterAll(): Unit = {
     WorkspaceFactory.factory = oldWorkspaceFactory
     stopAllActivities()
+    clearChangeJournals()
     deleteRecursively(tmpDir)
     super.afterAll()
+  }
+
+  /** Drops the journals of the test projects: the configured journal store outlives this suite's workspace. */
+  private def clearChangeJournals(): Unit = {
+    implicit val userContext: UserContext = UserContext.Empty
+    if (testWorkspace != null) {
+      testWorkspace.userProjects.foreach(_.changeJournal.clear())
+    }
   }
 
   /** Cancels and awaits all activities, so none still holds a file in tmpDir when it is deleted. */

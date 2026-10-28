@@ -4,6 +4,7 @@ import org.silkframework.entity.ValueType
 import org.silkframework.rule._
 import org.silkframework.serialization.json.JsonSerializers.{DATA, PARAMETERS}
 import org.silkframework.workspace.ProjectTask
+import org.silkframework.workspace.changes._
 import play.api.libs.json.{JsArray, JsNull, JsObject, JsString, JsValue, Json}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -14,6 +15,9 @@ import scala.xml.XML
 class TransformTaskApiTest extends TransformTaskApiTestBase {
 
   def printResponses = false
+
+  // No store is configured by default, which records nothing.
+  override def propertyMap = super.propertyMap + ("workspace.changes.plugin" -> Some("inMemoryChangeJournal"))
 
   private val OBJECT_RULE_ID = "objectRule"
   private val ROOT_RULE_ID = "root"
@@ -110,6 +114,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     }
     (json \ "metadata" \ "label").isDefined mustBe false
     (json \ "metadata" \ "description").as[String] mustBe "direct rule description"
+    lastChange mustBe an[AddMapping]
   }
 
   "Update meta data of direct mapping rule" in {
@@ -123,6 +128,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
         }
       """
     }
+    lastChange mustBe an[UpdateMapping]
   }
 
   "Append new object mapping rule to root" in {
@@ -149,6 +155,12 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/addressLocationRule/rules") {
       directRuleJson("locationLatitudeRule", "source:lat", "target:lat")
     }
+  }
+
+  "Reject a rule whose id is taken elsewhere in the transform as bad input" in {
+    val response = client.url(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules")
+      .post(Json.parse(directRuleJson("addressStreetRule", "source:street", "target:street")))
+    checkResponseExactStatusCode(response, BAD_REQUEST).body must include(s"already exists in this transform (under parent '$OBJECT_RULE_ID')")
   }
 
   "Retrieve full mapping rule tree" in {
@@ -291,6 +303,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
 
     // Check if the rules have been reordered correctly
     retrieveRuleOrder() mustBe Seq("directRule2", OBJECT_RULE_ID, "directRule")
+    lastChange mustBe a[ReorderMappings]
   }
 
   "Reject a reordering that repeats a rule" in {
@@ -484,6 +497,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
 
   private def transformTask: ProjectTask[TransformSpec] = workspaceProject(project).task[TransformSpec](task)
 
+  private def lastChange: Change = transformTask.project.changeJournal.all.last.change
+
   "Copy an existing mapping rule and put it next to the existing one" in {
     postRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules/copyFrom?" +
       s"sourceProject=$project&sourceTask=$task&sourceRule=$insertedAfterRuleId&afterRuleId=$insertedAfterRuleId")
@@ -493,6 +508,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     val originalInput = as[ComplexMapping](originalTransformRule).operator
     val clonedInput = as[ComplexMapping](clonedTransformRule).operator
     originalInput mustBe clonedInput
+    lastChange mustBe an[AddMapping]
   }
 
   "Copy an existing object rule and put it to the end of the list" in {
@@ -776,6 +792,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     val request = client.url(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule")
     val response = request.delete()
     checkResponse(response)
+    lastChange mustBe a[RemoveMapping]
   }
 
   "Return 404 if a requested rule does not exist" in {

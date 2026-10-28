@@ -8,6 +8,7 @@ import useErrorHandler from "./useErrorHandler";
 
 /** Convenience hook for ACL management. Either projectId and computeInitialAcl */
 interface UseAclManagementComponentProps {
+    labelEmphasis?: ProjectAccessControlManagementProps["labelEmphasis"];
     projectId?: string;
     /** Called when the groups change. */
     onChange: (aclData: AccessControlConfig) => void;
@@ -33,6 +34,7 @@ interface UseAclManagementComponentReturnProps {
  * Either projectId for setting the initial ACL from the project or externalInitialAclGroups must be defined. */
 export const useProjectAclManagementComponent = ({
     projectId,
+    labelEmphasis,
     errorHandler,
     externalInitialAclGroups,
     onChange,
@@ -81,7 +83,12 @@ export const useProjectAclManagementComponent = ({
     return {
         loading,
         component: loading ? null : (
-            <projectAclManagement.Component projectId={projectId} initialGroups={initialAcl} onChange={onChange} />
+            <projectAclManagement.Component
+                projectId={projectId}
+                initialGroups={initialAcl}
+                onChange={onChange}
+                labelEmphasis={labelEmphasis}
+            />
         ),
         enabled: aclEnabled,
     };

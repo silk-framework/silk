@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.json
 
 import org.silkframework.config.Prefixes
+import org.silkframework.dataset.DirtyTrackingFileDataSink
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.plugins.dataset.hierarchical.MaxDepthExceededException
@@ -173,12 +174,59 @@ class JsonSinkTest extends AnyFlatSpec with Matchers {
     }
   }
 
-  private def test(entityTables: Seq[Seq[Entity]], outputSingleJsonObject: Boolean = false, template: JsonTemplate = JsonTemplate.default, expected: String): Unit = {
+  it should "only delete the file on clear if forced" in {
+    implicit val userContext: UserContext = UserContext.Empty
+    val resource = InMemoryResourceManager().get("temp")
+    resource.writeString("[]")
+    val sink = new JsonSink(resource)
+
+    sink.clear()
+    resource.exists shouldBe true
+
+    sink.clear(force = true)
+    resource.exists shouldBe false
+  }
+
+  it should "replace the existing content of the file when writing after an unforced clear" in {
+    val schema = EntitySchema(typeUri = "", typedPaths = IndexedSeq(TypedPath(UntypedPath("key"), ValueType.STRING, isAttribute = true)))
+
+    test(
+      entityTables = Seq(Seq(Entity("someUri", IndexedSeq(Seq("value")), schema))),
+      existingContent = Some("""[{"previous": "a considerably longer output than the one that is written afterwards"}]"""),
+      expected = """[{"key": "value"}]"""
+    )
+  }
+
+  it should "only mark the file as updated on clear if forced" in {
+    implicit val userContext: UserContext = UserContext.Empty
+    val resource = InMemoryResourceManager().get("dirtyTrackingOnClear.json")
+    resource.writeString("[]")
+    val sink = new JsonSink(resource)
+    def fetchUpdatedFiles(): Set[String] = DirtyTrackingFileDataSink.fetchAndClearUpdatedFiles(Seq(resource))
+
+    sink.clear()
+    fetchUpdatedFiles() shouldBe empty
+
+    sink.clear(force = true)
+    fetchUpdatedFiles() shouldBe Set(resource.name)
+  }
+
+  private def test(entityTables: Seq[Seq[Entity]],
+                   outputSingleJsonObject: Boolean = false,
+                   template: JsonTemplate = JsonTemplate.default,
+                   existingContent: Option[String] = None,
+                   expected: String): Unit = {
     implicit val userContext: UserContext = UserContext.Empty
     implicit val prefixes: Prefixes = Prefixes.empty
 
     val resource = InMemoryResourceManager().get("temp")
     val sink = new JsonSink(resource, template)
+
+    // Pre-seeds the file and clears the sink without forcing, like a workflow run does before writing
+    for (content <- existingContent) {
+      resource.writeString(content)
+      sink.clear()
+    }
 
     for ((entityTable, index) <- entityTables.zipWithIndex) {
       val schema = entityTable.head.schema
