@@ -75,6 +75,7 @@ class ExecuteTransformTest extends AnyFlatSpec with Matchers with MockitoSugar {
     execute.run(contextMock)
     // The input limit is enforced, so only the first two of the three source entities are transformed.
     executeTransformResultHolder().entityCount shouldBe 2
+    executeTransformResultHolder().summary should contain ("Input limit" -> "2")
   }
 
   private def transformerWithExceptions(): Transformer = {
