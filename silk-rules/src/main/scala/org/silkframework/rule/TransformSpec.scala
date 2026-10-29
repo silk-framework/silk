@@ -550,9 +550,10 @@ object TransformSpec {
       }
 
       val abortIfErrorsOccur = (node \ "@abortIfErrorsOccur").headOption.exists(_.text.toBoolean)
+      val inputLimit = (node \ "@inputLimit").headOption.map(_.text.toInt)
 
       // Create and return a TransformSpecification instance.
-      val transformSpec = TransformSpec(datasetSelection, rootMappingRule, sink, errorSink, targetVocabularyParameter, abortIfErrorsOccur)
+      val transformSpec = TransformSpec(datasetSelection, rootMappingRule, sink, errorSink, targetVocabularyParameter, abortIfErrorsOccur, inputLimit)
 
       // Apply templates
       TaskLoadingException.withTaskLoadingException(OriginalTaskData("transform", XmlSerialization.deserializeParameters(node))) { params =>
@@ -564,7 +565,7 @@ object TransformSpec {
       * Serialize a value to XML.
       */
     override def write(value: TransformSpec)(implicit writeContext: WriteContext[Node]): Node = {
-      <TransformSpec abortIfErrorsOccur={value.abortIfErrorsOccur.toString}>
+      <TransformSpec abortIfErrorsOccur={value.abortIfErrorsOccur.toString} inputLimit={value.inputLimit.value.map(_.toString).orNull}>
         {value.selection.toXML(asSource = true, writeContext.prefixes)}{toXml(value.mappingRule)}<Outputs>
         {value.output.value.toSeq.map(o => <Output id={o}></Output>)}
       </Outputs>{if (value.errorOutput.isEmpty) {
