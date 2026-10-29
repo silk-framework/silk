@@ -90,13 +90,12 @@ class ExecuteTransform(task: Task[TransformSpec],
     errorEntitySink.foreach(_.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get) :+ ErrorOutputWriter.errorProperty, singleEntity))
 
     val entityTable = try {
-      // Push the input limit down to the data source (best-effort; not every source honors it).
-      dataSource.retrieve(rule.inputSchema, inputLimit)
+      dataSource.retrieve(rule.inputSchema)
     } catch {
       case NonFatal(ex) =>
         throw new RuntimeException("Failed to retrieve input entities from data source.", ex)
     }
-    // Enforce the input limit client-side as well, since the push-down is best-effort.
+    // Not pushed down to retrieve, since some sources (e.g. SPARQL) limit result rows instead of entities.
     val inputEntities = inputLimit.map(entityTable.entities.take).getOrElse(entityTable.entities)
     val transformedEntities = new TransformedEntities(task, inputEntities, rule.transformRule.label(), rule.transformRuleExecution, rule.outputSchema,
       isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, report = reportBuilder).iterator
