@@ -68,7 +68,7 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
                          @Param(label = "Input limit", value = "If set, only the first N input entities are transformed. " +
                              "This also applies when other tasks, such as linking tasks, read this transformation. " +
                              "For hierarchical mappings, the limit applies to each level separately, so a kept parent entity may reference child entities that were cut. " +
-                             "Writing to a JSON or XML dataset then fails with 'Could not find entity with URI'; other datasets are written with references to the missing child entities.", advanced = true)
+                             "Writing to a JSON or XML dataset then fails because a referenced entity is missing; other datasets are written with references to the missing child entities.", advanced = true)
                          inputLimit: IntOptionParameter = None
                         ) extends TaskSpec with AnyPlugin {
 

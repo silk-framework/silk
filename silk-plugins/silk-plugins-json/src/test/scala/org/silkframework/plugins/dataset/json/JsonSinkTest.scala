@@ -4,7 +4,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DirtyTrackingFileDataSink
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
-import org.silkframework.plugins.dataset.hierarchical.MaxDepthExceededException
+import org.silkframework.plugins.dataset.hierarchical.{MaxDepthExceededException, MissingReferencedEntityException}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import play.api.libs.json.Json
@@ -172,6 +172,23 @@ class JsonSinkTest extends AnyFlatSpec with Matchers {
         expected = """should never generate a JSON""".stripMargin
       )
     }
+  }
+
+  it should "fail with the referencing entity and property if a referenced entity has not been written" in {
+    val orderSchema = EntitySchema(typeUri = "", typedPaths = IndexedSeq(TypedPath(UntypedPath("items"), ValueType.URI, isAttribute = false)))
+    val itemSchema = EntitySchema(typeUri = "", typedPaths = IndexedSeq(TypedPath(UntypedPath("sku"), ValueType.STRING, isAttribute = true)))
+    val entityTables = Seq(
+      Seq(Entity("urn:order:1", IndexedSeq(Seq("urn:item:1", "urn:item:2")), orderSchema)),
+      Seq(Entity("urn:item:1", IndexedSeq(Seq("A")), itemSchema))
+    )
+
+    val ex = intercept[MissingReferencedEntityException] {
+      test(
+        entityTables = entityTables,
+        expected = "should never generate a JSON"
+      )
+    }
+    ex.getMessage should include ("Entity <urn:order:1> references entity <urn:item:2> via property <items>")
   }
 
   it should "only delete the file on clear if forced" in {
