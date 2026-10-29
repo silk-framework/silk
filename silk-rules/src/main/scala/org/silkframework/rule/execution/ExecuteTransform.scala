@@ -119,7 +119,7 @@ class ExecuteTransform(task: Task[TransformSpec],
         reportBuilder.executionFailed(ex.getMessage)
         throw ex
     } finally {
-      // Completes this output table in the report and closes the input iterator, also on cancellation or limit.
+      // Completes this output table in the report and closes the input iterator, also on cancellation.
       transformedEntities.close()
     }
     entitySink.closeTable()
