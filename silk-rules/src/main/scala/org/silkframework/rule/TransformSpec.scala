@@ -72,6 +72,10 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
                          inputLimit: IntOptionParameter = None
                         ) extends TaskSpec with AnyPlugin {
 
+  if(inputLimit.value.exists(_ < 0)) {
+    throw new InvalidPluginParameterValueException("The input limit must not be negative.")
+  }
+
   /** Retrieves the root rules of this transform spec. */
   def rules: MappingRules = mappingRule.rules
 
