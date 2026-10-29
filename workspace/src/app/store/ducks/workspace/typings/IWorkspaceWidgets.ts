@@ -11,19 +11,10 @@ export interface IPrefixDefinition {
     prefixUri: string;
 }
 
-export interface IWorkspaceConfigurationWidget {
-    /**
-     * Array of prefixes List
-     */
-    prefixes: IPrefixDefinition[];
-    /**
-     * Plain object  for new prefix
-     */
-    newPrefix: IPrefixDefinition;
-
-    isLoading: boolean;
-
-    error: any;
+export interface IDetailedProjectPrefixes {
+    projectPrefixes: Record<string, string>;
+    workspacePrefixes: Record<string, string>;
+    defaultPrefixes: Record<string, string>;
 }
 
 export interface IWarningWidgetItem {
@@ -55,11 +46,6 @@ export interface IFilesWidget {
 }
 
 export interface IWidgetsState {
-    /**
-     * Store Project details page all widgets by widget name
-     */
-    configuration: IWorkspaceConfigurationWidget;
-
     warnings: IWarningWidget;
 
     files: IFilesWidget;

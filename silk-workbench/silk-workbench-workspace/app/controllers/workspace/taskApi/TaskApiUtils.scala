@@ -55,7 +55,7 @@ object TaskApiUtils {
           JsObject(Seq("value" -> JsObject(updatedInnerValues))) // Nested objects cannot have a label
         case jsString: JsString if pd.autoCompletion.isDefined && pd.autoCompletion.get.autoCompleteValueWithLabels && jsString.value != "" =>
           implicit val pluginContext: PluginContext = PluginContext(prefixes = prefixes, resources = EmptyResourceManager(),
-            user = userContext, projectId = Some(projectName))
+            user = userContext, projectId = Some(projectName), taskResolver = TaskResolver.empty)
           val autoComplete = pd.autoCompletion.get
           val dependsOnParameterValues = ParamValue.createAll(fetchDependsOnValues(autoComplete, parameterValues),
                                                               autoComplete.autoCompletionDependsOnParameters, pluginDescription)

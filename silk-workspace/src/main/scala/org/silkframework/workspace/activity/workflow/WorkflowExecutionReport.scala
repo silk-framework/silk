@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.execution.report.{EntitySample, SampleEntities}
-import org.silkframework.execution.{ExecutionReport, SimpleExecutionReport}
+import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.users.AuthDiagnosticsProvider
 import org.silkframework.util.Identifier
@@ -20,14 +20,15 @@ case class WorkflowExecutionReport(task: Task[TaskSpec],
                                    isDone: Boolean = false,
                                    override val error : Option[String] = None,
                                    authDiagnostics: Option[String] = None,
-                                   version: Int = 0) extends ExecutionReport {
+                                   version: Int = 0,
+                                   workflowWarnings: Seq[String] = Seq.empty) extends ExecutionReport {
 
   /**
     * Retrieves all current task reports.
     * If there are multiple reports for a single node, only the most recent one is returned.
     */
   def currentReports(): Iterable[WorkflowTaskReport] = {
-    taskReports.groupBy(_.nodeId).values.map(_.maxBy(_.timestamp))
+    taskReports.groupBy(_.nodeId).values.map(_.maxBy(_.version))
   }
 
   /**
@@ -44,7 +45,7 @@ case class WorkflowExecutionReport(task: Task[TaskSpec],
     * @return The updated workflow report
     */
   def addReport(nodeId: Identifier, report: ExecutionReport): WorkflowExecutionReport = {
-    copy(taskReports = taskReports :+ WorkflowTaskReport(nodeId, report, version), version = version + 1)
+    copy(taskReports = taskReports :+ WorkflowTaskReport(nodeId, report, version + 1), version = version + 1)
   }
 
   /**
@@ -69,9 +70,9 @@ case class WorkflowExecutionReport(task: Task[TaskSpec],
     taskReports.zipWithIndex.findLast(_._1.nodeId == nodeId) match {
       case Some((workflowReport, index)) =>
         val timestamp = Instant.now()
-        val report = workflowReport.report
-        val errorMsg = ex.getMessage
-        val errorReport = SimpleExecutionReport(report.task, report.summary, report.warnings, Some(errorMsg), isDone = true, report.entityCount, report.operation, report.operationDesc)
+        // Set the error on the node's report in place, preserving its concrete type and detail (e.g. a
+        // nested workflow's taskReports), instead of downgrading to a flat SimpleExecutionReport.
+        val errorReport = workflowReport.report.asFailed(ex.getMessage)
         copy(taskReports = taskReports.updated(index, WorkflowTaskReport(nodeId, errorReport, version + 1, timestamp)), version = version + 1)
       case None =>
         throw new NoSuchElementException(s"Invalid task node identifier: $nodeId")
@@ -96,6 +97,9 @@ case class WorkflowExecutionReport(task: Task[TaskSpec],
     copy(taskReports = taskReports.map(updateReport), isDone = true, version = version + 1)
   }
 
+  /** Marks this workflow report as failed while keeping its nested task reports. */
+  override def asFailed(error: String): WorkflowExecutionReport = copy(error = Some(error), isDone = true)
+
   def withAuthDiagnostics(userContext: UserContext): WorkflowExecutionReport = {
     copy(authDiagnostics = WorkflowExecutionReport.authDiagnostics(userContext).orElse(authDiagnostics))
   }
@@ -107,13 +111,17 @@ case class WorkflowExecutionReport(task: Task[TaskSpec],
     }
   }
 
-  override def warnings: Seq[String] = {
-    if(taskReports.exists(_.report.warnings.nonEmpty)) {
+  override lazy val warnings: Seq[String] = {
+    val taskWarnings = if(taskReports.exists(_.report.warnings.nonEmpty)) {
       Seq("Some tasks generated warnings.")
     } else {
       Seq.empty
     }
+    workflowWarnings ++ taskWarnings
   }
+
+  /** Also covers node reports that carry an error but no warnings. */
+  override def hasIssues: Boolean = super.hasIssues || taskReports.exists(_.report.hasIssues)
 
   override def entityCount: Int = taskReports.map(_.nodeId).distinct.size
 
@@ -127,9 +135,10 @@ case class WorkflowExecutionReport(task: Task[TaskSpec],
 /**
   * Report of a single workflow operator execution.
   *
-  * @param nodeId The node identifier within the workflow
-  * @param report             The execution report.
-  * @param timestamp          Timestamp of the last update.
+  * @param nodeId    The node identifier within the workflow
+  * @param report    The execution report.
+  * @param version   Version of the workflow execution report at which this report was added or last updated.
+  * @param timestamp Timestamp of the last update.
   */
 case class WorkflowTaskReport(nodeId: Identifier,
                               report: ExecutionReport,

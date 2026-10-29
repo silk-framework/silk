@@ -21,7 +21,6 @@ import org.silkframework.entity.Entity
 import org.silkframework.runtime.activity.{Activity, ActivityContext, Status, UserContext}
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.resource.EmptyResourceManager
 
 import scala.util.Random
 import scala.util.control.Breaks._
@@ -33,7 +32,8 @@ import scala.util.control.Breaks._
  */
 class CacheLoader(source: DataSource,
                   entityCache: EntityCache,
-                  sampleSizeOpt: Option[Int] = None)
+                  sampleSizeOpt: Option[Int] = None,
+                  pluginContext: PluginContext)
                  (implicit prefixes: Prefixes) extends Activity[Unit] {
 
   override def name = "Loading"
@@ -63,7 +63,15 @@ class CacheLoader(source: DataSource,
   }
 
   private def retrieveEntities(implicit userContext: UserContext): CloseableIterator[Entity] = {
-    implicit val pluginContext: PluginContext = PluginContext(prefixes = prefixes, resources = EmptyResourceManager(), user = userContext)
+    implicit val contextualPluginContext: PluginContext =
+      PluginContext(
+        pluginContext.prefixes,
+        pluginContext.resources,
+        userContext,
+        pluginContext.projectId,
+        pluginContext.templateVariables,
+        pluginContext.taskResolver
+      )
     sampleSizeOpt match {
       case Some(sampleSize) =>
         implicit val random: Random = Random

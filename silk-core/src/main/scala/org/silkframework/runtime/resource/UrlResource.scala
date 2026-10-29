@@ -1,7 +1,7 @@
 package org.silkframework.runtime.resource
 
-import java.io.{FileNotFoundException, InputStream}
-import java.net.{URL, URLConnection, UnknownHostException}
+import java.io.{IOException, InputStream}
+import java.net.{URL, URLConnection}
 
 
 /**
@@ -47,8 +47,8 @@ case class UrlResource(url: URL, connectTimeout: Option[Int] = Some(5000), readT
       is = conn.getInputStream
       return handleStreamFN(is)
     } catch {
-      case _: FileNotFoundException | _: UnknownHostException =>
-        // Ignore and return fail value
+      // A resource that cannot be read, e.g. because the host is unknown, refuses the connection or times out, does not exist
+      case _: IOException =>
         failValue
     } finally {
       if(is != null) {
@@ -60,7 +60,7 @@ case class UrlResource(url: URL, connectTimeout: Option[Int] = Some(5000), readT
   private def getConnection(): URLConnection = {
     val conn = url.openConnection()
     connectTimeout foreach(conn.setConnectTimeout(_))
-    readTimeout foreach (conn.setConnectTimeout(_))
+    readTimeout foreach(conn.setReadTimeout(_))
     conn
   }
 

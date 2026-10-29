@@ -1,8 +1,8 @@
 /** Copies text to the clipboard.
  * Note that the clipboard API is only available on SSL connections and localhost. */
-export const copyToClipboard = (text: string) => {
+export const copyToClipboard = async (text: string): Promise<void> => {
     if (navigator.clipboard) {
-        navigator.clipboard.writeText(text);
+        await navigator.clipboard.writeText(text);
     } else {
         // clipboard API not available
         fallbackCopyTextToClipboard(text);

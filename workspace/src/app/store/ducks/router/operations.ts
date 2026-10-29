@@ -15,11 +15,12 @@ export interface IPageLabels {
     itemType?: string;
 }
 
-export type ItemType = "dataset" | "transform" | "linking" | "workflow" | "task" | "project";
+export type ItemType = "dataset" | "transform" | "linking" | "ruleBlock" | "workflow" | "task" | "project";
 
 const itemTypeToPathMap: Record<string, ItemType> = {
     Transform: "transform",
     Linking: "linking",
+    RuleBlock: "ruleBlock",
     Workflow: "workflow",
     CustomTask: "task",
     Dataset: "dataset",

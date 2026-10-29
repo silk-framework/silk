@@ -7,10 +7,9 @@ import org.silkframework.execution.{ExecutionReport, Executor, ExecutorOutput, T
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule._
 import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder, TransformReportExecutionContext}
-import org.silkframework.rule.TaskContext
 import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.runtime.iterator.RewindableEntityIterator
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.util.Uri
 
 import scala.collection.mutable
@@ -33,7 +32,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
     val ruleSchemata = task.data.ruleSchemataWithoutEmptyObjectRules
     val flatInputs = flattenInputs(input, Some(ruleSchemata.size)).toIndexedSeq
     val outputTables = mutable.Buffer[LocalEntities]()
-    val report = new TransformReportBuilder(task, transformContext)
+    val report = new TransformReportBuilder(task, transformContext, outputTableCount = ruleSchemata.size)
     report.setExecutionContext(transformReportExecutionContext)
     implicit val prefixes: Prefixes = pluginContext.prefixes
     implicit val taskContext: TaskContext = TaskContext(Seq(input.task), pluginContext)
@@ -111,7 +110,8 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
         matchingTransformRules = Some(containerRules)
         inputTable = currentInputTable
       } else {
-        for(objectMapping @ ObjectMapping(_, _, _, childRules, _, _) <- containerRules) {
+        for(objectMapping @ ObjectMapping(_, _, _, childRules, _, _) <- containerRules
+            if childRules.typeRules.nonEmpty || childRules.propertyRules.nonEmpty) {
           findRecursive(objectMapping.label(), updateChildRules(childRules, objectMapping))
         }
       }

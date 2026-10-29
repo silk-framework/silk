@@ -5,9 +5,11 @@ Typically, this dataset is used to transform an JSON file to another format, e.g
 In addition to plain JSON files, *JSON Lines* files can also be read.
 
 For reading, the JSON dataset supports a number of special paths:
-- `#id` Is a special syntax for generating an id for a selected element. It can be used in URI patterns for entities which do not provide an identifier. Examples: `http://example.org/{#id}` or `http://example.org/{/pathToEntity/#id}`.
+- `#id` is a special syntax for generating a hash-based id for a selected element. It can be used in URI patterns for entities which do not provide an identifier. Examples: `http://example.org/{#id}` or `http://example.org/{/pathToEntity/#id}`. If no URI pattern is configured, the dataset instead generates the default entity URI from the JSON source location.
 - `#text` retrieves the text of the selected node.
 - The backslash can be used to navigate to the parent JSON node, e.g., `\parent/key`. The name of the backslash key (here `parent`) is ignored.
+
+Keys that are an empty string (`"": ...`) are ignored silently, without a warning or error: they are not offered as paths and cannot be addressed by a path. Their values are still included in `#text` and matched by `*`.
 
 ## Writing
 

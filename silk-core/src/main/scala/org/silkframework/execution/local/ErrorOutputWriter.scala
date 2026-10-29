@@ -26,13 +26,17 @@ object ErrorOutputWriter {
     */
   def write(entities: EntityHolder, errorSink: EntitySink)
            (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
-    entities match {
-      case tables: MultiEntityTable =>
-        for(table <- tables.allTables) {
-          writeErrorEntities(errorSink, table)
-        }
-      case _ =>
-        writeErrorEntities(errorSink, entities)
+    try {
+      entities match {
+        case tables: MultiEntityTable =>
+          for(table <- tables.allTables) {
+            writeErrorEntities(errorSink, table)
+          }
+        case _ =>
+          writeErrorEntities(errorSink, entities)
+      }
+    } finally {
+      entities.close()
     }
   }
 
@@ -42,16 +46,15 @@ object ErrorOutputWriter {
     val startTime = System.currentTimeMillis()
     var lastLog = startTime
     sink.openTable(entityTable.entitySchema.typeUri, entityTable.entitySchema.typedPaths.map(_.property.get) :+ errorProperty, singleEntity = false)
-    entityTable.use { entities =>
-      for (entity <- entities if entity.hasFailed) {
-        sink.writeEntity(entity.uri, entity.values :+ Seq(entity.failure.get.message.getOrElse("Unknown error")))
-        entityCount += 1
-        if (entityCount % 10000 == 0) {
-          val currentTime = System.currentTimeMillis()
-          if (currentTime - 2000 > lastLog) {
-            log.info("Writing error entities: " + entityCount)
-            lastLog = currentTime
-          }
+    // Iterate the entities without closing the holder here; the caller closes it once all tables are written.
+    for (entity <- entityTable.entities if entity.hasFailed) {
+      sink.writeEntity(entity.uri, entity.values :+ Seq(entity.failure.get.message.getOrElse("Unknown error")))
+      entityCount += 1
+      if (entityCount % 10000 == 0) {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - 2000 > lastLog) {
+          log.info("Writing error entities: " + entityCount)
+          lastLog = currentTime
         }
       }
     }

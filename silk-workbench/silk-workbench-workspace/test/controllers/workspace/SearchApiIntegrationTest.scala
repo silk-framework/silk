@@ -6,8 +6,10 @@ import controllers.workspaceApi.search.SearchApiModel.{DESCRIPTION, FacetSetting
 import controllers.workspaceApi.search._
 import helper.IntegrationTestTrait
 import org.silkframework.config.{CustomTask, InputPorts, MetaData, Port}
+import org.silkframework.dataset.{DatasetSpec, VariableDataset}
+import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
 import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginContext, PluginRegistry}
-import org.silkframework.workspace.activity.workflow.Workflow
+import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
 import org.silkframework.workspace.{SingleProjectWorkspaceProviderTestTrait, WorkspaceFactory}
 import play.api.libs.json._
 import testWorkspace.Routes
@@ -70,14 +72,14 @@ class SearchApiIntegrationTest extends AnyFlatSpec
     val json = checkResponse(response).json
     (json \ "label").asOpt[String] mustBe Some("Item type")
     val typeIds = (json \ "values").as[JsArray].value.map(v => (v \ "id").as[String])
-    typeIds mustBe Seq("project", "workflow", "dataset", "transform", "linking", "task")
+    typeIds mustBe Seq("project", "workflow", "dataset", "transform", "linking", "ruleBlock", "task")
   }
 
   it should "return all project task item types if a project ID is defined" in {
     val response = client.url(s"$baseUrl/api/workspace/searchConfig/types?projectId=proj").get()
     val json = checkResponse(response).json
     val typeIds = (json \ "values").as[JsArray].value.map(v => (v \ "id").as[String])
-    typeIds mustBe Seq("workflow", "dataset", "transform", "linking", "task")
+    typeIds mustBe Seq("workflow", "dataset", "transform", "linking", "ruleBlock", "task")
   }
   private def resultAsMap(searchResultObject: JsObject): Map[String, String] = searchResultObject.value
       .filter(v => v._2.isInstanceOf[JsString]) // Filter out non-string values
@@ -272,6 +274,49 @@ class SearchApiIntegrationTest extends AnyFlatSpec
         PROJECT_LABEL -> newProject,
         LABEL -> task.fullLabel
       )
+    } finally {
+      WorkspaceFactory().workspace.removeProject(newProject)
+    }
+  }
+
+  it should "list all workflows even if one of them references a missing node (CMEM-8213)" in {
+    val newProject = "brokenWorkflowProject"
+    val project = retrieveOrCreateProject(newProject)
+    try {
+      // Operator reading from a node that is not part of the workflow, e.g. a dataset node removed while the operator kept the input
+      val brokenWorkflow = Workflow(
+        operators = Seq(WorkflowOperator(inputs = Seq(Some("missingNode")), task = "operatorTask", outputs = Seq.empty, errorOutputs = Seq.empty,
+          position = (0, 0), nodeId = "operatorNode", configInputs = Seq.empty, dependencyInputs = Seq.empty)),
+        datasets = Seq.empty
+      )
+      project.addAnyTask("brokenWorkflow", brokenWorkflow)
+      project.addAnyTask("validWorkflow", Workflow(Seq.empty, Seq.empty))
+      val (result, _) = facetedSearchRequest(FacetedSearchRequest(itemType = Some(ItemType.workflow), project = Some(newProject)))
+      resultItemIds(result).sorted mustBe Seq("brokenWorkflow", "validWorkflow")
+    } finally {
+      WorkspaceFactory().workspace.removeProject(newProject)
+    }
+  }
+
+  it should "count a workflow writing into a legacy variable dataset under 'Output' only (CMEM-8213)" in {
+    val newProject = "variableOutputProject"
+    val project = retrieveOrCreateProject(newProject)
+    try {
+      project.addAnyTask("source", DatasetSpec(InMemoryDataset()))
+      project.addAnyTask("variableOutput", DatasetSpec(new VariableDataset()))
+      // Dataset-to-dataset workflow: source -> variableOutput
+      val workflow = Workflow(
+        operators = Seq.empty,
+        datasets = Seq(
+          WorkflowDataset(inputs = Seq.empty, task = "source", outputs = Seq("variableOutput"),
+            position = (0, 0), nodeId = "source", configInputs = Seq.empty, dependencyInputs = Seq.empty),
+          WorkflowDataset(inputs = Seq(Some("source")), task = "variableOutput", outputs = Seq.empty,
+            position = (0, 0), nodeId = "variableOutput", configInputs = Seq.empty, dependencyInputs = Seq.empty))
+      )
+      project.addAnyTask("variableOutputWorkflow", workflow)
+      val (result, _) = facetedSearchRequest(FacetedSearchRequest(itemType = Some(ItemType.workflow), project = Some(newProject)))
+      val inputOutputFacet = result.facets.find(_.id == Facets.workflowInputOutput.id)
+      inputOutputFacet.map(extractKeyWordsWithCounts) mustBe Some(Seq(("Output", 1)))
     } finally {
       WorkspaceFactory().workspace.removeProject(newProject)
     }

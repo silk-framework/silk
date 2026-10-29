@@ -1,11 +1,11 @@
 package controllers.workspaceApi
 
-import controllers.projectApi.ProjectApi.{CreateTag, CreateTagsRequest}
+import controllers.projectApi.ProjectApi.{CreateTag, CreateTagsRequest, DetailedProjectPrefixesResponse}
 import controllers.util.ProjectApiClient
 import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, CreateProjectRequest}
 import helper.IntegrationTestTrait
 
-import org.silkframework.config.MetaData
+import org.silkframework.config.{MetaData, Prefixes}
 import org.silkframework.runtime.serialization.{ReadContext, TestReadContext}
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.JsonSerializers._
@@ -28,6 +28,7 @@ class ProjectApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers
 
   lazy val projectsUrl: String = controllers.projectApi.routes.ProjectApi.createNewProject().url
   def projectPrefixesUrl(projectId: String): String = controllers.projectApi.routes.ProjectApi.fetchProjectPrefixes(projectId).url
+  def detailedProjectPrefixesUrl(projectId: String): String = controllers.projectApi.routes.ProjectApi.fetchDetailedProjectPrefixes(projectId).url
   def projectPrefixUrl(projectId: String, prefixName: String): String = controllers.projectApi.routes.ProjectApi.addProjectPrefix(projectId, prefixName).url
   private def projectsMetaDataUrl(projectId: String): String = controllers.projectApi.routes.ProjectApi.updateProjectMetaData(projectId).url
   implicit val readContext: ReadContext = TestReadContext()
@@ -74,6 +75,21 @@ class ProjectApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers
     val prefixes = fetchPrefixes
     prefixes.isSuccess mustBe true
     prefixes.get.size must be > 0
+  }
+
+  it should "fetch the detailed project prefixes" in {
+    val project = retrieveOrCreateProject(prefixProjectId)
+    val overlappingPrefix = project.config.workspacePrefixes.prefixMap.keys.head
+    val overridingProjectUri = "http://project.example/override/"
+    project.config = project.config.copy(
+      projectPrefixes = Prefixes(project.config.projectPrefixes.prefixMap ++ Map(overlappingPrefix -> overridingProjectUri))
+    )
+
+    val detailedPrefixes = fetchDetailedPrefixes
+    detailedPrefixes.isSuccess mustBe true
+    detailedPrefixes.get.projectPrefixes(overlappingPrefix) mustBe overridingProjectUri
+    detailedPrefixes.get.workspacePrefixes(overlappingPrefix) mustBe project.config.workspacePrefixes(overlappingPrefix)
+    detailedPrefixes.get.defaultPrefixes mustBe Prefixes.default.prefixMap
   }
 
   it should "Update project prefixes" in {
@@ -147,6 +163,11 @@ class ProjectApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers
   private def fetchPrefixes: JsResult[Map[String, String]] = {
     val responseJson = checkResponse(client.url(s"$baseUrl${projectPrefixesUrl(prefixProjectId)}").get()).json
     Json.fromJson[Map[String, String]](responseJson)
+  }
+
+  private def fetchDetailedPrefixes: JsResult[DetailedProjectPrefixesResponse] = {
+    val responseJson = checkResponse(client.url(s"$baseUrl${detailedProjectPrefixesUrl(prefixProjectId)}").get()).json
+    Json.fromJson[DetailedProjectPrefixesResponse](responseJson)
   }
 
   private def createProjectByLabel(label: String, description: Option[String] = None, id: Option[String] = None): WSResponse = {

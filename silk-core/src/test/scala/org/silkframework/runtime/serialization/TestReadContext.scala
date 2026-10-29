@@ -2,6 +2,7 @@ package org.silkframework.runtime.serialization
 
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.TaskResolver
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.util.{Identifier, IdentifierGenerator}
 
@@ -13,6 +14,6 @@ object TestReadContext {
             validationEnabled: Boolean = false,
             user: UserContext = UserContext.Empty,
             projectId: Option[Identifier] = None): ReadContext = {
-    ReadContext(resources, prefixes, identifierGenerator, validationEnabled, user, projectId)
+    ReadContext(resources, prefixes, identifierGenerator, validationEnabled, user, projectId, taskResolver = TaskResolver.empty)
   }
 }

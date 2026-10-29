@@ -157,10 +157,7 @@ class WorkspaceUriPatternApi extends InjectedController with UserContextActions 
 
   private def startGlobalUriPatternCache(globalUriPatternCache: GlobalWorkspaceActivity[GlobalUriPatternCache])
                                         (implicit userContext: UserContext): Unit = {
-    try {
-      globalUriPatternCache.control.start()
-    } catch {
-      case _: IllegalStateException => // Ignore exceptions because of parallel starts of the activity
-    }
+    // Start the cache, or ensure one more run after the current one finishes, so a refresh request is never missed
+    globalUriPatternCache.control.startOrReRun()
   }
 }

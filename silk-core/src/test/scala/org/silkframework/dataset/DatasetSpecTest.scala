@@ -3,8 +3,9 @@ package org.silkframework.dataset
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.ValueType
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, TestPluginContext}
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, PluginRegistry, TestPluginContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -16,6 +17,9 @@ class DatasetSpecTest extends AnyFlatSpec with Matchers {
   implicit val prefixes: Prefixes = Prefixes.empty
   implicit val pluginContext: PluginContext = TestPluginContext()
 
+  PluginRegistry.unregisterPlugin(classOf[MockDatasetExecutor])
+  PluginRegistry.registerPlugin(classOf[MockDatasetExecutor])
+
   it should "generate URI properties" in {
     val dataset = MockDataset()
     var entities = Map[String, Seq[Seq[String]]]()
@@ -23,7 +27,7 @@ class DatasetSpecTest extends AnyFlatSpec with Matchers {
     val datasetSpec = DatasetSpec(dataset, uriAttribute = Some("urn:schema:URI"))
     implicit val userContext: UserContext = UserContext.Empty
     implicit val prefixes: Prefixes = Prefixes.empty
-    val sink = datasetSpec.entitySink
+    val sink = ExecutorRegistry.access(datasetSpec).entitySink
     sink.openTable("", Seq(TypedProperty("existingProperty", ValueType.STRING, isBackwardProperty = false)), singleEntity = false)
     sink.writeEntity("entityUri", IndexedSeq(Seq("someValue")))
     sink.closeTable()
@@ -40,7 +44,7 @@ class DatasetSpecTest extends AnyFlatSpec with Matchers {
     val datasetSpec = DatasetSpec(dataset, uriAttribute = Some("urn:schema:URI"))
     implicit val userContext: UserContext = UserContext.Empty
     implicit val prefixes: Prefixes = Prefixes.empty
-    val sink = datasetSpec.entitySink
+    val sink = ExecutorRegistry.access(datasetSpec).entitySink
     sink.openTable("someType", Seq(TypedProperty("existingProperty", ValueType.STRING, isBackwardProperty = false)), singleEntity = false)
     sink.writeEntity("entityUri", IndexedSeq(Seq("someValue")))
     sink.closeTable()

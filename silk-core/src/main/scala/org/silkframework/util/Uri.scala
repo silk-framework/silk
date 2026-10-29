@@ -16,6 +16,7 @@ package org.silkframework.util
 
 import java.net.{URI, URLDecoder}
 import org.silkframework.config.Prefixes
+import org.silkframework.runtime.validation.ValidationException
 
 import java.nio.charset.StandardCharsets
 import java.util.UUID
@@ -134,6 +135,10 @@ object Uri {
   def parse(str: String, prefixes: Prefixes = Prefixes.empty): Uri = {
     val trimmed = str.trim
     if (trimmed.startsWith("<")) {
+      // Without this check the missing '>' would silently cut off the last character of the URI
+      if (!trimmed.endsWith(">") || trimmed.length < 2) {
+        throw new ValidationException(s"Invalid URI: $trimmed. A URI that starts with '<' must end with '>'.")
+      }
       fromString(trimmed.substring(1, trimmed.length - 1))
     } else if (!trimmed.contains(':')) {
       fromString(trimmed)
@@ -157,7 +162,9 @@ object Uri {
     var cutIndex = if (hashIndex > slashIndex) hashIndex else slashIndex
     cutIndex = if(colonIndex > cutIndex) colonIndex else cutIndex
     val localName = uri.substring(cutIndex + 1, uri.length)
-    URLDecoder.decode(localName, "UTF-8")
+    // Form decoding is intentional here: '+' becomes a space, matching how labels are encoded back into URIs.
+    // An invalid escape sequence falls back to the undecoded name instead of failing the label extraction.
+    Try(URLDecoder.decode(localName, StandardCharsets.UTF_8)).getOrElse(localName)
   }
 
   /**

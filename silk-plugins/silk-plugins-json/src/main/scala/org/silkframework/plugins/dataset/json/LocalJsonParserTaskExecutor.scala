@@ -24,7 +24,7 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName))
                       (implicit pluginContext: PluginContext): Option[LocalEntities] = {
-    if (inputs.size != 1) throw TaskException("JsonParserTask takes exactly one input!")
+    if (inputs.size != 1) throw TaskException("'Parse JSON' takes exactly one input!")
     val entityTable = inputs.head
     val entities = RewindableEntityIterator.load(entityTable.entities, entityTable.entitySchema)
 

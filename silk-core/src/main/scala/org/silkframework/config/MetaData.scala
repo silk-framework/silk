@@ -33,8 +33,9 @@ case class MetaData(label: Option[String],
         defaultLabel
     }
     if(trimmedLabel.length > maxLength) {
-      val sideLength = (maxLength - 2) / 2
-      trimmedLabel.take(sideLength) + " ... " + trimmedLabel.takeRight(sideLength)
+      val separator = " ... "
+      val sideLength = (maxLength - separator.length) / 2
+      trimmedLabel.take(sideLength) + separator + trimmedLabel.takeRight(sideLength)
     } else {
       trimmedLabel
     }

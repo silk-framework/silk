@@ -112,28 +112,24 @@ trait GraphStoreTrait {
                  ignoreIfNotExists: Boolean = true)
                 (implicit userContext: UserContext): Unit = {
     log.fine(s"Deleting graph '$graph' from Graph Store")
-    var tries = 0
-    var success = false
-    while(!success && tries < 2) {
-      tries += 1
+    val maxAttempts = 2
+    for(attempt <- 1 to maxAttempts) {
       GraphStoreTrait.handleTimeoutErrors(defaultTimeouts.readTimeoutMs, s"Deleting graph '$graph' has failed: ") {
         val connection = initConnection(graph)
         connection.setRequestMethod("DELETE")
         val responseCode = connection.getResponseCode
-        success = responseCode / 100 == 2
-        if (!success) {
-          if (ignoreIfNotExists && responseCode == 404) {
-            log.fine(s"Graph $graph does not exist and cannot be deleted. Ignoring as requested.")
-            return
-          }
-          if (tries == 1 && responseCode == UNAUTHORIZED) {
+        if (responseCode / 100 == 2) {
+          return
+        } else if (ignoreIfNotExists && responseCode == 404) {
+          log.fine(s"Graph $graph does not exist and cannot be deleted. Ignoring as requested.")
+          return
+        } else if (attempt < maxAttempts && (responseCode == UNAUTHORIZED || responseCode / 100 == 5)) {
+          // Retry on authentication and server errors; the last attempt fails with an error below
+          if (responseCode == UNAUTHORIZED) {
             handleAuthenticationError(userContext)
-            log.fine(s"Request to delete graph $graph has been successful.")
-          } else if (responseCode / 100 == 5) {
-            // Try again on server error
-          } else {
-            handleError(connection, s"Could not delete graph $graph!")
           }
+        } else {
+          handleError(connection, s"Could not delete graph $graph!")
         }
       }
     }
@@ -184,13 +180,29 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection,
   @volatile
   private var disconnected = false
 
+  @volatile
+  private var initialized = false
+
   private lazy val outputStream = {
     connection.connect()
+    initialized = true
     new BufferedOutputStream(connection.getOutputStream)
   }
 
   override def write(i: Int): Unit = {
     outputStream.write(i)
+  }
+
+  // Write whole chunks instead of the single-byte default, which forwards every byte through a virtual call
+  override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+    outputStream.write(b, off, len)
+  }
+
+  override def flush(): Unit = {
+    // Only flush written data; flushing must not open the connection on its own
+    if (initialized) {
+      outputStream.flush()
+    }
   }
 
   override def close(): Unit = {
@@ -348,6 +360,18 @@ case class GraphStoreUploadOutputStream(fileUploadGraphStore: GraphStoreFileUplo
 
   override def write(i: Int): Unit = {
     outputStream.write(i)
+  }
+
+  // Write whole chunks instead of the single-byte default, which forwards every byte through a virtual call
+  override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+    outputStream.write(b, off, len)
+  }
+
+  override def flush(): Unit = {
+    // Only flush written data; flushing must not create the temp file on its own
+    if (initialized) {
+      outputStream.flush()
+    }
   }
 
   override def close(): Unit = {

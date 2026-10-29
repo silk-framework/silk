@@ -104,6 +104,9 @@ class FileRewindableEntityIterator(file: TempFileHolder, schema: EntitySchema) e
 
   private var nextAvailable = inputStream.readBoolean()
 
+  @volatile
+  private var closed = false
+
   override def newIterator(): RewindableIterator[Entity] = {
     new FileRewindableEntityIterator(file, schema)
   }
@@ -119,10 +122,13 @@ class FileRewindableEntityIterator(file: TempFileHolder, schema: EntitySchema) e
   }
 
   override def close(): Unit = {
-    try {
-      inputStream.close()
-    } finally {
-      file.removeInstance()
+    if (!closed) {
+      closed = true
+      try {
+        inputStream.close()
+      } finally {
+        file.removeInstance()
+      }
     }
   }
 }
@@ -164,12 +170,12 @@ object FileRewindableEntityIterator {
       file
     }
 
-    def newInstance(): File = {
+    def newInstance(): File = synchronized {
       instanceCount += 1
       file
     }
 
-    def removeInstance(): Unit = {
+    def removeInstance(): Unit = synchronized {
       instanceCount -= 1
       if(instanceCount <= 0) {
         file.delete()

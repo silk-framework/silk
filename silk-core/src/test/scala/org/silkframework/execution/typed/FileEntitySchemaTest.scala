@@ -5,7 +5,7 @@ import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.{DatasetSpec, EmptyDataset}
 import org.silkframework.execution.local.GenericEntityTable
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.{FileResourceManager, ResourceManager}
 import org.silkframework.util.FileUtils.toFileUtils
 
@@ -26,7 +26,7 @@ class FileEntitySchemaTest extends AnyFlatSpec with Matchers {
     localFile.file.writeString("Local file content")
 
     // Create file entities
-    implicit val pluginContext: PluginContext = PluginContext(Prefixes.empty, resources)
+    implicit val pluginContext: PluginContext = PluginContext(Prefixes.empty, resources, taskResolver = TaskResolver.empty)
     val task = PlainTask("dummy", DatasetSpec(EmptyDataset))
     val fileEntities = FileEntitySchema.create(Seq(projectFile, localFile), task)
 

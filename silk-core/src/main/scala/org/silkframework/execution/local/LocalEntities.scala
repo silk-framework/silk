@@ -33,7 +33,7 @@ trait LocalEntities extends EntityHolder {
   /**
     * Closes the entities iterator.
     */
-  override final def close(): Unit = {
+  override def close(): Unit = {
     entities.close()
   }
 

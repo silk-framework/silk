@@ -6,6 +6,7 @@ import org.silkframework.runtime.plugin.annotations.Param
 import java.nio.charset.Charset
 import java.nio.file.{Files, Paths}
 import scala.jdk.CollectionConverters.CollectionHasAsScala
+import scala.util.Try
 import scala.util.matching.Regex
 
 /**
@@ -19,11 +20,22 @@ class RemoveStopWords(@Param(value = "RegEx for detecting words") separator: Str
   extends SimpleTransformer {
   private val regex: Regex = separator.r
 
+  /** The stop words to remove. Subclasses may override this to defer expensive loading until the first evaluation. */
+  protected def loadStopWords(): Set[String] = stopWords
+
+  // The set is invariant, so it is lower-cased only once instead of once per word.
+  // Failures are cached too, so a failing load is loud but cannot stall executions with per-value retries.
+  @transient private lazy val lowerCaseStopWords: Try[Set[String]] = Try(loadStopWords().map(_.toLowerCase))
+
   override def evaluate(value: String): String = {
+    val stopWordSet = lowerCaseStopWords.get
     val result = new StringBuilder
-    for(word <- regex.split(value) if !stopWords.map(_.toLowerCase).contains(word.toLowerCase)) {
-      result.append(word.toLowerCase)
-      result.append(" ")
+    for(word <- regex.split(value)) {
+      val lowerCaseWord = word.toLowerCase
+      if(!stopWordSet.contains(lowerCaseWord)) {
+        result.append(lowerCaseWord)
+        result.append(" ")
+      }
     }
     result.toString()
   }

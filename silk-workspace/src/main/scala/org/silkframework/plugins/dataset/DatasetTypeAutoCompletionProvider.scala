@@ -25,6 +25,7 @@ case class DatasetTypeAutoCompletionProvider() extends PluginParameterAutoComple
     implicit val userContext: UserContext = context.user
     val projectId = context.projectId.getOrElse(throw new ValidationException("Project not provided"))
     dependOnParameterValues.headOption.
+        filter(_.strValue.trim.nonEmpty).
         flatMap(datasetId => workspace.project(projectId).anyTaskOption(datasetId.strValue)).
         toSeq.flatMap {
           case task: ProjectTask[_] =>

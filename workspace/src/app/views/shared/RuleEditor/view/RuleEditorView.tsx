@@ -5,6 +5,7 @@ import React from "react";
 import { RuleEditorCanvas } from "./RuleEditorCanvas";
 import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
 import { Elements, OnLoadParams } from "react-flow-renderer";
+import { PluginDocumentation } from "../../modals/PluginDocumentation";
 
 interface RuleEditorViewProps {
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
@@ -15,15 +16,21 @@ interface RuleEditorViewProps {
     zoomRange?: [number, number];
     /** In the permanent read-only mode the sidebar will be removed.*/
     readOnlyMode: boolean;
+    /** Optional overlay content rendered inside the rule editor UI context tree, e.g. modals. */
+    overlayContent?: React.ReactNode;
 }
 
 /** The main view of the rule editor, integrating toolbar, sidebar and main rule canvas. */
-export const RuleEditorView = ({ showRuleOnly, hideMinimap, zoomRange, readOnlyMode }: RuleEditorViewProps) => {
+export const RuleEditorView = ({
+    showRuleOnly,
+    hideMinimap,
+    zoomRange,
+    readOnlyMode,
+    overlayContent,
+}: RuleEditorViewProps) => {
     const [modalShown, setModalShown] = React.useState(false);
     const [advancedParameterModeEnabled, setAdvancedParameterMode] = React.useState(false);
-    const [currentRuleNodeInfo, setCurrentRuleNodeInfo] = React.useState<
-        { description?: string; label?: string } | undefined
-    >(undefined);
+    const [currentRuleNodeInfo, setCurrentRuleNodeInfo] = React.useState<PluginDocumentation | undefined>(undefined);
     const reactFlowWrapper = React.useRef<any>(null);
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
     // At the moment react-flow's selection logic is buggy in some places, e.g. https://github.com/wbkd/react-flow/issues/1314
@@ -46,30 +53,34 @@ export const RuleEditorView = ({ showRuleOnly, hideMinimap, zoomRange, readOnlyM
                 currentRuleNodeInfo,
                 setCurrentRuleNodeInfo,
                 showRuleOnly,
+                readOnly: readOnlyMode,
                 hideMinimap,
                 zoomRange,
                 onSelection,
                 selectionState,
             }}
         >
-            <Grid verticalStretchable={true} useAbsoluteSpace={true} style={{ backgroundColor: "white" }}>
-                {!showRuleOnly ? (
-                    <GridRow style={{ backgroundColor: "white" }}>
-                        <GridColumn>
-                            <RuleEditorToolbar />
-                            <Divider addSpacing="medium" />
-                        </GridColumn>
-                    </GridRow>
-                ) : null}
-                <GridRow verticalStretched={true} style={{ backgroundColor: "white" }}>
-                    {!showRuleOnly && !readOnlyMode ? (
-                        <GridColumn small>
-                            <RuleEditorOperatorSidebar />
-                        </GridColumn>
+            <>
+                <Grid verticalStretchable={true} useAbsoluteSpace={true} style={{ backgroundColor: "white" }}>
+                    {!showRuleOnly ? (
+                        <GridRow style={{ backgroundColor: "white" }}>
+                            <GridColumn>
+                                <RuleEditorToolbar />
+                                <Divider addSpacing="medium" />
+                            </GridColumn>
+                        </GridRow>
                     ) : null}
-                    <RuleEditorCanvas />
-                </GridRow>
-            </Grid>
+                    <GridRow verticalStretched={true} style={{ backgroundColor: "white" }}>
+                        {!showRuleOnly && !readOnlyMode ? (
+                            <GridColumn small>
+                                <RuleEditorOperatorSidebar />
+                            </GridColumn>
+                        ) : null}
+                        <RuleEditorCanvas />
+                    </GridRow>
+                </Grid>
+                {overlayContent}
+            </>
         </RuleEditorUiContext.Provider>
     );
 };

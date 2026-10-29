@@ -8,7 +8,7 @@ import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.date.DateToTimestampTransformer
 import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.plugins.transformer.tokenization.CamelCaseTokenizer
-import org.silkframework.rule.{ComplexMapping, PatternUriMapping, TaskContext, TransformRule, TransformRuleExecution}
+import org.silkframework.rule.{ComplexMapping, MappingRules, ObjectMapping, PatternUriMapping, TaskContext, TransformRule, TransformRuleExecution, TransformSpec}
 import org.silkframework.serialization.json.JsonSerializers.TransformRuleJsonFormat
 import org.silkframework.serialization.json.{JsonHelpers, JsonSerialization}
 import org.silkframework.util.Uri
@@ -53,6 +53,11 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
   private def transformRule(transformer: Transformer): TransformRuleExecution = {
     val transformation = TransformInput(transformer = transformer,
       inputs = IndexedSeq(PathInput("p", UntypedPath("a")), PathInput("p", UntypedPath("b"))))
+    ComplexMapping(operator = transformation).execution(TaskContext.empty)
+  }
+
+  private def emptyPathTransformRule(transformer: Transformer): TransformRuleExecution = {
+    val transformation = TransformInput(transformer = transformer, inputs = IndexedSeq(PathInput("p", UntypedPath.empty)))
     ComplexMapping(operator = transformation).execution(TaskContext.empty)
   }
 
@@ -102,6 +107,26 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
     counter mustBe 3
   }
 
+  it should "substitute the entity's own URI as the source value for a rule reading only the empty path" in {
+    val rule = emptyPathTransformRule(LowerCaseTransformer())
+    val entities = Seq(entity(Seq("aValue"), Seq("bValue")))
+    val (tries, errors, errorMsg, peakResult) = PeakTransformApi.collectTransformationExamples(rule, entities.iterator, limit = 3)
+    tries mustBe 1
+    errors mustBe 0
+    errorMsg mustBe ""
+    peakResult mustBe Seq(
+      PeakResult(Seq(Seq("uri")), Seq("uri"))
+    )
+  }
+
+  it should "add the entity URI to the source values of a rule mixing the empty path with a real path" in {
+    val mixed = TransformInput(transformer = ConcatTransformer(" "),
+      inputs = IndexedSeq(PathInput("uri", UntypedPath.empty), PathInput("a", UntypedPath("a"))))
+    val rule = ComplexMapping(operator = mixed).execution(TaskContext.empty)
+    val (_, _, _, peakResult) = PeakTransformApi.collectTransformationExamples(rule, Iterator(entity(Seq("aValue"), Seq("bValue"))), limit = 1)
+    peakResult mustBe Seq(PeakResult(Seq(Seq("aValue"), Seq("uri")), Seq("uri aValue")))
+  }
+
   it should "return results from the API" in {
     val peakResult = peakChildRuleRequest(PatternUriMapping(pattern = "urn:{Name}/{Events/Birth}"))
     peakResult.status.id mustBe "success"
@@ -116,6 +141,39 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
     ))
   }
 
+  it should "return the generated URIs when peaking an object mapping rule" in {
+    val peakResult = peakRequest(transformXmlTask, "object")
+    peakResult.status.id mustBe "success"
+    val results = peakResult.results.get
+    peakResult.sourcePaths mustBe Some(Seq(Seq()))
+    results must have size 3
+    for(result <- results) {
+      result.transformedValues must have size 1
+      result.transformedValues.head must endWith ("/object")
+      result.sourceValues must have size 1
+      result.sourceValues.head must have size 1
+    }
+  }
+
+  it should "return the generated URIs when peaking an object mapping rule with an explicit URI rule" in {
+    val objectRule = ObjectMapping(
+      id = "objectWithUriRule",
+      sourcePath = UntypedPath("Events"),
+      rules = MappingRules(uriRule = Some(PatternUriMapping(id = "eventUri", pattern = "urn:event:{Birth}")))
+    )
+    val transformSpec = project.task[TransformSpec](transformXmlTask).data
+    val updatedRootRule = transformSpec.mappingRule.copy(rules =
+      transformSpec.mappingRule.rules.copy(propertyRules = transformSpec.mappingRule.rules.propertyRules :+ objectRule))
+    project.updateTask("TransformWithObjectUriRule", transformSpec.copy(mappingRule = updatedRootRule))
+
+    val peakResult = peakRequest("TransformWithObjectUriRule", "objectWithUriRule")
+    peakResult.status.id mustBe "success"
+    peakResult.sourcePaths mustBe Some(Seq(Seq("/Birth")))
+    peakResult.results mustBe Some(Seq(
+      PeakResult(Seq(Seq("May 1900")), Seq("urn:event:May+1900"))
+    ))
+  }
+
   it should "return results from the API with an object path context" in {
     val peakResult = peakChildRuleRequest(PatternUriMapping(pattern = "urn:{Birth}"), objectPath = Some("Events"))
     peakResult.sourcePaths mustBe Some(
@@ -126,6 +184,12 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
     peakResult.results mustBe Some(Seq(
       PeakResult(Seq(Seq("May 1900")), Seq("urn:May+1900"))
     ))
+  }
+
+  private def peakRequest(taskId: String, ruleId: String): PeakResults = {
+    val peakUrl = controllers.transform.routes.PeakTransformApi.peak(projectId, taskId, ruleId).url
+    val jsonResponse = checkResponse(client.url(s"$baseUrl$peakUrl").post("")).json
+    JsonHelpers.fromJsonValidated[PeakResults](jsonResponse)
   }
 
   private def peakChildRuleRequest(transformRule: TransformRule, objectPath: Option[String] = None): PeakResults = {

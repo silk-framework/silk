@@ -16,11 +16,34 @@ export const connectWebSocket = <T>(
     pollingUrl: string,
     updateFunc: (updateItem: T, cleanUp: CleanUpFunction) => any,
     registerError?: (errorId: string, err: any, cause?: any) => void,
-    retryTimeout: number = 5000
+    retryTimeout: number = 5000,
 ): CleanUpFunction => {
-    const cleanUpFunctions: CleanUpFunction[] = [];
+    let disposed = false;
+    let pollingIntervalId: ReturnType<typeof setInterval> | undefined;
+    let reconnectTimeoutId: ReturnType<typeof setTimeout> | undefined;
     const cleanUp = () => {
-        cleanUpFunctions.forEach((cleanUpFn) => cleanUpFn());
+        if (disposed) {
+            return;
+        }
+        disposed = true;
+        if (reconnectTimeoutId !== undefined) {
+            clearTimeout(reconnectTimeoutId);
+            reconnectTimeoutId = undefined;
+        }
+        if (pollingIntervalId !== undefined) {
+            clearInterval(pollingIntervalId);
+            pollingIntervalId = undefined;
+        }
+        websocketState.socket.onopen = null;
+        websocketState.socket.onmessage = null;
+        websocketState.socket.onerror = null;
+        websocketState.socket.onclose = null;
+        if (
+            websocketState.socket.readyState !== WebSocket.CLOSING &&
+            websocketState.socket.readyState !== WebSocket.CLOSED
+        ) {
+            websocketState.socket.close(1000, "Closing web socket connection.");
+        }
     };
     const fixedWebSocketUrl = convertToWebsocketUrl(webSocketUrl);
     const websocketState = {
@@ -30,20 +53,32 @@ export const connectWebSocket = <T>(
 
     const initWebsocket = () => {
         websocketState.socket.onmessage = function (evt) {
+            if (disposed) {
+                return;
+            }
             updateFunc(JSON.parse(evt.data), cleanUp);
         };
 
         websocketState.socket.onopen = function () {
+            if (disposed) {
+                return;
+            }
             websocketState.hasEstablishedConnection = true;
         };
 
-        websocketState.socket.onerror = function (event) {
-            if (!websocketState.hasEstablishedConnection) {
+        websocketState.socket.onerror = function () {
+            if (disposed) {
+                return;
+            }
+            if (!websocketState.hasEstablishedConnection && pollingIntervalId === undefined) {
                 console.log(
-                    "Connecting to WebSocket at '" + fixedWebSocketUrl + "' failed. Falling back to polling..."
+                    "Connecting to WebSocket at '" + fixedWebSocketUrl + "' failed. Falling back to polling...",
                 );
                 let lastUpdate = 0;
-                const timeout = setInterval(async function () {
+                pollingIntervalId = setInterval(async function () {
+                    if (disposed) {
+                        return;
+                    }
                     let timestampedUrl =
                         pollingUrl + (pollingUrl.indexOf("?") >= 0 ? "&" : "?") + "timestamp=" + lastUpdate;
                     const response = await fetch({
@@ -56,35 +91,28 @@ export const connectWebSocket = <T>(
                         responseData.updates.forEach(updateFunc);
                     }
                 }, 1000);
-                cleanUpFunctions.push(() => {
-                    clearInterval(timeout);
-                });
             }
         };
 
         websocketState.socket.onclose = function (event) {
+            if (disposed) {
+                return;
+            }
             console.log("There has been a disconnect, attempting to reconnect...");
             if ((event.code === 1006 || event.code === 1011) && websocketState.hasEstablishedConnection) {
                 //only retry for abnormal closures and server internal error
                 registerError &&
                     registerError("Socket.Connection.Close", "There has been a disconnect, attempting to reconnect");
-                const timeoutId = setTimeout(() => {
+                reconnectTimeoutId = setTimeout(() => {
+                    if (disposed) {
+                        return;
+                    }
+                    reconnectTimeoutId = undefined;
                     websocketState.socket = new WebSocket(fixedWebSocketUrl);
                     initWebsocket();
                 }, retryTimeout);
-
-                cleanUpFunctions.push(() => {
-                    clearTimeout(timeoutId);
-                });
             }
         };
-
-        cleanUpFunctions.push(() => {
-            websocketState.socket.onerror = null;
-            if (websocketState.socket.readyState === websocketState.socket.OPEN) {
-                websocketState.socket.close(1000, "Closing web socket connection.");
-            }
-        });
     };
     initWebsocket();
     return cleanUp;

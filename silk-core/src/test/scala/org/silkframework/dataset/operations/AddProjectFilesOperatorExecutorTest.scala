@@ -8,7 +8,7 @@ import org.silkframework.execution.local.LocalExecution
 import org.silkframework.execution.typed.{FileEntity, FileEntitySchema}
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
 import org.silkframework.runtime.activity.TestUserContextTrait
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.util.{ActivityContextMock, MockitoSugar}
 
 class AddProjectFilesOperatorExecutorTest extends AnyFlatSpec with Matchers with TestUserContextTrait with MockitoSugar {
@@ -58,7 +58,7 @@ class AddProjectFilesOperatorExecutorTest extends AnyFlatSpec with Matchers with
   private def execute(op: AddProjectFilesOperator, newFiles: Seq[String], existingFiles: Seq[String], expectedWrittenFiles: Seq[String]): Unit = {
     val task = PlainTask("task", op)
     val resourceManager = createResourceManager(existingFiles)
-    implicit val pluginContext: PluginContext = PluginContext(Prefixes.empty, resourceManager)
+    implicit val pluginContext: PluginContext = PluginContext(Prefixes.empty, resourceManager, taskResolver = TaskResolver.empty)
     val activityContext = ActivityContextMock[ExecutionReport]()
 
     val newFileEntities =

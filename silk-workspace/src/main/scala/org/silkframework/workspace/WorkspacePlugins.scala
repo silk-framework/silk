@@ -15,6 +15,7 @@ import org.silkframework.workspace.activity.workflow.Workflow.WorkflowXmlFormat
 import org.silkframework.workspace.activity.workflow.WorkflowDatasetsParameter.WorkflowDatasetsFormat
 import org.silkframework.workspace.activity.workflow.WorkflowOperatorsParameter.WorkflowOperatorsFormat
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowAsTaskExecutor, LocalWorkflowExecutorFactory, NopPersistWorkflowProvenance, Workflow}
+import org.silkframework.workspace.changes.{EmptyChangeJournalStore, InMemoryChangeJournalStore}
 import org.silkframework.workspace.xml.{FileWorkspaceProvider, XmlZipWithResourcesProjectMarshaling, XmlZipWithoutResourcesProjectMarshaling}
 
 import scala.language.existentials
@@ -29,6 +30,7 @@ class WorkspacePlugins extends PluginModule {
     workflowActivities :::
     projectMarshaller :::
     provenancePlugins :::
+    changeJournalPlugins :::
     rulePlugins :::
     workspaceTaskPlugins :::
     autoCompletionProviderPlugins :::
@@ -86,6 +88,10 @@ class WorkspacePlugins extends PluginModule {
   }
 
   def provenancePlugins: List[Class[_ <: AnyPlugin]] = classOf[NopPersistWorkflowProvenance] :: Nil
+
+  def changeJournalPlugins: List[Class[_ <: AnyPlugin]] =
+    classOf[InMemoryChangeJournalStore] ::
+    classOf[EmptyChangeJournalStore] :: Nil
 
   def autoCompletionProviderPlugins: List[Class[_ <: AnyPlugin]] = classOf[DatasetTypeAutoCompletionProvider] :: Nil
 

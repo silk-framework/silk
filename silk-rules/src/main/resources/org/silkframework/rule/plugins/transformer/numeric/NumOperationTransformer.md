@@ -10,9 +10,9 @@ For calling it, we provide one or more input sequences. All values from all inpu
 
 The Numeric operation plugin does not apply the operator to one left value and one right value only. It applies the operator across the full sequence of parsed operands, independent of how those operands are distributed across the inputs, and returns exactly one value as the final reduction result.
 
-## Invalid values
+## Invalid and missing values
 
-Every input value must be a valid number. If any value is not a number, the plugin fails instead of skipping that value or treating it as `0`. At least one numeric input value is required, because the operator is applied by reducing the operand sequence into a single result.
+Every input value must be a valid number. If any value is not a number, the plugin fails instead of skipping that value or treating it as `0`. If any input provides no value at all, the plugin returns no value, since the operation would be undefined with a missing operand.
 
 ## Division
 

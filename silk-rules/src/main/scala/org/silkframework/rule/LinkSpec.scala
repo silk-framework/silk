@@ -18,9 +18,10 @@ import org.silkframework.config._
 import org.silkframework.dataset._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{EntitySchema, Restriction, ValueType}
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.execution.typed.{LinkGenerator, LinksEntitySchema}
 import org.silkframework.rule.evaluation.ReferenceLinks
-import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
+import org.silkframework.rule.input.{Input, PathInput, RuleBlockInput, TransformInput, Transformer}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.AnyPlugin
@@ -49,10 +50,12 @@ import scala.xml.Node
   description =
       """Generates links between instances from different sources according to a link specification."""
 )
-case class LinkSpec(@Param(label = "Source input", value = "The source input to select.")
-                    source: DatasetSelection = DatasetSelection("SourceDatasetSelection", Uri(""), Restriction.empty),
-                    @Param(label = "Target input", value = "The target input to select.")
-                    target: DatasetSelection = DatasetSelection("TargetDatasetSelection", Uri(""), Restriction.empty),
+case class LinkSpec(@Param(label = "Source input", value = "The source input to select. If left empty, the input must be provided by connecting it in a workflow. " +
+                      "Note that auto-completion of types and paths is only available if an input is selected here.")
+                    source: DatasetSelection = DatasetSelection.empty,
+                    @Param(label = "Target input", value = "The target input to select. If left empty, the input must be provided by connecting it in a workflow. " +
+                      "Note that auto-completion of types and paths is only available if an input is selected here.")
+                    target: DatasetSelection = DatasetSelection.empty,
                     @Param(label = "Linkage rule", value = "The linkage rule that specifies when entities match and are linked.", visibleInDialog = false)
                     rule: LinkageRule = LinkageRule(),
                     @Param(label = "Output", value = "The output dataset to write the links to.", autoCompletionProvider = classOf[DatasetTaskReferenceAutoCompletionProvider],
@@ -74,7 +77,7 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
 
   def findSources(datasets: Iterable[Task[DatasetSpec[Dataset]]])
                  (implicit userContext: UserContext): DPair[DataSource] = {
-    DPair.fromSeq(dataSelections.map(_.inputId).map(id => datasets.find(_.id == id).map(_.source).getOrElse(EmptySource)))
+    DPair.fromSeq(dataSelections.map(_.inputTaskId).map(idOpt => idOpt.flatMap(id => datasets.find(_.id == id)).map(ExecutorRegistry.access(_).source).getOrElse(EmptySource)))
   }
 
   def entityDescriptions: DPair[EntitySchema] = {
@@ -114,6 +117,7 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
       val typedPath = TypedPath(p.path, ValueType.STRING, isAttribute = false)
       Set(typedPath)
     case p: TransformInput => p.inputs.flatMap(collectPathsFromInput).toSet
+    case rb: RuleBlockInput => rb.bindings.flatMap(binding => collectPathsFromInput(binding.input)).toSet
     case _ => Set()
   }
 
@@ -131,9 +135,11 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
     Some(FixedSchemaPort(LinksEntitySchema.schema))
   }
 
-  override def inputTasks: Set[Identifier] = dataSelections.map(_.inputId).toSet
+  override def inputTasks: Set[Identifier] = dataSelections.toSeq.flatMap(_.inputTaskId).toSet
 
   override def outputTasks: Set[Identifier] = output.value.toSet
+
+  override def referencedTasks: Set[Identifier] = inputTasks ++ outputTasks ++ referencedRuleBlocks
 
   override lazy val referencedResources: Seq[Resource] = {
     val resources = new mutable.HashSet[Resource]()
@@ -141,11 +147,19 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
     resources.toSeq
   }
 
-  override def referencedVariables: Seq[TemplateVariableName] = {
+  override def referencedVariables: Seq[TemplateVariableName] = collectFromTransformers(_.referencedVariables)
+
+  override def modifiedVariables: Seq[TemplateVariableName] = collectFromTransformers(_.modifiedVariables)
+
+  /** Collects variables from all transformers in the linkage rule tree. */
+  private def collectFromTransformers(f: Transformer => Seq[TemplateVariableName]): Seq[TemplateVariableName] = {
     val variables = mutable.Buffer[TemplateVariableName]()
-    rule.operator foreach (operator => iterateAllTransformersFromSimilarityOperator(operator, _.referencedVariables.foreach(variables.append)))
+    rule.operator foreach (operator => iterateAllTransformersFromSimilarityOperator(operator, transformer => variables ++= f(transformer)))
     variables.toSeq
   }
+
+  private lazy val referencedRuleBlocks: Set[Identifier] =
+    rule.operator.map(referencedRuleBlocksFromSimilarityOperator).getOrElse(Set.empty)
 
   private def iterateAllTransformersFromSimilarityOperator(rule: SimilarityOperator,
                                                            f: Transformer => Unit): Unit = {
@@ -158,12 +172,36 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
     }
   }
 
+  private def referencedRuleBlocksFromSimilarityOperator(rule: SimilarityOperator): Set[Identifier] = {
+    rule match {
+      case agg: Aggregation =>
+        agg.operators.flatMap(referencedRuleBlocksFromSimilarityOperator).toSet
+      case comp: Comparison =>
+        comp.inputs.flatMap(referencedRuleBlocksFromOperator).toSet
+      case _ =>
+        Set.empty
+    }
+  }
+
+  private def referencedRuleBlocksFromOperator(operator: Operator): Set[Identifier] = {
+    operator match {
+      case TransformInput(_, _, inputs) =>
+        inputs.flatMap(referencedRuleBlocksFromOperator).toSet
+      case RuleBlockInput(_, ruleBlockId, bindings) =>
+        bindings.flatMap(binding => referencedRuleBlocksFromOperator(binding.input)).toSet + ruleBlockId
+      case _ =>
+        Set.empty
+    }
+  }
+
   private def iterateAllTransformersFromOperator(operator: Operator,
                                                  f: Transformer => Unit): Unit = {
     operator match {
       case TransformInput(_, transformer, inputs) =>
         inputs.foreach(input => iterateAllTransformersFromOperator(input, f))
         f(transformer)
+      case RuleBlockInput(_, _, bindings) =>
+        bindings.foreach(binding => iterateAllTransformersFromOperator(binding.input, f))
       case _ =>
     }
   }
@@ -231,8 +269,8 @@ object LinkSpec {
       // Create link spec
       val linkSpec =
         LinkSpec(
-          source = DatasetSelection.fromXML((node \ "SourceDataset").head),
-          target = DatasetSelection.fromXML((node \ "TargetDataset").head),
+          source = (node \ "SourceDataset").headOption.map(DatasetSelection.fromXML).getOrElse(DatasetSelection.empty),
+          target = (node \ "TargetDataset").headOption.map(DatasetSelection.fromXML).getOrElse(DatasetSelection.empty),
           rule = fromXml[LinkageRule](linkageRuleNode),
           output =
             (node \ "Outputs" \ "Output").headOption map { outputNode =>

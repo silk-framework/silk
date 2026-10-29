@@ -3,6 +3,7 @@ package org.silkframework.runtime.plugin
 
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.plugin.StringParameterType.StringMapType
+import org.silkframework.runtime.validation.ValidationException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 
@@ -26,6 +27,21 @@ class StringMapTypeTest extends AnyFlatSpec with Matchers {
 
   it should "parse an empty map expression" in {
     StringMapType.fromString("") mustBe Map()
+  }
+
+  it should "keep colons inside a value" in {
+    StringMapType.fromString("a:b:c") mustBe Map("a" -> "b:c")
+  }
+
+  it should "report a clear error for an entry without a colon" in {
+    val ex = intercept[ValidationException](StringMapType.fromString("a:b,noColon"))
+    ex.getMessage must include ("noColon")
+  }
+
+  it should "report a clear error for an invalid percent-encoding" in {
+    // A bare '%' is an incomplete escape that used to crash with an ArrayIndexOutOfBounds/IllegalArgument error
+    val ex = intercept[ValidationException](StringMapType.fromString("key:100%"))
+    ex.getMessage must include ("percent-encoding")
   }
 
   it should "serialize basic maps" in {

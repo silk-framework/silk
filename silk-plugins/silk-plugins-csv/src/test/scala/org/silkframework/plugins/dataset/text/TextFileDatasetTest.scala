@@ -4,6 +4,7 @@ package org.silkframework.plugins.dataset.text
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.silkframework.dataset.TypedProperty
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.entity.{EntitySchema, ValueType}
 import org.silkframework.runtime.activity.TestPluginContextTrait
 import org.silkframework.runtime.resource.InMemoryResourceManager
@@ -21,7 +22,7 @@ class TextFileDatasetTest extends AnyFlatSpec with Matchers with TestPluginConte
   private val testValue = "value"
 
   it should "write plain text files" in {
-    val sink = dataset.entitySink
+    val sink = ExecutorRegistry.access(dataset).entitySink
     sink.openTable(dataset.typeName, Seq(TypedProperty(dataset.property, ValueType.STRING, isBackwardProperty = false)), singleEntity = false)
     sink.writeEntity("dummySubject", IndexedSeq(Seq(testValue)))
     sink.closeTable()
@@ -31,13 +32,37 @@ class TextFileDatasetTest extends AnyFlatSpec with Matchers with TestPluginConte
   }
 
   it should "read plain text files" in {
-    val source = dataset.source
+    val source = ExecutorRegistry.access(dataset).source
     source.retrieveTypes().map(_._1) shouldBe Seq(dataset.typeName)
     source.retrievePaths(dataset.typeName) shouldBe Seq(dataset.path)
 
     val entities = source.retrieve(EntitySchema(dataset.typeName, IndexedSeq(dataset.path))).entities.toSeq
     entities.size shouldBe 1
     entities.head.values shouldBe Seq(Seq(testValue))
+  }
+
+  it should "only empty the file on clear if forced" in {
+    resource.writeString(testValue)
+    val sink = ExecutorRegistry.access(dataset).entitySink
+
+    sink.clear()
+    resource.loadAsString() shouldBe testValue
+
+    sink.clear(force = true)
+    resource.loadAsString() shouldBe ""
+  }
+
+  it should "replace the existing content of the file when writing after an unforced clear" in {
+    resource.writeString("old content that is considerably longer than the content written afterwards")
+    val sink = ExecutorRegistry.access(dataset).entitySink
+
+    sink.clear()
+    sink.openTable(dataset.typeName, Seq(TypedProperty(dataset.property, ValueType.STRING, isBackwardProperty = false)), singleEntity = false)
+    sink.writeEntity("dummySubject", IndexedSeq(Seq(testValue)))
+    sink.closeTable()
+    sink.close()
+
+    resource.loadAsString().trim shouldBe testValue
   }
 
 }

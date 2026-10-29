@@ -20,7 +20,7 @@ object DatasetUtils {
   def datasetCharacteristics(project: Project,
                              datasetSelection: DatasetSelection)
                             (implicit userContext: UserContext): Option[DatasetCharacteristics] = {
-    project.taskOption[GenericDatasetSpec](datasetSelection.inputId)
+    project.taskOption[GenericDatasetSpec](datasetSelection.inputTaskId)
       .map(_.data.characteristics)
   }
 
@@ -33,6 +33,6 @@ object DatasetUtils {
   def isRdfInput(project: Project,
                  datasetSelection: DatasetSelection)
                 (implicit userContext: UserContext): Boolean = {
-    project.taskOption[GenericDatasetSpec](datasetSelection.inputId).exists(_.data.plugin.isInstanceOf[RdfDataset])
+    project.taskOption[GenericDatasetSpec](datasetSelection.inputTaskId).exists(_.data.plugin.isInstanceOf[RdfDataset])
   }
 }

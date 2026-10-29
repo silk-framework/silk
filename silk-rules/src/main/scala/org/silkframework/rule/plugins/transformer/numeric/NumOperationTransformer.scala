@@ -16,6 +16,7 @@ package org.silkframework.rule.plugins.transformer.numeric
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.InlineTransformer
+import org.silkframework.runtime.plugin.FixedValuesAutoCompletionProvider
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.StringUtils.DoubleLiteral
@@ -79,10 +80,11 @@ import org.silkframework.util.StringUtils.DoubleLiteral
     output = Array()
   ),
   new TransformExample(
+    description = "If any input is empty, no output is generated.",
     parameters = Array("operator", "*"),
     input1 = Array("1"),
     input2 = Array(),
-    output = Array("1.0")
+    output = Array()
   ),
   new TransformExample(
     parameters = Array("operator", "+"),
@@ -96,17 +98,31 @@ import org.silkframework.util.StringUtils.DoubleLiteral
     input2 = Array("0"),
     output = Array("Infinity")
   ),
+  new TransformExample(
+    description = "If all inputs are empty, no output is generated.",
+    parameters = Array("operator", "+"),
+    input1 = Array(),
+    input2 = Array(),
+    output = Array()
+  ),
 ))
 case class NumOperationTransformer(
-  @Param("The operator to be applied to all values. One of `+`, `-`, `*`, `/`")
+  @Param(value = "The operator to be applied to all values. One of `+`, `-`, `*`, `/`",
+         autoCompletionProvider = classOf[ArithmeticOperatorAutoCompletionProvider], allowOnlyAutoCompletedValues = true)
   operator: String
 ) extends InlineTransformer {
 
-  require(Set("+", "-", "*", "/") contains operator, "Operator must be one of '+', '-', '*', '/'")
+  require(NumOperationTransformer.operators contains operator, "Operator must be one of '+', '-', '*', '/'")
 
   def apply(values: Seq[Seq[String]]): Seq[String] = {
-    val operands = values.flatMap(_.map(parse))
-    Seq(operands.reduce(operation).toString)
+    // All values are parsed first, so malformed numbers are reported even if another input is empty.
+    val operands = values.map(_.map(parse))
+    // The operation is undefined if an operand is missing, so any empty input yields no value.
+    if(operands.isEmpty || operands.exists(_.isEmpty)) {
+      Seq.empty
+    } else {
+      Seq(operands.flatten.reduce(operation).toString)
+    }
   }
 
   def parse(value: String): Double = {
@@ -128,4 +144,10 @@ case class NumOperationTransformer(
 
 object NumOperationTransformer {
   final val pluginId = "numOperation"
+
+  /** The supported arithmetic operators. */
+  final val operators = Seq("+", "-", "*", "/")
 }
+
+/** Provides autocomplete suggestions for the arithmetic operator. */
+case class ArithmeticOperatorAutoCompletionProvider() extends FixedValuesAutoCompletionProvider(NumOperationTransformer.operators)

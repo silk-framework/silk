@@ -16,45 +16,66 @@ package org.silkframework.workspace
 
 import org.silkframework.config._
 import org.silkframework.dataset.{Dataset, DatasetSpec}
-import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.rule.{LinkSpec, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.activity.{HasValue, UserContext}
-import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TaskResolver}
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.templating.TemplateVariablesManager
-import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
-import org.silkframework.util.Identifier
+import org.silkframework.runtime.templating.{TemplateVariables, TemplateVariablesManager}
+import org.silkframework.runtime.validation.NotFoundException
+import org.silkframework.util.{Identifier, Uri}
 import org.silkframework.workspace.access.{AccessControlConfig, ProjectAccessControlManager, ProjectAccessDeniedException}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowValidator}
 import org.silkframework.workspace.activity.{ProjectActivity, ProjectActivityFactory}
+import org.silkframework.workspace.changes.ChangeJournal
 import org.silkframework.workspace.exceptions.{IdentifierAlreadyExistsException, TaskNotFoundException}
+import org.silkframework.workspace.resources.JournalingResourceManager
 
+import java.util.concurrent.{TimeUnit, TimeoutException}
 import java.util.logging.{Level, Logger}
+import scala.collection.mutable
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 
 /**
  * A project.
  *
  * @param initialConfig The initial project configuration.
  * @param provider The workspace provider used to read and write this project.
- * @param resources The resource manager for holding project file resources.
+ * @param projectResources The resource manager for holding project file resources.
  * @param loadingUser The user context for loading tasks and variables initially. Should not be used after the project has been loaded.
  *
  */
-class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val resources: ResourceManager, loadingUser: UserContext) extends ProjectTrait {
+class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, projectResources: ResourceManager, loadingUser: UserContext) extends ProjectTrait {
 
   private implicit val logger: Logger = Logger.getLogger(classOf[Project].getName)
 
   val accessControl = new ProjectAccessControlManager(initialConfig.id, provider, loadingUser)
 
-  val tagManager = new TagManager(initialConfig.id, provider)
-
-  val templateVariables: TemplateVariablesManager = new ProjectTemplateVariablesManager(provider.projectVariables(initialConfig.id)(loadingUser), loadingUser)
-
   val cacheResources: ResourceManager = provider.projectCache(initialConfig.id)
 
   @volatile
   private var cachedConfig: ProjectConfig = initialConfig
+
+  /** The journal of changes to this project, which records every write and can revert it. */
+  val changeJournal: ChangeJournal = new ChangeJournal(this)
+
+  /** The tags of this project. Every change is recorded in the change journal. */
+  val tagManager = new TagManager(initialConfig.id, provider, changeJournal)
+
+  /** The file resources of this project. Every write is recorded in the change journal. */
+  val resources: ResourceManager = new JournalingResourceManager(projectResources, changeJournal)
+
+  val templateVariables: TemplateVariablesManager =
+    new ProjectTemplateVariablesManager(provider.projectVariables(initialConfig.id)(loadingUser), loadingUser, changeJournal)
+
+  /** The variables manager for either the project variables or, if a task is given, the execution variables of that task. */
+  def variablesManager(taskId: Option[String])(implicit userContext: UserContext): TemplateVariablesManager = {
+    taskId match {
+      case Some(id) => anyTask(id).executionVariablesValueHolder
+      case None => templateVariables
+    }
+  }
 
   @volatile
   private var modules = Seq[Module[_ <: TaskSpec]]()
@@ -66,6 +87,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     // Register all default modules
     registerModule[DatasetSpec[Dataset]]()
     registerModule[TransformSpec]()
+    registerModule[RuleBlockSpec]()
     registerModule[LinkSpec]()
     registerModule[Workflow](WorkflowValidator)
     registerModule[CustomTask]()
@@ -86,12 +108,37 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
 
   /**
     * Cancels all activities in this project.
+    * Cancellation is asynchronous, use [[awaitActivities]] before deleting or reloading the project.
     */
   def cancelActivities()(implicit userContext: UserContext): Unit = {
     // Project activities
     activities.foreach(_.control.cancel())
     // Task activities
     allTasks.foreach(_.cancelActivities())
+  }
+
+  /**
+    * Waits until all activities stopped. Bounded, because activities are not guaranteed to react to cancellation.
+    *
+    * @return A failure naming the activities that are still running after the timeout, which is also logged as a warning.
+    */
+  def awaitActivities()(implicit userContext: UserContext): Try[Unit] = {
+    val controls = activities.map(_.control) ++ allTasks.flatMap(_.activities.map(_.control))
+    // Monotonic clock, so that wall clock jumps do not shorten or stretch the wait
+    val deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(Project.cancellationTimeoutMillis)
+    var running = controls.filter(_.status().isRunning)
+    while(running.nonEmpty && System.nanoTime() - deadline < 0) {
+      Thread.sleep(Project.cancellationPollIntervalMillis)
+      running = running.filter(_.status().isRunning)
+    }
+    if(running.nonEmpty) {
+      val message = s"Activities in project $id did not stop within ${Project.cancellationTimeoutMillis}ms " +
+        s"after being cancelled: ${running.map(_.name).mkString(", ")}"
+      logger.warning(message)
+      Failure(new TimeoutException(message))
+    } else {
+      Success(())
+    }
   }
 
   /**
@@ -111,7 +158,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   }
 
   private val projectActivities = {
-    implicit val pluginContext: PluginContext = PluginContext(prefixes = config.prefixes, resources = resources, user = loadingUser)
+    implicit val pluginContext: PluginContext = PluginContext(prefixes = config.prefixes, resources = resources, user = loadingUser, taskResolver = TaskResolver.empty)
     val factories = PluginRegistry.availablePlugins[ProjectActivityFactory[_ <: HasValue]].toList
     var activities = List[ProjectActivity[_ <: HasValue]]()
     for(factory <- factories) {
@@ -212,6 +259,11 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     module[T].taskOption(taskName)
   }
 
+  override def taskOption[T <: TaskSpec : ClassTag](taskName: Option[Identifier])
+                                                   (implicit userContext: UserContext): Option[ProjectTask[T]] = {
+    taskName.flatMap(name => taskOption[T](name))
+  }
+
   /**
    * Retrieves a task of any type by name.
    *
@@ -241,12 +293,13 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     * @param taskData The task data.
     * @tparam T The task type.
     */
-  def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty)
+  def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty,
+                                        executionVariables: TemplateVariables = TemplateVariables.empty)
                                        (implicit userContext: UserContext): ProjectTask[T] = synchronized {
     if(allTasks.exists(_.id == name)) {
       throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.id}' with this name.")
     }
-    val task = module[T].add(name, taskData, metaData.asNewMetaData)(readWriteUser)
+    val task = module[T].add(name, taskData, metaData.asNewMetaData, executionVariables)(readWriteUser)
     provider.removeExternalTaskLoadingError(config.id, name)
     task
   }
@@ -257,13 +310,24 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     * @param name The name of the task. Must be unique for all tasks in this project.
     * @param taskData The task data.
     */
-  def addAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty)
+  def addAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty,
+                 executionVariables: TemplateVariables = TemplateVariables.empty)
                 (implicit userContext: UserContext): ProjectTask[TaskSpec] = synchronized {
+    addTaskToModule(name, taskData, metaData.asNewMetaData, executionVariables)
+  }
+
+  /** Re-adds a removed task with its creation metadata; like an update, the restore is stamped as a modification. */
+  private[workspace] def restoreTask(task: PlainTask[TaskSpec])(implicit userContext: UserContext): ProjectTask[TaskSpec] = synchronized {
+    addTaskToModule(task.id, task.data, task.metaData.asUpdatedMetaData, task.executionVariables)
+  }
+
+  private def addTaskToModule(name: Identifier, taskData: TaskSpec, metaData: MetaData, executionVariables: TemplateVariables)
+                             (implicit userContext: UserContext): ProjectTask[TaskSpec] = {
     if(allTasks.exists(_.id == name)) {
       throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.id}' with this name.")
     }
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
-      case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData.asNewMetaData)(readWriteUser)
+      case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData, executionVariables)(readWriteUser)
       case None => throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
     }
   }
@@ -277,15 +341,16 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     * @param metaData The task metadata. If not provided, no changes to the metadata are made.
     * @tparam T The task type.
     */
-  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: Option[MetaData] = None)
+  def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: Option[MetaData] = None,
+                                           executionVariables: Option[TemplateVariables] = None)
                                           (implicit userContext: UserContext): ProjectTask[T] = synchronized {
     module[T].taskOption(name) match {
       case Some(task) =>
         val mergedMetaData = mergeMetaData(task.metaData, metaData)
-        task.update(taskData, Some(mergedMetaData.asUpdatedMetaData))(readWriteUser)
+        task.update(taskData, Some(mergedMetaData.asUpdatedMetaData), executionVariables)
         task
       case None =>
-        addTask[T](name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData)
+        addTask[T](name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData, executionVariables.getOrElse(TemplateVariables.empty))
     }
   }
 
@@ -302,20 +367,65 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     * @param name The name of the task. Must be unique for all tasks in this project.
     * @param taskData The task data.
     * @param metaData The task meta data. If not provided, no changes to the meta data are made.
+    * @param executionVariables The execution variables of the task. If not provided, no changes to the variables are made.
     */
-  def updateAnyTask(name: Identifier, taskData: TaskSpec, metaData: Option[MetaData] = None)
-                   (implicit userContext: UserContext): Unit = synchronized {
+  def updateAnyTask(name: Identifier, taskData: TaskSpec, metaData: Option[MetaData] = None,
+                    executionVariables: Option[TemplateVariables] = None)
+                   (implicit userContext: UserContext): Unit = {
+    putAnyTask(name, taskData, executionVariables) {
+      case Some(currentMetaData) => mergeMetaData(currentMetaData, metaData)
+      case None => metaData.getOrElse(MetaData.empty)
+    }
+  }
+
+  /**
+    * Updates a task of any type in this project, or adds it if no task with the given name exists.
+    * The meta data is derived from the current one in the same step, so that no other update slips in between.
+    *
+    * @param name The name of the task. Must be unique for all tasks in this project.
+    * @param taskData The task data.
+    * @param executionVariables The execution variables of the task. If not provided, no changes to the variables are made.
+    * @param metaData Returns the meta data to write for the current one, which is None if the task does not exist yet.
+    */
+  def putAnyTask(name: Identifier, taskData: TaskSpec, executionVariables: Option[TemplateVariables] = None)
+                (metaData: Option[MetaData] => MetaData)
+                (implicit userContext: UserContext): Unit = synchronized {
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
       case Some(module) =>
         module.taskOption(name) match {
           case Some(task) =>
-            val mergedMetaData = mergeMetaData(task.metaData, metaData)
-            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(mergedMetaData.asUpdatedMetaData))(readWriteUser)
+            task.synchronized {
+              val newMetaData = metaData(Some(task.metaData))
+              task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(newMetaData.asUpdatedMetaData), executionVariables)
+            }
           case None =>
-            addAnyTask(name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData)
+            addAnyTask(name, taskData, metaData(None).asNewMetaData, executionVariables.getOrElse(TemplateVariables.empty))
         }
       case None =>
         throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
+    }
+  }
+
+  /**
+    * Updates the meta data of an existing task of any type. Reading and writing it are one step,
+    * so that no other update slips in between. An update that changes nothing writes nothing:
+    * the task is not persisted again and its activities are not restarted.
+    *
+    * @param name The name of the task.
+    * @param update Returns the new meta data for the current one.
+    * @return The meta data of the task after the update.
+    * @throws TaskNotFoundException If no task with the given name has been found
+    */
+  def updateTaskMetaData(name: Identifier)(update: MetaData => MetaData)
+                        (implicit userContext: UserContext): MetaData = synchronized {
+    val task = anyTask(name)
+    task.synchronized {
+      val current = task.metaData
+      val updated = update(current)
+      if(updated != current) {
+        task.updateMetaData(updated.asUpdatedMetaData)
+      }
+      task.metaData
     }
   }
 
@@ -342,29 +452,27 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     *
     * @param taskName The name of the task
     * @param removeDependentTasks Also remove tasks that directly or indirectly reference the named task
-    * @throws ValidationException If the task to be removed is referenced by another task and removeDependentTasks is false.
+    * @return The ids of all removed tasks, including the dependent ones.
+    * @throws TaskReferencedException If the task to be removed is referenced by another task and removeDependentTasks is false.
     */
   def removeAnyTask(taskName: Identifier, removeDependentTasks: Boolean)
-                   (implicit userContext: UserContext): Unit = synchronized {
+                   (implicit userContext: UserContext): Set[Identifier] = synchronized {
     // Find the task in the project
     modules.view.flatMap(module => module.taskOption(taskName).map(task => (module, task))).headOption match {
-      case Some((module, task)) =>
-        // Task has been found, remove it
-        if(removeDependentTasks) {
-          // Remove all dependent tasks
-          for(dependentTask <- task.findDependentTasks(recursive = false) if anyTaskOption(dependentTask).isDefined) {
-            removeAnyTask(dependentTask, removeDependentTasks = true)
-          }
-        } else {
-          // Make sure that no other task depends on this task
-          for(task <- allTasks) {
-            if(task.data.inputTasks.contains(taskName)) {
-              throw new ValidationException(s"Cannot delete task $taskName as it is referenced by task ${task.id}")
-            }
-          }
+      case Some((module, _)) =>
+        val references = TaskReferences.of(allTasks)
+        val referencingTasks = references.getOrElse(taskName, Seq.empty)
+        val dependentTasks = withIndirectDependents(references, taskName, referencingTasks.map(_.task.id))
+        if(dependentTasks.nonEmpty && !removeDependentTasks) {
+          // The caller decides whether to cascade, so the REST endpoints answer 409, not 500.
+          throw TaskReferencedException(taskName, referencingTasks, dependentTasks)
         }
-        // Remove the task from the module
+        // Farthest dependents first, so no task references a task that is already gone.
+        for(dependentTask <- dependentTasks.reverse; dependentModule <- modules if dependentModule.taskOption(dependentTask).isDefined) {
+          dependentModule.remove(dependentTask)(readWriteUser)
+        }
         module.remove(taskName)(readWriteUser)
+        dependentTasks.toSet + taskName
       case None =>
         // Task not found, check if it failed to load
         for {
@@ -375,13 +483,39 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
           module.removeLoadingError(taskName)
         }
         provider.removeExternalTaskLoadingError(id, taskName)
+        Set.empty
     }
   }
 
+  /** Removes a tag unless a task or the project itself still has it, else throws [[TagInUseException]]. */
+  def removeTag(uri: Uri)(implicit userContext: UserContext): Unit = synchronized {
+    for(tag <- tagManager.allTags().find(_.uri == uri)) {
+      TagInUseException.check(this, tag, allTasks.filter(_.metaData.tags.contains(uri)))
+      tagManager.deleteTag(uri)
+    }
+  }
+
+  /**
+    * The direct dependents and every task that directly or indirectly references one of them, nearest first.
+    * Each task is visited once, so a reference cycle terminates.
+    */
+  private def withIndirectDependents(references: Map[Identifier, Seq[ReferencingTask]], root: Identifier, direct: Seq[Identifier]): Seq[Identifier] = {
+    val found = mutable.LinkedHashSet[Identifier]() ++ direct
+    var frontier = direct
+    while(frontier.nonEmpty) {
+      val next = frontier.flatMap(id => references.getOrElse(id, Seq.empty).map(_.task.id)).distinct
+        .filterNot(id => id == root || found.contains(id))
+      found ++= next
+      frontier = next
+    }
+    found.toSeq
+  }
+
   /** Returns the user context for read and write operations to the workspace provider. */
-  private def readWriteUser(implicit userContext: UserContext): UserContext = {
+  private[workspace] def readWriteUser(implicit userContext: UserContext): UserContext = {
     if(AccessControlConfig().enabled) {
-      loadingUser
+      // The loading user has the provider rights, the execution context still tells where the request came from.
+      loadingUser.withExecutionContext(userContext.executionContext)
     } else {
       userContext
     }
@@ -422,4 +556,11 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   }
 
   override def toString: String = s"Project ${config.labelAndId(config.prefixes)}"
+}
+
+private object Project {
+  /** Upper bound for waiting on cancelled activities, so that a project that ignores cancellation cannot block the workspace. */
+  final val cancellationTimeoutMillis = 10000L
+
+  final val cancellationPollIntervalMillis = 50L
 }

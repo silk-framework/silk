@@ -1,5 +1,5 @@
 package org.silkframework.util
-
+
 import StringUtils._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

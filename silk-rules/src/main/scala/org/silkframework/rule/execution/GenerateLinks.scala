@@ -24,11 +24,11 @@ import org.silkframework.rule.execution.rdb.RDBEntityIndex
 import org.silkframework.rule.{LinkSpec, LinkageRuleExecution, LinkingExecutionBackend, RuntimeLinkingConfig, TaskContext}
 import org.silkframework.runtime.activity._
 import org.silkframework.util.FileUtils._
-import org.silkframework.util.{CollectLogs, DPair}
+import org.silkframework.util.DPair
 
 import java.io.File
 import java.util.UUID
-import java.util.logging.{LogRecord, Logger}
+import java.util.logging.Logger
 import scala.util.Try
 
 /**
@@ -48,9 +48,6 @@ class GenerateLinks(task: Task[LinkSpec],
 
   private val linkSpec = task.data.copy(rule = rule.operator)
 
-  /** The warnings which occurred during execution */
-  @volatile private var warningLog: Seq[LogRecord] = Seq.empty
-
   private var children: List[ActivityControl[_]] = Nil
 
   private val comparisonToRestrictionConverter = new ComparisonToRestrictionConverter()
@@ -58,23 +55,16 @@ class GenerateLinks(task: Task[LinkSpec],
   /** The entity descriptions which define which entities are retrieved by this task */
   def entityDescs: DPair[EntitySchema] = linkSpec.entityDescriptions
 
-  /**
-   * All warnings which have been generated during executing.
-   */
-  def warnings: Seq[LogRecord] = warningLog
-
   override def initialValue: Option[Linking] = Some(Linking(task, rule.operator))
 
   override def run(context: ActivityContext[Linking])
                   (implicit userContext: UserContext): Unit = {
     context.value.update(Linking(task, rule.operator))
 
-    warningLog = CollectLogs() {
-      if(RDBEntityIndex.configured() && runtimeConfig.executionBackend == LinkingExecutionBackend.rdb && false) { //FIXME CMEM-1408: Remove false to enable RDB feature
-        runRdbLinking(context)
-      } else {
-        runNativeLinking(context)
-      }
+    if(RDBEntityIndex.configured() && runtimeConfig.executionBackend == LinkingExecutionBackend.rdb && false) { //FIXME CMEM-1408: Remove false to enable RDB feature
+      runRdbLinking(context)
+    } else {
+      runNativeLinking(context)
     }
   }
 
@@ -90,51 +80,56 @@ class GenerateLinks(task: Task[LinkSpec],
     // Entity caches
     val caches = createCaches()
     // Load entities
-    val loaders = for((input, cache) <- inputs zip caches) yield context.child(new CacheLoader(input, cache, runtimeConfig.sampleSizeOpt))
+    val loaders = for((input, cache) <- inputs zip caches) yield {
+      context.child(new CacheLoader(input, cache, runtimeConfig.sampleSizeOpt, taskContext.pluginContext))
+    }
     children :::= loaders.toList
-    if (runtimeConfig.reloadCache) {
-      loaders.foreach(_.start())
-    }
-    if(context.status.isCanceling) return
-    // Execute matching
-    val sourceEqualsTarget = false // FIXME: CMEM-1975: Fix heuristic for this particular matching optimization
-    val matcher = context.child(new Matcher(loaders, rule, caches, runtimeConfig, sourceEqualsTarget), 0.95)
-    val updateLinks = (result: MatcherResult) => context.value.update(Linking(task, rule.operator, result.links, LinkingStatistics(entityCount = caches.map(_.size)), result.warnings))
-    matcher.value.subscribe(updateLinks)
-    children ::= matcher
-    matcher.startBlocking()
-    updateLinks(matcher.value())
-
-    stopLoading(context, loaders)
-    cleanUpCaches(caches)
-
-    if(context.status.isCanceling) return
-
-    // Filter links
-    val filterTask = new Filter(matcher.value().links, rule.operator.filter)
-    var filteredLinks = context.child(filterTask, 0.03).startBlockingAndGetValue()
-    if(context.status.isCanceling) return
-
-    // Include reference links
-    // TODO include into Filter and execute before filtering
-    if(runtimeConfig.includeReferenceLinks) {
-      // Remove negative reference links and add positive reference links
-      filteredLinks = (filteredLinks.toSet -- linkSpec.referenceLinks.negative ++ linkSpec.referenceLinks.positive).toSeq
-    }
-    runtimeConfig.linkLimit foreach { linkLimit =>
-      if(filteredLinks.size > linkLimit) {
-        log.info(s"Reducing ${filteredLinks.size} links to link limit of $linkLimit.")
+    // Always stop the loaders and delete the cache files, even if loading, matching or filtering fails or is cancelled.
+    try {
+      if (runtimeConfig.reloadCache) {
+        loaders.foreach(_.start())
       }
-      filteredLinks = filteredLinks.take(linkLimit)
-    }
-    context.value.update(Linking(task, rule.operator, filteredLinks, context.value().statistics, context.value().matcherWarnings, isDone = true,
-      sampleOutputEntities = Seq(sampleEntities(filteredLinks))))
+      if(context.status.isCanceling) return
+      // Execute matching
+      val sourceEqualsTarget = false // FIXME: CMEM-1975: Fix heuristic for this particular matching optimization
+      val matcher = context.child(new Matcher(loaders, rule, caches, runtimeConfig, sourceEqualsTarget), 0.95)
+      val updateLinks = (result: MatcherResult) => context.value.update(Linking(task, rule.operator, result.links, LinkingStatistics(entityCount = caches.map(_.size)), result.warnings))
+      matcher.value.subscribe(updateLinks)
+      children ::= matcher
+      matcher.startBlocking()
+      updateLinks(matcher.value())
 
-    //Output links
-    // TODO dont commit links to context if the task is not configured to hold links
-    val outputTask = new OutputWriter(context.value().links, rule.operator.linkType, rule.operator.inverseLinkType, output)
-    context.child(outputTask, 0.02).startBlocking()
-    logStatistics(context)
+      if(context.status.isCanceling) return
+
+      // Filter links
+      val filterTask = new Filter(matcher.value().links, rule.operator.filter)
+      var filteredLinks = context.child(filterTask, 0.03).startBlockingAndGetValue()
+      if(context.status.isCanceling) return
+
+      // Include reference links
+      // TODO include into Filter and execute before filtering
+      if(runtimeConfig.includeReferenceLinks) {
+        // Remove negative reference links and add positive reference links
+        filteredLinks = (filteredLinks.toSet -- linkSpec.referenceLinks.negative ++ linkSpec.referenceLinks.positive).toSeq
+      }
+      runtimeConfig.linkLimit foreach { linkLimit =>
+        if(filteredLinks.size > linkLimit) {
+          log.info(s"Reducing ${filteredLinks.size} links to link limit of $linkLimit.")
+        }
+        filteredLinks = filteredLinks.take(linkLimit)
+      }
+      context.value.update(Linking(task, rule.operator, filteredLinks, context.value().statistics, context.value().matcherWarnings, isDone = true,
+        sampleOutputEntities = Seq(sampleEntities(filteredLinks))))
+
+      //Output links
+      // TODO dont commit links to context if the task is not configured to hold links
+      val outputTask = new OutputWriter(context.value().links, rule.operator.linkType, rule.operator.inverseLinkType, output)
+      context.child(outputTask, 0.02).startBlocking()
+      logStatistics(context)
+    } finally {
+      stopLoading(context, loaders)
+      cleanUpCaches(caches)
+    }
   }
 
   private def sampleEntities(links: Seq[Link]): SampleEntities = {

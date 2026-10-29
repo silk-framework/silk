@@ -33,6 +33,7 @@ export const VisualBestLinkingRule = ({ rule }: Props) => {
                     },
                 },
                 showRuleOnly: true,
+                readOnly: true,
                 hideMinimap: true,
                 zoomRange: [0.1, 1],
             }}

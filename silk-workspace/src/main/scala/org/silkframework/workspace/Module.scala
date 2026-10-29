@@ -1,9 +1,14 @@
 package org.silkframework.workspace
 
-import org.silkframework.config.{MetaData, TaskSpec}
+import org.silkframework.config.{CustomTask, MetaData, PlainTask, TaskSpec}
+import org.silkframework.dataset.{Dataset, DatasetSpec}
+import org.silkframework.rule.{LinkSpec, RuleBlockSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.TaskCleanupPlugin.CleanUpAfterTaskDeletionFunction
+import org.silkframework.workspace.activity.workflow.Workflow
+import org.silkframework.workspace.changes.{AddTask, RemoveTask}
 import org.silkframework.workspace.exceptions.TaskNotFoundException
 
 import java.util.logging.{Level, Logger}
@@ -77,7 +82,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
   def task(name: Identifier)
           (implicit userContext: UserContext): ProjectTask[TaskData] = {
     assertLoaded()
-    cachedTasks.getOrElse(name, throw TaskNotFoundException(project.id, name, taskType.getSimpleName))
+    cachedTasks.getOrElse(name, throw TaskNotFoundException(project.id, name, Module.taskTypeName(taskType)))
   }
 
   def taskOption(name: Identifier)
@@ -86,14 +91,18 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     cachedTasks.get(name)
   }
 
-  def add(name: Identifier, taskData: TaskData, metaData: MetaData)
+  def add(name: Identifier, taskData: TaskData, metaData: MetaData, executionVariables: TemplateVariables = TemplateVariables.empty)
          (implicit userContext: UserContext) : ProjectTask[TaskData] = {
     assertLoaded()
-    val task = new ProjectTask(name, taskData, metaData, this)
+    // Variable templates are resolved at save time; unresolvable templates keep the provided value.
+    val resolvedVariables = executionVariables.resolvedKeepingUnresolved(TaskExecutionVariablesManager.templateParentVariables(project.templateVariables.all))
+    val task = new ProjectTask(name, taskData, metaData, resolvedVariables, this)
+    task.executionVariablesValueHolder.validateScope(resolvedVariables)
     validator.validate(project, task)
     provider.putTask(project.id, task, project.resources)
     task.startActivities()
     cachedTasks += ((name, task))
+    project.changeJournal.record(AddTask(PlainTask.fromTask(task)))
     logger.info(s"Added task '$name' to project ${project.id}." + userContext.logInfo)
     task
   }
@@ -104,18 +113,22 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
   def remove(taskId: Identifier)
             (implicit userContext: UserContext): Unit = {
     assertLoaded()
-    // Cancel all activities
-    for {
-      task <- cachedTasks.get(taskId)
-      activity <- task.activities
-    } {
-      activity.control.cancel()
+    taskOption(taskId) match {
+      case Some(task) =>
+        // Under the task's monitor: an update in progress completes first, a later one is refused.
+        task.synchronized {
+          // Cancelled under the monitor, so that no update restarts the activities afterwards
+          task.cancelActivities()
+          provider.deleteTask(project.id, taskId)
+          cachedTasks -= taskId
+          task.markRemoved()
+          project.changeJournal.record(RemoveTask(PlainTask.fromTask(task)))
+        }
+        cleanUpAfterTaskDeletion(project.id, taskId, task)
+      case None =>
+        // A task that failed to load is held by the provider only
+        provider.deleteTask(project.id, taskId)
     }
-    // Delete task
-    val taskOpt = taskOption(taskId)
-    provider.deleteTask(project.id, taskId)
-    cachedTasks -= taskId
-    taskOpt.foreach(task => cleanUpAfterTaskDeletion(project.id, taskId, task))
     logger.info(s"Removed task '$taskId' from project ${project.id}." + userContext.logInfo)
   }
 
@@ -132,7 +145,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
           (for (taskTry <- tasks) yield {
             taskTry.taskOrError match {
               case Right(task) =>
-                Some((task.id, new ProjectTask(task.id, task.data, task.metaData, this)))
+                Some((task.id, new ProjectTask(task.id, task.data, task.metaData, task.executionVariables, this)))
               case Left(taskLoadingError) =>
                 errors ::= taskLoadingError
                 None
@@ -169,5 +182,18 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
    */
   private object TaskOrdering extends Ordering[Identifier] {
     def compare(a:Identifier, b:Identifier): Int = a.toString.compareTo(b.toString)
+  }
+}
+
+object Module {
+
+  /** Task types as task JSON names them (JsonSerializers.TASK_TYPE_*, which this module cannot import). */
+  private val taskTypeNames: Seq[(Class[_], String)] = Seq(
+    classOf[DatasetSpec[Dataset]] -> "Dataset", classOf[TransformSpec] -> "Transform", classOf[LinkSpec] -> "Linking",
+    classOf[RuleBlockSpec] -> "RuleBlock", classOf[Workflow] -> "Workflow", classOf[CustomTask] -> "CustomTask")
+
+  /** The API name of a task type, so a message names what a caller sent rather than the Scala class. */
+  def taskTypeName(taskType: Class[_]): String = {
+    taskTypeNames.collectFirst { case (cls, name) if cls.isAssignableFrom(taskType) => name }.getOrElse(taskType.getSimpleName)
   }
 }

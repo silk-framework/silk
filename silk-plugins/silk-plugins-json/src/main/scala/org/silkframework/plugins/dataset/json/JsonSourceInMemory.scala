@@ -85,7 +85,7 @@ class JsonSourceInMemory(taskId: Identifier, nodes: () => CloseableIterator[Json
     */
   private def generateUri(node: JsonTraverser): String = {
     if (uriPattern.isEmpty) {
-      genericEntityIRI(node.nodeId(node.value))
+      genericEntityIRI(node.nodeLocationId(node.value))
     } else {
       uriRegex.replaceAllIn(uriPattern, m => {
         val path = UntypedPath.parse(m.group(1)).asStringTypedPath

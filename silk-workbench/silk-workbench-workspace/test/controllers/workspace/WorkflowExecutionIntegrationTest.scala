@@ -34,11 +34,11 @@ class WorkflowExecutionIntegrationTest extends AnyFlatSpec with SingleProjectWor
     val workflow = project.task[Workflow](dependencyWorkflow)
     val updatedWorkflow = workflow.data.copy(
       operators = WorkflowOperatorsParameter(Seq(
-        WorkflowOperator(Seq.empty, countingTaskId, Seq.empty, Seq.empty, (0, 0), countingTaskId, None, Seq.empty, Seq.empty)
+        WorkflowOperator(Seq.empty, countingTaskId, Seq.empty, Seq.empty, (0, 0), countingTaskId, Seq.empty, Seq.empty)
       )),
       // Set counting task as dependency input and make sure that the dataset is executed first
       datasets = WorkflowDatasetsParameter(Seq(
-        workflow.data.datasets.value.head.copy(dependencyInputs = Seq(countingTaskId), inputs = Seq.empty, outputPriority = Some(1.0))
+        workflow.data.datasets.value.head.copy(dependencyInputs = Seq(countingTaskId), inputs = Seq.empty)
       ))
     )
     val updatedWorkflowId = "updatedDependencyWorkflow"

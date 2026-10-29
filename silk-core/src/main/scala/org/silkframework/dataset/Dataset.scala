@@ -12,7 +12,7 @@ import org.silkframework.runtime.resource.Resource
   label = "Dataset",
   description = "A dataset is a collection of data that can be read or written.",
 )
-trait Dataset extends AnyPlugin with DatasetAccess {
+trait Dataset extends AnyPlugin {
 
   /** The resources that are referenced by this dataset. */
   def referencedResources: Seq[Resource] = Seq.empty

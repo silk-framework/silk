@@ -1,5 +1,7 @@
 package org.silkframework.workspace.exceptions
 
+import org.silkframework.runtime.validation.TaskValidationException
+
 /**
   * Thrown if a task is created/updated that would create a circular dependency.
   *

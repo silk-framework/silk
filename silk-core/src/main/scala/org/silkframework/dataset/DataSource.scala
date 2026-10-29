@@ -16,6 +16,7 @@ package org.silkframework.dataset
 
 import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.DatasetSpec.{DataSourceWrapper, GenericDatasetSpec}
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.entity._
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.execution.EntityHolder
@@ -123,9 +124,9 @@ object DataSource {
     */
   def generateEntityUri(groupId: Identifier, entityId: Identifier): String = URN_NID_PREFIX + groupId + "#" + entityId
 
-  def pluginSource(datasetTask: GenericDatasetSpec)
+  def pluginSource(datasetTask: Task[GenericDatasetSpec])
                   (implicit userContext: UserContext): DataSource = {
-    datasetTask.source match {
+    ExecutorRegistry.access(datasetTask).source match {
       case wrapper: DataSourceWrapper => wrapper.source
       case source: DataSource => source
     }

@@ -38,6 +38,28 @@ class PhysicalQuantityExtractorTest extends AnyFlatSpec with Matchers {
     extract("2.7V/5.5V", "V", "en", 2) shouldBe None
   }
 
+  it should "parse correctly when evaluated from multiple threads" in {
+    import java.util.concurrent.{ConcurrentLinkedQueue, CyclicBarrier}
+    import scala.util.control.NonFatal
+    val extractor = PhysicalQuantityExtractor(symbol = "V")
+    val inputs = IndexedSeq("1.5V" -> "1.5", "987654.125V" -> "987654.125")
+    val barrier = new CyclicBarrier(8)
+    val errors = new ConcurrentLinkedQueue[String]()
+    val threads = for(t <- 0 until 8) yield new Thread(() => {
+      val (input, expected) = inputs(t % 2)
+      barrier.await()
+      for(_ <- 1 to 50000) {
+        val output = try extractor.evaluate(input).getOrElse("<none>") catch { case NonFatal(ex) => ex.toString }
+        if(output != expected) {
+          errors.add(s"$input -> $output")
+        }
+      }
+    })
+    threads.foreach(_.start())
+    threads.foreach(_.join())
+    errors shouldBe empty
+  }
+
   private def extract(value: String, symbol: String, numberFormat: String, index: Int = 0): Option[Double] = {
     PhysicalQuantityExtractor(symbol, numberFormat, "", index).evaluate(value).map(_.toDouble)
   }

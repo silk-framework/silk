@@ -72,6 +72,24 @@ describe("ObjectMappingRule Component", () => {
             findElement(wrapper, ".ecc-silk-mapping__rulesviewer__targetProperty");
         });
 
+        it("should render an absolute target property with a single pair of angle brackets", () => {
+            const wrapper = getWrapper({
+                ...props,
+                type: "complex",
+                ruleData: {
+                    ...props.ruleData,
+                    mappingTarget: {
+                        ...props.ruleData.mappingTarget,
+                        uri: "<urn:hello:hello>",
+                    },
+                },
+            });
+
+            expect(findElement(wrapper, ".ecc-silk-mapping__rulesviewer__targetProperty code").textContent).toBe(
+                "<urn:hello:hello>",
+            );
+        });
+
         it("should render ObjectEntityRelation components, when `props.type` is NOT `root`", () => {
             const wrapper = getWrapper({
                 ...props,

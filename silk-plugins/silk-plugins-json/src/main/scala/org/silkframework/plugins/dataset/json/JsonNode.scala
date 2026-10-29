@@ -4,11 +4,9 @@ import com.fasterxml.jackson.core.{JsonFactory, JsonGenerator, JsonParser, Versi
 import com.fasterxml.jackson.databind.Module.SetupContext
 import com.fasterxml.jackson.databind._
 import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.databind.node.{BigIntegerNode, DecimalNode}
 import com.fasterxml.jackson.databind.ser.Serializers
 
 import java.io.InputStream
-import java.math.{BigInteger, BigDecimal => JBigDec}
 import scala.collection.immutable.SeqMap
 
 /**
@@ -105,12 +103,7 @@ object JsonNodeSerializer {
     override def serialize(value: JsonNode, json: JsonGenerator, provider: SerializerProvider): Unit = {
       value match {
         case JsonNumber(v, _) =>
-          val str = v.bigDecimal.stripTrailingZeros.toString
-          if (str.indexOf('E') < 0 && str.indexOf('.') < 0) {
-            json.writeTree(new BigIntegerNode(new BigInteger(str)))
-          } else {
-            json.writeTree(new DecimalNode(new JBigDec(str)))
-          }
+          json.writeNumber(NumberFormatter.format(v.bigDecimal))
         case JsonString(v, _) => json.writeString(v)
         case JsonBoolean(v, _) => json.writeBoolean(v)
         case JsonArray(values, _) =>

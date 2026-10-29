@@ -72,16 +72,14 @@ case class ParameterObjectValueSerialized(xmlFormat: SerializationFormat[Any, No
 object ParameterObjectValue {
   def apply(parameterValue: AnyRef)
            (implicit  pluginContext: PluginContext): ParameterObjectValue = {
-    try {
-      val xmlFormat = Serialization.formatForDynamicType[Node](parameterValue.getClass)
-      implicit val writeContext: WriteContext[Node] = WriteContext.fromPluginContext[Node]()(pluginContext)
-      val valueXml = xmlFormat.write(parameterValue)
-      ParameterObjectValue(Right(ParameterObjectValueSerialized(xmlFormat, valueXml)))
-    } catch {
-      case _: NoSuchElementException =>
+    Serialization.formatForDynamicTypeOption[Node](parameterValue.getClass) match {
+      case Some(xmlFormat) =>
+        implicit val writeContext: WriteContext[Node] = WriteContext.fromPluginContext[Node]()(pluginContext)
+        val valueXml = xmlFormat.write(parameterValue)
+        ParameterObjectValue(Right(ParameterObjectValueSerialized(xmlFormat, valueXml)))
+      case None =>
         ParameterObjectValue(Left(parameterValue))
     }
-
   }
 }
 
@@ -110,6 +108,17 @@ case class ParameterValues(values: Map[String, ParameterValue]) extends Paramete
     */
   def templates: Map[String, String] = {
     values.collect { case (key, t: ParameterTemplateValue) => (key, t.template)}
+  }
+
+  /**
+    * Whether any parameter holds a template, nested ones included.
+    */
+  def hasTemplates: Boolean = {
+    values.values.exists {
+      case _: ParameterTemplateValue => true
+      case nested: ParameterValues => nested.hasTemplates
+      case _ => false
+    }
   }
 
   /**

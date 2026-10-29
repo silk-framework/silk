@@ -61,9 +61,10 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
   }
 
   /**
-    * Returns a data source for reading entities from the data set.
+    * Builds the bulk-aware data source for this dataset's resource(s).
+    * Used by the dataset's executor; this is not part of the [[DatasetAccess]] interface.
     */
-  override final def source(implicit userContext: UserContext): DataSource = {
+  def createDataSource(implicit userContext: UserContext): DataSource = {
     if(BulkResourceBasedDataset.isBulkResource(file)) {
       new BulkDataSource(file.name, () => retrieveResources().map(createSourceWithName), mergeSchemata)
     } else {

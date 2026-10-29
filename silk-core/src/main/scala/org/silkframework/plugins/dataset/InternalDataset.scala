@@ -4,8 +4,7 @@ import java.net.{URI, URISyntaxException}
 import javax.inject.Inject
 import org.silkframework.config.{Config, DefaultConfig}
 import org.silkframework.dataset._
-import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint}
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 
@@ -16,7 +15,8 @@ import scala.util.Try
   id = "internal",
   label = "Internal dataset",
   categories = Array(DatasetCategories.embedded),
-  description = """Dataset for storing entities between workflow steps. The underlying dataset type can be configured using the `dataset.internal.*` configuration parameters."""
+  description = """Dataset for storing entities between workflow steps. The underlying dataset type can be configured using the `dataset.internal.*` configuration parameters.""",
+  deprecation = "This dataset is deprecated and will be removed in a future version. Instead use either the \"In-workflow dataset\" or the \"In-memory dataset\"."
 )
 case class InternalDataset(
   @Param(label = "graph URI", value = "The RDF graph that is used for storing internal data")
@@ -24,36 +24,12 @@ case class InternalDataset(
 
   override def graphOpt: Option[String] = Option(graphUri).filterNot(_.isEmpty)
 
-  protected lazy val internalDatasetPluginImpl = InternalDataset.byGraph(graphOpt)
+  lazy val internalDatasetPluginImpl: Dataset = InternalDataset.byGraph(graphOpt)
 }
 
-trait InternalDatasetTrait extends Dataset with TripleSinkDataset with RdfDataset {
-  protected def internalDatasetPluginImpl: Dataset
-  private lazy val _internalDatasetPluginImpl = internalDatasetPluginImpl
-
-  override def sparqlEndpoint: SparqlEndpoint = {
-    _internalDatasetPluginImpl match {
-      case rdfDataset: RdfDataset =>
-        rdfDataset.sparqlEndpoint
-      case _ =>
-        throw new RuntimeException("Internal dataset implementation is no RdfDataset, cannot return SparqlEndpoint. ")
-    }
-  }
-
-  override def tripleSink(implicit userContext: UserContext): TripleSink = {
-    _internalDatasetPluginImpl match {
-      case rdfDataset: TripleSinkDataset =>
-        rdfDataset.tripleSink
-      case _ =>
-        throw new RuntimeException("Internal dataset cannot provide a triple sink!")
-    }
-  }
-
-  override def source(implicit userContext: UserContext): DataSource = _internalDatasetPluginImpl.source
-
-  override def linkSink(implicit userContext: UserContext): LinkSink = _internalDatasetPluginImpl.linkSink
-
-  override def entitySink(implicit userContext: UserContext): EntitySink = _internalDatasetPluginImpl.entitySink
+trait InternalDatasetTrait extends Dataset with RdfDataset {
+  def internalDatasetPluginImpl: Dataset
+  private[dataset] lazy val _internalDatasetPluginImpl: Dataset = internalDatasetPluginImpl
 }
 
 /**

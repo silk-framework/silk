@@ -3,7 +3,7 @@ import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.execution.EntityHolder
-import org.silkframework.execution.local.GenericEntityTable
+import org.silkframework.execution.local.{GenericEntityTable, LocalDatasetExecutor, LocalExecution}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
@@ -23,13 +23,25 @@ case class MockDataset(@Param(label = "person name", value = "The full name of a
   var retrievePathsFn: (Uri, Int, Option[Int]) => IndexedSeq[TypedPath] = (_, _, _) => { IndexedSeq.empty }
   var characteristicsVal: DatasetCharacteristics = DatasetCharacteristics.attributesOnly()
 
-  override def source(implicit userContext: UserContext): DataSource = DummyDataSource(retrieveFn, retrieveByUriFn, retrievePathsFn)
-
-  override def linkSink(implicit userContext: UserContext): LinkSink = DummyLinkSink(writeLinkFn, clearFn)
-
-  override def entitySink(implicit userContext: UserContext): EntitySink = DummyEntitySink(writeEntityFn, clearFn)
-
   override def characteristics: DatasetCharacteristics = characteristicsVal
+}
+
+/**
+  * Provides the data access for [[MockDataset]], building the `Dummy*` source/sinks from the plugin's
+  * mutable `*Fn` fields (read on each access, preserving the pattern where tests mutate them first).
+  */
+class MockDatasetExecutor extends LocalDatasetExecutor[MockDataset] {
+  override def access(task: Task[DatasetSpec[MockDataset]], execution: LocalExecution): DatasetAccess = {
+    val plugin = task.data.plugin
+    DatasetSpecAccess(task.data, new DatasetAccess {
+      override def source(implicit userContext: UserContext): DataSource =
+        DummyDataSource(plugin.retrieveFn, plugin.retrieveByUriFn, plugin.retrievePathsFn)
+      override def entitySink(implicit userContext: UserContext): EntitySink =
+        DummyEntitySink(plugin.writeEntityFn, plugin.clearFn)
+      override def linkSink(implicit userContext: UserContext): LinkSink =
+        DummyLinkSink(plugin.writeLinkFn, plugin.clearFn)
+    })
+  }
 }
 
 case class DummyDataSource(retrieveFn: (EntitySchema, Option[Int]) => CloseableIterator[Entity],

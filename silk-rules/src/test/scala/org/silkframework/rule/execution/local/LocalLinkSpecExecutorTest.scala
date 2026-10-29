@@ -1,5 +1,5 @@
 package org.silkframework.rule.execution.local
-
+
 import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.execution.local.LocalExecution
 import org.silkframework.rule.LinkSpec

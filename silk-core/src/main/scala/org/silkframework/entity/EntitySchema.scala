@@ -32,9 +32,10 @@ case class EntitySchema(
             typedPaths: IndexedSeq[TypedPath] = this.typedPaths,
             filter: Restriction = this.filter,
             subPath: UntypedPath = this.subPath,
+            singleEntity: Boolean = this.singleEntity,
             subSchemata: IndexedSeq[EntitySchema] = IndexedSeq.empty
   ): EntitySchema ={
-    val pivotSchema = EntitySchema(typeUri, typedPaths, filter, subPath)
+    val pivotSchema = EntitySchema(typeUri, typedPaths, filter, subPath, singleEntity)
     subSchemata match{
       case subs if subs.isEmpty => pivotSchema
       case subs => new MultiEntitySchema(pivotSchema, subs)
@@ -181,7 +182,8 @@ case class EntitySchema(
               throw new IllegalArgumentException(s"$tp was not found in EntitySchema: ${this.typedPaths.mkString(", ")}")
           }).toIndexedSeq,
           es.filter,
-          es.subPath
+          es.subPath,
+          es.singleEntity
         )
     }
   }
@@ -255,7 +257,7 @@ object EntitySchema {
           seen = seen ++ tps
           sub.copy(typedPaths = tps)
         }
-        mes.copy(es.typeUri, pivot.typedPaths, es.filter, es.subPath, subs)
+        mes.copy(es.typeUri, pivot.typedPaths, es.filter, es.subPath, subSchemata = subs)
       case nes: EntitySchema => nes.copy(typedPaths = nes.typedPaths.distinct)
     }
   }

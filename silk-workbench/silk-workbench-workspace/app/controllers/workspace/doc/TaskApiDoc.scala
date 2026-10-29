@@ -12,27 +12,7 @@ object TaskApiDoc {
         },
         "data": {
           "taskType": "Transform",
-          "selection": {
-            "inputId": "DBpedia",
-            "typeUri": "http://dbpedia.org/ontology/Film",
-            "restriction": ""
-          },
-          "outputs": [],
-          "targetVocabularies": []
-        }
-      }
-    """
-
-  final val taskExampleWithoutLabelsJson =
-    """
-      {
-        "id": "transform",
-        "metadata": {
-          "label": "task label",
-          "description": "task description"
-        },
-        "data": {
-          "taskType": "Transform",
+          "type": "transform",
           "parameters": {
             "selection": {
               "inputId": "DBpedia",
@@ -48,8 +28,46 @@ object TaskApiDoc {
                 "propertyRules": []
               }
             },
-            "outputs": [],
-            "targetVocabularies": []
+            "output": "",
+            "targetVocabularies": "all installed vocabularies"
+          }
+        }
+      }
+    """
+
+  final val taskExampleWithoutLabelsJson =
+    """
+      {
+        "id": "transform",
+        "project": "myProject",
+        "metadata": {
+          "label": "task label",
+          "description": "task description",
+          "modified": "2020-04-07T11:05:59.574Z"
+        },
+        "taskType": "Transform",
+        "data": {
+          "taskType": "Transform",
+          "type": "transform",
+          "parameters": {
+            "selection": {
+              "inputId": "DBpedia",
+              "typeUri": "http://dbpedia.org/ontology/Film",
+              "restriction": ""
+            },
+            "mappingRule": {
+              "type": "root",
+              "id": "root",
+              "rules": {
+                "uriRule": null,
+                "typeRules": [],
+                "propertyRules": []
+              }
+            },
+            "output": "",
+            "errorOutput": "",
+            "abortIfErrorsOccur": "false",
+            "targetVocabularies": "all installed vocabularies"
           }
         }
       }
@@ -58,7 +76,16 @@ object TaskApiDoc {
   final val taskMetadataExampleWithLabelsJson =
     """
       {
+        "id": "transform_datasetresource_1499719467735_loans_csv",
+        "project": "cmem",
+        "metadata": {
+            "label": "",
+            "modified": "2020-04-07T11:05:59.574Z"
+        },
+        "taskType": "Transform",
         "data": {
+            "taskType": "Transform",
+            "type": "transform",
             "parameters": {
                 "mappingRule": {
                     "value": {
@@ -73,7 +100,7 @@ object TaskApiDoc {
                 "selection": {
                     "value": {
                         "inputId": {
-                            "label": "Some labe",
+                            "label": "Some label",
                             "value": "datasetresource_1499719467735_loans_csv"
                         },
                         "restriction": {
@@ -85,18 +112,10 @@ object TaskApiDoc {
                     }
                 },
                 "targetVocabularies": {
-                    "value": []
+                    "value": "all installed vocabularies"
                 }
-            },
-            "taskType": "Transform"
-        },
-        "id": "transform_datasetresource_1499719467735_loans_csv",
-        "metadata": {
-            "label": "",
-            "modified": "2020-04-07T11:05:59.574Z"
-        },
-        "project": "cmem",
-        "taskType": "Transform"
+            }
+        }
       }
     """
 
@@ -108,7 +127,7 @@ object TaskApiDoc {
         "modified": "2018-05-24T14:45:42.637Z",
         "project": "MyProject",
         "id": "MyTask",
-        "taskType": "Dataset"
+        "taskType": "Dataset",
         "schemata": {
           "input": [{
             "paths": [
@@ -127,8 +146,8 @@ object TaskApiDoc {
           "inputTasks": [],
           "outputTasks": [],
           "referencedTasks": ["DBpedia", "linkedmdb"],
-          "dependentTasksDirect": [{id: "workflow_f76889ec", label: "Workflow label", taskLink: "/workbench/projects/MyProject/workflow/MyTask"}],
-          "dependentTasksAll": [{id: "workflow_f76889ec", label: "Workflow label", taskLink: "/workbench/projects/MyProject/workflow/MyTask"}]
+          "dependentTasksDirect": [{"id": "workflow_f76889ec", "label": "Workflow label", "taskLink": "/workbench/projects/MyProject/workflow/MyTask"}],
+          "dependentTasksAll": [{"id": "workflow_f76889ec", "label": "Workflow label", "taskLink": "/workbench/projects/MyProject/workflow/MyTask"}]
         }
       }
     """

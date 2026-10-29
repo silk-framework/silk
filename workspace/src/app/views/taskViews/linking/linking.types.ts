@@ -1,6 +1,7 @@
 import { IInputSource, IUiAnnotations } from "../shared/task.typings";
 import { IEntity, IOperatorNode, IOperatorNodeParameters, IValueInput, RuleLayout } from "../shared/rules/rule.typings";
 import { SampleError, Stacktrace } from "../../shared/SampleError/SampleError";
+import { IRuleBlockSnapshots } from "../ruleBlock/ruleBlock.types";
 
 /** A linking rule. */
 export interface ILinkingRule {
@@ -79,7 +80,7 @@ export function optionallyLabelledParameterToValue<T>(optionallyLabelledValue: O
 }
 
 export function optionallyLabelledParameterToLabel(
-    optionallyLabelledValue: OptionallyLabelledParameter<any>
+    optionallyLabelledValue: OptionallyLabelledParameter<any>,
 ): string | undefined {
     if (optionallyLabelledValue != null) {
         return (optionallyLabelledValue as LabelledParameterValue<any>).label
@@ -125,6 +126,10 @@ export interface IEvaluatedReferenceLinks extends ReferenceLinks {
     evaluationScore: IEvaluatedReferenceLinksScore;
 }
 
+export interface IEvaluatedReferenceLinksWithInspection extends IEvaluatedReferenceLinks {
+    ruleBlockInspection: IRuleBlockSnapshots;
+}
+
 /** The metrics of a rule evaluation over the reference elements. */
 export interface IEvaluatedReferenceLinksScore {
     /** F1 measure */
@@ -152,6 +157,11 @@ export interface IEntityLink {
         source: IEntity;
         target: IEntity;
     };
+}
+
+export interface ILinkingRuleEvaluationResponse {
+    links: IEntityLink[];
+    ruleBlockInspection: IRuleBlockSnapshots;
 }
 
 /** The evaluation scores and values in the aggregator/comparator tree. */

@@ -17,7 +17,7 @@ import { IModalItem } from "@ducks/shared/typings";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
 import { requestProjectIdValidation, requestTaskIdValidation } from "@ducks/common/requests";
 import { debounce } from "lodash";
-import { TaskDocumentationModal } from "./CreateArtefactModal/TaskDocumentationModal";
+import { PluginDocumentationModal } from "./PluginDocumentationModal";
 import { useProjectAclManagementComponent } from "../../../hooks/useProjectAclManagementComponent";
 
 export interface ICloneOptions {
@@ -253,7 +253,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                 </>
             )}
             {showDocumentation && (
-                <TaskDocumentationModal
+                <PluginDocumentationModal
                     documentationToShow={{
                         key: "",
                         namedAnchor: "",

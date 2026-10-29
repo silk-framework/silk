@@ -4,7 +4,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.operations.DeleteFilesOperatorTest.createResourceManager
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 
 class GetProjectFilesOperatorTest extends AnyFlatSpec with Matchers {
 
@@ -26,7 +26,7 @@ class GetProjectFilesOperatorTest extends AnyFlatSpec with Matchers {
 
   def test(op: GetProjectFilesOperator, existingFiles: Seq[String]): Seq[String] = {
     val resourceManager = createResourceManager(existingFiles)
-    implicit val pluginContext: PluginContext = PluginContext(Prefixes.empty, resourceManager)
+    implicit val pluginContext: PluginContext = PluginContext(Prefixes.empty, resourceManager, taskResolver = TaskResolver.empty)
     op.dryRun.files
   }
 

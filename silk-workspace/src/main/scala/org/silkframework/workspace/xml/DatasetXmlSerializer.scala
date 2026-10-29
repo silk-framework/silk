@@ -17,7 +17,7 @@ package org.silkframework.workspace.xml
 import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlSerialization}
 import org.silkframework.util.Identifier
@@ -37,7 +37,7 @@ private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec[Dataset]] {
   override def prefix: String = "dataset"
 
   private def taskNames(resources: ResourceLoader) = {
-    resources.list.filter(_.endsWith(".xml")).filter(!_.contains("cache"))
+    resources.list.filter(_.endsWith(".xml")).filterNot(_.endsWith(DatasetXmlSerializer.cacheFileSuffix))
   }
 
   private def loadTask(resourceName: String,
@@ -45,7 +45,7 @@ private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec[Dataset]] {
                       (implicit context: PluginContext): LoadedTask[DatasetSpec[Dataset]] = {
     // Load the data set
     implicit val readContext = ReadContext.fromPluginContext()
-    loadTaskSafelyFromXML(resourceName, Some(Identifier(resourceName.stripSuffix(".xml"))), resources)
+    loadTaskSafelyFromXML(resourceName, Identifier(resourceName.stripSuffix(".xml")), resources)
   }
 
   /**
@@ -53,7 +53,8 @@ private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec[Dataset]] {
    */
   override def writeTask(task: Task[GenericDatasetSpec], resources: ResourceManager, projectResourceManager: ResourceManager): Unit = {
     // Only serialize file paths correctly, paths should not be prefixed
-    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager, prefixes = Prefixes.empty)
+    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager, prefixes = Prefixes.empty,
+      taskResolver = TaskResolver.empty)
     val taskXml = XmlSerialization.toXml(task)
     resources.get(task.id.toString + ".xml").write(){ os => taskXml.write(os) }
   }
@@ -63,7 +64,7 @@ private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec[Dataset]] {
    */
   override def removeTask(name: Identifier, resources: ResourceManager): Unit = {
     resources.delete(name.toString + ".xml")
-    resources.delete(name.toString + "_cache.xml")
+    resources.delete(name.toString + DatasetXmlSerializer.cacheFileSuffix)
   }
 
   override def loadTasks(resources: ResourceLoader)
@@ -86,4 +87,9 @@ private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec[Dataset]] {
 
     tasks
   }
+}
+
+private object DatasetXmlSerializer {
+  /** Suffix of the type cache files that TypesCache writes into the same directory as the dataset tasks. */
+  final val cacheFileSuffix = "_cache.xml"
 }

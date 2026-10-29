@@ -36,12 +36,33 @@ case class TransformReport(task: Task[TransformSpec],
     )
   }
 
-  def warnings: Seq[String] = {
+  lazy val warnings: Seq[String] = {
     var allErrors = globalErrors
     if(entityErrorCount != 0) {
-      allErrors :+= s"Validation issues occurred on $entityErrorCount entities."
+      allErrors :+= entityErrorWarning
     }
     allErrors
+  }
+
+  /** The aggregate entity error count, attributing the errors to the worst offending rules. */
+  private def entityErrorWarning: String = {
+    val failingRules = ruleResults.toSeq.filter(_._2.errorCount > 0).sortBy { case (id, result) => (-result.errorCount, id.toString) }
+    if(failingRules.isEmpty) {
+      s"Validation issues occurred on $entityErrorCount entities."
+    } else {
+      val worst = failingRules.take(MaxRulesInWarning).map { case (id, result) => s"${ruleDisplayName(id)}: ${result.errorCount}" }.mkString(", ")
+      val more = (failingRules.size - MaxRulesInWarning) match {
+        case 1 => " and 1 more rule"
+        case n if n > 1 => s" and $n more rules"
+        case _ => ""
+      }
+      s"Validation issues occurred on $entityErrorCount entities ($worst$more). See 'ruleResults' for sample values."
+    }
+  }
+
+  /** The rule's label and id (the id being the key into `ruleResults`), or just the id if it cannot be resolved. */
+  private def ruleDisplayName(id: Identifier): String = {
+    task.data.nestedRuleAndSourcePath(id.toString).map(_._1.labelAndId).getOrElse(id.toString)
   }
 
   /**
@@ -54,6 +75,9 @@ case class TransformReport(task: Task[TransformSpec],
     */
   def asDone(): ExecutionReport = copy(isDone = true)
 
+  /** Marks this transform report as failed while keeping its rule results and counts. */
+  override def asFailed(error: String): ExecutionReport = copy(error = Some(error), isDone = true)
+
   /** Add more sample entities to the report. */
   override def withSampleOutputEntities(sampleEntities: SampleEntities): ExecutionReport = this.copy(
     sampleOutputEntities = TransformReport.updateOutputSampleEntities(sampleEntities, this.sampleOutputEntities)
@@ -61,6 +85,9 @@ case class TransformReport(task: Task[TransformSpec],
 }
 
 object TransformReport {
+
+  /** How many offending rules the aggregate warning names before cutting off with "and N more". */
+  private val MaxRulesInWarning = 3
 
   /**
     * The transformation statistics for a single mapping rule.

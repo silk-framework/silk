@@ -1,5 +1,5 @@
 package org.silkframework.runtime.plugin
-
+
 import org.silkframework.util.ConfigTestTrait
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

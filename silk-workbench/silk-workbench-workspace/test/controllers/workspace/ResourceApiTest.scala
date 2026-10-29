@@ -1,7 +1,7 @@
 package controllers.workspace
 
 import helper.IntegrationTestTrait
-import org.scalatest.BeforeAndAfterAll
+import org.scalatest.{BeforeAndAfterAll, OptionValues}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.plugins.dataset.text.TextFileDataset
@@ -11,7 +11,7 @@ import play.api.libs.json.JsArray
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 
-class ResourceApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers with BeforeAndAfterAll {
+class ResourceApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers with BeforeAndAfterAll with OptionValues {
   behavior of "Resource API"
 
   val projectId = "resourcesProject"
@@ -81,5 +81,22 @@ class ResourceApiTest extends AnyFlatSpec with IntegrationTestTrait with Matcher
 
     fileMimeType("test.json", "{}", "application/json")
     fileMimeType("test.xml", "<test></test>", "application/xml")
+  }
+
+  it should "return an ASCII-safe Content-Disposition header for file names with non-ASCII characters" in {
+    // Decomposed unicode form (NFD, base letter + combining diaeresis), as produced by uploads from macOS
+    val fileName = "test_with_umlauts_a\u0308o\u0308u\u0308.pdf"
+    workspaceProject(projectId).resources.get(fileName).writeString("pdf content")
+
+    val url = resourceApi.getFileForDownload(projectId, fileName).url
+    val response = checkResponse(client.url(s"$baseUrl$url").get())
+    response.body mustBe "pdf content"
+
+    val disposition = response.header("Content-Disposition").value
+    disposition must startWith("attachment; ")
+    withClue(s"Header value must be ASCII-only: $disposition") {
+      disposition.forall(c => c >= ' ' && c <= '~') mustBe true
+    }
+    disposition.toLowerCase must include("filename*=utf-8''test_with_umlauts_a%cc%88o%cc%88u%cc%88.pdf")
   }
 }

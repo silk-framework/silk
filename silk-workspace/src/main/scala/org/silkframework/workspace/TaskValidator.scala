@@ -2,8 +2,9 @@ package org.silkframework.workspace
 
 import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.validation.TaskValidationException
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.exceptions.{CircularDependencyException, TaskValidationException}
+import org.silkframework.workspace.exceptions.CircularDependencyException
 
 import scala.collection.immutable.ListMap
 

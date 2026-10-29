@@ -28,7 +28,6 @@ import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc._
 
-import java.util.logging.{LogRecord, Logger}
 import javax.inject.Inject
 import scala.concurrent.duration.{FiniteDuration, MILLISECONDS}
 import scala.language.existentials
@@ -483,11 +482,6 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     Ok(JsArray(statuses))
   }
 
-  @deprecated
-  def activityLog(): Action[AnyContent] = Action {
-    Ok(JsonSerializer.logRecords(ActivityLog.records))
-  }
-
   @Operation(
     summary = "Get activity status updates",
     description = "Request updates on the status of one or many activities.",
@@ -675,20 +669,20 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                                      )
                                      activityInstance: String): WebSocket = {
 
-    implicit val userContext = UserContext.Empty
-    implicit val writeContext = WriteContext.empty[JsValue]
+    AkkaUtils.createWebSocket { implicit userContext =>
+      implicit val writeContext: WriteContext[JsValue] = WriteContext.empty[JsValue]
 
-    val activities = allActivities(projectName, taskName, activityName)
-    val sources =
-      for(activity <- activities) yield {
-        implicit val format = new ExtendedStatusJsonFormat(activity)
-        val activityControl = activityControlForInstance(activity, activityInstance)
-        AkkaUtils.createSource(activityControl.status).map(format.write)
-      }
+      val activities = allActivities(projectName, taskName, activityName)
+      val sources =
+        for(activity <- activities) yield {
+          implicit val format = new ExtendedStatusJsonFormat(activity)
+          val activityControl = activityControlForInstance(activity, activityInstance)
+          AkkaUtils.createSource(activityControl.status).map(format.write)
+        }
 
-    // Combine all sources into a single flow
-    val combinedSources = Source.combine(Source.empty, Source.empty, sources :_*)(Merge(_))
-    AkkaUtils.createWebSocket(combinedSources)
+      // Combine all sources into a single flow
+      Source.combine(Source.empty, Source.empty, sources :_*)(Merge(_))
+    }
   }
 
   @Operation(
@@ -744,20 +738,20 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                                      )
                                      minIntervalMs: Int): WebSocket = {
 
-    implicit val userContext = UserContext.Empty
-    implicit val writeContext = WriteContext.empty[JsValue]
+    AkkaUtils.createWebSocket { implicit userContext =>
+      implicit val writeContext: WriteContext[JsValue] = WriteContext.empty[JsValue]
 
-    val activities = allActivities(projectName, taskName, activityName)
-    val sources =
-      for (activity <- activities) yield {
-        val format = Serialization.formatForDynamicType[JsValue](activity.value().getClass)
-        val activityControl = activityControlForInstance(activity, activityInstance)
-        AkkaUtils.createSource(activityControl.value, Some(FiniteDuration(minIntervalMs, MILLISECONDS))).map(format.write)
-      }
+      val activities = allActivities(projectName, taskName, activityName)
+      val sources =
+        for (activity <- activities) yield {
+          val format = Serialization.formatForDynamicType[JsValue](activity.value().getClass)
+          val activityControl = activityControlForInstance(activity, activityInstance)
+          AkkaUtils.createSource(activityControl.value, Some(FiniteDuration(minIntervalMs, MILLISECONDS))).map(format.write)
+        }
 
-    // Combine all sources into a single flow
-    val combinedSources = Source.combine(Source.empty, Source.empty, sources: _*)(Merge(_))
-    AkkaUtils.createWebSocket(combinedSources)
+      // Combine all sources into a single flow
+      Source.combine(Source.empty, Source.empty, sources: _*)(Merge(_))
+    }
   }
 
   @Operation(
@@ -963,59 +957,4 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
         Map.empty
     }
   }
-}
-
-/**
-  * Holds the activities log.
-  */
-object ActivityLog extends java.util.logging.Handler {
-
-  private val size = 100
-
-  private val buffer = Array.fill[LogRecord](size)(null)
-
-  private var start = 0
-
-  private var count = 0
-
-  private val log = Logger.getLogger(getClass.getName)
-
-  private val activitiesLogger = Logger.getLogger(Activity.loggingPath)
-
-  init()
-
-  def init(): Unit = {
-    activitiesLogger.addHandler(this)
-    log.fine("Logging of activities started.")
-  }
-
-  /**
-    * Retrieves the recent log records
-    */
-  def records: Seq[LogRecord] = synchronized {
-    log.fine(s"Retrieving $count activity logs")
-    for (i <- 0 until count) yield {
-      buffer((start + i) % buffer.length)
-    }
-  }
-
-  /**
-    * Adds a new log record.
-    */
-  override def publish(record: LogRecord): Unit = synchronized {
-    log.fine(s"Adding activities log for '${record.getLoggerName}'")
-    val ix = (start + count) % buffer.length
-    buffer(ix) = record
-    if (count < buffer.length) {
-      count += 1
-    }
-    else {
-      start += 1
-      start %= buffer.length
-    }
-  }
-
-  override def flush(): Unit = {}
-
-  override def close(): Unit = {}
 }

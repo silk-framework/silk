@@ -34,7 +34,8 @@ class BulkDataSource(bulkContainerName: String,
         indexFn = weightedPath => weightedPath._1 // Make distinct by path name only
       )
     } else {
-      sources().headOption.map(handleSourceError(_)(_.retrieveTypes(limit))).getOrElse(Seq.empty)
+      // Read the first source inside use, so the container (e.g. zip) is not closed before it is read
+      sources().use(_.nextOption().map(handleSourceError(_)(_.retrieveTypes(limit).toSeq)).getOrElse(Seq.empty))
     }
   }
 
@@ -46,7 +47,8 @@ class BulkDataSource(bulkContainerName: String,
         indexFn = a => a
       ).toIndexedSeq
     } else {
-      sources().headOption.map(handleSourceError(_)(_.retrievePaths(typeUri, depth, limit))).getOrElse(IndexedSeq.empty)
+      // Read the first source inside use, so the container (e.g. zip) is not closed before it is read
+      sources().use(_.nextOption().map(handleSourceError(_)(_.retrievePaths(typeUri, depth, limit))).getOrElse(IndexedSeq.empty))
     }
   }
 
@@ -55,7 +57,7 @@ class BulkDataSource(bulkContainerName: String,
   private def mergePaths[T, U](dataSourcePathFn: DataSource => Iterable[T],
                                indexFn: T => U): Iterable[T] = {
     val entrySet = new mutable.HashSet[U]()
-    var elems = Seq[T]()
+    val elems = mutable.ArrayBuffer[T]()
     sources().use {_.foreach { source =>
       handleSourceError(source) { dataSource =>
         for (elem <- dataSourcePathFn(dataSource)) {
@@ -63,12 +65,12 @@ class BulkDataSource(bulkContainerName: String,
           val valueToIndex = indexFn(elem)
           if (!entrySet.contains(valueToIndex)) {
             entrySet.add(valueToIndex)
-            elems = elems :+ elem
+            elems += elem
           }
         }
       }
     }}
-    elems
+    elems.toSeq
   }
 
   // Report errors from a data source that happen inside the given block with useful information

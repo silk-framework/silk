@@ -12,9 +12,26 @@ import org.silkframework.util.Identifier
 
 /**
   * A builder for generating transform reports.
+  *
+  * One builder is used for a single transform execution and collects the results of all of its output tables. A
+  * transform generates one output table per rule schema, i.e. a hierarchical transform generates several. While
+  * entities are transformed, the counters and rule results are updated and `build` publishes intermediate reports.
+  * Each output table signals its end by calling [[outputTableCompleted()]] and the report is marked as done once all
+  * of them did. [[executionFailed()]] ends the execution immediately, no matter how many tables are still open.
+  *
+  * Since completion is driven by the output iterators, every generated table must either be read completely or be
+  * closed.
+  *
   * Not thread safe!
+  *
+  * @param outputTableCount The exact number of output tables expected from this execution. An incorrect count leaves
+  *                         the report incomplete or marks it done too early.
   */
-class TransformReportBuilder(task: Task[TransformSpec], context: ActivityContext[TransformReport]) {
+class TransformReportBuilder(task: Task[TransformSpec],
+                             context: ActivityContext[TransformReport],
+                             outputTableCount: Int) {
+
+  require(outputTableCount > 0, "A transform report requires at least one output table.")
 
   private var entityCounter = 0
 
@@ -23,6 +40,10 @@ class TransformReportBuilder(task: Task[TransformSpec], context: ActivityContext
   private var ruleResults: Map[Identifier, RuleResult] = Map.empty
 
   private var executionError: Option[String] = None
+
+  private var completedOutputTables = 0
+
+  private var executionDone = false
 
   private var globalErrors: Seq[String] = Seq.empty
 
@@ -107,6 +128,29 @@ class TransformReportBuilder(task: Task[TransformSpec], context: ActivityContext
 
   def setExecutionError(error: String): Unit = {
     executionError = Some(error)
+  }
+
+  /** Records completion of one output table and marks the report done after the final table completes. */
+  def outputTableCompleted(): Unit = {
+    // Counted outside the done check, so surplus completions fail fast even after the report is done.
+    completedOutputTables += 1
+    require(
+      completedOutputTables <= outputTableCount,
+      "More output tables completed than were registered for this transform execution."
+    )
+    if(!executionDone) {
+      executionDone = completedOutputTables == outputTableCount
+      build(isDone = executionDone)
+    }
+  }
+
+  /** Records a terminal transform failure. Subsequent table completions do not overwrite the failed report. */
+  def executionFailed(error: String): Unit = {
+    if(!executionDone) {
+      setExecutionError(error)
+      executionDone = true
+      build(isDone = true)
+    }
   }
 
   def setExecutionContext(context: TransformReportExecutionContext): Unit = {

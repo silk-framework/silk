@@ -78,6 +78,30 @@ case class CompressedMultiByteArraysInputStream(byteArrays: IndexedSeq[Array[Byt
     }
     returnValue
   }
+
+  /** Without this the inherited implementation reads the whole stream one byte at a time. */
+  override def read(b: Array[Byte], off: Int, len: Int): Int = {
+    if(len == 0) {
+      0
+    } else {
+      var bytesRead = -1
+      while(bytesRead == -1 && currentIdx < byteArrays.length) {
+        isOpt match {
+          case Some(is) =>
+            val nextRead = is.read(b, off, len)
+            if(nextRead == -1) {
+              isOpt = None
+              currentIdx += 1
+            } else {
+              bytesRead = nextRead
+            }
+          case None =>
+            isOpt = Some(new LZ4BlockInputStream(new ByteArrayInputStream(byteArrays(currentIdx))))
+        }
+      }
+      bytesRead
+    }
+  }
 }
 
 /**

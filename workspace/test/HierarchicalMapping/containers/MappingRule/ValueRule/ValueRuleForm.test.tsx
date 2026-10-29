@@ -1,8 +1,52 @@
 import React from "react";
 import EventEmitter from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/utils/EventEmitter";
 import { ValueRuleForm } from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ValueRule/ValueRuleForm";
-import { render, waitFor } from "@testing-library/react";
-import { clickFoundElement, findAllDOMElements } from "../../../../integration/TestHelper";
+import { fireEvent, render, waitFor } from "@testing-library/react";
+import { clickFoundElement, findAllDOMElements, findElement } from "../../../../integration/TestHelper";
+
+interface MockRule {
+    sourcePath: string;
+    mappingTarget: {
+        uri: string;
+        valueType: {
+            nodeType: string;
+            lang?: string;
+            uri?: string;
+        };
+    };
+}
+
+interface AutoCompleteMockProps {
+    className: string;
+    entity: string;
+    onChange: (value: { value: string }) => void;
+    value?: string;
+}
+
+let mockRule: MockRule = {
+    sourcePath: "sourcePath",
+    mappingTarget: {
+        uri: "targetProperty",
+        valueType: {
+            nodeType: "LanguageValueType",
+            lang: "en",
+        },
+    },
+};
+
+jest.mock("../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/AutoComplete", () => {
+    const React = jest.requireActual<typeof import("react")>("react");
+    return {
+        __esModule: true,
+        default: ({ className, entity, onChange, value }: AutoCompleteMockProps) =>
+            React.createElement("button", {
+                className,
+                "data-testid": `autocomplete-${entity}`,
+                onClick: () => onChange({ value: value === "en" ? "de" : "en" }),
+                type: "button",
+            }),
+    };
+});
 
 const props = {
     id: "1",
@@ -39,8 +83,8 @@ jest.mock("../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/
     const functionMock = {
         getHierarchyAsync: asyncMockFn(),
         getRuleAsync: asyncMockFn({
-            rule: {
-                sourcePath: "sourcePath",
+            get rule() {
+                return mockRule;
             },
         }),
     };
@@ -109,6 +153,49 @@ describe("ValueMappingRuleForm Component", () => {
         let emitMock;
         beforeEach(() => {
             emitMock = jest.spyOn(EventEmitter, "emit");
+            mockRule = {
+                sourcePath: "sourcePath",
+                mappingTarget: {
+                    uri: "targetProperty",
+                    valueType: {
+                        nodeType: "LanguageValueType",
+                        lang: "en",
+                    },
+                },
+            };
+        });
+
+        it("should track changes to the language tag", async () => {
+            const wrapper = getWrapper();
+            const saveButton = await waitFor(() => findElement(wrapper, selectors.CONFIRM_BUTTON));
+            const languageInput = findElement(wrapper, '[data-testid="autocomplete-langTag"]');
+
+            expect(saveButton).toBeDisabled();
+            fireEvent.click(languageInput);
+            expect(saveButton).toBeEnabled();
+            fireEvent.click(languageInput);
+            expect(saveButton).toBeDisabled();
+        });
+
+        it("should track changes to the custom value type URI", async () => {
+            mockRule = {
+                sourcePath: "sourcePath",
+                mappingTarget: {
+                    uri: "targetProperty",
+                    valueType: {
+                        nodeType: "CustomValueType",
+                        uri: "urn:initial",
+                    },
+                },
+            };
+            const wrapper = getWrapper();
+            const saveButton = await waitFor(() => findElement(wrapper, selectors.CONFIRM_BUTTON));
+
+            expect(saveButton).toBeDisabled();
+            fireEvent.change(findElement(wrapper, "#uri"), { target: { value: "urn:changed" } });
+            expect(saveButton).toBeEnabled();
+            fireEvent.change(findElement(wrapper, "#uri"), { target: { value: "urn:initial" } });
+            expect(saveButton).toBeDisabled();
         });
 
         it("should cancel button emit the event which will discard the form", async () => {

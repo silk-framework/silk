@@ -224,6 +224,8 @@ export const ArtefactFormParameter = ({
                             evaluatedValueMessage={
                                 supportVariableTemplateElement?.showTemplatePreview ? setTemplateInfoMessage : undefined
                             }
+                            // The preview of template parameters cannot resolve unknown variables, e.g. input attributes or execution variables
+                            noteUnresolvedVariables={isTemplateInputType && !showVariableTemplateInput}
                             intent={inputIntent}
                             allowSensitiveVariables={isPasswordInput}
                             // If the parameter is a template parameter, the validation is not aware in general what variables exist
@@ -266,6 +268,8 @@ export const ArtefactFormParameter = ({
 interface TemplateInputComponentProps {
     /** If a project ID is defined, also project variables will be auto-completed. */
     projectId?: string;
+    /** If a task ID is defined, validation and auto-completion run in the context of that task. */
+    taskId?: string;
     /** ID for the input field. */
     parameterId: string;
     initialValue: string;
@@ -273,6 +277,8 @@ interface TemplateInputComponentProps {
     setValidationError: (error?: string) => any;
     /** Called with a message that contains the currently evaluated template. */
     evaluatedValueMessage?: (evaluatedTemplateMessage?: string) => any;
+    /** Mention in the evaluated template message that unknown variables are not resolved, if the template contains any Jinja expressions. */
+    noteUnresolvedVariables?: boolean;
     /** optional parameter to make correct suggestions for when an existing variable is edited **/
     variableName?: string;
     handleTemplateErrors?: (error?: string) => any;
@@ -283,6 +289,9 @@ interface TemplateInputComponentProps {
     intent?: CodeAutocompleteFieldProps["intent"];
 }
 
+/** Matches any Jinja expression/statement. */
+const jinjaExpressionRegex = /\{\{|\{%/;
+
 /** The input component for the template value. */
 export const TemplateInputComponent = memo(
     ({
@@ -292,11 +301,13 @@ export const TemplateInputComponent = memo(
         setValidationError,
         evaluatedValueMessage,
         projectId,
+        taskId,
         variableName,
         handleTemplateErrors,
         multiline,
         allowSensitiveVariables,
         ignoreUnboundVariables,
+        noteUnresolvedVariables,
         intent,
     }: TemplateInputComponentProps) => {
         const currentUB = React.useRef<boolean>(ignoreUnboundVariables);
@@ -340,6 +351,7 @@ export const TemplateInputComponent = memo(
                         projectId,
                         variableName,
                         allowSensitiveVariables,
+                        taskId,
                     )
                 ).data;
             } catch (error) {
@@ -363,11 +375,16 @@ export const TemplateInputComponent = memo(
                             variableName,
                             allowSensitiveVariables,
                             currentUB.current,
+                            taskId,
                         )
                     ).data;
+                    const evaluatedValueKey =
+                        noteUnresolvedVariables && jinjaExpressionRegex.test(inputString)
+                            ? "ArtefactFormParameter.evaluatedValueUnresolvedNote"
+                            : "ArtefactFormParameter.evaluatedValue";
                     evaluatedValueMessage?.(
                         validationResponse.evaluatedTemplate
-                            ? t("ArtefactFormParameter.evaluatedValue", { value: validationResponse.evaluatedTemplate })
+                            ? t(evaluatedValueKey, { value: validationResponse.evaluatedTemplate })
                             : undefined,
                     );
                     return validationResponse;
@@ -388,12 +405,14 @@ export const TemplateInputComponent = memo(
         return (
             <CodeAutocompleteField
                 id={parameterId}
+                mode="jinja2"
                 initialValue={initialValue}
                 onChange={onTemplateValueChange}
                 fetchSuggestions={autoComplete}
                 checkInput={checkTemplate}
                 autoCompletionRequestDelay={200}
                 multiline={multiline}
+                useTabForCompletions={multiline}
                 intent={intent}
                 outerDivAttributes={
                     {

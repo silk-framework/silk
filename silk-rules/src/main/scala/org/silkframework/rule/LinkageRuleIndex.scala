@@ -53,6 +53,7 @@ object LinkageRuleIndex {
       case BooleanNot(child) => LinkageRuleIndexNot(convert(child, entity, sourceOrTarget))
       case BooleanComparisonOperator(id, sourceInput, targetInput, comparison) =>
         val inputId = if(sourceOrTarget) sourceInput.inputOperator.id else targetInput.inputOperator.id
+        // TODO CMEM-1590: Would this lead to incorrect indexing for task aware operators?
         val index = comparison.execution(TaskContext.empty).index(entity, sourceOrTarget, limit = 0.0)
         LinkageRuleIndexComparison(id, LinkageRuleIndexInput(inputId, index.flatten))
     }

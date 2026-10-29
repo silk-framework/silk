@@ -1,0 +1,20 @@
+{
+  "id" : "readOnlyDatasetTask",
+  "metadata" : {
+    "label" : "Task label",
+    "description" : "Task description",
+    "modified" : "2026-07-14T10:30:00Z",
+    "created" : "2026-07-01T08:00:00Z"
+  },
+  "taskType" : "Dataset",
+  "data" : {
+    "taskType" : "Dataset",
+    "readOnly" : true,
+    "uriProperty" : "urn:prop:instanceUri",
+    "type" : "taskJsonRegressionDataset",
+    "parameters" : {
+      "param1" : "stringValue",
+      "param2" : "6.0"
+    }
+  }
+}

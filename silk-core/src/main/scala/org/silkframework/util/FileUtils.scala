@@ -17,7 +17,8 @@ package org.silkframework.util
 import org.silkframework.config.DefaultConfig
 
 import java.io.{File, IOException}
-import java.nio.file.{Files, Paths}
+import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file.{Files, LinkOption, Paths}
 import scala.language.implicitConversions
 import scala.util.Try
 
@@ -70,11 +71,26 @@ class FileUtils(file: File) {
    * @throws java.io.IOException if the directory or any of its sub directories could not be deleted
    */
   def deleteRecursive(keepBaseFile: Boolean = false): Unit = {
-    if (file.isDirectory) {
-      file.listFiles().foreach(child => new FileUtils(child).deleteRecursive())
+    if (isRealDirectory) {
+      // listFiles returns null if the directory could not be read or vanished in the meantime
+      Option(file.listFiles()).getOrElse(Array.empty[File]).foreach(child => new FileUtils(child).deleteRecursive())
     }
 
     if (!keepBaseFile && file.exists && !file.delete()) throw new IOException("Could not delete file " + file)
+  }
+
+  /**
+    * True if this is a directory that may be descended into, i.e. neither a symlink nor a Windows junction.
+    * Those are deleted as the link itself, never by deleting the contents of the directory they point to.
+    */
+  private def isRealDirectory: Boolean = {
+    try {
+      val attributes = Files.readAttributes(file.toPath, classOf[BasicFileAttributes], LinkOption.NOFOLLOW_LINKS)
+      // isOther covers reparse points such as Windows junctions, which are reported as directories
+      attributes.isDirectory && !attributes.isOther
+    } catch {
+      case _: IOException => false // Does not exist or cannot be read, nothing to descend into
+    }
   }
 
   /**

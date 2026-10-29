@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.{Level, Logger}
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.ConcurrentMapHasAsScala
+import scala.util.control.NonFatal
 
 /**
   * Tasks are executed on a local machine.
@@ -21,9 +22,20 @@ import scala.jdk.CollectionConverters.ConcurrentMapHasAsScala
 case class LocalExecution(useLocalInternalDatasets: Boolean,
                           replaceDataSources: Map[String, Dataset] = Map.empty,
                           replaceSinks: Map[String, Dataset] = Map.empty,
-                          workflowId: Option[Identifier] = None) extends ExecutionType {
+                          workflowId: Option[Identifier] = None,
+                          parentExecution: Option[LocalExecution] = None) extends ExecutionType {
 
   type DataType = LocalEntities
+
+  /** Unique identifier for this execution instance. */
+  val executionId: Identifier = Identifier.random
+
+  /** The root execution of the workflow tree, i.e. the top-most ancestor without a parent execution. */
+  @scala.annotation.tailrec
+  final def rootExecution: LocalExecution = parentExecution match {
+    case Some(parent) => parent.rootExecution
+    case None         => this
+  }
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
@@ -81,16 +93,21 @@ case class LocalExecution(useLocalInternalDatasets: Boolean,
     this.shutdownHooks.remove(id)
   }
 
-  def executeShutdownHooks(): Unit ={
-    for((id, hook) <- this.shutdownHooks.asScala){
-      try{
-        hook()
-      }
-      catch{
-        case ex: Throwable => logger.log(Level.FINE, "Exception while executing an Execution shutdown hook.", ex)
+  def executeShutdownHooks(): Unit = {
+    // Remove each hook before running it and loop until none are left, so hooks run exactly once and concurrently registered hooks are never dropped.
+    while (!shutdownHooks.isEmpty) {
+      for ((id, _) <- shutdownHooks.asScala) {
+        val hook = shutdownHooks.remove(id)
+        if (hook != null) {
+          try {
+            hook()
+          } catch {
+            case NonFatal(ex) =>
+              logger.log(Level.WARNING, "Exception while executing an Execution shutdown hook.", ex)
+          }
+        }
       }
     }
-    this.shutdownHooks.clear()
   }
 }
 
@@ -107,8 +124,9 @@ object LocalExecution {
   id = "LocalInternalDataset",
   label = "Internal dataset (single graph)",
   description =
-    """Dataset for storing entities between workflow steps. This variant does use the same graph for all internal datasets in a workflow. The underlying dataset type can be configured using the `dataset.internal.*` configuration parameters."""
+    """Dataset for storing entities between workflow steps. This variant does use the same graph for all internal datasets in a workflow. The underlying dataset type can be configured using the `dataset.internal.*` configuration parameters.""",
+  deprecation = "This dataset is deprecated and will be removed in a future version. Instead use either the \"In-workflow dataset\" or the \"In-memory dataset\"."
 )
 case class LocalInternalDataset() extends InternalDatasetTrait {
-  override protected def internalDatasetPluginImpl: Dataset = InternalDataset.createInternalDataset()
+  override def internalDatasetPluginImpl: Dataset = InternalDataset.createInternalDataset()
 }

@@ -2,9 +2,9 @@ package org.silkframework.workspace
 
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.DatasetSpec
-import org.silkframework.rule.input.{Input, PathInput, TransformInput}
+import org.silkframework.rule.input.{Input, InputPortInput, PathInput, RuleBlockInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
-import org.silkframework.rule.{LinkSpec, TransformRule, TransformSpec}
+import org.silkframework.rule.{LinkSpec, RuleBlockSpec, TransformRule, TransformSpec}
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginDescription}
 
 case class PluginUsage(project: Option[String],
@@ -62,6 +62,9 @@ object PluginUsage {
       case linkSpec: LinkSpec =>
         val collector = new RuleUsageCollector(task)
         linkSpec.rule.operator.toSeq.flatMap(collector.pluginUsagesInSimilarityOperator)
+      case ruleBlockSpec: RuleBlockSpec =>
+        val collector = new RuleUsageCollector(task)
+        ruleBlockSpec.operator.toSeq.flatMap(collector.pluginUsagesInInputOperator(_))
       case customTask: CustomTask =>
         Seq(forTask(task, customTask.pluginSpec))
       case dataset: DatasetSpec[_] =>
@@ -87,11 +90,15 @@ object PluginUsage {
       }
     }
 
-    private def pluginUsagesInInputOperator(op: Input, ruleInfo: Option[(String, String)] = None): Seq[PluginUsage] = {
+    def pluginUsagesInInputOperator(op: Input, ruleInfo: Option[(String, String)] = None): Seq[PluginUsage] = {
       op match {
         case transform: TransformInput =>
           transform.inputs.flatMap(pluginUsagesInInputOperator(_, ruleInfo)) :+ usage(transform.transformer, ruleInfo)
+        case ruleBlock: RuleBlockInput =>
+          ruleBlock.bindings.flatMap(binding => pluginUsagesInInputOperator(binding.input, ruleInfo))
         case _: PathInput =>
+          Seq.empty
+        case _: InputPortInput =>
           Seq.empty
       }
     }

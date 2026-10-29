@@ -11,6 +11,6 @@ case class ActivityContextMock[T](initialValue: Option[T] = None) extends Activi
   override def log: Logger = Logger.getAnonymousLogger
   override def child[R](activity: Activity[R], progressContribution: Double): ActivityControl[R] = ???
   override def blockUntil(condition: () => Boolean): Unit = ???
-  override def helpQuiesce(): Unit = ???
+  override def helpQuiesce(): Boolean = ???
   override def startedBy: UserContext = ???
 }

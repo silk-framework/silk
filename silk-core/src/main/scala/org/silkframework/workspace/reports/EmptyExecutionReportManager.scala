@@ -13,6 +13,8 @@ import org.silkframework.util.Identifier
 )
 case class EmptyExecutionReportManager() extends ExecutionReportManager {
 
+  override def persistsReports: Boolean = false
+
   override def listReports(projectIds: Set[Identifier], taskId: Option[Identifier]): Seq[ReportIdentifier] = Seq.empty
 
   override def retrieveReport(reportId: ReportIdentifier)

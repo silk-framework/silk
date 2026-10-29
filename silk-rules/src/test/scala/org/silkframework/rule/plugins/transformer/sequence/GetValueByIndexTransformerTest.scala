@@ -1,38 +1,109 @@
 package org.silkframework.rule.plugins.transformer.sequence
 
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
+import GetValueByIndexTransformer.{apply => get}
+import org.silkframework.rule.test.TransformerTest
 
 /**
-  * Created on 6/9/16.
+  * Verifies GetValueByIndexTransformer's index-lookup contract: positive and negative indices, and how a missing
+  * or empty value is handled.
   */
-class GetValueByIndexTransformerTest extends AnyFlatSpec with Matchers {
+class GetValueByIndexTransformerTest extends TransformerTest[GetValueByIndexTransformer] {
+  import GetValueByIndexTransformerTest._
+
   behavior of "get value by index transformer"
 
-  private val ONE = "1"
-  private val TWO = "2"
-
-  it should "Get the right value by index" in {
-    get(Seq(Seq(ONE, TWO)), 0) shouldBe Seq(ONE)
-    get(Seq(Seq(ONE, TWO)), 1) shouldBe Seq(TWO)
-    get(Seq(Seq(ONE, TWO)), 2) shouldBe Seq()
+  it should "return the correct value for positive indices" in {
+    get(0)(Values.ONE_TWO) shouldBe Elements.ONE
+    get(1)(Values.ONE_TWO) shouldBe Elements.TWO
   }
 
-  it should "throw IndexOutOfBoundsException if failIfNotFound is set and there is no value at index" in {
+  it should "return an empty result for a positive index out of range" in {
+    get(2)(Values.ONE_TWO) shouldBe Elements.EMPTY
+  }
+
+  it should "throw rather than ignore a missing value at the index" in {
     intercept[IndexOutOfBoundsException] {
-      get(Seq(Seq(ONE)), 1, failIfNotFound = true)
+      get(1, failIfNotFound = true)(Values.ONE)
     }
   }
 
-  it should "return an empty result for an empty String if emptyStringToEmptyResult==true" in {
-    get(Seq(Seq("")), 0, emptyStringToEmptyResult = true) shouldBe Seq()
+  it should "return nothing for an empty String when empty results should be suppressed" in {
+    get(0, emptyStringToEmptyResult = true)(Values.EMPTY_STRING) shouldBe Elements.EMPTY
   }
 
-  private def get(values: Seq[Seq[String]],
-                  index: Int,
-                  failIfNotFound: Boolean = false,
-                  emptyStringToEmptyResult: Boolean = false): Seq[String] = {
-    val tr = new GetValueByIndexTransformer(index, failIfNotFound, emptyStringToEmptyResult)
-    tr(values)
+  it should "return the correct value for negative indices, counting from the end" in {
+    get(-1)(Values.ONE_TWO_THREE) shouldBe Elements.THREE
+    get(-2)(Values.ONE_TWO_THREE) shouldBe Elements.TWO
+    get(-3)(Values.ONE_TWO_THREE) shouldBe Elements.ONE
+  }
+
+  it should "return the correct value for a single-element sequence's wrap-to-start case" in {
+    get(-1)(Values.ONE) shouldBe Elements.ONE
+  }
+
+  it should "return an empty result for a negative index out of range" in {
+    get(-4)(Values.ONE_TWO_THREE) shouldBe Elements.EMPTY
+  }
+
+  it should "return an empty result for an empty input sequence" in {
+    get(0)(Values.EMPTY) shouldBe Elements.EMPTY
+    get(-1)(Values.EMPTY) shouldBe Elements.EMPTY
+  }
+
+  it should "throw rather than ignore an out-of-range negative index" in {
+    intercept[IndexOutOfBoundsException] {
+      get(-4, failIfNotFound = true)(Values.ONE_TWO_THREE)
+    }
+  }
+
+  it should "not throw at the wrap-to-start boundary, even when configured to throw on a miss" in {
+    get(-3, failIfNotFound = true)(Values.ONE_TWO_THREE) shouldBe Elements.ONE
+  }
+
+  it should "return the empty String at a negative index by default" in {
+    get(-1)(Values.ONE_EMPTY_STRING) shouldBe Elements.EMPTY_STRING
+  }
+
+  it should "return nothing for an empty String at a negative index when empty results should be suppressed" in {
+    get(-1, emptyStringToEmptyResult = true)(Values.ONE_EMPTY_STRING) shouldBe Elements.EMPTY
+  }
+
+  it should "resolve a negative index independently for each input sequence" in {
+    get(-1)(Seq(Elements.ONE_TWO_THREE, Elements.ONE_TWO)) shouldBe Seq(Strings.THREE, Strings.TWO)
+  }
+
+  it should "not overflow for extreme index values" in {
+    get(Int.MinValue)(Values.ONE_TWO_THREE) shouldBe Elements.EMPTY
+    get(Int.MaxValue)(Values.ONE_TWO_THREE) shouldBe Elements.EMPTY
+  }
+}
+
+object GetValueByIndexTransformerTest {
+
+  object Strings {
+    val ONE: String = "1"
+    val TWO: String = "2"
+    val THREE: String = "3"
+    val EMPTY: String = ""
+  }
+
+  object Elements {
+    val EMPTY: Seq[String] = Seq[String]()
+    val ONE: Seq[String] = Seq(Strings.ONE)
+    val TWO: Seq[String] = Seq(Strings.TWO)
+    val THREE: Seq[String] = Seq(Strings.THREE)
+    val ONE_TWO: Seq[String] = Seq(Strings.ONE, Strings.TWO)
+    val ONE_TWO_THREE: Seq[String] = Seq(Strings.ONE, Strings.TWO, Strings.THREE)
+    val EMPTY_STRING: Seq[String] = Seq(Strings.EMPTY)
+    val ONE_EMPTY_STRING: Seq[String] = Seq(Strings.ONE, Strings.EMPTY)
+  }
+
+  object Values {
+    val EMPTY: Seq[Seq[String]] = Seq(Elements.EMPTY)
+    val ONE: Seq[Seq[String]] = Seq(Elements.ONE)
+    val ONE_TWO: Seq[Seq[String]] = Seq(Elements.ONE_TWO)
+    val ONE_TWO_THREE: Seq[Seq[String]] = Seq(Elements.ONE_TWO_THREE)
+    val EMPTY_STRING: Seq[Seq[String]] = Seq(Elements.EMPTY_STRING)
+    val ONE_EMPTY_STRING: Seq[Seq[String]] = Seq(Elements.ONE_EMPTY_STRING)
   }
 }

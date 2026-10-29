@@ -2,6 +2,7 @@ package org.silkframework.openapi
 
 import config.WorkbenchConfig
 import io.aurora.utils.play.swagger.SwaggerPlugin
+import io.swagger.v3.core.converter.ModelConverters
 import io.swagger.v3.core.util.{Json, Yaml}
 import io.swagger.v3.oas.models.servers.Server
 import io.swagger.v3.oas.models.tags.Tag
@@ -22,6 +23,11 @@ object OpenApiGenerator {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
+  // Registered once, before the first spec is generated.
+  private lazy val playJsonConverterRegistered: Unit = {
+    ModelConverters.getInstance().addConverter(new PlayJsonModelConverter)
+  }
+
   def generateJson(swaggerPlugin: SwaggerPlugin): String = {
     serializeJson(generate(swaggerPlugin))
   }
@@ -31,7 +37,8 @@ object OpenApiGenerator {
   }
 
   def generate(swaggerPlugin: SwaggerPlugin): OpenAPI = {
-    val openApi = swaggerPlugin.apiListingCache.listing(WorkbenchConfig.publicHost)
+    playJsonConverterRegistered
+    val openApi = swaggerPlugin.apiListingCache.listing(WorkbenchConfig.canonicalPublicHost)
     updateMetadata(openApi)
     updateDescription(openApi)
     sortTags(openApi)
@@ -46,7 +53,7 @@ object OpenApiGenerator {
     openApi.getInfo.setVersion(WorkbenchConfig.version)
     val servers = new util.ArrayList[Server]()
     val server = new Server()
-    server.setUrl(WorkbenchConfig.publicBaseUrl + WorkbenchConfig.applicationContext + "/")
+    server.setUrl(WorkbenchConfig.canonicalPublicBaseUrl + WorkbenchConfig.applicationContext + "/")
     servers.add(server)
     openApi.setServers(servers)
   }

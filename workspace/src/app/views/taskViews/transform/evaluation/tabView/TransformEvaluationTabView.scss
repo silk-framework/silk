@@ -1,3 +1,5 @@
+@import "../../../shared/evaluations/selectableEvaluationValues";
+
 .diapp-transform-evaluation {
     /*
         FIXME:
@@ -18,4 +20,6 @@
     .ecc-silk-mapping__treenav {
         margin: 0px;
     }
+
+    @include selectable-evaluation-values;
 }

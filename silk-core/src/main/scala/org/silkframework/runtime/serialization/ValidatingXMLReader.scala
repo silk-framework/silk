@@ -16,7 +16,6 @@ package org.silkframework.runtime.serialization
 
 import java.io._
 import javax.xml.XMLConstants
-import javax.xml.parsers.SAXParserFactory
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
 import org.silkframework.runtime.validation.{ValidationError, ValidationException}
@@ -67,7 +66,7 @@ class ValidatingXMLReader(schemaPath: String) {
       val schema = schemaFactory.newSchema(new StreamSource(schemaStream))
 
       //Create parser
-      val parserFactory = SAXParserFactory.newInstance()
+      val parserFactory = SecureXmlParsing.saxParserFactory()
       parserFactory.setNamespaceAware(true)
       parserFactory.setFeature("http://xml.org/sax/features/namespace-prefixes", true)
       val parser = parserFactory.newSAXParser()
@@ -104,10 +103,9 @@ class ValidatingXMLReader(schemaPath: String) {
     }
 
     override def startElement(uri: String, _localName: String, qname: String, attributes: Attributes): Unit = {
-      // Add all errors for this element before advancing
-      for(idAttribute <- Option(attributes.getValue("id"))) {
-        // Try to get identifier of this element
-        val id =
+      // Flush on every element, not just id-bearing ones, so an id-less element's errors don't leak to the next id-bearing one.
+      val id =
+        Option(attributes.getValue("id")).flatMap { idAttribute =>
           try {
             Some(Identifier(idAttribute))
           } catch {
@@ -115,13 +113,13 @@ class ValidatingXMLReader(schemaPath: String) {
               validationErrors ::= ValidationError(ex.getMessage, None, Some(_localName))
               None
           }
-
-        for(error <- currentErrors) {
-          validationErrors ::= ValidationError(error, id, Some(_localName))
         }
 
-        currentErrors = Nil
+      for(error <- currentErrors) {
+        validationErrors ::= ValidationError(error, id, Some(_localName))
       }
+
+      currentErrors = Nil
     }
 
     /**

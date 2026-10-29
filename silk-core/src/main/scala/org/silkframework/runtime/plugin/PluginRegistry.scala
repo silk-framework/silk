@@ -38,6 +38,9 @@ object PluginRegistry {
   @volatile
   private var timestamp: Long = System.currentTimeMillis()
 
+  /** Serializes all mutations of the registry, so that concurrent (un)registrations cannot lose updates. */
+  private val registrationLock = new AnyRef
+
   // Register all plugins at instantiation of this singleton object.
   Config.pluginFolder() match {
     case Some(folder) =>
@@ -75,11 +78,41 @@ object PluginRegistry {
    * Returns the plugin description of a specific plugin.
    */
   def pluginById[T: ClassTag](id: String): PluginDescription[T] = {
-    val pluginClass = implicitly[ClassTag[T]].runtimeClass.getName
+    val pluginClass = implicitly[ClassTag[T]].runtimeClass
     pluginType[T].pluginByIdOpt[T](id)
-      .getOrElse(id, throw new NoSuchElementException(s"No plugin '$id' found for class $pluginClass. Available plugins: ${pluginType[T].availablePlugins.map(_.id).mkString(", ")}"))
+      .getOrElse(throw new NoSuchElementException(pluginNotFoundMessage(id, pluginClass)))
       .asInstanceOf[PluginDescription[T]]
   }
+
+  /** Explains a failed plugin lookup: an id that exists under another plugin type is the likely mix-up,
+    * otherwise the closest ids are suggested. Never lists the whole type as that can be hundreds of ids. */
+  private def pluginNotFoundMessage(id: String, pluginClass: Class[_]): String = {
+    val requestedType = pluginClass.getSimpleName
+    val registeredAs = pluginsById.getOrElse(id, Seq.empty).flatMap(_.pluginTypes.map(_.label)).distinct
+    if(registeredAs.nonEmpty) {
+      s"No plugin '$id' found for class $requestedType. '$id' is a ${registeredAs.mkString(" / ")} plugin, " +
+        s"not a $requestedType."
+    } else {
+      val available = availablePluginsForClass(pluginClass).map(_.id.toString)
+      s"No plugin '$id' found for class $requestedType. ${closestPluginIds(id, available)}"
+    }
+  }
+
+  /** The ids closest to the searched one, capped. */
+  private[plugin] def closestPluginIds(id: String, available: Seq[String]): String = {
+    val searched = id.toLowerCase
+    val close = available.filter { candidate =>
+      val lower = candidate.toLowerCase
+      lower.contains(searched) || searched.contains(lower) || lower.take(3) == searched.take(3)
+    }
+    val shown = (if(close.nonEmpty) close else available).take(MAX_SUGGESTED_PLUGIN_IDS)
+    val label = if(close.nonEmpty) "Closest ids" else "Available ids"
+    val rest = if(available.size > shown.size) s" (${available.size} plugins are available for this type)" else ""
+    if(shown.isEmpty) "No plugins are available for this type." else s"$label: ${shown.mkString(", ")}.$rest"
+  }
+
+  /** Max plugin ids named in a not-found message. */
+  private final val MAX_SUGGESTED_PLUGIN_IDS = 10
 
   /**
    * Returns the (optional) plugin description of a specific plugin.
@@ -93,12 +126,14 @@ object PluginRegistry {
    *
    * @param id The id of the plugin.
    * @param params The instantiation parameters.
+   * @param ignoreNonExistingParameters If false, creation fails if a parameter is provided that does not exist on the plugin.
    * @tparam T The base type of the plugin.
    * @return A new instance of the plugin type with the given parameters.
    */
-  def create[T: ClassTag](id: String, params: ParameterValues = ParameterValues.empty)
+  def create[T: ClassTag](id: String, params: ParameterValues = ParameterValues.empty,
+                          ignoreNonExistingParameters: Boolean = true)
                          (implicit context: PluginContext): T = {
-    pluginType[T].create[T](id, params)
+    pluginType[T].create[T](id, params, ignoreNonExistingParameters)
   }
 
   /**
@@ -223,7 +258,11 @@ object PluginRegistry {
   def registerFromClasspath(classLoader: ClassLoader = Thread.currentThread.getContextClassLoader): Unit = {
     // Load all plugin classes
     val loader = ServiceLoader.load(classOf[PluginModule], classLoader)
-    val modules = loader.iterator().asScala.toList
+    var modules = loader.iterator().asScala.toList
+    if(modules.isEmpty) {
+      // Fall back to our own class loader, e.g. the context class loader of fork/join workers cannot see the classpath since JDK 19
+      modules = ServiceLoader.load(classOf[PluginModule], classOf[PluginModule].getClassLoader).iterator().asScala.toList
+    }
     val pluginClasses = for(module <- modules; pluginClass <- module.pluginClasses) yield pluginClass
 
     // Create a plugin description for each plugin class (can be done in parallel)
@@ -284,18 +323,21 @@ object PluginRegistry {
   def registerPlugin(pluginDesc: PluginDescription[_]): Unit = {
     checkPluginDescription(pluginDesc)
     if(!Config.blacklistedPlugins().contains(pluginDesc.id)) {
-      if(pluginsById.contains(pluginDesc.id)) {
-        throw new InvalidPluginException(s"Plugin with id '${pluginDesc.id}' already exists. " +
-            s"Please use a different id for $pluginDesc.")
+      // The check-then-act and the update of all maps must be atomic, so that concurrent registrations are not lost
+      registrationLock.synchronized {
+        if(pluginsById.contains(pluginDesc.id)) {
+          throw new InvalidPluginException(s"Plugin with id '${pluginDesc.id}' already exists. " +
+              s"Please use a different id for $pluginDesc.")
+        }
+        for (superType <- pluginDesc.pluginTypes) {
+          val pluginType = pluginTypesById.getOrElse(superType.name, new PluginTypeHolder(superType))
+          pluginTypesById += ((superType.name, pluginType))
+          pluginType.register(pluginDesc)
+        }
+        plugins += ((pluginDesc.pluginClass.getName, pluginDesc))
+        pluginsById += ((pluginDesc.id.toString, pluginDesc :: (pluginsById.getOrElse(pluginDesc.id, Seq()).toList)))
+        timestamp = System.currentTimeMillis()
       }
-      for (superType <- pluginDesc.pluginTypes) {
-        val pluginType = pluginTypesById.getOrElse(superType.name, new PluginTypeHolder(superType))
-        pluginTypesById += ((superType.name, pluginType))
-        pluginType.register(pluginDesc)
-      }
-      plugins += ((pluginDesc.pluginClass.getName, pluginDesc))
-      pluginsById += ((pluginDesc.id.toString, pluginDesc :: (pluginsById.getOrElse(pluginDesc.id, Seq()).toList)))
-      timestamp = System.currentTimeMillis()
     }
   }
 
@@ -313,22 +355,24 @@ object PluginRegistry {
     * Does nothing if the plugin is not registered.
     */
   def unregisterPlugin(pluginDesc: PluginDescription[_]): Unit = {
-    for  { superType <- pluginDesc.pluginTypes
-           pluginType <- pluginTypesById.get(superType.name)} {
-      pluginType.unregister(pluginDesc.id)
-    }
-    plugins -= pluginDesc.pluginClass.getName
+    registrationLock.synchronized {
+      for  { superType <- pluginDesc.pluginTypes
+             pluginType <- pluginTypesById.get(superType.name)} {
+        pluginType.unregister(pluginDesc.id)
+      }
+      plugins -= pluginDesc.pluginClass.getName
 
-    // Remove plugin from pluginsById
-    val existingPluginsForId = pluginsById.getOrElse(pluginDesc.id.toString, Seq.empty)
-    val updatedPluginsForId = existingPluginsForId.filter(_.pluginClass.getName != pluginDesc.pluginClass.getName)
-    if(updatedPluginsForId.nonEmpty) {
-      pluginsById += ((pluginDesc.id.toString, updatedPluginsForId))
-    } else {
-      pluginsById -= pluginDesc.id.toString
-    }
+      // Remove plugin from pluginsById
+      val existingPluginsForId = pluginsById.getOrElse(pluginDesc.id.toString, Seq.empty)
+      val updatedPluginsForId = existingPluginsForId.filter(_.pluginClass.getName != pluginDesc.pluginClass.getName)
+      if(updatedPluginsForId.nonEmpty) {
+        pluginsById += ((pluginDesc.id.toString, updatedPluginsForId))
+      } else {
+        pluginsById -= pluginDesc.id.toString
+      }
 
-    timestamp = System.currentTimeMillis()
+      timestamp = System.currentTimeMillis()
+    }
   }
 
   /**
@@ -376,12 +420,13 @@ object PluginRegistry {
      *
      * @param id The id of the plugin.
      * @param params The instantiation parameters.
+     * @param ignoreNonExistingParameters If false, creation fails if a parameter is provided that does not exist on the plugin.
      * @tparam T The base type of the plugin.
      * @return A new instance of the plugin type with the given parameters.
      */
-    def create[T: ClassTag](id: String, params: ParameterValues)
+    def create[T: ClassTag](id: String, params: ParameterValues, ignoreNonExistingParameters: Boolean = true)
                            (implicit context: PluginContext): T = {
-      pluginById[T](id).apply(params)
+      pluginById[T](id).apply(params, ignoreNonExistingParameters)
     }
 
     /**

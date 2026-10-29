@@ -6,6 +6,8 @@ import org.silkframework.plugins.dataset.hierarchical.{HierarchicalEntityWriter,
 import org.silkframework.plugins.dataset.xml.util.IndentingXMLStreamWriter
 import org.silkframework.runtime.validation.ValidationException
 
+import com.ctc.wstx.stax.WstxOutputFactory
+
 import java.io.OutputStream
 import java.nio.charset.StandardCharsets
 import javax.xml.stream.{XMLOutputFactory, XMLStreamWriter}
@@ -14,7 +16,8 @@ import javax.xml.stream.{XMLOutputFactory, XMLStreamWriter}
 class XmlEntityWriter(outputStream: OutputStream, template: XmlOutputTemplate) extends HierarchicalEntityWriter {
 
   private val writer: XMLStreamWriter = {
-    val factory = XMLOutputFactory.newInstance()
+    // Fixed implementation, because namespace repairing differs between implementations
+    val factory = new WstxOutputFactory()
     factory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, true)
     new IndentingXMLStreamWriter(factory.createXMLStreamWriter(outputStream, StandardCharsets.UTF_8.name()))
   }

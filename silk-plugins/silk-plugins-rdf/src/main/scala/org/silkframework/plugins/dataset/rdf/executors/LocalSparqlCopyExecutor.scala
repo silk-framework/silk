@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.rdf.executors
 import org.apache.commons.io.FileUtils
 import org.apache.jena.riot.Lang
 import org.silkframework.config.{Task, TaskSpec}
-import org.silkframework.dataset.rdf.{IteratorFormatter, QuadIterator}
+import org.silkframework.dataset.rdf.{IteratorFormatter, QuadIterator, RdfDatasetAccess}
 import org.silkframework.execution.local._
 import org.silkframework.execution.typed.{QuadEntitySchema, SparqlEndpointEntitySchema}
 import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, ExecutorOutput, TaskException}
@@ -29,8 +29,8 @@ class LocalSparqlCopyExecutor() extends LocalExecutor[SparqlCopyCustomTask] {
     inputs match {
       case Seq(SparqlEndpointEntitySchema(entities)) =>
         val internalTaskId = "construct_copy_tmp"
-        val rdfDataset = entities.task.data.plugin
-        val results: QuadIterator = rdfDataset.sparqlEndpoint.construct(task.query.str)
+        val endpoint = RdfDatasetAccess.forExecution(entities.task, execution).sparqlEndpoint
+        val results: QuadIterator = endpoint.construct(task.query.str)
         // if we have to safe construct graph as temp file before propagation
         val temporaryEntities = if(task.tempFile) {
           val tempFile = File.createTempFile(internalTaskId, "nt")

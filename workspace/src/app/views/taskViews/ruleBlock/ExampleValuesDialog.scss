@@ -1,0 +1,29 @@
+.ecc-silk-rule-block-example-values-dialog {
+    .#{$eccgui}-card__content {
+        position: relative;
+    }
+
+    &__example-item {
+        &.#{$eccgui}-intent--accent {
+            color: $eccgui-color-accent;
+            background-color: $eccgui-color-accent-contrast;
+        }
+        &:hover {
+            background-color: $menu-item-color-hover;
+        }
+    }
+
+    &__port {
+        &-pair {
+            &--highlighted {
+                background-color: $eccgui-color-accent-contrast;
+            }
+        }
+
+        &-name {
+            &--highlighted {
+                color: $eccgui-color-accent;
+            }
+        }
+    }
+}

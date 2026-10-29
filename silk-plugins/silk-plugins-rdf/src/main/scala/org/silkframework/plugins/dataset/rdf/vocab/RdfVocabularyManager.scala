@@ -25,7 +25,7 @@ case class RdfVocabularyManager() extends VocabularyManager {
       case Some(endpoint) =>
         endpoint
       case _ =>
-        throw new RuntimeException("Workspace has no SPARQL enabled storage backend.")
+        throw new RuntimeException("Cannot load vocabularies: the workspace has no SPARQL enabled storage backend.")
     }
   }
 

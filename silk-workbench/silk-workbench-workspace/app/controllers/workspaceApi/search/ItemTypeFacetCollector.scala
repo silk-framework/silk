@@ -235,7 +235,8 @@ case class OverallFacetCollector() {
     ItemType.transform -> facetCollectors(TransformFacetCollector(), MetaDataFacetCollector()),
     ItemType.linking -> facetCollectors(MetaDataFacetCollector()),
     ItemType.workflow -> facetCollectors(WorkflowFacetCollector(), MetaDataFacetCollector()),
-    ItemType.task -> facetCollectors(TaskFacetCollector(), MetaDataFacetCollector())
+    ItemType.task -> facetCollectors(TaskFacetCollector(), MetaDataFacetCollector()),
+    ItemType.ruleBlock -> facetCollectors(MetaDataFacetCollector())
   )
   // Generic item type collectors
   private val genericItemTypeFacetCollectors = ItemTypeFacetCollectors(Seq(MetaDataFacetCollector()))

@@ -109,6 +109,8 @@ object Execution {
       val t = factory.newThread(pool)
       t.setName(threadPrefix + prefix + threadNumber.getAndIncrement)
       t.setUncaughtExceptionHandler(LoggingExceptionHandler)
+      // The default factory sets the system class loader since JDK 19, which breaks ServiceLoader lookups in unforked tests
+      t.setContextClassLoader(Thread.currentThread.getContextClassLoader)
       t
     }
   }

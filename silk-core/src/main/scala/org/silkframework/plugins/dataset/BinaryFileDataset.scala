@@ -40,27 +40,12 @@ case class BinaryFileDataset(
   /**
    * Creates a data source for a particular resource inside the bulk file.
    */
-  override def createSource(resource: Resource): DataSource = {
-    new FileSource(ReadOnlyResource(resource))
-  }
-
-  /**
-   * Returns a link sink for writing entity links to the data set.
-   */
-  override def linkSink(implicit userContext: UserContext): LinkSink = {
-    throw new RuntimeException("Only file entities can be written to this dataset. Links are not supported")
-  }
-
-  /**
-   * Returns an entity sink for writing entities to the data set.
-   */
-  override def entitySink(implicit userContext: UserContext): EntitySink = new FileSink(file)
+  override def createSource(resource: Resource): DataSource = new FileSource(ReadOnlyResource(resource))
 
   override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly(explicitSchema = true)
 }
 
 object BinaryFileDataset {
-
   final val id = "binaryFile"
   final val mimeType = "application/octet-stream"
 }
@@ -105,24 +90,20 @@ class FileSource(file: WritableResource) extends DataSource with PeakDataSource 
 class FileSink(file: WritableResource) extends EntitySink {
 
   override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean)
-                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
-    throwException
-  }
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = throwException
 
-  override def closeTable()(implicit userContext: UserContext): Unit = {
-    throwException
-  }
+  override def closeTable()(implicit userContext: UserContext): Unit = throwException
 
   override def writeEntity(subject: String, values: IndexedSeq[Seq[String]])(implicit userContext: UserContext): Unit = {
     throwException
   }
 
-  override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
-    file.delete()
-  }
+  /**
+   * Only deletes the file if forced, because each write replaces the file anyway.
+   */
+  override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = if(force) file.delete()
 
-  private def throwException: Nothing = {
+  private def throwException: Nothing =
     throw new RuntimeException("Cannot write generic entities to this dataset. Only file entities can be written. " +
                                "File entities are produced by some operators, such as the 'Get project files' task.")
-  }
 }

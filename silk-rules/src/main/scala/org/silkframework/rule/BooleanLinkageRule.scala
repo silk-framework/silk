@@ -1,8 +1,9 @@
 package org.silkframework.rule
 
-import org.silkframework.rule.input.{Input, PathInput, TransformInput}
+import org.silkframework.rule.input.{Input, InputPortInput, PathInput, RuleBlockInput, TransformInput}
 import org.silkframework.rule.plugins.aggegrator.{MaximumAggregator, MinimumAggregator, NegationAggregator}
 import org.silkframework.rule.similarity.{Aggregation, Aggregator, Comparison, SimilarityOperator}
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import BooleanLinkageRule.MAX_COMPARISONS_IN_LINKAGE_RULE_FOR_CNF_CONVERSION
 import org.silkframework.entity.paths.TypedPath
@@ -210,9 +211,12 @@ object BooleanLinkageRule {
         InputPathOperator(pi.path.asUntypedPath.asStringTypedPath, pi)
       case ti: TransformInput =>
         TransformationOperator(ti.inputs.map(convert), ti)
+      case rb: RuleBlockInput =>
+        TransformationOperator(rb.bindings.map(binding => convert(binding.input)), rb)
+      case ip: InputPortInput =>
+        throw new ValidationException(s"Input ports may only be used inside rule block definitions, but found input port '${ip.portId}' in a linkage rule.")
     }
   }
 
   case class NonBooleanConvertibleException(msg: String) extends IllegalArgumentException(msg)
 }
-

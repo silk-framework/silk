@@ -1,15 +1,17 @@
 package org.silkframework.execution
 
-import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetAccess, DatasetSpec}
 import org.silkframework.runtime.activity.Status.Running
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, Status}
 import org.silkframework.runtime.plugin.{PluginContext, PluginDescription, PluginRegistry}
 import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.util.Identifier
 
 import java.lang.reflect.{Modifier, ParameterizedType, TypeVariable}
 import java.util.logging.{Level, Logger}
 import scala.language.existentials
+import scala.util.Try
 
 trait ExecutorRegistry {
 
@@ -137,12 +139,41 @@ object ExecutorRegistry extends ExecutorRegistry {
     context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName)
   )(implicit pluginContext: PluginContext): Option[ExecType#DataType] = {
     val exec = executor(task.data, execution)
+    executeWith(exec, task, inputs, output, execution, context)
+  }
+
+  /** Execute with a pre-instantiated executor, skipping executor lookup. */
+  def executeWith[TaskType <: TaskSpec, ExecType <: ExecutionType](
+    exec: Executor[TaskType, ExecType],
+    task: Task[TaskType],
+    inputs: Seq[ExecType#DataType],
+    output: ExecutorOutput,
+    execution: ExecType,
+    context: ActivityContext[ExecutionReport]
+  )(implicit pluginContext: PluginContext): Option[ExecType#DataType] = {
     context.status.update(Status.Running("Running", None), logStatus = false)
     val startTime = System.currentTimeMillis()
-    val result = exec.execute(task, inputs, output, execution, context)
-    context.status.update(Status.Finished(success = true, System.currentTimeMillis() - startTime, cancelled = false), logStatus = false)
-    result
+    // Publishes the terminal status. An execution that produced a report with an error counts as failed.
+    def finish(exception: Option[Throwable]): Unit = {
+      val success = exception.isEmpty && !context.value.get.exists(_.error.isDefined)
+      context.status.update(Status.Finished(success, System.currentTimeMillis() - startTime, cancelled = false, exception), logStatus = false)
+    }
+    try {
+      val result = exec.execute(task, inputs, output, execution, context)
+      finish(None)
+      result
+    } catch {
+      case ex: Throwable =>
+        Try(finish(Some(ex))) // The executor's exception must propagate even if a status subscriber fails
+        throw ex
+    }
   }
+
+  /** Instantiates the executor for a given task and execution type without executing it. */
+  def instantiateExecutor[TaskType <: TaskSpec, ExecType <: ExecutionType](
+    task: TaskType,
+    execution: ExecType
+  ): Executor[TaskType, ExecType] = executor(task, execution)
 
 
   /** Fetch the execution specific access to a dataset for the configured execution.*/
@@ -160,4 +191,20 @@ object ExecutorRegistry extends ExecutorRegistry {
         throw new Exception(s"Tried to access task $task, which does not provide a dataset executor.")
     }
   }
+
+  /**
+    * Fetch the execution specific access for a dataset specification that is not part of a task, by
+    * wrapping it in a transient task. Prefer the task-based [[access]] overloads when a task is available.
+    */
+  def access(datasetSpec: DatasetSpec[Dataset]): DatasetAccess = access(transientTask(datasetSpec))
+
+  /** Fetch the execution specific access for a dataset plugin that is not part of a task. */
+  def access(dataset: Dataset): DatasetAccess = access(transientTask(DatasetSpec(dataset)))
+
+  /** Fetch the execution specific access for a dataset plugin that is not part of a task. */
+  def access[ExecType <: ExecutionType](dataset: Dataset, execution: ExecType): DatasetAccess =
+    access(transientTask(DatasetSpec(dataset)), execution)
+
+  private def transientTask(datasetSpec: DatasetSpec[Dataset]): Task[DatasetSpec[Dataset]] =
+    PlainTask(Identifier.fromAllowed("dataset"), datasetSpec)
 }

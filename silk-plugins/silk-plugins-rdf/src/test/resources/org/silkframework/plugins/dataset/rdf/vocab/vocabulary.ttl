@@ -9,6 +9,7 @@
 @prefix vann: <http://purl.org/vocab/vann/> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix schema: <https://schema.org/> .
 
 : a owl:Ontology ;
   rdfs:label "Test Ontology"@en ;
@@ -28,6 +29,14 @@
   a rdfs:Class ;
   rdfs:label "Person"@en ;
   skos:definition "A Person"@en ;
+  rdfs:isDefinedBy : ;
+.
+
+:hasActor
+  a rdf:Property ;
+  rdfs:label "actor"@en ;
+  schema:domainIncludes :Movie ;
+  schema:rangeIncludes :Person ;
   rdfs:isDefinedBy : ;
 .
 

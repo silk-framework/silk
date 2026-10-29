@@ -21,8 +21,10 @@ import {
     Divider,
     Icon,
     IconButton,
+    Label,
     Link,
     Notification,
+    OverflowText,
     OverviewItemList,
     PropertyName,
     PropertyValue,
@@ -79,7 +81,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         (async () => {
             try {
                 setLoadingVariables(true);
-                const { data } = await getVariables(projectId);
+                const { data } = await getVariables(projectId, taskId);
                 setVariables(data?.variables ?? []);
                 setEvaluationErrors(data?.errors ?? []);
             } catch (err) {
@@ -88,7 +90,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 setLoadingVariables(false);
             }
         })();
-    }, [refetch, projectId]);
+    }, [refetch, projectId, taskId]);
 
     const handleModalOpen = React.useCallback((variable: Variable | undefined = undefined) => {
         setSelectedVariable(variable);
@@ -96,20 +98,23 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         setModalOpen(true);
     }, []);
 
-    const handleDeleteModalOpen = React.useCallback(async (variable: Variable) => {
-        setDeleteError(undefined);
-        setSelectedVariable(variable);
-        setDeleteModalOpen(true);
-        try {
-            setErrorNotification(null);
-            setVariableDependencies((await getVariableDependencies(projectId, variable.name)).data);
-        } catch (err) {
-            checkAndDisplayDeletionError(
-                err,
-                t("widget.VariableWidget.errorMessages.dependencyRetrievalFailure", "Failed to retrieve variable"),
-            );
-        }
-    }, []);
+    const handleDeleteModalOpen = React.useCallback(
+        async (variable: Variable) => {
+            setDeleteError(undefined);
+            setSelectedVariable(variable);
+            setDeleteModalOpen(true);
+            try {
+                setErrorNotification(null);
+                setVariableDependencies((await getVariableDependencies(projectId, variable.name, taskId)).data);
+            } catch (err) {
+                checkAndDisplayDeletionError(
+                    err,
+                    t("widget.VariableWidget.errorMessages.dependencyRetrievalFailure", "Failed to retrieve variable"),
+                );
+            }
+        },
+        [projectId, taskId],
+    );
 
     /**
      * upon acceptance on the delete prompt, it deletes the selected variable.
@@ -119,7 +124,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         setIsDeleting(true);
         setDeleteError(undefined);
         try {
-            await deleteVariableRequest(projectId, selectedVariable.name);
+            await deleteVariableRequest(projectId, selectedVariable.name, taskId);
             setRefetch((r) => ++r);
             setDeleteModalOpen(false);
         } catch (err) {
@@ -130,7 +135,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         } finally {
             setIsDeleting(false);
         }
-    }, [selectedVariable]);
+    }, [selectedVariable, projectId, taskId]);
 
     const handleVariableDragEnd = React.useCallback(
         async (event) => {
@@ -157,6 +162,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 const res = await reorderVariablesRequest(
                     projectId,
                     reorderedVariables.map((v) => v.name),
+                    taskId,
                 );
                 if (res.axiosResponse.status === 200) {
                     setVariables(reorderedVariables);
@@ -173,7 +179,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 setDropChangeLoading(false);
             }
         },
-        [variables],
+        [variables, projectId, taskId],
     );
 
     const renderDeleteVariable = React.useCallback(() => {
@@ -245,7 +251,11 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
             <Card>
                 <CardHeader>
                     <CardTitle>
-                        <h2>{t("widget.VariableWidget.title", "Project Variables")}</h2>
+                        <h2>
+                            {taskId
+                                ? t("widget.VariableWidget.title.execution", "Execution variables")
+                                : t("widget.VariableWidget.title.project", "Project variables")}
+                        </h2>
                     </CardTitle>
                     <CardOptions>
                         <IconButton
@@ -339,28 +349,29 @@ const SortableVariableItem: React.FC<SortableVariableItemProps> = ({
             <Toolbar noWrap>
                 {!isOnlyItem ? (
                     <ToolbarSection>
-                        <Icon small name="item-draggable" />
+                        <Icon small name="item-draggable" style={{ cursor: "grab" }} />
                         <Spacing size="tiny" vertical />
                     </ToolbarSection>
                 ) : null}
                 <ToolbarSection canGrow canShrink>
                     <PropertyValuePair nowrap>
-                        <PropertyName
-                            title={variable.name}
-                            size="large"
-                            labelProps={{
-                                tooltip: variable.description,
-                                style: { lineHeight: "normal" },
-                            }}
-                        >
-                            <span className={"nodrag"}>{variable.name}</span>
+                        <PropertyName nowrap size="large">
+                            <Label
+                                text={
+                                    <OverflowText inline passDown>
+                                        <Tooltip content={variable.name}>{variable.name}</Tooltip>
+                                    </OverflowText>
+                                }
+                                tooltip={variable.description}
+                                className={"nodrag"}
+                                isLayoutForElement="span"
+                                emphasis={"strong"}
+                            />
                         </PropertyName>
-                        <PropertyValue
-                            style={{
-                                marginLeft: "calc(31.25% + 14px)",
-                            }}
-                        >
-                            <code className={"nodrag"}>{variable.value}</code>
+                        <PropertyValue>
+                            <Tooltip content={<code>{variable.value}</code>}>
+                                <code className={"nodrag"}>{variable.value}</code>
+                            </Tooltip>
                         </PropertyValue>
                     </PropertyValuePair>
                 </ToolbarSection>
@@ -383,7 +394,7 @@ const SortableVariableItem: React.FC<SortableVariableItemProps> = ({
                                 data-test-id="template-variable-delimiter"
                                 tooltipText={
                                     t("widget.TaskConfigWidget.templateValueInfo") +
-                                    `\n\n\`\`\`${variable.template}\`\`\``
+                                    `\n\n\`\`\`\n${variable.template}\n\`\`\``
                                 }
                                 tooltipProps={{
                                     placement: "top",

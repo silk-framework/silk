@@ -5,7 +5,7 @@ export interface Variable {
     template: string | null;
     isSensitive: boolean;
     description?: string;
-    scope: "project" | "task";
+    scope: string;
 }
 
 export interface VariableWidgetProps {

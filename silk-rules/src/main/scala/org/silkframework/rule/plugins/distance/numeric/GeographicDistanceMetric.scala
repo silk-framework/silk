@@ -16,7 +16,8 @@ package org.silkframework.rule.plugins.distance.numeric
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SingleValueDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.FixedValuesAutoCompletionProvider
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.util.StringUtils._
 
 import scala.math._
@@ -35,8 +36,10 @@ import scala.math._
   label = "Geographical distance",
   description = "Computes the geographical distance between two points. Author: Konrad Höffner (MOLE subgroup of Research Group AKSW, University of Leipzig)"
 )
-case class GeographicDistanceMetric(unit: String = "km") extends SingleValueDistanceMeasure {
-  require(Set("m", "meter", "km", "kilometer").contains(unit), "Invalid unit: '" + unit + "'. Allowed units: \"m\", \"meter\", \"km\", \"kilometer\"")
+case class GeographicDistanceMetric(@Param(value = "The unit in which the distance is measured. One of `m`, `meter`, `km`, `kilometer`.",
+                                           autoCompletionProvider = classOf[DistanceUnitAutoCompletionProvider], allowOnlyAutoCompletedValues = true)
+                                    unit: String = "km") extends SingleValueDistanceMeasure {
+  require(GeographicDistanceMetric.units.contains(unit), "Invalid unit: '" + unit + "'. Allowed units: \"m\", \"meter\", \"km\", \"kilometer\"")
 
   private val multipliers = Map("km" -> 0.001, "kilometer" -> 0.001, "meter" -> 1.0, "m" -> 1.0)
 
@@ -151,3 +154,11 @@ case class GeographicDistanceMetric(unit: String = "km") extends SingleValueDist
   private class GeoPoint(val lat: Double, val long: Double)
 
 }
+
+object GeographicDistanceMetric {
+  /** The supported distance units. */
+  final val units = Seq("m", "meter", "km", "kilometer")
+}
+
+/** Provides autocomplete suggestions for the distance unit. */
+case class DistanceUnitAutoCompletionProvider() extends FixedValuesAutoCompletionProvider(GeographicDistanceMetric.units)

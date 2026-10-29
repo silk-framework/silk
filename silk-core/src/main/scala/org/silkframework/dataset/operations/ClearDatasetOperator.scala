@@ -10,7 +10,8 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   id = "clearDataset",
   label = "Clear dataset",
   description =
-    """Clears the dataset that is connected to the output of this operator."""
+    """Clears the dataset that is connected to the output of this operator.""",
+  documentationFile = "ClearDatasetOperator.md"
 )
 case class ClearDatasetOperator() extends CustomTask {
 

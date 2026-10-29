@@ -37,7 +37,7 @@ import java.util.Locale;
   relatedPlugins = Array(
     new PluginReference(
       id = CurrentDateTransformer.pluginId,
-      description = "Parse date converts an input string to a date using a configured format. Current date ignores the input entirely and always outputs today's date."
+      description = "Parse date converts an input string to a date using a configured format. Current date ignores the input entirely and always outputs the current date and time."
     )
   )
 )

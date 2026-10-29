@@ -1,6 +1,6 @@
 package org.silkframework.runtime.resource
 
-import java.io.{File, InputStream}
+import java.io.InputStream
 import java.time.Instant
 
 /**
@@ -38,13 +38,5 @@ case class ClasspathResource(path: String) extends Resource {
     }
     inputStream
   }
-
-  /**
-    * Returns a file path. Sometimes the Classloader does not return a valid path in non production modes.
-    * In these situations a fallback to this path occurs.
-    *
-    * @return Resource in module ./target/test-classes folder with appended resourcePath
-    */
-  def asFileResource: WritableResource = FileResource(new File(getClass.getClassLoader.getResource(s"/$path").getPath))
 
 }

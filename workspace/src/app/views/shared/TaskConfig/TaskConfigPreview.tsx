@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import { INPUT_TYPES } from "../../../constants";
 import { CONTEXT_PATH } from "../../../constants/path";
 import { objectToFlatRecord } from "../../../utils/transformers";
+import CompactCopyUriButton from "../CompactCopyUriButton";
 
 interface IProps {
     taskData: IProjectTask;
@@ -23,6 +24,7 @@ interface IProps {
 }
 
 export interface ParameterConfigValue {
+    parameterType?: string;
     value: string;
     templateValue?: string;
 }
@@ -49,7 +51,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                 obj: object,
                 labelPrefix: string,
                 parameterIdPrefix: string,
-                paramDescriptions: Record<string, IArtefactItemProperty>
+                paramDescriptions: Record<string, IArtefactItemProperty>,
             ) => {
                 const paramOrder = new Map(Object.entries(paramDescriptions).map(([key], idx) => [key, idx]));
                 Object.entries(obj)
@@ -68,17 +70,18 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                         const value = paramDisplayValue(paramValue);
                         const propertyTitle = t(
                             "widget.ConfigWidget.properties." + paramDescriptions[paramName].title,
-                            paramDescriptions[paramName].title
+                            paramDescriptions[paramName].title,
                         );
                         if (typeof value === "object" && value !== null) {
                             taskValuesRec(
                                 value,
                                 propertyTitle + ": ",
                                 `${paramName}.`,
-                                paramDescriptions[paramName].properties as Record<string, IArtefactItemProperty>
+                                paramDescriptions[paramName].properties as Record<string, IArtefactItemProperty>,
                             );
                         } else {
                             result[labelPrefix + propertyTitle] = {
+                                parameterType: paramDescriptions[paramName].parameterType,
                                 value,
                                 templateValue: templates[parameterIdPrefix + paramName],
                             };
@@ -120,19 +123,12 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
         }
     }
 
-    const taskResourceParameterType = Object.values(taskDescription.properties).reduce((obj, property) => {
-        obj[property.title] = {
-            type: property.parameterType,
-        };
-        return obj;
-    }, {});
-
     return (
         <OverviewItemList hasDivider>
             {Object.entries(taskParameterValues)
                 // Only non-empty parameter values are shown
                 .filter(([paramId, { value }]) => value.trim() !== "")
-                .map(([paramId, { value, templateValue }]) => {
+                .map(([paramId, { parameterType, value, templateValue }], index) => {
                     return (
                         <Toolbar data-test-id={`task-config-preview-parameter-${paramId}`} noWrap key={paramId}>
                             <ToolbarSection canGrow canShrink>
@@ -147,14 +143,29 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                                         {paramId}
                                     </PropertyName>
                                     <PropertyValue>
-                                        <code title={value.length > 30 ? value : undefined} style={fixStyle}>
-                                            {value}
-                                        </code>
+                                        <span
+                                            className="diapp-task-config__value"
+                                            style={{
+                                                alignItems: "center",
+                                                columnGap: "0.25rem",
+                                                display: "inline-flex",
+                                            }}
+                                        >
+                                            <code title={value.length > 30 ? value : undefined} style={fixStyle}>
+                                                {value}
+                                            </code>
+                                            {parameterType === INPUT_TYPES.GRAPH_URI && (
+                                                <CompactCopyUriButton
+                                                    dataTestId={`task-config-preview-copy-button-${index}`}
+                                                    uri={value}
+                                                />
+                                            )}
+                                        </span>
                                     </PropertyValue>
                                 </PropertyValuePair>
                             </ToolbarSection>
                             <ToolbarSection style={{ minWidth: "50px", justifyContent: "right" }}>
-                                {taskResourceParameterType[paramId]?.type === "resource" && (
+                                {parameterType === "resource" && (
                                     <IconButton
                                         data-test-id={"resource-download-btn"}
                                         name="item-download"
@@ -172,7 +183,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                                         intent={"info"}
                                         tooltipText={
                                             t("widget.TaskConfigWidget.templateValueInfo") +
-                                            `\n\n\`\`\`${templateValue}\`\`\``
+                                            `\n\n\`\`\`\n${templateValue}\n\`\`\``
                                         }
                                         tooltipProps={{ placement: "top", markdownEnabler: "```" }}
                                     />

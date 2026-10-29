@@ -35,11 +35,12 @@ export default class WorkflowExecutionReport extends React.Component {
     }
 
     render() {
-        let executionWarnings = [];
+        // Warnings of the workflow itself, e.g. undefined execution order of 'Clear dataset' nodes.
+        let executionWarnings = this.props.executionReport.warnings || [];
         if (this.props.executionMetaData != null && this.props.executionMetaData.finishStatus.cancelled) {
-            executionWarnings = ["Executed cancelled"];
+            executionWarnings = ["Executed cancelled", ...executionWarnings];
         } else if (this.props.executionMetaData != null && this.props.executionMetaData.finishStatus.failed) {
-            executionWarnings = ["Executed failed"];
+            executionWarnings = ["Executed failed", ...executionWarnings];
         }
 
         return (

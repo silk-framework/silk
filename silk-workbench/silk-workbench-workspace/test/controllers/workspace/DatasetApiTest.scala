@@ -2,6 +2,7 @@ package controllers.workspace
 
 import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
+import org.silkframework.rule.{DatasetSelection, MappingRules, RootMappingRule, TransformSpec}
 import org.silkframework.serialization.json.JsonSerializers.{DATA, ID, PARAMETERS, TASKTYPE, TASK_TYPE_DATASET, TYPE}
 import play.api.libs.json.{JsObject, Json}
 
@@ -31,6 +32,22 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
       </Dataset>
     )
     checkResponse(response)
+  }
+
+  "report an invalid dataset as bad request" in {
+    val request = client.url(s"$baseUrl/workspace/projects/$project/datasets/invalidDataset")
+      .addHttpHeaders("Accept" -> "application/json")
+    val response = request.put(
+      Json.obj(
+        TASKTYPE -> TASK_TYPE_DATASET,
+        ID -> "invalidDataset",
+        DATA -> Json.obj(
+          TYPE -> "thisPluginDoesNotExist",
+          PARAMETERS -> Json.obj()
+        )
+      )
+    )
+    checkResponseExactStatusCode(response, BAD_REQUEST)
   }
 
   "add datasets using JSON" in {
@@ -129,4 +146,60 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
     downloadedFile mustBe testData
   }
 
+  "update execution variables only when the payload provides them" in {
+    val dataset = "execVarsDataset"
+    def datasetJson(extraFields: (String, Json.JsValueWrapper)*): JsObject = Json.obj(
+      (Seq[(String, Json.JsValueWrapper)](
+        TASKTYPE -> TASK_TYPE_DATASET,
+        ID -> dataset,
+        DATA -> Json.obj(
+          TYPE -> "internal",
+          PARAMETERS -> Json.obj("graphUri" -> "urn:execVarsDataset")
+        )
+      ) ++ extraFields): _*
+    )
+    def executionVariable(value: String): JsObject =
+      Json.obj("name" -> "myVar", "value" -> value, "isSensitive" -> false, "scope" -> "execution")
+    def storedVariables: Seq[(String, String)] =
+      workspaceProject(project).anyTask(dataset).executionVariables.variables.map(v => (v.name, v.value))
+    def putDataset(json: JsObject): Unit = {
+      checkResponse(client.url(s"$baseUrl/workspace/projects/$project/datasets/$dataset")
+        .addHttpHeaders("Accept" -> "application/json").put(json))
+    }
+
+    // Create the dataset with an execution variable
+    putDataset(datasetJson("executionVariables" -> Json.arr(executionVariable("v1"))))
+    storedVariables mustBe Seq(("myVar", "v1"))
+
+    // A PUT without the executionVariables key must leave the stored variables unchanged
+    putDataset(datasetJson())
+    storedVariables mustBe Seq(("myVar", "v1"))
+
+    // A PUT with the key must replace them
+    putDataset(datasetJson("executionVariables" -> Json.arr(executionVariable("v2"))))
+    storedVariables mustBe Seq(("myVar", "v2"))
+
+    // A PUT with an explicit empty array must clear them
+    putDataset(datasetJson("executionVariables" -> Json.arr()))
+    storedVariables mustBe Seq.empty
+  }
+
+  "keep the status code of a failure that happens while the task is stored" in {
+    // Storing a dataset under the identifier of an existing task of another type is a conflict, not a bad request
+    workspaceProject(project).addTask[TransformSpec]("conflictingTask",
+      TransformSpec(DatasetSelection.empty, RootMappingRule(rules = MappingRules.empty)))
+    val request = client.url(s"$baseUrl/workspace/projects/$project/datasets/conflictingTask")
+      .addHttpHeaders("Accept" -> "application/json")
+    val response = request.put(
+      Json.obj(
+        TASKTYPE -> TASK_TYPE_DATASET,
+        ID -> "conflictingTask",
+        DATA -> Json.obj(
+          TYPE -> "internal",
+          PARAMETERS -> Json.obj()
+        )
+      )
+    )
+    checkResponseExactStatusCode(response, CONFLICT)
+  }
 }

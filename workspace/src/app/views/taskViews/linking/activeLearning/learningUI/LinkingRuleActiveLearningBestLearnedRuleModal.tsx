@@ -41,6 +41,7 @@ export const LinkingRuleActiveLearningBestLearnedRuleModal = ({ rule, onClose }:
                         },
                     },
                     showRuleOnly: true,
+                    readOnly: true,
                 }}
             >
                 <div style={{ position: "relative", height: "100%" }}>

@@ -79,7 +79,7 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier,
     if (!ignoreNonExistingParameters) {
       validateParameters(parameterValues)
     }
-    val parsedParameters = parseParameters(parameterValues)
+    val parsedParameters = parseParameters(parameterValues, ignoreNonExistingParameters)
     try {
       val plugin = constructor.newInstance(parsedParameters: _*)
       plugin.init(this, parameterValues.templates)
@@ -90,17 +90,6 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier,
   }
 
   override def toString: String = s"Plugin '$label' defined by class '${pluginClass.getName}'"
-
-  /**
-    * Throws an exception if a parameter value is provided that does not exist on this plugin.
-    */
-  private def validateParameters(parameterValues: ParameterValues): Unit = {
-    val invalidParameters = parameterValues.values.keySet -- parameters.map(_.name)
-    if (invalidParameters.nonEmpty) {
-      throw new InvalidPluginParameterValueException(s"The following parameters cannot be set on plugin '$label' because they are no valid parameters:" +
-        s" ${invalidParameters.mkString(", ")}. Valid parameters are: ${parameters.map(_.name).mkString(", ")}")
-    }
-  }
 
 }
 
@@ -264,12 +253,13 @@ object ClassPluginDescription {
   private def getActions[T](pluginClass: Class[T]): ListMap[String, ClassPluginAction] = {
     val actionsAnnotations = {
       ArraySeq.unsafeWrapArray(pluginClass.getMethods)
-        .flatMap { method => method.getAnnotations.collect { case a: Action => a }.map(a => (method.getName, a)) }
+        // Keep the method itself, since two methods can carry equal @Action annotations, which compare by value
+        .flatMap { method => method.getAnnotations.collect { case a: Action => a }.map(a => (method, a)) }
         .sortBy(_._2.index())
     }
 
-    val actions = actionsAnnotations.map { case (name, action) =>
-      val method = pluginClass.getMethods.find(_.getAnnotations.contains(action)).get
+    val actions = actionsAnnotations.map { case (method, action) =>
+      val name = method.getName
       val provideContext = method.getParameters match {
         case Array() =>
           false

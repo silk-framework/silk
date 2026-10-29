@@ -18,7 +18,9 @@ import org.silkframework.config.Prefixes
 import org.silkframework.entity.Restriction
 import org.silkframework.rule.task.DatasetOrTransformTaskAutoCompletionProvider
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
 import org.silkframework.runtime.plugin.{PluginObjectParameter, ReferencePluginParameterAutoCompletionProvider}
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
 
 import scala.xml.{Elem, Node}
@@ -35,10 +37,12 @@ import scala.xml.{Elem, Node}
   description = "Select the set of input instances, defined by the data source, the type of the instances and an optional restriction pattern to" +
       " further restrict the selected instances."
 )
-case class DatasetSelection(@Param(label = "Input", value = "The input that is generating the entities. At the moment this can be a dataset, transformation or task.",
+case class DatasetSelection(@Param(label = "Input", value = "The input that is generating the entities. At the moment this can be a dataset, transformation or task. " +
+                                   "If left empty, the input must be provided by connecting it in a workflow. " +
+                                   "Note that auto-completion of types and paths is only available if an input is selected here.",
                             autoCompletionProvider = classOf[DatasetOrTransformTaskAutoCompletionProvider],
                                    autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
-                            inputId: Identifier,
+                            inputId: IdentifierOptionParameter = IdentifierOptionParameter(None),
                             @Param(label = "Type", value = "The type of the entities that will be transformed (e.g. a specific Table, OWL Class or JSON Path). If left empty, the default type will be selected. In case the autocompletion is outdated, you need to refresh the types cache manually.",
                               autoCompletionProvider = classOf[DatasetTypeAutoCompletionProviderReference], autoCompletionDependsOnParameters = Array("inputId"))
                             typeUri: Uri = Uri(""),
@@ -48,21 +52,30 @@ case class DatasetSelection(@Param(label = "Input", value = "The input that is g
                                     "The restriction is ignored for non-RDF datasets.")
                             restriction: Restriction = Restriction.empty) extends PluginObjectParameter {
 
+  /** The configured input task, if any. */
+  def inputTaskId: Option[Identifier] = inputId.value
+
+  /** The configured input task or a clear validation error if none is configured. */
+  def requiredInputId(inputName: String = "input source"): Identifier = {
+    inputTaskId.getOrElse(throw new ValidationException(DatasetSelection.noInputConfiguredMessage(inputName)))
+  }
+
   /**
    * Serializes this dataset specification as XML.
    *
    * @param asSource If true, this dataset will be serialized as a source dataset. If false it will be serialize as target dataset.
    */
   def toXML(asSource: Boolean, prefixes: Prefixes): Elem = {
+    val inputIdString: String = inputId.value.map(_.toString).getOrElse("")
     if (asSource) {
-      <SourceDataset dataSource={inputId} var="a" typeUri={typeUri.uri}>
+      <SourceDataset dataSource={inputIdString} var="a" typeUri={typeUri.uri}>
         <RestrictTo xml:space="preserve">
           {restriction.generateCustomRestriction(prefixes).toSparql}
         </RestrictTo>
       </SourceDataset>
     }
     else {
-      <TargetDataset dataSource={inputId} var="b" typeUri={typeUri.uri}>
+      <TargetDataset dataSource={inputIdString} var="b" typeUri={typeUri.uri}>
         <RestrictTo xml:space="preserve">
           {restriction.generateCustomRestriction(prefixes).toSparql}
         </RestrictTo>
@@ -72,6 +85,12 @@ case class DatasetSelection(@Param(label = "Input", value = "The input that is g
 }
 
 object DatasetSelection {
+
+  private def noInputConfiguredMessage(inputName: String): String = {
+    s"No $inputName has been configured for this task. Either select an input in the task configuration " +
+      "or execute the task inside a workflow with a connected input."
+  }
+
   /**
    * Creates a DatasetSpecification from XML.
    */
@@ -90,8 +109,7 @@ object DatasetSelection {
     )
   }
 
-  def empty = DatasetSelection("EmptyDatasetSelection", Uri(""), Restriction.empty)
-
+  def empty: DatasetSelection = DatasetSelection()
 
 }
 

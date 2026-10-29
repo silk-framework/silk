@@ -1,11 +1,13 @@
 import { LinkingRuleEditor, LinkingRuleEditorOptionalContext } from "../taskViews/linking/LinkingRuleEditor";
 import React from "react";
+import i18next from "i18next";
 import { IViewActions, pluginRegistry } from "./PluginRegistry";
 import HierarchicalMapping from "../pages/MappingEditor/HierarchicalMapping/HierarchicalMapping.jsx";
 import LinkingEvaluationTabView from "../../views/taskViews/linking/evaluation/tabView/LinkingEvaluationTabView";
 import LinkingExecutionTab from "../../views/taskViews/linking/editorTabsComponents/LinkingExecutionTab";
 import TransformExecutionTab from "../../views/taskViews/transform/editorTabsComponents/TransformExecutionTab";
 import TransformEvaluationTabView from "../taskViews/transform/evaluation/tabView/TransformEvaluationTabView";
+import { RuleBlockEditor } from "../taskViews/ruleBlock/RuleBlockEditor";
 import { setApiDetails } from "../../views/pages/MappingEditor/HierarchicalMapping/store";
 
 let registered = false;
@@ -100,6 +102,21 @@ export const registerCorePlugins = () => {
                         projectId={projectId}
                         startFullScreen={startFullScreen}
                         viewActions={viewActions}
+                    />
+                );
+            },
+        });
+
+        pluginRegistry.registerTaskView("ruleBlock", {
+            id: "ruleBlockEditor",
+            label: i18next.t("common.iframeWindow.ruleBlockEditor"),
+            render(projectId: string, taskId: string, viewActions: IViewActions | undefined): React.JSX.Element {
+                return (
+                    <RuleBlockEditor
+                        projectId={projectId}
+                        ruleBlockTaskId={taskId}
+                        viewActions={viewActions}
+                        instanceId={"tab-instance"}
                     />
                 );
             },

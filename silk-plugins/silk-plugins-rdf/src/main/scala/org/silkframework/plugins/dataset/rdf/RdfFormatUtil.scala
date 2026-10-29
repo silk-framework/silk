@@ -35,7 +35,7 @@ object RdfFormatUtil {
       case b: BlankNode => NodeFactory.createBlankNode(b.value)
       case ll: LanguageLiteral => NodeFactory.createLiteralLang(ll.value, ll.language)
       case pl: PlainLiteral => NodeFactory.createLiteralString(pl.value)
-      case tl: DataTypeLiteral => NodeFactory.createLiteral(tl.value, NodeFactory.getType(tl.dataType))
+      case tl: DataTypeLiteral => NodeFactory.createLiteralDT(tl.value, NodeFactory.getType(tl.dataType))
     }
     val graph = q.context.map(c => NodeFactory.createURI(c.value)).orNull
 

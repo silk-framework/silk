@@ -38,6 +38,13 @@ object InMemoryVocabularyManager {
   private var vocabularies: Map[String, Vocabulary] = Map.empty
 
   /**
+   * Adds a vocabulary directly to the in-memory vocabulary manager.
+   */
+  def addVocabulary(vocabulary: Vocabulary): Unit = {
+    vocabularies += (vocabulary.info.uri -> vocabulary)
+  }
+
+  /**
    * Adds a vocabulary from a file to the in-memory vocabulary manager.
    *
    * @param file The file containing the vocabulary in RDF format.
@@ -48,7 +55,7 @@ object InMemoryVocabularyManager {
     val resource = FileResource(file)
     val vocabulary = RdfFilesVocabularyManager.loadVocabulary(resource, vocabularyUri(resource))
       .getOrElse(throw new IllegalArgumentException(s"Could not load vocabulary from file: ${file.getAbsolutePath}"))
-    vocabularies += (vocabulary.info.uri -> vocabulary)
+    addVocabulary(vocabulary)
   }
 
   /**

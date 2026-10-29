@@ -57,7 +57,7 @@ case class RdfFileDataset(
   @Param(value = "A list of entities to be retrieved. If not given, all entities will be retrieved. Multiple entities are separated by whitespace.", advanced = true)
   entityList: MultilineStringParameter = MultilineStringParameter(""),
   @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
-  override val zipFileRegex: String = ".*") extends RdfDataset with TripleSinkDataset with TextBulkResourceBasedDataset {
+  override val zipFileRegex: String = ".*") extends RdfDataset with TextBulkResourceBasedDataset {
 
   implicit val userContext: UserContext = UserContext.INTERNAL_USER
 
@@ -78,7 +78,7 @@ case class RdfFileDataset(
   }
 
   /** Currently RDF is written using custom formatters (instead of using an RDF writer from Jena). */
-  private def formatter: LinkFormatter with EntityFormatter = {
+  def formatter: LinkFormatter with EntityFormatter = {
     if (lang == Lang.NTRIPLES) {
       NTriplesLinkFormatter()
     } else {
@@ -92,7 +92,7 @@ case class RdfFileDataset(
 
   override def graphOpt: Option[String] = if (graph.trim.isEmpty || ignoreGraph()) None else Some(graph)
 
-  override def sparqlEndpoint: JenaEndpoint = {
+  def sparqlEndpoint: JenaEndpoint = {
     createSparqlEndpoint(retrieveResources())
   }
 
@@ -132,10 +132,6 @@ case class RdfFileDataset(
   override def mergeSchemata: Boolean = true
 
   override def createSource(resource: Resource): DataSource = new FileSource(resource)
-
-  override def linkSink(implicit userContext: UserContext): FormattedLinkSink = new FormattedLinkSink(bulkWritableResource, formatter)
-
-  override def entitySink(implicit userContext: UserContext): FormattedEntitySink = new FormattedEntitySink(bulkWritableResource, formatter)
 
   // restrict the fetched entities to following URIs
   private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))
@@ -223,8 +219,6 @@ case class RdfFileDataset(
 
     private def sparqlSource = new SparqlSource(SparqlParams(graph = graphOpt), endpoint)
   }
-
-  override def tripleSink(implicit userContext: UserContext): TripleSink = new FormattedEntitySink(file, formatter)
 }
 
 object RdfFileDataset {

@@ -7,7 +7,8 @@ import {
 } from "../../../shared/RuleEditor/RuleEditor.typings";
 import { PluginType } from "@ducks/shared/typings";
 import { IComparisonOperator } from "../linking.types";
-import { ITransformOperator } from "../../shared/rules/rule.typings";
+import { IRuleBlockInput, ITransformOperator } from "../../shared/rules/rule.typings";
+import ruleTestHelper from "../../shared/rules/tests/ruleTestHelper";
 
 describe("Linking rule editor utils", () => {
     it("should convert rule operator nodes with symmetric comparison to the corresponding linking rule tree", () => {
@@ -63,6 +64,48 @@ describe("Linking rule editor utils", () => {
         });
     });
 
+    it("should convert reusable rule block nodes to linkage rule inputs using stable port IDs", () => {
+        const nodes: IRuleOperatorNode[] = [
+            node({ nodeId: "source", pluginId: "sourcePathInput", pluginType: "PathInputOperator" }),
+            node({
+                nodeId: "ruleBlock",
+                pluginId: "normalizeName",
+                pluginType: "RuleBlock",
+                inputs: ["source"],
+                portSpecification: {
+                    type: "named",
+                    inputPorts: [{ id: "sourcePort" }, { id: "unusedPort" }],
+                },
+                parameters: {},
+            }),
+            node({ nodeId: "target", pluginId: "targetPathInput", pluginType: "PathInputOperator" }),
+            node({
+                nodeId: "comparison",
+                inputs: ["ruleBlock", "target"],
+                pluginType: "ComparisonOperator",
+            }),
+        ];
+
+        const tree = utils.constructLinkageRuleTree(nodes) as IComparisonOperator;
+        const sourceInput = tree.sourceInput as IRuleBlockInput;
+
+        expect(sourceInput).toStrictEqual({
+            id: "ruleBlock",
+            ruleBlockId: "normalizeName",
+            type: "ruleBlockInput",
+            bindings: [
+                {
+                    portId: "sourcePort",
+                    input: {
+                        id: "source",
+                        path: "",
+                        type: "pathInput",
+                    },
+                },
+            ],
+        });
+    });
+
     let count = 0;
 
     interface NodeParams {
@@ -79,22 +122,21 @@ describe("Linking rule editor utils", () => {
         nodeId,
         pluginType = "PathInputOperator",
         pluginId = "unknown",
-        portSpecification = { minInputPorts: 0 },
+        portSpecification = { type: "count", minInputPorts: 0 },
         inputsCanBeSwitched = false,
         inputs = [],
         parameters = { reverse: "false" },
     }: NodeParams): IRuleOperatorNode => {
         const id = nodeId ?? `nodeID_${count++}`;
-        return {
+        return ruleTestHelper.createRuleOperatorNode({
             nodeId: id,
-            parameters,
             label: `Label ${id}`,
             pluginType,
             pluginId,
+            parameters,
             portSpecification,
-            tags: [],
             inputsCanBeSwitched,
             inputs,
-        };
+        });
     };
 });

@@ -1,8 +1,7 @@
 package org.silkframework.openapi
 
-import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.databind.node.ObjectNode
-import com.networknt.schema.{JsonSchemaFactory, SpecVersion}
+import com.networknt.schema.dialect.Dialects
+import com.networknt.schema.{ExecutionContext, InputFormat, SchemaRegistry}
 import config.WorkbenchConfig
 import io.aurora.utils.play.swagger.{ApiListingCache, PlayApiScanner, PlaySwaggerConfig, RouteWrapper, SwaggerPlugin}
 import io.swagger.v3.parser.OpenAPIV3Parser
@@ -57,9 +56,9 @@ object OpenApiValidator {
 
   private def validateSchema(contents: String): Seq[String] = {
     val schemaStream = getClass.getClassLoader.getResourceAsStream("openApiSchemaV3.json")
-    val openApiNode = JsonMapper.builder().build().readTree(contents)
-    val factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4).getSchema(schemaStream)
-    val validationResult = factory.validate(openApiNode)
+    val schema = SchemaRegistry.withDialect(Dialects.getDraft4()).getSchema(schemaStream, InputFormat.JSON)
+    val noopCustomizer: java.util.function.Consumer[ExecutionContext] = _ => ()
+    val validationResult = schema.validate(contents, InputFormat.JSON, noopCustomizer)
     for(validationMessage <- validationResult.asScala.toSeq) yield {
       validationMessage.getMessage
     }

@@ -4,15 +4,21 @@ import {
     IRuleOperatorNode,
     NodeContentPropsWithBusinessData,
     NodePosition,
+    RuleEditorPatchableNodeProjection,
     RuleOperatorNodeParameters,
 } from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 import { IOperatorNodeParameterValueWithLabel } from "../../../taskViews/shared/rules/rule.typings";
-import { NodeContentProps, NodeDimensions } from "@eccenca/gui-elements";
+import { NodeDimensions } from "@eccenca/gui-elements";
 import { CSSProperties } from "react";
 
 export interface RuleModelChanges {
     operations: RuleModelChangeType[];
+}
+
+export interface ExternalRuleModelChangeCallbacks {
+    do: () => void;
+    undo: () => void;
 }
 
 export interface RuleEditorNode extends Node<NodeContentPropsWithBusinessData<IRuleNodeData>> {
@@ -33,8 +39,10 @@ export type RuleModelChangeType =
     | DeleteNode
     | AddEdge
     | DeleteEdge
+    | ExecuteExternalRuleModelChange
     | ChangeNodePosition
     | ChangeNodeParameter
+    | ChangeNodeMetaData
     | ChangeNumberOfInputHandles
     | ChangeNodeSize
     | ChangeStickyNodeProperties;
@@ -57,6 +65,10 @@ export interface AddEdge {
 export interface DeleteEdge {
     type: "Delete edge";
     edge: Edge;
+}
+
+export interface ExecuteExternalRuleModelChange extends ExternalRuleModelChangeCallbacks {
+    type: "Execute external rule model change";
 }
 
 export interface ChangeNodePosition {
@@ -84,6 +96,13 @@ export interface ChangeNodeParameter {
     parameterId: string;
     from: RuleEditorNodeParameterValue;
     to: RuleEditorNodeParameterValue;
+}
+
+export interface ChangeNodeMetaData {
+    type: "Change node metadata";
+    nodeId: string;
+    from: RuleEditorPatchableNodeProjection;
+    to: RuleEditorPatchableNodeProjection;
 }
 
 export interface ChangeNumberOfInputHandles {
@@ -148,6 +167,16 @@ export const RuleModelChangesFactory = {
     ): RuleModelChanges => {
         return toRuleModelChanges({ type: "Change node parameter", nodeId, parameterId, from, to });
     },
+    changeNodeMetaData: (
+        nodeId: string,
+        from: RuleEditorPatchableNodeProjection,
+        to: RuleEditorPatchableNodeProjection,
+    ): RuleModelChanges => {
+        return toRuleModelChanges({ type: "Change node metadata", nodeId, from, to });
+    },
+    executeExternalRuleModelChange: (change: ExternalRuleModelChangeCallbacks): RuleModelChanges => {
+        return toRuleModelChanges({ type: "Execute external rule model change", ...change });
+    },
 };
 
 export interface RuleNodeCopySerialization
@@ -155,4 +184,41 @@ export interface RuleNodeCopySerialization
     position: NodePosition;
     parameters?: RuleOperatorNodeParameters;
     inputHandleIds: string[];
+    /** Optional inferred display metadata to apply when the pasted node is materialized. */
+    nodeMetaData?: RuleEditorPatchableNodeProjection;
 }
+
+/** Generic clipboard payload for a copied rule-editor subtree. */
+export interface RuleClipboardTaskData {
+    nodes: RuleNodeCopySerialization[];
+    edges: Partial<Edge>[];
+}
+
+/** Minimal provenance metadata attached to clipboard payloads for editor-specific reconciliation. */
+export interface RuleClipboardTaskMetaData {
+    domain?: string;
+    project?: string;
+    task?: string;
+}
+
+export interface RuleClipboardTask {
+    /** Serialized canvas nodes and edges copied from the source editor. */
+    data: RuleClipboardTaskData;
+    /** Identifies the source editor context, e.g. to detect same-task pastes. */
+    metaData: RuleClipboardTaskMetaData;
+    /** Optional editor-owned data that cannot be reconstructed from canvas nodes alone. */
+    editorData?: unknown;
+}
+
+/** Normalized result of an editor-specific clipboard paste preparation hook. */
+export interface PreparedClipboardPaste {
+    /** The final node/edge payload to materialize in the shared rule editor model. */
+    taskData: RuleClipboardTaskData;
+    /** Optional parent-owned state change that should participate in the same undo/redo transaction. */
+    externalChange?: ExternalRuleModelChangeCallbacks;
+}
+
+/** Optional editor hook to validate, rewrite and augment clipboard pastes before node creation. */
+export type PrepareClipboardPaste = (
+    task: RuleClipboardTask,
+) => PreparedClipboardPaste | Promise<PreparedClipboardPaste>;

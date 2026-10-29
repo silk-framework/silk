@@ -34,7 +34,7 @@ trait Transformer extends AnyPlugin {
    * Returns an executor that performs the actual transformation.
    * Simple transformers may return this object itself.
    */
-  def execution(taskContext: TaskContext = TaskContext.empty): TransformerExecution
+  def execution(taskContext: TaskContext): TransformerExecution
 
   /**
     * The resources that are directly referenced by this transformer.
@@ -55,6 +55,14 @@ trait Transformer extends AnyPlugin {
    * This list is just a hint and not guaranteed to be complete.
    */
   def referencedVariables: Seq[TemplateVariableName] = {
+    Seq.empty
+  }
+
+  /**
+   * All variables that this transformer may set during its execution, e.g., the 'Set execution variable' transformer.
+   * This list is just a hint and not guaranteed to be complete. A listed variable is not necessarily set in every run.
+   */
+  def modifiedVariables: Seq[TemplateVariableName] = {
     Seq.empty
   }
 }
@@ -79,5 +87,5 @@ trait TransformerExecution {
  * `withContext` returns `this`, so the same object serves as both descriptor and runtime executor.
  */
 trait InlineTransformer extends Transformer with TransformerExecution {
-  override def execution(taskContext: TaskContext = TaskContext.empty): TransformerExecution = this
+  override def execution(taskContext: TaskContext): TransformerExecution = this
 }

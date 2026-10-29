@@ -1,7 +1,7 @@
 package org.silkframework.workspace.xml
 
 import org.silkframework.config._
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.runtime.serialization.XmlSerialization._
@@ -34,12 +34,8 @@ private class WorkflowXmlSerializer extends XmlSerializer[Workflow] {
   private def loadTask(name: String, resources: ResourceLoader)
                       (implicit context: PluginContext): LoadedTask[Workflow] = {
     try {
-      var xml = loadResourceAsXml(resources, name)
-      // Old XML versions do not contain the id
-      if ((xml \ "@id").isEmpty) {
-        xml = xml % Attribute("id", Text(name.stripSuffix(".xml")), Null)
-      }
-      loadTaskSafelyFromXML(xml, name, Some(name.stripSuffix(".xml")), resources)
+      val xml = loadResourceAsXml(resources, name)
+      loadTaskSafelyFromXML(xml, name, Identifier(name.stripSuffix(".xml")), resources)
     } catch {
       case NonFatal(ex) =>
         throw new ValidationException(s"Error loading task '$name': ${ex.getMessage}", ex)
@@ -51,7 +47,8 @@ private class WorkflowXmlSerializer extends XmlSerializer[Workflow] {
    */
   override def writeTask(task: Task[Workflow], resources: ResourceManager, projectResourceManager: ResourceManager): Unit = {
     // Only serialize file paths correctly, paths should not be prefixed
-    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager, prefixes = Prefixes.empty)
+    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager, prefixes = Prefixes.empty,
+      taskResolver = TaskResolver.empty)
     val workflowXml = toXml(task)
     resources.get(task.id.toString + ".xml").write() { os => workflowXml.write(os) }
   }

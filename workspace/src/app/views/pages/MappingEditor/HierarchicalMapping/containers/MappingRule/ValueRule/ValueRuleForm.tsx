@@ -123,9 +123,8 @@ export function ValueRuleForm(props: IProps) {
     const [loading, setLoading] = useState<boolean>(false);
     const [changed, setChanged] = useState(false);
     const [type, setType] = useState(MAPPING_RULE_TYPE_DIRECT);
-    const [valueType, _setValueType] = useState<IValueType & { label: string }>({
+    const [valueType, setValueType] = useState<IValueType>({
         nodeType: "StringValueType",
-        label: "String",
     });
     const sourceProperty = React.useRef<string | { value: string }>("");
     const [isAttribute, setIsAttribute] = useState(false);
@@ -140,13 +139,6 @@ export function ValueRuleForm(props: IProps) {
     const [customURIErrorMsg, setCustomURIErrorMsg] = React.useState<string>();
 
     const { id, parentId } = props;
-    const setValueType = React.useCallback((valueType: IValueType) => {
-        _setValueType({
-            ...valueType,
-            label: mappingEditorContext.valueTypeLabels.get(valueType.nodeType) ?? valueType.nodeType,
-        });
-    }, []);
-
     // Delay a bit so direct user interactions are not disturbed by re-renderings
     const changeValuePathInputHasFocus = React.useCallback(
         debounce((hasFocus: boolean) => {
@@ -320,10 +312,7 @@ export function ValueRuleForm(props: IProps) {
         const { initialValues, ...currValues } = state;
         currValues[stateProperty] = value;
 
-        const touched = wasTouched(
-            { ...initialValues, valueType: initialValues.valueType?.nodeType },
-            { ...currValues, valueType: currValues.valueType?.nodeType },
-        );
+        const touched = wasTouched(initialValues, currValues);
         const id = _.get(props, "id", 0);
 
         toggleTabViewDirtyState(Object.keys(initialValues).length ? touched : true);
@@ -520,7 +509,10 @@ export function ValueRuleForm(props: IProps) {
                         className="ecc-silk-mapping__ruleseditor__propertyType"
                         entity="propertyType"
                         ruleId={autoCompleteRuleId}
-                        value={{ value: valueType.nodeType, label: valueType.label }}
+                        value={{
+                            value: valueType.nodeType,
+                            label: mappingEditorContext.valueTypeLabels.get(valueType.nodeType) ?? valueType.nodeType,
+                        }}
                         clearable={false}
                         onChange={handleChangePropertyType}
                         showValueWhenLabelExists={false}

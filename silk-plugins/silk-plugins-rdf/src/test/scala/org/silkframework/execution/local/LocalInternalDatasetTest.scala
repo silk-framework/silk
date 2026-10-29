@@ -1,6 +1,8 @@
 package org.silkframework.execution.local
-
-import org.silkframework.config.Prefixes
+
+import org.silkframework.config.{PlainTask, Prefixes}
+import org.silkframework.dataset.DatasetSpec
+import org.silkframework.dataset.rdf.RdfDatasetAccess
 import org.silkframework.entity.ValueType
 import org.silkframework.plugins.dataset.InternalDatasetTrait
 import org.silkframework.runtime.activity.UserContext
@@ -24,11 +26,14 @@ class LocalInternalDatasetTest extends AnyFlatSpec with Matchers with InMemoryWo
         tempDs mustBe a[InternalDatasetTrait]
         tempDs.asInstanceOf[InternalDatasetTrait]
       }
-      val sink = ds.tripleSink
+      val taskId: String = id.getOrElse("internal")
+      val task = PlainTask(taskId, DatasetSpec(ds))
+      val access = RdfDatasetAccess.forExecution(task, exec)
+      val sink = access.tripleSink
       sink.init()
       sink.writeTriple("s" + id.getOrElse("None"), "b", "o", ValueType.STRING)
       sink.close()
-      ds.sparqlEndpoint.select("SELECT ?s WHERE {?s ?p ?o}").bindings.size mustBe 1
+      access.sparqlEndpoint.select("SELECT ?s WHERE {?s ?p ?o}").bindings.size mustBe 1
     }
   }
 }

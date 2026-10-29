@@ -9,8 +9,9 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.XmlCodeParameter
 import org.silkframework.runtime.resource.{Resource, WritableResource}
 
+import com.ctc.wstx.stax.WstxInputFactory
+
 import java.nio.charset.{Charset, StandardCharsets}
-import javax.xml.stream.XMLInputFactory
 import scala.io.Codec
 
 @Plugin(
@@ -29,7 +30,7 @@ case class XmlDataset( @Param("The XML file. This may also be a zip archive of m
                        uriPattern: String = "",
                        @Param(value = "The output template used for writing XML. Must be valid XML. The generated entity is identified through a processing instruction of the form <?MyEntity?>.", advanced = true)
                        outputTemplate: XmlCodeParameter = XmlCodeParameter("<Root><?Entity?></Root>"),
-                       @Param(value = "Streaming allows for reading large XML files.", advanced = true)
+                       @Param(value = "Streaming allows for reading large XML files. If streaming is enabled, backward paths are not supported.", advanced = true)
                        streaming: Boolean = true,
                        @Param(value = "Maximum depth of written XML. This acts as a safe guard if a recursive structure is written.", advanced = true)
                        maxDepth: Int = DEFAULT_MAX_SIZE,
@@ -37,13 +38,14 @@ case class XmlDataset( @Param("The XML file. This may also be a zip archive of m
                        override val zipFileRegex: String = XmlDataset.defaultZipFileRegex) extends Dataset with TextBulkResourceBasedDataset {
 
   // Parse and validate the output template
-  private val parsedOutputTemplate = XmlOutputTemplate.parse(outputTemplate.str)
+  val parsedOutputTemplate = XmlOutputTemplate.parse(outputTemplate.str)
 
   override def mergeSchemata: Boolean = true
 
   override def codec: Codec = {
     file.read { inputStream =>
-      val reader = XMLInputFactory.newInstance().createXMLStreamReader(inputStream)
+      // Fixed implementation, so that the detected encoding does not depend on the deployed jars
+      val reader = new WstxInputFactory().createXMLStreamReader(inputStream)
       try {
         reader.getEncoding match {
           case null =>
@@ -68,10 +70,6 @@ case class XmlDataset( @Param("The XML file. This may also be a zip archive of m
       new XmlSourceInMemory(resource, basePath, uriPattern)
     }
   }
-
-  override def linkSink(implicit userContext: UserContext): LinkSink = new TableLinkSink(new XmlSink(bulkWritableResource, parsedOutputTemplate, maxDepth))
-
-  override def entitySink(implicit userContext: UserContext): EntitySink = new XmlSink(bulkWritableResource, parsedOutputTemplate, maxDepth)
 
   override def characteristics: DatasetCharacteristics = XmlDataset.characteristics
 }

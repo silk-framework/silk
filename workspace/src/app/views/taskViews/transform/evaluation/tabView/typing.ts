@@ -1,3 +1,5 @@
+import type { IValueInput } from "../../../shared/rules/rule.typings";
+
 export interface EvaluatedEntityOperator {
     operatorId: string;
     values: string[];
@@ -10,20 +12,7 @@ export interface EvaluatedEntity {
     values: EvaluatedEntityOperator[];
 }
 
-type ruleOperatorTypes = "transformInput" | "pathInput";
-
-export interface EvaluatedRuleOperator {
-    type: ruleOperatorTypes;
-    id: string;
-    function?: string;
-    path?: string;
-    inputs: Array<EvaluatedRuleOperator>;
-    parameters: {
-        glue?: string;
-        missingValuesAsEmptyStrings?: string;
-        value?: string;
-    };
-}
+export type EvaluatedRuleOperator = IValueInput;
 
 export interface EvaluatedURIRule {
     type: string;

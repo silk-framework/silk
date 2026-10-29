@@ -2,38 +2,93 @@ import React from "react";
 import { IPrefixDefinition } from "@ducks/workspace/typings";
 import {
     IconButton,
+    Icon,
     OverviewItem,
     OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
+    Tag,
+    Spacing,
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
+import styles from "./index.module.scss";
 
 interface IProps {
     prefix: IPrefixDefinition;
-
-    onRemove();
+    ownership: "project" | "workspace";
+    rowId?: string;
+    rowClassName?: string;
+    overridesWorkspacePrefix?: boolean;
+    overriddenInProject?: boolean;
+    onJumpToProjectPrefix?: () => void;
+    onRemove?: () => void;
 }
 
-const PrefixRow = ({ prefix, onRemove }: IProps) => {
+const PrefixRow = ({
+    prefix,
+    ownership,
+    rowId,
+    rowClassName,
+    overridesWorkspacePrefix = false,
+    overriddenInProject = false,
+    onJumpToProjectPrefix,
+    onRemove,
+}: IProps) => {
     const [t] = useTranslation();
+    const isWorkspacePrefix = ownership === "workspace";
 
     return (
-        <OverviewItem>
+        <OverviewItem id={rowId} className={`${styles.prefixRow}${rowClassName ? ` ${rowClassName}` : ""}`}>
             <OverviewItemDescription>
                 <OverviewItemLine>
-                    <span>{prefix.prefixName}</span>
+                    <span>
+                        {prefix.prefixName}
+                        {overridesWorkspacePrefix && (
+                            <>
+                                <Spacing vertical={true} size={"small"} />
+                                <Tag small emphasis="weaker">
+                                    {t("PrefixDialog.overridesWorkspacePrefixBadge", "Overrides workspace prefix")}
+                                </Tag>
+                            </>
+                        )}
+                        {overriddenInProject && (
+                            <>
+                                <Spacing vertical={true} size={"small"} />
+                                <Tag small emphasis="weaker">
+                                    {t("PrefixDialog.overriddenInProjectBadge", "Overridden in project")}
+                                </Tag>
+                            </>
+                        )}
+                    </span>
                 </OverviewItemLine>
                 <OverviewItemLine small>
                     <span>{prefix.prefixUri}</span>
                 </OverviewItemLine>
             </OverviewItemDescription>
             <OverviewItemActions>
-                <IconButton
-                    name="item-remove"
-                    text={t("common.action.DeleteSmth", { smth: t("widget.ConfigWidget.prefix") })}
-                    onClick={onRemove}
-                />
+                {isWorkspacePrefix ? (
+                    <>
+                        {onJumpToProjectPrefix && (
+                            <IconButton
+                                name="navigation-up"
+                                text={t("PrefixDialog.showProjectOverride", "Show project override")}
+                                onClick={onJumpToProjectPrefix}
+                            />
+                        )}
+                        <Icon
+                            name="state-locked"
+                            tooltipText={t("PrefixDialog.workspacePrefixReadOnly", "Workspace prefix, read-only here")}
+                        />
+                    </>
+                ) : (
+                    onRemove && (
+                        <IconButton
+                            name="item-remove"
+                            text={t("common.action.DeleteSmth", { smth: t("widget.ConfigWidget.prefix") })}
+                            onClick={onRemove}
+                        />
+                    )
+                )}
             </OverviewItemActions>
         </OverviewItem>
     );

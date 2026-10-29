@@ -57,7 +57,7 @@ object ProjectLoadingErrors {
             val taskLoadingError = ProjectLoadingErrors.fromTaskLoadingError(error)
             throw CannotReloadTaskException(taskLoadingError)
           case Right(task) =>
-            project.updateAnyTask(task.id, task.data, Some(MetaData(label = taskLoadingError.label, description = taskLoadingError.description)))
+            project.updateAnyTask(task.id, task.data, Some(MetaData(label = taskLoadingError.label, description = taskLoadingError.description)), Some(task.executionVariables))
             project.removeLoadingError(task.id)
         }
       case None =>

@@ -4,7 +4,7 @@ import org.apache.xalan.xsltc.trax.DOM2SAX
 
 import java.io.{InputStream, OutputStream}
 import javax.xml.stream.util.StreamReaderDelegate
-import javax.xml.stream.{XMLInputFactory, XMLStreamConstants, XMLStreamReader}
+import javax.xml.stream.{XMLStreamConstants, XMLStreamReader}
 import javax.xml.transform.Transformer
 import javax.xml.parsers.DocumentBuilderFactory
 import org.w3c.dom.{Document, Element}
@@ -29,7 +29,7 @@ abstract class StreamXmlFormat[T: ClassTag] {
   def write(value: T, outputStream: OutputStream): Unit
 
   def read(inputStream: InputStream)(implicit readContext: ReadContext): T = {
-    val xmlInputFactory = XMLInputFactory.newInstance()
+    val xmlInputFactory = SecureXmlParsing.xmlInputFactory()
     implicit val xmlStreamReader = new StreamReaderDelegate(xmlInputFactory.createXMLStreamReader(inputStream)) {
       override def getVersion: String = "1.0" // This is needed because else this will result in a NullPointerException
     }

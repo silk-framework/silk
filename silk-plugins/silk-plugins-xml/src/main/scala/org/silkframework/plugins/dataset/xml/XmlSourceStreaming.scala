@@ -13,6 +13,8 @@ import org.silkframework.runtime.resource.{Resource, ResourceTooLargeException}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
 
+import com.ctc.wstx.stax.WstxInputFactory
+
 import java.io.{ByteArrayInputStream, InputStream}
 import java.util.concurrent.atomic.AtomicInteger
 import javax.xml.stream.{XMLInputFactory, XMLStreamConstants, XMLStreamException, XMLStreamReader}
@@ -27,7 +29,8 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
   with PeakDataSource with PathCoverageDataSource with ValueCoverageDataSource with XmlSourceTrait with HierarchicalSampleValueAnalyzerExtractionSource {
   // We can only get the character offset not the byte offset, so this is an approximation
   private val maxEntitySizeInBytes = Resource.maxInMemorySize
-  private val xmlFactory = XMLInputFactory.newInstance()
+  // Fixed implementation, because the reported positions become entity URIs and implementations differ
+  private val xmlFactory: XMLInputFactory = new WstxInputFactory()
 
   override val supportsAsteriskOperator: Boolean = true
 
@@ -476,8 +479,11 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
   private def buildAttributeNode(reader: XMLStreamReader, attributeName: String): InMemoryXmlNode = {
     val value = attributeValue(reader, attributeName.stripPrefix("@"))
     assert(value.isDefined, s"Cannot build attribute node for missing attribute '$attributeName'.")
+    // Capture the position of the owning element (the reader is still positioned on it) so that node ids stay
+    // stable across evaluation passes. The position of the event after reader.next() depends on the access pattern.
+    val position = getPosition(reader)
     reader.next()
-    InMemoryXmlAttribute(attributeName, value.get, getPosition(reader))
+    InMemoryXmlAttribute(attributeName, value.get, position)
   }
 
   /**

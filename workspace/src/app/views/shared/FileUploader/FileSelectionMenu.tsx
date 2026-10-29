@@ -195,6 +195,12 @@ class FileSelectionMenu extends React.Component<IUploaderOptions, IState> {
         }
     }
 
+    componentWillUnmount(): void {
+        this.uppy.cancelAll();
+        this.uppy.reset();
+        this.uppy.close();
+    }
+
     handleUploadSuccess = (file: any) => {
         if (this.props.onUploadSuccess) {
             this.props.onUploadSuccess(file);

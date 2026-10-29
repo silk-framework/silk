@@ -15,21 +15,24 @@
 package org.silkframework
 
 import org.silkframework.config._
-import org.silkframework.dataset.CombinedEntitySink
+import org.silkframework.dataset.{CombinedEntitySink, Dataset, DatasetAccess, DatasetSpec}
+import org.silkframework.execution.ExecutorRegistry
+import org.silkframework.execution.local.LocalExecution
 import org.silkframework.rule.execution.{ExecuteTransform, GenerateLinks}
 import org.silkframework.rule.{LinkSpec, LinkingConfig, TaskContext, TransformSpec}
 import org.silkframework.runtime.activity.{Activity, UserContext}
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.{EmptyResourceManager, FileResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.StringUtils._
-import org.silkframework.util.{CollectLogs, Identifier}
+import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, Workflow}
 import org.silkframework.workspace.resources.SharedFileRepository
 import org.silkframework.workspace.{InMemoryWorkspaceProvider, Project, ProjectMarshallerRegistry, Workspace}
 
 import java.io.File
-import java.util.logging.{Level, Logger}
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.logging.{Handler, Level, LogRecord, Logger}
 import javax.inject.Inject
 import scala.math.max
 import scala.xml.XML
@@ -52,11 +55,11 @@ object Silk {
   private val logger = Logger.getLogger(Silk.getClass.getName)
 
   // Initialize Log4j
-//  val ca = new ConsoleAppender()
-//  ca.setWriter(new OutputStreamWriter(System.out))
-//  ca.setLayout(new PatternLayout("%-5p [%t]: %m%n"))
-//  ca.setThreshold(org.apache.log4j.Level.WARN)
-//  org.apache.log4j.Logger.getRootLogger.addAppender(ca)
+  //  val ca = new ConsoleAppender()
+  //  ca.setWriter(new OutputStreamWriter(System.out))
+  //  ca.setLayout(new PatternLayout("%-5p [%t]: %m%n"))
+  //  ca.setThreshold(org.apache.log4j.Level.WARN)
+  //  org.apache.log4j.Logger.getRootLogger.addAppender(ca)
 
   /**
    * Executes Silk.
@@ -114,7 +117,7 @@ object Silk {
    */
   def executeFile(configFile: File, linkSpecID: String = null, numThreads: Int = DefaultThreads, reload: Boolean = true)
                  (implicit userContext: UserContext): Unit = {
-    implicit val readContext: ReadContext = ReadContext(FileResourceManager(configFile.getAbsoluteFile.getParentFile), Prefixes.default)
+    implicit val readContext: ReadContext = ReadContext(FileResourceManager(configFile.getAbsoluteFile.getParentFile), Prefixes.default, taskResolver = TaskResolver.empty)
     val config = XmlSerialization.fromXml[LinkingConfig](XML.loadFile(configFile))
     executeConfig(config, linkSpecID, numThreads, reload)
   }
@@ -154,6 +157,10 @@ object Silk {
     }
   }
 
+  private def access(datasetTask: Task[DatasetSpec[Dataset]]): DatasetAccess = {
+    ExecutorRegistry.access(datasetTask, LocalExecution())
+  }
+
   /**
    * Executes a single link specification.
    *
@@ -165,13 +172,13 @@ object Silk {
   private def executeLinkSpec(config: LinkingConfig, linkSpec: Task[LinkSpec], numThreads: Int = DefaultThreads, reload: Boolean = true)
                              (implicit userContext: UserContext): Unit = {
     implicit val prefixes: Prefixes = config.prefixes
-    implicit val pluginContext: PluginContext = PluginContext(prefixes = prefixes, resources = EmptyResourceManager(), user = userContext)
+    implicit val pluginContext: PluginContext = PluginContext(prefixes = prefixes, resources = EmptyResourceManager(), user = userContext, taskResolver = TaskResolver.empty)
     val inputs = linkSpec.findSources(config.sources)
     val generateLinks =
       new GenerateLinks(
         linkSpec,
         inputs = inputs,
-        output = config.output.map(_.linkSink),
+        output = config.output.map(access(_).linkSink),
         taskContext = TaskContext.fromSources(inputs),
         runtimeConfig = config.runtime.copy(numThreads = numThreads, reloadCache = reload)
       )
@@ -185,18 +192,18 @@ object Silk {
    * @param transform The transform specification.
    */
   private def executeTransform(config: LinkingConfig, transform: Task[TransformSpec]): Unit = {
-    val inputTask =  config.source(transform.selection.inputId)
-    val inputSource = inputTask.source
-    Activity(new ExecuteTransform(transform, (_) => inputTask, (_) => inputSource, (_) =>
-      new CombinedEntitySink(config.output.map(_.entitySink).toSeq), _ => None, _ => PluginContext.empty)).startBlocking()
+    val inputTask =  config.source(transform.selection.requiredInputId())
+    val inputSource = access(inputTask).source
+    Activity(new ExecuteTransform(transform, (_) => Some(inputTask), (_) => inputSource, (_) =>
+      new CombinedEntitySink(config.output.map(access(_).entitySink).toSeq), _ => None, _ => PluginContext.empty)).startBlocking()
   }
 
   /**
-    * Executes a Silk project.
-    *
-    * @param projectFile The project file
-    * @param taskName The name of task in the project that should be executed. Currently only workflows are supported.
-    */
+   * Executes a Silk project.
+   *
+   * @param projectFile The project file
+   * @param taskName The name of task in the project that should be executed. Currently only workflows are supported.
+   */
   def executeProject(projectFile: File, taskName: Identifier): Project = {
     // Create workspace provider
     val projectId = Identifier("project")
@@ -224,14 +231,28 @@ object Silk {
    */
   def main(args: Array[String]): Unit = {
     configMgr()
-    val logs = CollectLogs() {
-      execute()
-    }
-
-    if (logs.isEmpty) {
+    val warnings = new WarningCounter
+    val silkLogger = Logger.getLogger("org.silkframework")
+    silkLogger.addHandler(warnings)
+    try execute() finally silkLogger.removeHandler(warnings)
+    if (warnings.count == 0) {
       logger.info("Finished execution successfully")
     } else {
-      logger.warning("The following warnings haven been generated during the execution:\n- " + logs.map(_.getMessage).mkString("\n- "))
+      logger.warning(s"Finished execution with ${warnings.count} warnings, see above")
     }
+  }
+
+  /** Counts warnings and errors during a run, so that the last line tells whether the log needs reading. */
+  private class WarningCounter extends Handler {
+    private val counter = new AtomicInteger
+    setLevel(Level.WARNING)
+
+    def count: Int = counter.get
+
+    override def publish(record: LogRecord): Unit = if (isLoggable(record)) counter.incrementAndGet()
+
+    override def flush(): Unit = ()
+
+    override def close(): Unit = ()
   }
 }

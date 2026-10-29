@@ -1,6 +1,5 @@
 import { legacyApiEndpoint, projectApi, rootPath, workspaceApi } from "../../../utils/getApiEndpoint";
 import fetch from "../../../services/fetch";
-import qs from "qs";
 import {
     IArbitraryPluginParameters,
     IAutocompleteDefaultResponse,
@@ -24,7 +23,7 @@ import { DatasetCharacteristics } from "../../../views/shared/typings";
  * @param payload
  */
 export const requestAutocompleteResults = async (
-    payload: IRequestAutocompletePayload
+    payload: IRequestAutocompletePayload,
 ): Promise<FetchResponse<IAutocompleteDefaultResponse[]>> => {
     return fetch({
         url: workspaceApi(`/pluginParameterAutoCompletion`),
@@ -46,7 +45,7 @@ export const requestProjectMetadata = async (itemId: string): Promise<FetchRespo
 export const requestTaskMetadata = async (
     itemId: string,
     projectId: string,
-    withTaskLinks?: boolean
+    withTaskLinks?: boolean,
 ): Promise<FetchResponse<ITaskMetadataResponse>> => {
     return fetch({
         url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}/metadata`),
@@ -67,7 +66,7 @@ export const requestTaskMetadata = async (
 export const requestTaskData = async <TASK_PARAMETERS = IArbitraryPluginParameters>(
     projectId: string,
     itemId: string,
-    withLabel: boolean = false
+    withLabel: boolean = false,
 ): Promise<FetchResponse<IProjectTask<TASK_PARAMETERS>>> => {
     const queryParams: any = Object.create(null);
     if (withLabel) {
@@ -87,7 +86,7 @@ export const requestTaskData = async <TASK_PARAMETERS = IArbitraryPluginParamete
  */
 export const requestUpdateProjectMetadata = async (
     itemId: string,
-    payload: IMetadataUpdatePayload
+    payload: IMetadataUpdatePayload,
 ): Promise<FetchResponse<IProjectMetadataResponse>> => {
     return fetch({
         url: workspaceApi(`/projects/${itemId}/metaData`),
@@ -105,7 +104,7 @@ export const requestUpdateProjectMetadata = async (
 export const requestUpdateTaskMetadata = async (
     itemId: string,
     payload: IMetadataUpdatePayload,
-    projectId?: string
+    projectId?: string,
 ): Promise<FetchResponse<ITaskMetadataResponse>> => {
     return fetch({
         url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}/metadata`),
@@ -119,17 +118,19 @@ export const requestUpdateTaskMetadata = async (
  * @param projectId The project of the task
  * @param taskId The ID of the project task.
  * @param textQuery A multi-word text query to filter the related items by.
+ * @param limit Optional maximum number of related items returned by the backend.
  */
 export const requestRelatedItems = async (
     projectId: string,
     taskId: string,
-    textQuery: string = ""
+    textQuery: string = "",
+    limit?: number,
 ): Promise<FetchResponse<IRelatedItemsResponse>> => {
-    const query = qs.stringify(textQuery);
     return fetch({
-        url: workspaceApi(`/projects/${projectId}/tasks/${taskId}/relatedItems${query}`),
-        body: {
-            textQuery: textQuery,
+        url: workspaceApi(`/projects/${projectId}/tasks/${taskId}/relatedItems`),
+        query: {
+            textQuery: textQuery || undefined,
+            limit,
         },
     });
 };
@@ -137,7 +138,7 @@ export const requestRelatedItems = async (
 export const requestDatasetTypes = async (
     datasetId: string,
     projectId: string,
-    payload: IDatasetTypePayload = {}
+    payload: IDatasetTypePayload = {},
 ): Promise<FetchResponse<string[]>> => {
     return fetch({
         url: legacyApiEndpoint(`projects/${projectId}/datasets/${datasetId}/types`),
@@ -148,7 +149,7 @@ export const requestDatasetTypes = async (
 
 export const requestResourcesList = async (
     projectId: string,
-    filters: IResourceListPayload = {}
+    filters: IResourceListPayload = {},
 ): Promise<FetchResponse<IProjectResource[]>> => {
     return fetch({
         url: legacyApiEndpoint(`/projects/${projectId}/resources`),
@@ -165,7 +166,7 @@ export const requestItemLinks = async (projectId: string, taskId: string): Promi
 /** Fetches dataset characteristics for a specific dataset. */
 export const requestDatasetCharacteristics = async (
     projectId: string,
-    datasetId: string
+    datasetId: string,
 ): Promise<FetchResponse<DatasetCharacteristics>> => {
     return fetch({
         url: projectApi(`/${projectId}/datasets/${datasetId}/characteristics`),

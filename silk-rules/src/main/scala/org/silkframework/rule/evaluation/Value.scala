@@ -1,6 +1,6 @@
 package org.silkframework.rule.evaluation
 
-import org.silkframework.rule.input.{Input, PathInput, TransformInput}
+import org.silkframework.rule.input.{Input, InputPortInput, PathInput, RuleBlockInput, TransformInput}
 
 /**
  * An intermediate value of a input operator evaluation.
@@ -50,6 +50,26 @@ case class TransformedValue(input: TransformInput, values: Seq[String], children
 
   def withError(ex: Throwable): Value = copy(error = Some(ex))
 
+}
+
+/**
+ * An intermediate value of a rule block usage evaluation.
+ */
+case class RuleBlockValue(input: RuleBlockInput, values: Seq[String], bindingValues: Seq[Value], error: Option[Throwable] = None) extends Value {
+
+  override def children: Seq[Value] = bindingValues
+
+  def withError(ex: Throwable): Value = copy(error = Some(ex))
+}
+
+/**
+ * An intermediate value of an input port evaluation inside a rule block.
+ */
+case class InputPortValue(input: InputPortInput, values: Seq[String], bindingValue: Option[Value], error: Option[Throwable] = None) extends Value {
+
+  override def children: Seq[Value] = bindingValue.toSeq
+
+  def withError(ex: Throwable): Value = copy(error = Some(ex))
 }
 
 /**

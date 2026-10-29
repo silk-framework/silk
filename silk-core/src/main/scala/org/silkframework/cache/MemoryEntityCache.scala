@@ -61,7 +61,12 @@ class MemoryEntityCache(val entitySchema: EntitySchema,
     allEntities = Set[String]()
   }
 
-  override def close(): Unit = { }
+  override def close(): Unit = {
+    // Publish each block's partially filled last partition.
+    for (block <- blocks) {
+      block.seal()
+    }
+  }
 
   override def size: Int = entityCounter
 
@@ -78,24 +83,35 @@ class MemoryEntityCache(val entitySchema: EntitySchema,
   override def partitionCount(block: Int): Int = blocks(block).partitionCount
 
   private class Block(block: Int) {
-    private val entities = ArrayBuffer(ArrayBuffer[Entity]())
-    private val indices = ArrayBuffer(ArrayBuffer[BitsetIndex]())
+    // Only full or sealed partitions are published here, so readers never see a partition still being written.
+    @volatile
+    private var partitions = Vector.empty[Partition]
 
-    def apply(index: Int): Partition = Partition(entities(index).toArray, indices(index).toArray)
+    // The partition currently being filled; touched only by the writing thread.
+    private var currentEntities = ArrayBuffer[Entity]()
+    private var currentIndices = ArrayBuffer[BitsetIndex]()
+
+    def apply(index: Int): Partition = partitions(index)
 
     def add(entity: Entity, index: BitsetIndex): Unit = {
-      if (entities.last.size < runtimeConfig.partitionSize) {
-        entities.last.append(entity)
-        indices.last.append(index)
-      }
-      else {
-        entities.append(ArrayBuffer(entity))
-        indices.append(ArrayBuffer(index))
-        logger.log(Level.FINE, "Written partition " + (entities.size - 2) + " of block " + block)
+      currentEntities.append(entity)
+      currentIndices.append(index)
+      if (currentEntities.size >= runtimeConfig.partitionSize) {
+        seal()
       }
     }
 
-    def partitionCount: Int = if(entities.head.isEmpty) 0 else entities.size
+    // Publishes the current partition as an immutable partition, if non-empty.
+    def seal(): Unit = {
+      if (currentEntities.nonEmpty) {
+        partitions :+= Partition(currentEntities.toArray, currentIndices.toArray)
+        currentEntities = ArrayBuffer[Entity]()
+        currentIndices = ArrayBuffer[BitsetIndex]()
+        logger.log(Level.FINE, "Written partition " + (partitions.size - 1) + " of block " + block)
+      }
+    }
+
+    def partitionCount: Int = partitions.size
   }
 
 }

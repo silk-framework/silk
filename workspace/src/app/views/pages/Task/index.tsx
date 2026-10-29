@@ -13,6 +13,7 @@ import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActi
 import { ProjectTaskParams } from "../../shared/typings";
 import { IPluginDetails } from "@ducks/common/typings";
 import DeprecatedPluginsBanner from "../Project/DeprecatedPlugins/DeprecatedPluginsBanner";
+import VariablesWidget from "../../shared/VariablesWidget/VariablesWidget";
 
 export default function TaskPage() {
     const { taskId, projectId } = useParams<ProjectTaskParams>();
@@ -67,6 +68,8 @@ export default function TaskPage() {
                     <TaskConfig projectId={projectId} taskId={taskId} pluginDataCallback={pluginDataCallback} />
                     <Spacing />
                     <TaskActivityOverview projectId={projectId} taskId={taskId} />
+                    <Spacing />
+                    <VariablesWidget projectId={projectId} taskId={taskId} />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>

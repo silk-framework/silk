@@ -35,6 +35,16 @@ trait ControllerUtilsTrait {
     )
   }
 
+  /** Validates a possibly-empty JSON body (use with `parse.tolerantText`): an empty body yields `default`, a non-empty
+    * body is validated as JSON (400 on invalid input). */
+  def validateOptionalJson[T](default: => T)(body: T => Result)
+                             (implicit request: Request[String],
+                              rds: Reads[T]): Result = {
+    val text = request.body.trim
+    val obj = if (text.isEmpty) default else JsonUtils.validateJson[T](text)
+    body(obj)
+  }
+
   /** Validates the JSON of the request body. Returns a 400 with the error details, if the validation failed. */
   def validateJsonFromJsonFormat[T](body: T => Result)
                                    (implicit request: Request[JsValue],

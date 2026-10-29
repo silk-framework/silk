@@ -2,8 +2,8 @@ package controllers.workspaceApi.coreApi.variableTemplate
 
 import controllers.autoCompletion._
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.templating.exceptions.UnboundVariablesException
-import org.silkframework.runtime.templating.{EvaluationConfig, GlobalTemplateVariables, TemplateVariables}
+import org.silkframework.runtime.templating.exceptions.{SensitiveVariableReferenceException, TemplateEvaluationException, TemplateSyntaxException, UnboundVariablesException}
+import org.silkframework.runtime.templating.{EvaluationConfig, GlobalTemplateVariables, GlobalTemplateVariablesConfig, TemplateVariableName, TemplateVariables, VariableScope}
 import org.silkframework.util.StringUtils
 import org.silkframework.workspace.WorkspaceFactory
 import play.api.libs.json.{Format, Json}
@@ -17,28 +17,35 @@ trait VariableTemplateRequest {
 
   def variableName: Option[String]
 
+  def task: Option[String]
+
   /**
-    * Collects all variables given the optional project and variable name.
+    * Collects all variables given the optional project, task, and variable name.
+    * Unless sensitive variables are included, sensitive parents are withheld and sensitive siblings are only
+    * available to a sensitive variable, as when the variable is saved (see TemplateVariables.referenceable).
     */
   def collectVariables(ignoreVariableName: Boolean = false, includeSensitiveVariables: Boolean = false)(implicit user: UserContext): TemplateVariables = {
-    val collectedVariables = project match {
+    project match {
       case Some(projectName) =>
-        val project = WorkspaceFactory().workspace.project(projectName)
-        var variables = project.templateVariables.all.variables
+        val manager = WorkspaceFactory().workspace.project(projectName).variablesManager(task)
+        // Parent scopes + the target scope's variables up to the current variable (later ones cannot be referenced)
+        var scopeVariables = manager.all.variables
         for (name <- variableName if !ignoreVariableName) {
-          variables = variables.takeWhile(_.name != name)
+          scopeVariables = scopeVariables.takeWhile(_.name != name)
         }
-        variables = GlobalTemplateVariables.all.variables ++ variables
-        TemplateVariables(variables)
+        val parentVariables = if (includeSensitiveVariables) manager.parentVariables.variables else manager.parentVariables.withoutSensitiveVariables().variables
+        if (!includeSensitiveVariables && !validatesSensitiveVariable(manager.all)) {
+          scopeVariables = scopeVariables.filterNot(_.isSensitive)
+        }
+        TemplateVariables(parentVariables ++ scopeVariables)
       case None =>
-        GlobalTemplateVariables.all
+        if (includeSensitiveVariables) GlobalTemplateVariables.all else GlobalTemplateVariables.all.withoutSensitiveVariables()
     }
+  }
 
-    if(includeSensitiveVariables) {
-      collectedVariables
-    } else {
-      collectedVariables.withoutSensitiveVariables()
-    }
+  /** True if the variable being edited exists in the given scope and is sensitive, so that it may reference sensitive siblings. */
+  protected def validatesSensitiveVariable(scopeVariables: TemplateVariables): Boolean = {
+    variableName.exists(name => scopeVariables.map.get(name).exists(_.isSensitive))
   }
 
 }
@@ -46,33 +53,108 @@ trait VariableTemplateRequest {
 case class ValidateVariableTemplateRequest(templateString: String,
                                            project: Option[String] = None,
                                            variableName: Option[String] = None,
+                                           task: Option[String] = None,
                                            includeSensitiveVariables: Option[Boolean] = None,
                                            ignoreUnboundVariables: Option[Boolean] = None) extends VariableTemplateRequest {
   private val evaluationConfig: EvaluationConfig = EvaluationConfig(ignoreUnboundVariables = ignoreUnboundVariables.getOrElse(false))
 
   def execute()(implicit user: UserContext): VariableTemplateValidationResponse = {
-    val resultOrError: Either[String, String] = try {
-      Left(collectVariables(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false)).resolveTemplateValue(templateString, evaluationConfig))
+    val variables = collectVariables(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false))
+    for(missingVariable <- missingKnownScopedVariable(variables)) {
+      return invalidVariable(missingVariable)
+    }
+    val isWithheldSensitive = withheldSensitiveVariable()
+    try {
+      val evaluatedTemplate = variables.resolveTemplateValue(templateString, evaluationConfig)
+      valid(Some(evaluatedTemplate))
     } catch {
+      case ex: UnboundVariablesException if ex.missingVars.exists(isWithheldSensitive) =>
+        // Same rule and message as saving the variable, see TemplateVariables.resolveTemplate
+        val (withheld, otherMissing) = ex.missingVars.partition(isWithheldSensitive)
+        invalid(SensitiveVariableReferenceException.message(withheld, otherMissing))
       case ex: UnboundVariablesException if variableName.isDefined && ex.missingVars.size == 1 =>
         // Check if the variable is unbound because it is defined after the current one
         Try(collectVariables(ignoreVariableName = true).resolveTemplateValue(templateString, evaluationConfig)) match {
           case _: Success[_] =>
-            Right(s"'${ex.missingVars.head}' cannot be used because it's defined after '${variableName.get}'.")
+            invalid(s"'${ex.missingVars.head}' cannot be used because it's defined after '${variableName.get}'.")
           case _: Failure[_] =>
-            Right(ex.getMessage)
+            invalid(ex.getMessage)
         }
+      case ex: UnboundVariablesException if !evaluationConfig.ignoreUnboundVariables && ex.missingVars.size == 1 =>
+        invalidVariable(ex.missingVars.head.scopedName)
+      case ex: TemplateSyntaxException =>
+        // Syntax errors do not depend on the variable values, so they are also reported in lenient mode
+        invalid(ex.getMessage)
+      case _: TemplateEvaluationException if evaluationConfig.ignoreUnboundVariables =>
+        // Lenient mode evaluates on placeholder values, so evaluation errors are expected (e.g. iterating over a placeholder).
+        // The template counts as valid, but no preview is provided.
+        valid(None)
       case NonFatal(ex) =>
-        Right(ex.getMessage)
+        invalid(ex.getMessage)
     }
+  }
+
+  /**
+    * Tells whether a missing variable is a sensitive variable of the validated scope, withheld from the template of a
+    * non-sensitive variable. Only when a non-sensitive variable is validated: a sensitive one sees its sensitive
+    * siblings, and a parameter template follows the password-parameter rule instead and reports the withheld variable
+    * as not defined, as in lenient mode.
+    */
+  private def withheldSensitiveVariable()(implicit user: UserContext): TemplateVariableName => Boolean = {
+    project match {
+      case Some(projectName) if variableName.isDefined && !includeSensitiveVariables.getOrElse(false) =>
+        val scopeVariables = WorkspaceFactory().workspace.project(projectName).variablesManager(task).all
+        if (validatesSensitiveVariable(scopeVariables)) _ => false else scopeVariables.isSensitiveMember
+      case _ =>
+        _ => false
+    }
+  }
+
+  /**
+    * In lenient mode, references to scopes whose variables are fully known in this request context
+    * (global always, project and execution if given) are still checked for existence.
+    * Method calls on variables (e.g. 'project.myVar.trim()') are unaffected, since the collected
+    * reference is the variable itself. Property access (e.g. 'project.myVar.length') is reported:
+    * it never resolves on variable values at execution time either.
+    * Returns the first missing variable, if any.
+    */
+  private def missingKnownScopedVariable(providedVariables: TemplateVariables): Option[String] = {
+    if(!evaluationConfig.ignoreUnboundVariables) {
+      None
+    } else {
+      val checkedRoots = (Seq(VariableScope.global) ++ project.map(_ => VariableScope.project) ++ task.map(_ => VariableScope.execution)).map(_.toString)
+      val templateVariables =
+        try {
+          GlobalTemplateVariablesConfig.templateEngine().compile(templateString).variables.getOrElse(Seq.empty)
+        } catch {
+          case NonFatal(_) =>
+            Seq.empty // Errors are reported by the evaluation
+        }
+      val providedNames = providedVariables.variables.map(_.scopedName).toSet
+      templateVariables.find { variable =>
+        variable.scope.path.headOption.exists(checkedRoots.contains) && !providedNames.contains(variable.scopedName)
+      }.map(_.scopedName)
+    }
+  }
+
+  private def valid(evaluatedTemplate: Option[String]): VariableTemplateValidationResponse = {
+    VariableTemplateValidationResponse(valid = true, parseError = None, evaluatedTemplate = evaluatedTemplate)
+  }
+
+  /** Validation error for a missing variable that underlines its first occurrence instead of the whole template. */
+  private def invalidVariable(scopedName: String): VariableTemplateValidationResponse = {
+    val start = templateString.indexOf(scopedName)
+    val error =
+      if(start != -1) VariableTemplateValidationError(s"'$scopedName' is not defined.", start, start + scopedName.length)
+      else VariableTemplateValidationError(s"'$scopedName' is not defined.", 0, templateString.length)
+    VariableTemplateValidationResponse(valid = false, parseError = Some(error), evaluatedTemplate = None)
+  }
+
+  private def invalid(errorMessage: String): VariableTemplateValidationResponse = {
     VariableTemplateValidationResponse(
-      valid = resultOrError.isLeft,
-      parseError = resultOrError.toOption.map(errorMessage => VariableTemplateValidationError(
-        message = errorMessage,
-        start = 0,
-        end = templateString.length
-      )),
-      evaluatedTemplate = resultOrError.left.toOption
+      valid = false,
+      parseError = Some(VariableTemplateValidationError(message = errorMessage, start = 0, end = templateString.length)),
+      evaluatedTemplate = None
     )
   }
 
@@ -107,6 +189,7 @@ case class AutoCompleteVariableTemplateRequest(inputString: String,
                                                maxSuggestions: Option[Int],
                                                project: Option[String] = None,
                                                variableName: Option[String] = None,
+                                               task: Option[String] = None,
                                                includeSensitiveVariables: Option[Boolean] = None) extends AutoSuggestAutoCompletionRequest with VariableTemplateRequest {
   def execute()(implicit user: UserContext): AutoSuggestAutoCompletionResponse = {
     AutoCompleteVariableTemplateRequest.suggestions(this, collectVariables(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false)).variableNames)

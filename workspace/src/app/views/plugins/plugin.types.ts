@@ -1,6 +1,6 @@
 import { IArtefactItemProperty } from "@ducks/common/typings";
 import { IViewActions } from "../../views/plugins/PluginRegistry";
-import { TestableComponent } from "@eccenca/gui-elements";
+import { LabelProps, TestableComponent } from "@eccenca/gui-elements";
 import { AccessControlConfig } from "@ducks/workspace/requests";
 
 export type IPreview = IDatasetConfigPreview | IResourcePreview | IDatasetPreview | FixedPreview;
@@ -71,6 +71,14 @@ export interface DatasetPreviewResourceTextResponse {
     fileSize: number;
 }
 
+/** Optional wording for the two empty states of a data preview. */
+export interface DataPreviewEmptyStateMessages {
+    /** Shown when the preview does not contain any entries. */
+    noEntries?: string;
+    /** Shown when preview entries exist but do not have properties. */
+    entriesWithoutProperties?: string;
+}
+
 /** Parameters of the data preview component. */
 export interface DataPreviewProps extends TestableComponent {
     // The title of the widget
@@ -88,6 +96,8 @@ export interface DataPreviewProps extends TestableComponent {
     id?: string;
     /** If initially the raw view should be shown. */
     startWithRawView?: boolean;
+    /** Optional context-specific messages for empty preview states. */
+    emptyStateMessages?: DataPreviewEmptyStateMessages;
 }
 
 /** User menu footer component. */
@@ -148,6 +158,8 @@ export interface ProjectAccessControlProps {
 
 /** Project ACL management plugin props. */
 export interface ProjectAccessControlManagementProps {
+    /** Visual emphasis of the groups field label. */
+    labelEmphasis?: LabelProps["emphasis"];
     projectId?: string;
     readOnly?: boolean;
     onChange: (projectAcl: AccessControlConfig) => void;

@@ -1,6 +1,6 @@
 package org.silkframework.entity.rdf
 
-
+
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.Restriction.Condition
 import org.silkframework.entity.Restriction

@@ -1,10 +1,8 @@
 package org.silkframework.plugins.dataset.rdf.datasets
 
 import org.silkframework.dataset.rdf.{EntityRetrieverStrategy, RdfDataset, SparqlParams}
-import org.silkframework.dataset.{DatasetCategories, TripleSink, TripleSinkDataset}
-import org.silkframework.plugins.dataset.rdf.access.{SparqlSink, SparqlSource}
+import org.silkframework.dataset.DatasetCategories
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.plugins.dataset.rdf.tasks.{SparqlSelectCustomTask, SparqlUpdateCustomTask}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginReference}
 import org.silkframework.runtime.plugin.types.{MultilineStringParameter, PasswordParameter}
@@ -75,9 +73,9 @@ case class SparqlDataset(
       " configured via the properties `silk.remoteSparqlEndpoint.defaults.connection.timeout.ms and" +
       " `silk.remoteSparqlEndpoint.defaults.read.timeout.ms` for the default connection and read timeouts." +
       " To overwrite these configured values, specify a (common) timeout greater than zero milliseconds.")
-  sparqlTimeout: Int = 0) extends RdfDataset with TripleSinkDataset {
+  sparqlTimeout: Int = 0) extends RdfDataset {
 
-  private val params =
+  val params: SparqlParams =
     SparqlParams(
       uri = endpointURI,
       user = login,
@@ -96,17 +94,9 @@ case class SparqlDataset(
 
   override def graphOpt: Option[String] = Option(graph).filterNot(_.isEmpty)
 
-  override val sparqlEndpoint: RemoteSparqlEndpoint = {
+  val sparqlEndpoint: RemoteSparqlEndpoint = {
     RemoteSparqlEndpoint(params)
   }
-
-  override def source(implicit userContext: UserContext) = new SparqlSource(params, sparqlEndpoint)
-
-  override def linkSink(implicit userContext: UserContext) = new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
-
-  override def entitySink(implicit userContext: UserContext) = new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
-
-  override def tripleSink(implicit userContext: UserContext): TripleSink = new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
 }
 
 object SparqlDataset {

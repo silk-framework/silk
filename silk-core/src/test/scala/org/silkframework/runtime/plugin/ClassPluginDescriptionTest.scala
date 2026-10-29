@@ -2,6 +2,7 @@ package org.silkframework.runtime.plugin
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.runtime.plugin.annotations.{Action, Plugin}
 
 class ClassPluginDescriptionTest extends AnyFlatSpec with Matchers {
 
@@ -29,10 +30,34 @@ class ClassPluginDescriptionTest extends AnyFlatSpec with Matchers {
     }
   }
 
+  it should "name a wrongly typed parameter value in words, not by its internal type" in {
+    val ex = intercept[InvalidPluginParameterValueException] {
+      pluginDesc(ParameterValues(Map("param1" -> ParameterValues(Map.empty))))
+    }
+    ex.getMessage must include ("an array, null or an empty object")
+    ex.getMessage must not include ("ParameterValues(")
+  }
+
   it should "throw an exception if a parameter value for a parameter that does not exist is provided" in {
     intercept[InvalidPluginParameterValueException] {
       createNoIgnore("param2" -> "123", "param3"-> "some value")
     }
+  }
+
+  it should "resolve each action to its own method even if two actions carry equal annotations" in {
+    val desc = ClassPluginDescription(classOf[TwoActionsPlugin])
+    val plugin = TwoActionsPlugin()
+    desc.actions("actionA").apply(plugin) mustBe Some("resultA")
+    desc.actions("actionB").apply(plugin) mustBe Some("resultB")
+  }
+
+  it should "bind a Map[String, String] parameter to the stringmap type" in {
+    ClassPluginDescription(classOf[StringMapPlugin]).parameters.head.parameterType.name mustBe "stringmap"
+  }
+
+  it should "reject a Map parameter with non-String type arguments instead of binding it to stringmap" in {
+    val ex = intercept[InvalidPluginException](ClassPluginDescription(classOf[IntMapPlugin]))
+    ex.getMessage.toLowerCase must include ("unsupported parameter type")
   }
 
   private def create(elems: (String, String)*): TestPlugin  = {
@@ -44,3 +69,19 @@ class ClassPluginDescriptionTest extends AnyFlatSpec with Matchers {
   }
 
 }
+
+// Two action methods with identical @Action annotations, which compare by value
+@Plugin(id = "twoActionsPlugin", label = "Two actions")
+case class TwoActionsPlugin() extends TestPluginType {
+  @Action(label = "same", description = "same")
+  def actionA(): String = "resultA"
+
+  @Action(label = "same", description = "same")
+  def actionB(): String = "resultB"
+}
+
+@Plugin(id = "stringMapPlugin", label = "String map")
+case class StringMapPlugin(map: Map[String, String] = Map.empty) extends TestPluginType
+
+@Plugin(id = "intMapPlugin", label = "Int map")
+case class IntMapPlugin(map: Map[String, Int] = Map.empty) extends TestPluginType

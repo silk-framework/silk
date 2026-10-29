@@ -63,6 +63,12 @@ import org.silkframework.runtime.plugin.annotations.Plugin
     description = "Missing scores always lead to an output of none.",
     inputs = Array(-1.0, Double.NaN, 1.0),
     output = Double.NaN
+  ),
+  new AggregatorExample(
+    description = "Negative scores (mismatches) contribute 0 instead of being squared into a match.",
+    inputs = Array(-1.0, 1.0),
+    weights = Array(1, 1),
+    output = 0.707107
   )
 ))
 case class QuadraticMeanAggregator() extends SimpleAggregator {
@@ -76,7 +82,9 @@ case class QuadraticMeanAggregator() extends SimpleAggregator {
         score match {
           case Some(score) =>
             sumWeights += weight
-            squaredSum += score * score * weight
+            // Clamped at 0: squaring a negative score would turn a mismatch into a match contribution.
+            val positiveScore = math.max(score, 0.0)
+            squaredSum += positiveScore * positiveScore * weight
           case None =>
             return SimilarityScore.none
         }

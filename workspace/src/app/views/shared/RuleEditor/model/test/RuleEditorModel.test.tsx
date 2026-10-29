@@ -10,8 +10,8 @@ import {
     FlowTransform,
     ReactFlowProvider,
 } from "react-flow-renderer";
-import { act, cleanup, waitFor } from "@testing-library/react";
-import { RuleEditorContext } from "../../contexts/RuleEditorContext";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { RuleEditorContext, RuleEditorContextProps } from "../../contexts/RuleEditorContext";
 import {
     IParameterSpecification,
     IPortSpecification,
@@ -24,15 +24,19 @@ import {
 import { XYPosition } from "react-flow-renderer/dist/types";
 import utils from "../../RuleEditor.utils";
 import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH, ruleEditorModelUtilsFactory } from "../RuleEditorModel.utils";
-import { RuleEditorNode } from "../RuleEditorModel.typings";
+import { PreparedClipboardPaste, RuleClipboardTask, RuleEditorNode } from "../RuleEditorModel.typings";
 import { rangeArray } from "../../../../../utils/basicUtils";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 import { nodeDefaultUtils, StickyNote } from "@eccenca/gui-elements";
+import type { RuleBlockPort } from "../../../../taskViews/ruleBlock/ruleBlock.types";
+import ruleBlockPasteUtils from "../../../../taskViews/ruleBlock/ruleBlockPaste.utils";
+import ruleTestHelper from "../../../../taskViews/shared/rules/tests/ruleTestHelper";
 
 let modelContext: RuleEditorModelContextProps | undefined;
 const currentContext = () => modelContext as RuleEditorModelContextProps;
 const execute = () => currentContext().executeModelEditOperation;
 const modelUtils = ruleEditorModelUtilsFactory();
+const isDebugLoggingEnabled = () => process.env.DEBUG === "true";
 const nodeById = (nodeId: string) => {
     const node = currentContext().elements.find((elem) => modelUtils.isNode(elem) && elem.id === nodeId);
     expect(node).toBeTruthy();
@@ -65,23 +69,36 @@ describe("Rule editor model", () => {
             tags: [],
             parameterSpecification: {},
             portSpecification: {
+                type: "count",
                 minInputPorts: 0,
             },
             inputsCanBeSwitched: false,
         },
     ];
 
-    const ruleEditorModel = async (
-        initialRuleNodes: IRuleOperatorNode[] = [],
-        operatorList: IRuleOperator[] = ruleOperatorList,
-        operatorSpec: Map<string, Map<string, IParameterSpecification>> = new Map(),
-        validateConnection: (
+    interface RuleEditorModelOptions {
+        initialRuleNodes?: IRuleOperatorNode[];
+        operatorList?: IRuleOperator[];
+        operatorSpec?: Map<string, Map<string, IParameterSpecification>>;
+        validateConnection?: (
             fromRuleOperatorNode: RuleEditorValidationNode,
             toRuleOperatorNode: RuleEditorValidationNode,
             targetPortIdx: number,
-        ) => boolean = () => true,
-        stickyNotes: StickyNote[] = [],
-    ) => {
+        ) => boolean;
+        stickyNotes?: StickyNote[];
+        contextOverrides?: Partial<RuleEditorContextProps>;
+        instanceId?: string;
+    }
+
+    const ruleEditorModel = async ({
+        initialRuleNodes = [],
+        operatorList = ruleOperatorList,
+        operatorSpec = new Map(),
+        validateConnection = () => true,
+        stickyNotes = [],
+        contextOverrides = {},
+        instanceId = "id",
+    }: RuleEditorModelOptions = {}) => {
         // Remove previously mounted components (needed if called multiple times in the same test)
         cleanup();
         modelContext = undefined;
@@ -104,10 +121,11 @@ describe("Rule editor model", () => {
                         convertRuleOperatorToRuleNode: utils.defaults.convertRuleOperatorToRuleNode,
                         operatorSpec,
                         validateConnection,
-                        instanceId: "id",
+                        instanceId,
                         datasetCharacteristics: new Map(),
                         partialAutoCompletion: () => async () => undefined,
                         saveInitiallyEnabled: false,
+                        ...contextOverrides,
                     }}
                 >
                     <Provider>
@@ -120,6 +138,8 @@ describe("Rule editor model", () => {
         });
         await waitFor(() => {
             expect(modelContext).toBeTruthy();
+        });
+        await act(async () => {
             modelContext!!.setReactFlowInstance({
                 fitView(fitViewOptions: FitViewParams | undefined, duration: number | undefined): void {},
                 getElements(): Elements {
@@ -136,6 +156,7 @@ describe("Rule editor model", () => {
                 zoomOut(): void {},
                 zoomTo(zoomLevel: number): void {},
             });
+            await Promise.resolve();
         });
         await act(async () => {
             // Allow RuleEditorModel's delayed fit-view/init completion timeout to settle before tests continue.
@@ -152,6 +173,7 @@ describe("Rule editor model", () => {
         nodeId: string;
         inputs?: (string | undefined)[];
         pluginId?: string;
+        pluginType?: IRuleOperator["pluginType"];
         portSpecification?: IPortSpecification;
         position?: XYPosition;
         parameters?: RuleOperatorNodeParameters;
@@ -166,21 +188,22 @@ describe("Rule editor model", () => {
         nodeId,
         inputs = [],
         pluginId = "testPlugin",
-        portSpecification = { minInputPorts: 1 },
+        pluginType = "unknown",
+        portSpecification = { type: "count", minInputPorts: 1 },
         position = nodeDefaultPosition,
         parameters = defaultParameters,
     }: NodeProps): IRuleOperatorNode => {
-        return {
-            inputs,
-            label: nodeId,
+        return ruleTestHelper.createRuleOperatorNode({
             nodeId,
             parameters,
+            label: nodeId,
+            inputs,
             pluginId,
-            pluginType: "unknown",
+            pluginType,
             portSpecification,
             position,
-            inputsCanBeSwitched: false,
-        };
+            tags: undefined,
+        });
     };
 
     const parameterSpecification = (paramId: string): IParameterSpecification => {
@@ -194,7 +217,11 @@ describe("Rule editor model", () => {
         };
     };
 
-    const operator = (pluginId: string, minInputPorts: number = 1): IRuleOperator => {
+    const operator = (
+        pluginId: string,
+        minInputPorts: number = 1,
+        pluginType: IRuleOperator["pluginType"] = "unknown",
+    ): IRuleOperator => {
         return {
             label: pluginId,
             parameterSpecification: {
@@ -202,12 +229,165 @@ describe("Rule editor model", () => {
                 "param B": parameterSpecification("param B"),
             },
             pluginId: pluginId,
-            pluginType: "unknown",
+            pluginType,
             portSpecification: {
+                type: "count",
                 minInputPorts: minInputPorts,
             },
             tags: [],
             inputsCanBeSwitched: false,
+        };
+    };
+
+    const createClipboardStore = () => {
+        const values = new Map<string, string>();
+        return {
+            clipboardData: {
+                setData: jest.fn((type: string, value: string) => {
+                    values.set(type, value);
+                }),
+                getData: jest.fn((type: string) => values.get(type) ?? ""),
+            },
+            readTask: (): RuleClipboardTask => JSON.parse(values.get("text/plain") ?? "{}").task,
+        };
+    };
+
+    const dispatchClipboardEvent = async (
+        type: "copy" | "paste",
+        clipboardData: { setData?: (type: string, value: string) => void; getData?: (type: string) => string },
+    ) => {
+        const eventTarget = document.createElement("div");
+        document.body.appendChild(eventTarget);
+        const event = new Event(type, { bubbles: true }) as Event & {
+            clipboardData: typeof clipboardData;
+            preventDefault: jest.Mock;
+        };
+        Object.defineProperty(event, "clipboardData", {
+            value: clipboardData,
+        });
+        event.preventDefault = jest.fn();
+        await act(async () => {
+            eventTarget.dispatchEvent(event);
+        });
+        eventTarget.remove();
+        return event;
+    };
+
+    const ruleBlockPort = (
+        id: string,
+        label: string,
+        displayOrder: number,
+        description: string = "",
+        deprecated: boolean = false,
+    ): RuleBlockPort => ({
+        id,
+        label,
+        description,
+        displayOrder,
+        deprecated,
+    });
+
+    const ruleBlockInputPortNodeMetaData = (port: RuleBlockPort) => ({
+        label: port.label,
+        description: port.description,
+        tags: [String(port.displayOrder)],
+    });
+
+    const copySelectedNodesToClipboard = async ({
+        initialRuleNodes,
+        operatorList,
+        selectedNodeIds,
+        instanceId,
+        editedItemId,
+        extendClipboardCopy,
+    }: {
+        initialRuleNodes: IRuleOperatorNode[];
+        operatorList: IRuleOperator[];
+        selectedNodeIds: string[];
+        instanceId: string;
+        editedItemId?: string;
+        extendClipboardCopy?: (task: RuleClipboardTask, nodeIds: string[]) => unknown;
+    }) => {
+        const clipboardStore = createClipboardStore();
+        await ruleEditorModel({
+            initialRuleNodes,
+            operatorList,
+            instanceId,
+            contextOverrides: {
+                editedItemId,
+                extendClipboardCopy,
+            },
+        });
+
+        act(() => {
+            currentContext().updateSelectedElements(
+                currentContext().elements.filter(
+                    (element) => modelUtils.isNode(element) && selectedNodeIds.includes(element.id),
+                ),
+            );
+        });
+
+        const copyEvent = await dispatchClipboardEvent("copy", clipboardStore.clipboardData);
+        expect(copyEvent.preventDefault).toHaveBeenCalled();
+        return clipboardStore;
+    };
+
+    const mountRuleBlockClipboardDestination = async ({
+        clipboardStore,
+        currentTaskId,
+        existingPorts = [],
+        instanceId,
+        operatorList = [operator("inputPort", 0, "InputPortOperator"), operator("concat", 1, "TransformOperator")],
+    }: {
+        clipboardStore: ReturnType<typeof createClipboardStore>;
+        currentTaskId: string;
+        existingPorts?: RuleBlockPort[];
+        instanceId: string;
+        operatorList?: IRuleOperator[];
+    }) => {
+        let externalPorts = [...existingPorts];
+        let generatedPortCounter = 0;
+
+        await ruleEditorModel({
+            operatorList,
+            operatorSpec: new Map(),
+            validateConnection: () => true,
+            instanceId,
+            contextOverrides: {
+                prepareClipboardPaste: (task: RuleClipboardTask): PreparedClipboardPaste => {
+                    const preparedPaste = ruleBlockPasteUtils.prepareRuleBlockClipboardPaste(task, {
+                        currentProjectId: "testProject",
+                        currentTaskId,
+                        existingPorts: externalPorts,
+                        createInputPortId: () => `generatedPort${++generatedPortCounter}`,
+                        inputPortNodeMetaData: ruleBlockInputPortNodeMetaData,
+                    });
+                    if (preparedPaste.createdPorts.length === 0) {
+                        return {
+                            taskData: preparedPaste.taskData,
+                        };
+                    }
+                    const previousPorts = [...externalPorts];
+                    const nextPorts = [...externalPorts, ...preparedPaste.createdPorts];
+                    return {
+                        taskData: preparedPaste.taskData,
+                        externalChange: {
+                            do: () => {
+                                externalPorts = nextPorts;
+                            },
+                            undo: () => {
+                                externalPorts = previousPorts;
+                            },
+                        },
+                    };
+                },
+            },
+        });
+
+        const pasteEvent = await dispatchClipboardEvent("paste", clipboardStore.clipboardData);
+        return {
+            pasteEvent,
+            currentExternalPorts: () => [...externalPorts],
         };
     };
 
@@ -228,7 +408,7 @@ describe("Rule editor model", () => {
             position: { x: 50, y: 120, width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT },
             color: "#000000",
         };
-        await ruleEditorModel(undefined, undefined, undefined, undefined, [noteNode]);
+        await ruleEditorModel({ stickyNotes: [noteNode] });
     };
 
     const allStickyNodes = () =>
@@ -275,13 +455,13 @@ describe("Rule editor model", () => {
     });
 
     it("should load initial rule nodes into the internal model", async () => {
-        await ruleEditorModel(
-            [
-                node({ nodeId: "node A", portSpecification: { minInputPorts: 0 } }),
+        await ruleEditorModel({
+            initialRuleNodes: [
+                node({ nodeId: "node A", portSpecification: { type: "count", minInputPorts: 0 } }),
                 node({ nodeId: "node B", inputs: ["node A"] }),
             ],
-            [operator("pluginA", 0)],
-        );
+            operatorList: [operator("pluginA", 0)],
+        });
         // 2 nodes and 1 edge
         await waitFor(async () => {
             expect(currentContext().elements).toHaveLength(3);
@@ -290,11 +470,43 @@ describe("Rule editor model", () => {
         });
     });
 
+    it("should keep node menus in rule-only layout when the editor is not read-only", async () => {
+        await ruleEditorModel({
+            initialRuleNodes: [
+                node({ nodeId: "node A", pluginId: "pluginA", portSpecification: { type: "count", minInputPorts: 0 } }),
+            ],
+            operatorList: [operator("pluginA", 0)],
+            contextOverrides: {
+                showRuleOnly: true,
+            },
+        });
+
+        await waitFor(() => {
+            expect(nodeById("node A").data.menuButtons).toBeTruthy();
+        });
+    });
+
+    it("should hide node menus in read-only mode", async () => {
+        await ruleEditorModel({
+            initialRuleNodes: [
+                node({ nodeId: "node A", pluginId: "pluginA", portSpecification: { type: "count", minInputPorts: 0 } }),
+            ],
+            operatorList: [operator("pluginA", 0)],
+            contextOverrides: {
+                readOnlyMode: true,
+            },
+        });
+
+        await waitFor(() => {
+            expect(nodeById("node A").data.menuButtons).toBeUndefined();
+        });
+    });
+
     it("should add new nodes and undo & redo", async () => {
-        await ruleEditorModel(
-            [node({ nodeId: "pluginA" }), node({ nodeId: "node B", inputs: ["pluginA"] })],
-            [operator("pluginA")],
-        );
+        await ruleEditorModel({
+            initialRuleNodes: [node({ nodeId: "pluginA" }), node({ nodeId: "node B", inputs: ["pluginA"] })],
+            operatorList: [operator("pluginA")],
+        });
         const checkBeforeAdd = () => {
             expect(currentContext().elements).toHaveLength(3);
             expect(
@@ -407,14 +619,14 @@ describe("Rule editor model", () => {
     });
 
     it("should delete nodes and undo & redo", async () => {
-        await ruleEditorModel(
-            [
+        await ruleEditorModel({
+            initialRuleNodes: [
                 node({ nodeId: "nodeA" }),
                 node({ nodeId: "nodeB", inputs: ["nodeA"] }),
                 node({ nodeId: "nodeC", inputs: ["nodeA", "nodeB"] }),
             ],
-            [operator("pluginA")],
-        );
+            operatorList: [operator("pluginA")],
+        });
         const checkBeforeDelete = () => {
             // 3 nodes, 3 edges
             expect(currentContext().elements).toHaveLength(6);
@@ -441,7 +653,7 @@ describe("Rule editor model", () => {
     });
 
     it("should move a node and undo & redo", async () => {
-        await ruleEditorModel([], [operator("pluginA")]);
+        await ruleEditorModel({ initialRuleNodes: [], operatorList: [operator("pluginA")] });
         const startPosition = { x: 2, y: 4 };
         act(() => {
             currentContext().executeModelEditOperation.addNode(operator("pluginA"), startPosition);
@@ -483,14 +695,14 @@ describe("Rule editor model", () => {
     });
 
     it("should move multiple nodes by an offset", async () => {
-        await ruleEditorModel(
-            [
+        await ruleEditorModel({
+            initialRuleNodes: [
                 node({ nodeId: "nodeA", position: { x: 1, y: 2 } }),
                 node({ nodeId: "nodeB", inputs: ["nodeA"], position: { x: 2, y: 3 } }),
                 node({ nodeId: "nodeC", position: { x: 3, y: 4 } }),
             ],
-            [operator("pluginA")],
-        );
+            operatorList: [operator("pluginA")],
+        });
         const checkPositions = (data: [string, number, number][]) => {
             expect(currentOperatorNodes().map((n) => ({ pos: n.position, id: n.nodeId }))).toStrictEqual(
                 data.map((d) => ({ id: `node${d[0]}`, pos: { x: d[1], y: d[2] } })),
@@ -520,7 +732,7 @@ describe("Rule editor model", () => {
     });
 
     it("should change node parameters and undo & redo", async () => {
-        await ruleEditorModel([node({ nodeId: "nodeA" })], [operator("pluginA")]);
+        await ruleEditorModel({ initialRuleNodes: [node({ nodeId: "nodeA" })], operatorList: [operator("pluginA")] });
         const checkParameters = (expectedParameterValues: string[] = ["Value A", "Value B"]) => {
             expect(currentOperatorNodes()[0].parameters).toStrictEqual({
                 "param A": expectedParameterValues[0],
@@ -576,9 +788,111 @@ describe("Rule editor model", () => {
         checkAfterChange();
     });
 
+    it("should execute external rule model changes and undo & redo them", async () => {
+        await ruleEditorModel({ initialRuleNodes: [node({ nodeId: "nodeA" })], operatorList: [operator("pluginA")] });
+        let externalState = "initial";
+
+        const checkBeforeChange = () => {
+            expect(externalState).toBe("initial");
+            expect(currentContext().canUndo).toBe(false);
+        };
+        checkBeforeChange();
+
+        act(() => {
+            currentContext().executeModelEditOperation.startChangeTransaction();
+            currentContext().executeExternalRuleModelChange({
+                do: () => {
+                    externalState = "updated";
+                },
+                undo: () => {
+                    externalState = "initial";
+                },
+            });
+        });
+
+        const checkAfterChange = () => {
+            expect(externalState).toBe("updated");
+            expect(currentContext().canUndo).toBe(true);
+            expect(currentContext().canRedo).toBe(false);
+        };
+        checkAfterChange();
+
+        checkUndoAndRedo(checkBeforeChange, checkAfterChange);
+    });
+
+    it("should execute external rule model changes in the same transaction as canvas changes", async () => {
+        await ruleEditorModel({ initialRuleNodes: [node({ nodeId: "nodeA" })], operatorList: [operator("pluginA")] });
+        let externalState = "present";
+
+        const checkBeforeDelete = () => {
+            expect(currentContext().elements).toHaveLength(1);
+            expect(externalState).toBe("present");
+        };
+        checkBeforeDelete();
+
+        act(() => {
+            currentContext().executeModelEditOperation.startChangeTransaction();
+            currentContext().executeModelEditOperation.deleteNode("nodeA");
+            currentContext().executeExternalRuleModelChange({
+                do: () => {
+                    externalState = "deleted";
+                },
+                undo: () => {
+                    externalState = "present";
+                },
+            });
+        });
+
+        const checkAfterDelete = () => {
+            expect(currentContext().elements).toHaveLength(0);
+            expect(externalState).toBe("deleted");
+            expect(currentContext().canUndo).toBe(true);
+            expect(currentContext().canRedo).toBe(false);
+        };
+        checkAfterDelete();
+
+        checkUndoAndRedo(checkBeforeDelete, checkAfterDelete);
+    });
+
+    it("should update node metadata without changing parameters and undo & redo", async () => {
+        await ruleEditorModel({ initialRuleNodes: [node({ nodeId: "nodeA" })], operatorList: [operator("pluginA")] });
+
+        const checkBeforeUpdate = () => {
+            const canvasNode = nodeById("nodeA");
+            expect(canvasNode.data.businessData.originalRuleOperatorNode.label).toBe("nodeA");
+            expect(canvasNode.data.businessData.originalRuleOperatorNode.description).toBeUndefined();
+            expect(canvasNode.data.businessData.originalRuleOperatorNode.tags).toBeUndefined();
+            expect(currentOperatorNodes()[0].parameters).toStrictEqual(defaultParameters);
+        };
+        checkBeforeUpdate();
+
+        act(() => {
+            currentContext().updateRuleOperatorNodeMetaData(["nodeA"], () => ({
+                label: "Updated node label",
+                description: "Updated node description",
+                tags: ["Rule block"],
+            }));
+        });
+
+        const checkAfterUpdate = () => {
+            const canvasNode = nodeById("nodeA");
+            expect(canvasNode.data.businessData.originalRuleOperatorNode.label).toBe("Updated node label");
+            expect(canvasNode.data.businessData.originalRuleOperatorNode.description).toBe("Updated node description");
+            expect(canvasNode.data.businessData.originalRuleOperatorNode.tags).toStrictEqual(["Rule block"]);
+            expect(currentOperatorNodes()[0].label).toBe("Updated node label");
+            expect(currentOperatorNodes()[0].description).toBe("Updated node description");
+            expect(currentOperatorNodes()[0].tags).toStrictEqual(["Rule block"]);
+            expect(currentOperatorNodes()[0].parameters).toStrictEqual(defaultParameters);
+            checkAfterChange();
+        };
+        checkAfterUpdate();
+
+        checkUndoAndRedo(checkBeforeUpdate, checkAfterUpdate);
+    });
+
     it("should save rule parameters correctly", async () => {
-        await ruleEditorModel(
-            [
+        await ruleEditorModel({
+            initialRuleNodes: [
                 node({
                     nodeId: "nodeA",
                     parameters: {
@@ -590,8 +904,8 @@ describe("Rule editor model", () => {
                     },
                 }),
             ],
-            [operator("pluginA")],
-        );
+            operatorList: [operator("pluginA")],
+        });
         act(() => {
             // Need to run this in separate act, since moveNode runs async
             currentContext().executeModelEditOperation.changeNodeParameter("nodeA", "param A", "still a string");
@@ -605,7 +919,10 @@ describe("Rule editor model", () => {
     });
 
     it("should keep undo history after saving and track the saved state marker", async () => {
-        await ruleEditorModel([node({ nodeId: "nodeA", position: { x: 1, y: 2 } })], [operator("pluginA")]);
+        await ruleEditorModel({
+            initialRuleNodes: [node({ nodeId: "nodeA", position: { x: 1, y: 2 } })],
+            operatorList: [operator("pluginA")],
+        });
 
         act(() => {
             currentContext().executeModelEditOperation.startChangeTransaction();
@@ -636,8 +953,119 @@ describe("Rule editor model", () => {
         expect(currentContext().savedStatePosition).toBe("current");
     });
 
+    it("should keep save warning messages after a successful save triggers a model reinitialization", async () => {
+        cleanup();
+        modelContext = undefined;
+        const saveWarningMessage = "Unused input port warning";
+        const Provider: React.FC<{ children: React.JSX.Element }> = ReactFlowProvider;
+
+        const StatefulRuleEditorModel = () => {
+            const [editedItem, setEditedItem] = React.useState({ version: 0 });
+            const [initialRuleOperatorNodes, setInitialRuleOperatorNodes] = React.useState<IRuleOperatorNode[]>([
+                node({ nodeId: "nodeA", position: { x: 1, y: 2 } }),
+            ]);
+
+            return (
+                <RuleEditorContext.Provider
+                    value={{
+                        projectId: "testProject",
+                        editedItem,
+                        operatorList: [operator("pluginA")],
+                        editedItemLoading: false,
+                        operatorListLoading: false,
+                        initialRuleOperatorNodes,
+                        stickyNotes: [],
+                        saveRule: async (ruleOperatorNodes): Promise<RuleSaveResult> => {
+                            setEditedItem({ version: 1 });
+                            setInitialRuleOperatorNodes([...ruleOperatorNodes]);
+                            return {
+                                success: true,
+                                warningMessages: [saveWarningMessage],
+                            };
+                        },
+                        convertRuleOperatorToRuleNode: utils.defaults.convertRuleOperatorToRuleNode,
+                        operatorSpec: new Map(),
+                        validateConnection: () => true,
+                        instanceId: "id",
+                        datasetCharacteristics: new Map(),
+                        partialAutoCompletion: () => async () => undefined,
+                        saveInitiallyEnabled: false,
+                    }}
+                >
+                    <Provider>
+                        <RuleEditorModel>
+                            <RuleEditorModelTestComponent />
+                        </RuleEditorModel>
+                    </Provider>
+                </RuleEditorContext.Provider>
+            );
+        };
+
+        await act(() => {
+            return renderWrapper(<StatefulRuleEditorModel />);
+        });
+        await waitFor(() => {
+            expect(modelContext).toBeTruthy();
+        });
+        await act(async () => {
+            modelContext!!.setReactFlowInstance({
+                fitView(fitViewOptions: FitViewParams | undefined, duration: number | undefined): void {},
+                getElements(): Elements {
+                    return [];
+                },
+                project(position: XYPosition): XYPosition {
+                    return position;
+                },
+                setTransform(transform: FlowTransform): void {},
+                toObject(): FlowExportObject<any> {
+                    return undefined as any;
+                },
+                zoomIn(): void {},
+                zoomOut(): void {},
+                zoomTo(zoomLevel: number): void {},
+            });
+            await Promise.resolve();
+        });
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 1));
+        });
+
+        await act(async () => {
+            await currentContext().saveRule();
+            await Promise.resolve();
+            await new Promise((resolve) => setTimeout(resolve, 1));
+        });
+
+        expect(currentContext().saveWarningMessages).toStrictEqual([saveWarningMessage]);
+    });
+
+    it("should keep save warning messages when a save returns warnings and errors together", async () => {
+        const saveWarningMessage = "Unused input port warning";
+        await ruleEditorModel({
+            initialRuleNodes: [node({ nodeId: "nodeA", position: { x: 1, y: 2 } })],
+            operatorList: [operator("pluginA")],
+            contextOverrides: {
+                saveRule: (): RuleSaveResult => ({
+                    success: false,
+                    errorMessage: "Save failed",
+                    warningMessages: [saveWarningMessage],
+                    nodeErrors: [],
+                }),
+            },
+        });
+
+        await act(async () => {
+            await currentContext().saveRule();
+        });
+
+        expect(currentContext().saveWarningMessages).toStrictEqual([saveWarningMessage]);
+    });
+
     it("should reset to saved state without clearing undo and redo history when the saved marker is still available", async () => {
-        await ruleEditorModel([node({ nodeId: "nodeA", position: { x: 1, y: 2 } })], [operator("pluginA")]);
+        await ruleEditorModel({
+            initialRuleNodes: [node({ nodeId: "nodeA", position: { x: 1, y: 2 } })],
+            operatorList: [operator("pluginA")],
+        });
 
         act(() => {
             currentContext().executeModelEditOperation.startChangeTransaction();
@@ -676,7 +1104,10 @@ describe("Rule editor model", () => {
     });
 
     it("should clear undo and redo history when resetting to a saved state that is no longer in history", async () => {
-        await ruleEditorModel([node({ nodeId: "nodeA", position: { x: 1, y: 2 } })], [operator("pluginA")]);
+        await ruleEditorModel({
+            initialRuleNodes: [node({ nodeId: "nodeA", position: { x: 1, y: 2 } })],
+            operatorList: [operator("pluginA")],
+        });
 
         act(() => {
             currentContext().executeModelEditOperation.startChangeTransaction();
@@ -705,14 +1136,14 @@ describe("Rule editor model", () => {
     });
 
     it("should delete multiple nodes and undo & redo", async () => {
-        await ruleEditorModel(
-            [
+        await ruleEditorModel({
+            initialRuleNodes: [
                 node({ nodeId: "nodeA" }),
                 node({ nodeId: "nodeB", inputs: ["nodeA"] }),
                 node({ nodeId: "nodeC", inputs: ["nodeA", "nodeB"] }),
             ],
-            [operator("pluginA")],
-        );
+            operatorList: [operator("pluginA")],
+        });
         const checkBeforeDelete = () => {
             expect(currentContext().elements).toHaveLength(6);
         };
@@ -730,11 +1161,13 @@ describe("Rule editor model", () => {
     });
 
     it("should copy and paste multiple nodes and undo & redo", async () => {
-        await ruleEditorModel([
-            node({ nodeId: "nodeA" }),
-            node({ nodeId: "nodeB", inputs: ["nodeA"] }),
-            node({ nodeId: "nodeC", inputs: ["nodeA", "nodeB"] }),
-        ]);
+        await ruleEditorModel({
+            initialRuleNodes: [
+                node({ nodeId: "nodeA" }),
+                node({ nodeId: "nodeB", inputs: ["nodeA"] }),
+                node({ nodeId: "nodeC", inputs: ["nodeA", "nodeB"] }),
+            ],
+        });
         const checkBeforeCopyAndPaste = () => {
             expect(currentContext().elements).toHaveLength(6);
         };
@@ -769,8 +1202,311 @@ describe("Rule editor model", () => {
         checkUndoAndRedo(checkBeforeCopyAndPaste, checkAfterCopyAndPaste, checkAfterCopyAndPaste2nd);
     });
 
+    it("should ignore rule-editor copy and paste shortcuts in read-only mode", async () => {
+        const clipboardStore = createClipboardStore();
+        await ruleEditorModel({
+            initialRuleNodes: [
+                node({ nodeId: "nodeA", pluginId: "pluginA", portSpecification: { type: "count", minInputPorts: 0 } }),
+            ],
+            operatorList: [operator("pluginA", 0)],
+            contextOverrides: {
+                readOnlyMode: true,
+            },
+        });
+
+        act(() => {
+            currentContext().updateSelectedElements(
+                currentContext().elements.filter((element) => modelUtils.isNode(element) && element.id === "nodeA"),
+            );
+        });
+
+        const copyEvent = await dispatchClipboardEvent("copy", clipboardStore.clipboardData);
+        expect(copyEvent.preventDefault).not.toHaveBeenCalled();
+        expect(clipboardStore.clipboardData.setData).not.toHaveBeenCalled();
+
+        clipboardStore.clipboardData.setData!(
+            "text/plain",
+            JSON.stringify({
+                task: {
+                    data: {
+                        nodes: [
+                            {
+                                nodeId: "copiedNode",
+                                pluginId: "pluginA",
+                                pluginType: "unknown",
+                                position: { x: 10, y: 20 },
+                                dimension: undefined,
+                                parameters: defaultParameters,
+                                inputHandleIds: [],
+                            },
+                        ],
+                        edges: [],
+                    },
+                    metaData: {
+                        project: "testProject",
+                        task: "taskA",
+                    },
+                },
+            }),
+        );
+        const pasteEvent = await dispatchClipboardEvent("paste", clipboardStore.clipboardData);
+        expect(pasteEvent.preventDefault).not.toHaveBeenCalled();
+        expect(currentContext().ruleOperatorNodes()).toHaveLength(1);
+    });
+
+    it("should convert pasted paths into rule-block input ports, deduplicate identical source paths and keep target paths separate", async () => {
+        const clipboardStore = await copySelectedNodesToClipboard({
+            initialRuleNodes: [
+                node({
+                    nodeId: "sourcePathA",
+                    pluginId: "sourcePathInput",
+                    pluginType: "PathInputOperator",
+                    portSpecification: { type: "count", minInputPorts: 0 },
+                    parameters: {
+                        path: "foaf:name",
+                    },
+                }),
+                node({
+                    nodeId: "sourcePathB",
+                    pluginId: "sourcePathInput",
+                    pluginType: "PathInputOperator",
+                    portSpecification: { type: "count", minInputPorts: 0 },
+                    parameters: {
+                        path: "foaf:name",
+                    },
+                }),
+                node({
+                    nodeId: "targetPath",
+                    pluginId: "targetPathInput",
+                    pluginType: "PathInputOperator",
+                    portSpecification: { type: "count", minInputPorts: 0 },
+                    parameters: {
+                        path: "foaf:name",
+                    },
+                }),
+                node({
+                    nodeId: "transformNode",
+                    pluginId: "concat",
+                    pluginType: "TransformOperator",
+                    inputs: ["sourcePathA", "sourcePathB"],
+                }),
+            ],
+            operatorList: [
+                operator("sourcePathInput", 0, "PathInputOperator"),
+                operator("targetPathInput", 0, "PathInputOperator"),
+                operator("concat", 1, "TransformOperator"),
+            ],
+            selectedNodeIds: ["sourcePathA", "sourcePathB", "targetPath", "transformNode"],
+            instanceId: "path-source",
+        });
+
+        expect(clipboardStore.readTask()).toMatchObject({
+            data: {
+                edges: [
+                    expect.objectContaining({ source: "sourcePathA", target: "transformNode", targetHandle: "0" }),
+                    expect.objectContaining({ source: "sourcePathB", target: "transformNode", targetHandle: "1" }),
+                ],
+            },
+        });
+
+        const destination = await mountRuleBlockClipboardDestination({
+            clipboardStore,
+            currentTaskId: "ruleBlockTarget",
+            instanceId: "path-destination",
+        });
+
+        const checkAfterPaste = () => {
+            expect(destination.pasteEvent.preventDefault).not.toHaveBeenCalled();
+            expect(currentContext().elements).toHaveLength(6);
+            expect(currentContext().ruleOperatorNodes()).toHaveLength(4);
+            expect(
+                currentContext()
+                    .ruleOperatorNodes()
+                    .filter((operatorNode) => operatorNode.pluginType === "InputPortOperator")
+                    .map((operatorNode) => operatorNode.parameters.portId),
+            ).toStrictEqual(["generatedPort1", "generatedPort1", "generatedPort2"]);
+            expect(destination.currentExternalPorts()).toStrictEqual([
+                ruleBlockPort("generatedPort1", "foaf:name", 1),
+                ruleBlockPort("generatedPort2", "foaf:name", 2),
+            ]);
+        };
+
+        await waitFor(checkAfterPaste);
+
+        act(() => {
+            currentContext().undo();
+        });
+        expect(currentContext().elements).toHaveLength(0);
+        expect(destination.currentExternalPorts()).toStrictEqual([]);
+
+        act(() => {
+            currentContext().redo();
+        });
+        checkAfterPaste();
+    });
+
+    it("should reconcile copied input-port nodes for external and same-rule clipboard pastes", async () => {
+        const externalClipboardStore = await copySelectedNodesToClipboard({
+            initialRuleNodes: [
+                node({
+                    nodeId: "externalInputNode",
+                    pluginId: "inputPort",
+                    pluginType: "InputPortOperator",
+                    portSpecification: { type: "count", minInputPorts: 0 },
+                    parameters: {
+                        portId: "externalPort",
+                    },
+                }),
+            ],
+            operatorList: [operator("inputPort", 0, "InputPortOperator")],
+            selectedNodeIds: ["externalInputNode"],
+            instanceId: "external-source",
+            editedItemId: "externalRuleBlock",
+            extendClipboardCopy: () => ({
+                inputPorts: [ruleBlockPort("externalPort", "External input", 3, "External description")],
+            }),
+        });
+
+        const externalDestination = await mountRuleBlockClipboardDestination({
+            clipboardStore: externalClipboardStore,
+            currentTaskId: "destinationRuleBlock",
+            existingPorts: [ruleBlockPort("existingPort", "Existing", 1)],
+            instanceId: "external-destination",
+        });
+
+        const checkAfterExternalPaste = () => {
+            expect(currentContext().ruleOperatorNodes()).toHaveLength(1);
+            expect(currentContext().ruleOperatorNodes()[0].parameters.portId).toBe("generatedPort1");
+            expect(externalDestination.currentExternalPorts()).toStrictEqual([
+                ruleBlockPort("existingPort", "Existing", 1),
+                ruleBlockPort("generatedPort1", "External input", 2, "External description"),
+            ]);
+        };
+
+        await waitFor(checkAfterExternalPaste);
+        act(() => {
+            currentContext().undo();
+        });
+        expect(currentContext().ruleOperatorNodes()).toHaveLength(0);
+        expect(externalDestination.currentExternalPorts()).toStrictEqual([
+            ruleBlockPort("existingPort", "Existing", 1),
+        ]);
+        act(() => {
+            currentContext().redo();
+        });
+        checkAfterExternalPaste();
+
+        const sameRuleClipboardStore = await copySelectedNodesToClipboard({
+            initialRuleNodes: [
+                node({
+                    nodeId: "sameRuleInputNode",
+                    pluginId: "inputPort",
+                    pluginType: "InputPortOperator",
+                    portSpecification: { type: "count", minInputPorts: 0 },
+                    parameters: {
+                        portId: "sharedPort",
+                    },
+                }),
+            ],
+            operatorList: [operator("inputPort", 0, "InputPortOperator")],
+            selectedNodeIds: ["sameRuleInputNode"],
+            instanceId: "same-source",
+            editedItemId: "sharedRuleBlock",
+            extendClipboardCopy: () => ({
+                inputPorts: [ruleBlockPort("sharedPort", "Shared input", 1)],
+            }),
+        });
+
+        const sameRuleDestination = await mountRuleBlockClipboardDestination({
+            clipboardStore: sameRuleClipboardStore,
+            currentTaskId: "sharedRuleBlock",
+            existingPorts: [ruleBlockPort("sharedPort", "Shared input", 1)],
+            instanceId: "same-destination",
+        });
+
+        const checkAfterSameRulePaste = () => {
+            expect(currentContext().ruleOperatorNodes()).toHaveLength(1);
+            expect(currentContext().ruleOperatorNodes()[0].parameters.portId).toBe("sharedPort");
+            expect(sameRuleDestination.currentExternalPorts()).toStrictEqual([
+                ruleBlockPort("sharedPort", "Shared input", 1),
+            ]);
+        };
+
+        await waitFor(checkAfterSameRulePaste);
+        act(() => {
+            currentContext().undo();
+        });
+        expect(currentContext().ruleOperatorNodes()).toHaveLength(0);
+        expect(sameRuleDestination.currentExternalPorts()).toStrictEqual([
+            ruleBlockPort("sharedPort", "Shared input", 1),
+        ]);
+        act(() => {
+            currentContext().redo();
+        });
+        checkAfterSameRulePaste();
+    });
+
+    it("should create value edges for input port operators", async () => {
+        await ruleEditorModel({
+            initialRuleNodes: [
+                node({
+                    nodeId: "inputPortNode",
+                    pluginId: "inputPort",
+                    pluginType: "InputPortOperator",
+                    portSpecification: { type: "count", minInputPorts: 0 },
+                    parameters: {
+                        portId: "inputPortA",
+                    },
+                }),
+                node({
+                    nodeId: "transformNode",
+                    pluginId: "concat",
+                    pluginType: "TransformOperator",
+                    inputs: ["inputPortNode"],
+                }),
+            ],
+            operatorList: [operator("inputPort", 0, "InputPortOperator"), operator("concat", 1, "TransformOperator")],
+        });
+
+        expect(
+            currentContext()
+                .elements.filter((elem) => modelUtils.isEdge(elem))
+                .map((edge) => modelUtils.asEdge(edge)?.type),
+        ).toStrictEqual(["value"]);
+    });
+
+    it("should reject invalid clipboard content without creating nodes or external rule-block ports", async () => {
+        const invalidClipboardStore = await copySelectedNodesToClipboard({
+            initialRuleNodes: [
+                node({
+                    nodeId: "comparisonNode",
+                    pluginId: "levenshtein",
+                    pluginType: "ComparisonOperator",
+                    portSpecification: { type: "count", minInputPorts: 2 },
+                }),
+            ],
+            operatorList: [operator("levenshtein", 2, "ComparisonOperator")],
+            selectedNodeIds: ["comparisonNode"],
+            instanceId: "invalid-source",
+        });
+
+        const invalidDestination = await mountRuleBlockClipboardDestination({
+            clipboardStore: invalidClipboardStore,
+            currentTaskId: "invalidDestination",
+            instanceId: "invalid-destination",
+        });
+
+        await waitFor(() => {
+            expect(invalidDestination.pasteEvent.preventDefault).not.toHaveBeenCalled();
+            expect(currentContext().elements).toHaveLength(0);
+            expect(currentContext().ruleOperatorNodes()).toHaveLength(0);
+            expect(invalidDestination.currentExternalPorts()).toStrictEqual([]);
+            expect(currentContext().canUndo).toBe(false);
+        });
+    });
+
     it("should add an edge and undo & redo", async () => {
-        await ruleEditorModel([node({ nodeId: "nodeA" }), node({ nodeId: "nodeB" })]);
+        await ruleEditorModel({ initialRuleNodes: [node({ nodeId: "nodeA" }), node({ nodeId: "nodeB" })] });
         const checkBeforeAdd = () => {
             expect(currentContext().elements).toHaveLength(2);
         };
@@ -793,11 +1529,13 @@ describe("Rule editor model", () => {
     });
 
     it("should delete an edge and undo & redo", async () => {
-        await ruleEditorModel([
-            node({ nodeId: "nodeA" }),
-            node({ nodeId: "nodeB", inputs: ["nodeA"] }),
-            node({ nodeId: "nodeC", inputs: ["nodeA", "nodeB"] }),
-        ]);
+        await ruleEditorModel({
+            initialRuleNodes: [
+                node({ nodeId: "nodeA" }),
+                node({ nodeId: "nodeB", inputs: ["nodeA"] }),
+                node({ nodeId: "nodeC", inputs: ["nodeA", "nodeB"] }),
+            ],
+        });
         const edge = currentContext().elements.find(
             (elem) => modelUtils.isEdge(elem) && modelUtils.asEdge(elem)!!.target === "nodeB",
         );
@@ -852,11 +1590,13 @@ describe("Rule editor model", () => {
             recordCurrentState(stateLabel);
         };
         const resultApi = new RenderResultApi(
-            await ruleEditorModel([
-                node({ nodeId: "nodeA" }),
-                node({ nodeId: "nodeB", inputs: ["nodeA"] }),
-                node({ nodeId: "nodeC", inputs: ["nodeB"] }),
-            ]),
+            await ruleEditorModel({
+                initialRuleNodes: [
+                    node({ nodeId: "nodeA" }),
+                    node({ nodeId: "nodeB", inputs: ["nodeA"] }),
+                    node({ nodeId: "nodeC", inputs: ["nodeB"] }),
+                ],
+            }),
         );
         recordCurrentState("Initial state");
         expect(currentContext().canUndo).toBe(false);
@@ -947,13 +1687,19 @@ describe("Rule editor model", () => {
                     expect(allNodes()).toStrictEqual(stateHistory[changeIdx - 1]);
                 });
             }
-            console.log("Test REDO");
+            if (isDebugLoggingEnabled()) {
+                console.log("Test REDO");
+            }
             for (let changeIdx = 1; changeIdx < stateHistory.length; changeIdx++) {
                 expect(currentContext().canRedo).toBe(true);
                 act(() => {
                     currentContext().redo();
                 });
-                console.log(`Redone change: ${stateHistoryLabel[changeIdx]} (${changeIdx}/${stateHistory.length - 1})`);
+                if (isDebugLoggingEnabled()) {
+                    console.log(
+                        `Redone change: ${stateHistoryLabel[changeIdx]} (${changeIdx}/${stateHistory.length - 1})`,
+                    );
+                }
                 expect(allNodes()).toStrictEqual(stateHistory[changeIdx]);
             }
         }
@@ -964,12 +1710,14 @@ describe("Rule editor model", () => {
     };
 
     it("should remove an existing edge when a new edge is connected to the same port", async () => {
-        await ruleEditorModel([
-            node({ nodeId: "nodeA" }),
-            node({ nodeId: "nodeB" }),
-            node({ nodeId: "nodeC", inputs: ["nodeA"] }),
-            node({ nodeId: "nodeD", inputs: ["nodeB"] }),
-        ]);
+        await ruleEditorModel({
+            initialRuleNodes: [
+                node({ nodeId: "nodeA" }),
+                node({ nodeId: "nodeB" }),
+                node({ nodeId: "nodeC", inputs: ["nodeA"] }),
+                node({ nodeId: "nodeD", inputs: ["nodeB"] }),
+            ],
+        });
         const beforeEditCheck = () => {
             nodeHasInputs("nodeC", ["nodeA"]);
             nodeHasInputs("nodeD", ["nodeB"]);
@@ -989,11 +1737,13 @@ describe("Rule editor model", () => {
     });
 
     it("should swap edges when changing an existing edge to another handle on the same node", async () => {
-        await ruleEditorModel([
-            node({ nodeId: "nodeA" }),
-            node({ nodeId: "nodeB" }),
-            node({ nodeId: "nodeC", inputs: ["nodeA", "nodeB"] }),
-        ]);
+        await ruleEditorModel({
+            initialRuleNodes: [
+                node({ nodeId: "nodeA" }),
+                node({ nodeId: "nodeB" }),
+                node({ nodeId: "nodeC", inputs: ["nodeA", "nodeB"] }),
+            ],
+        });
         const checkBeforeEdit = () => {
             nodeHasInputs("nodeC", ["nodeA", "nodeB"]);
             expect(currentContext().elements).toHaveLength(5);
@@ -1012,20 +1762,23 @@ describe("Rule editor model", () => {
     });
 
     it("should connect to the first free handle of a node when no handle is specified", async () => {
-        await ruleEditorModel([
-            node({ nodeId: "nodeA" }),
-            node({ nodeId: "nodeB" }),
-            node({ nodeId: "nodeC" }),
-            node({ nodeId: "nodeD" }),
-            node({
-                nodeId: "nodeE",
-                inputs: [undefined, "nodeA"],
-                portSpecification: {
-                    minInputPorts: 3,
-                    maxInputPorts: 3,
-                },
-            }),
-        ]);
+        await ruleEditorModel({
+            initialRuleNodes: [
+                node({ nodeId: "nodeA" }),
+                node({ nodeId: "nodeB" }),
+                node({ nodeId: "nodeC" }),
+                node({ nodeId: "nodeD" }),
+                node({
+                    nodeId: "nodeE",
+                    inputs: [undefined, "nodeA"],
+                    portSpecification: {
+                        type: "count",
+                        minInputPorts: 3,
+                        maxInputPorts: 3,
+                    },
+                }),
+            ],
+        });
         const checkBeforeEdit = () => {
             nodeHasInputs("nodeE", [null, "nodeA", null]);
             expect(currentContext().elements).toHaveLength(6);
@@ -1048,21 +1801,23 @@ describe("Rule editor model", () => {
         const nrOfDummyNodes = 10;
         const dummyNodes = rangeArray(nrOfDummyNodes).map((idx) => node({ nodeId: "inputNode" + (idx + 1) }));
         const inputHandlesForDummyNodes = dummyNodes.map(() => 1);
-        await ruleEditorModel([
-            // Each node can only have one output edge, so we need a lot of dummy nodes
-            ...dummyNodes,
-            node({ nodeId: "nodeA" }),
-            node({ nodeId: "nodeA2", portSpecification: { minInputPorts: 0, maxInputPorts: 0 } }),
-            node({ nodeId: "nodeB" }),
-            node({ nodeId: "nodeC", inputs: ["inputNode1", "inputNode2"] }),
-            node({
-                nodeId: "nodeD",
-                inputs: ["inputNode3", "inputNode4"],
-                portSpecification: { minInputPorts: 2, maxInputPorts: 3 },
-            }),
-            node({ nodeId: "nodeE", inputs: ["inputNode5", "inputNode6"] }),
-            node({ nodeId: "nodeF", inputs: ["inputNode7", "inputNode8"] }),
-        ]);
+        await ruleEditorModel({
+            initialRuleNodes: [
+                // Each node can only have one output edge, so we need a lot of dummy nodes
+                ...dummyNodes,
+                node({ nodeId: "nodeA" }),
+                node({ nodeId: "nodeA2", portSpecification: { type: "count", minInputPorts: 0, maxInputPorts: 0 } }),
+                node({ nodeId: "nodeB" }),
+                node({ nodeId: "nodeC", inputs: ["inputNode1", "inputNode2"] }),
+                node({
+                    nodeId: "nodeD",
+                    inputs: ["inputNode3", "inputNode4"],
+                    portSpecification: { type: "count", minInputPorts: 2, maxInputPorts: 3 },
+                }),
+                node({ nodeId: "nodeE", inputs: ["inputNode5", "inputNode6"] }),
+                node({ nodeId: "nodeF", inputs: ["inputNode7", "inputNode8"] }),
+            ],
+        });
         const checkNrOfInputs = (inputs: number[]) => {
             expect(currentReactFlowNodes().map((n) => modelUtils.inputHandles(n).length)).toStrictEqual(inputs);
         };
@@ -1102,15 +1857,17 @@ describe("Rule editor model", () => {
             { x: -100, y: 100 },
             { x: 200, y: 100 },
         ];
-        await ruleEditorModel([
-            node({ nodeId: "nodeA", position: initialPositions[0] }),
-            node({ nodeId: "nodeB", position: initialPositions[1] }),
-            node({
-                nodeId: "nodeC",
-                position: initialPositions[2],
-                portSpecification: { minInputPorts: 2, maxInputPorts: 2 },
-            }),
-        ]);
+        await ruleEditorModel({
+            initialRuleNodes: [
+                node({ nodeId: "nodeA", position: initialPositions[0] }),
+                node({ nodeId: "nodeB", position: initialPositions[1] }),
+                node({
+                    nodeId: "nodeC",
+                    position: initialPositions[2],
+                    portSpecification: { type: "count", minInputPorts: 2, maxInputPorts: 2 },
+                }),
+            ],
+        });
         const checkBefore = () => {
             expect(currentOperatorNodes().map((n) => n.position)).toStrictEqual(initialPositions);
         };
@@ -1129,6 +1886,77 @@ describe("Rule editor model", () => {
         };
         await checkAfter();
         checkUndoAndRedo(checkBefore, checkAfter);
+    });
+
+    it("adds execution buttons for rule block nodes even without editable parameters", async () => {
+        await ruleEditorModel({
+            initialRuleNodes: [node({ nodeId: "ruleBlockNode", pluginId: "normalizeName", pluginType: "RuleBlock" })],
+            operatorSpec: new Map(),
+        });
+
+        expect(currentReactFlowNodes()[0].data.executionButtons).toBeDefined();
+    });
+
+    it("does not add execution buttons for non-rule-block nodes without editable parameters", async () => {
+        await ruleEditorModel({
+            initialRuleNodes: [
+                node({ nodeId: "transformNode", pluginId: "normalizeName", pluginType: "TransformOperator" }),
+            ],
+            operatorSpec: new Map(),
+        });
+
+        expect(currentReactFlowNodes()[0].data.executionButtons).toBeUndefined();
+    });
+
+    it("adds Markdown-based tooltips to named rule block input handles", async () => {
+        await ruleEditorModel({
+            initialRuleNodes: [
+                node({
+                    nodeId: "ruleBlockNode",
+                    pluginId: "normalizeName",
+                    pluginType: "RuleBlock",
+                    portSpecification: {
+                        type: "named",
+                        inputPorts: [
+                            {
+                                id: "first",
+                                label: "First input",
+                                description: "- line one\n- line two",
+                            },
+                        ],
+                    },
+                    parameters: {},
+                }),
+            ],
+            operatorList: [
+                {
+                    label: "normalizeName",
+                    parameterSpecification: {},
+                    pluginId: "normalizeName",
+                    pluginType: "RuleBlock",
+                    portSpecification: {
+                        type: "named",
+                        inputPorts: [
+                            {
+                                id: "first",
+                                label: "First input",
+                                description: "- line one\n- line two",
+                            },
+                        ],
+                    },
+                    tags: [],
+                    inputsCanBeSwitched: false,
+                },
+            ],
+            operatorSpec: new Map(),
+        });
+
+        const handle = nodeById("ruleBlockNode").data.handles?.[0];
+        expect(handle?.data?.extendedTooltip).toBeTruthy();
+        render(<>{handle?.data?.extendedTooltip}</>);
+        expect(screen.getByText("First input")).toBeInTheDocument();
+        expect(screen.getByText("line one")).toBeInTheDocument();
+        expect(screen.getByText("line two")).toBeInTheDocument();
     });
 });
 

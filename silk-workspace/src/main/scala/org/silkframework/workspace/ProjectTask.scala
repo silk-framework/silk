@@ -16,10 +16,13 @@ package org.silkframework.workspace
 
 import org.silkframework.config._
 import org.silkframework.runtime.activity.{HasValue, Status, UserContext, ValueHolder}
-import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TaskResolver}
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariables}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.activity.{CachedActivity, TaskActivity, TaskActivityFactory}
+import org.silkframework.workspace.changes.{Change, ReplaceTask, TaskChange, TaskChanges}
+import org.silkframework.workspace.exceptions.TaskNotFoundException
 
 import java.time.Instant
 import java.util.logging.{Level, Logger}
@@ -36,6 +39,7 @@ import scala.util.control.NonFatal
 class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
                                                    private val initialData: TaskType,
                                                    private val initialMetaData: MetaData,
+                                                   private val initialExecutionVariables: TemplateVariables = TemplateVariables.empty,
                                                    private val module: Module[TaskType]) extends Task[TaskType] {
 
   private val log = Logger.getLogger(getClass.getName)
@@ -45,15 +49,21 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
 
   @volatile private var _cachedPluginUsages: Option[Seq[PluginUsage]] = None
 
+  // Set once the module has removed this task. Guarded by this task's monitor.
+  private var removed = false
+
   // Should be used to observe the meta data
   val metaDataValueHolder: ValueHolder[MetaData] = new ValueHolder(Some(
     // Make sure that the modified timestamp is set
     initialMetaData.copy(modified = Some(initialMetaData.modified.getOrElse(Instant.now)))
   ))
 
+  // Should be used to access and update the execution variables of this task
+  val executionVariablesValueHolder: TaskExecutionVariablesManager = new TaskExecutionVariablesManager(initialExecutionVariables, Seq(GlobalTemplateVariables, module.project.templateVariables))
+
   lazy private val taskActivities: Seq[TaskActivity[TaskType, _ <: HasValue]] = {
     // Get all task activity factories for this task type
-    implicit val pluginContext: PluginContext = PluginContext(module.project.config.prefixes, module.project.resources)
+    implicit val pluginContext: PluginContext = PluginContext(module.project.config.prefixes, module.project.resources, taskResolver = TaskResolver.empty)
     val taskType = data.getClass
     val factories = PluginRegistry.availablePlugins[TaskActivityFactory[TaskType, _ <: HasValue]]
                                   .map(_.apply())
@@ -87,14 +97,21 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     */
   override def metaData: MetaData = metaDataValueHolder()
 
+  /**
+    * Retrieves the current execution variables of this task.
+    */
+  override def executionVariables: TemplateVariables = executionVariablesValueHolder.all
+
   override def taskType: Class[_] = implicitly[ClassTag[TaskType]].runtimeClass
 
   /**
     * Starts all autorun activities.
     */
   def startActivities()(implicit userContext: UserContext): Unit = {
+    // The Idle check avoids re-running activities that already ran. Since the activity could still be started
+    // concurrently after the check, startOrReRun() is used, which never fails on a running activity.
     for (activity <- taskActivities if shouldAutoRun(activity) && activity.status() == Status.Idle())
-      activity.control.start()
+      activity.control.startOrReRun()
   }
 
   /**
@@ -114,11 +131,53 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
             !classOf[CachedActivity[_]].isAssignableFrom(activity.factory.activityType))
   }
 
+  /** Called by the module once it has removed this task, so that a later update is refused instead of writing the task back. */
+  private[workspace] def markRemoved(): Unit = synchronized {
+    removed = true
+  }
+
   /**
-    * Updates the data of this task.
+    * Updates the data of this task. Recorded in the project's change journal as a whole-task replacement.
+    *
+    * @throws org.silkframework.workspace.exceptions.TaskNotFoundException If this task has been removed from its project.
     */
-  def update(newData: TaskType, newMetaData: Option[MetaData] = None)
+  def update(newData: TaskType, newMetaData: Option[MetaData] = None, newExecutionVariables: Option[TemplateVariables] = None)
             (implicit userContext: UserContext): Unit = synchronized {
+    updateAndRecord(newData, newMetaData, newExecutionVariables, changes = Seq.empty)
+  }
+
+  /**
+    * Applies a typed change to the data of this task and records it in the project's change journal.
+    *
+    * @throws org.silkframework.workspace.changes.ChangeConflictException If the task is not in the state the change expects.
+    * @throws org.silkframework.workspace.exceptions.TaskNotFoundException If this task has been removed from its project.
+    */
+  def applyChange(change: TaskChange[_ <: TaskSpec])(implicit userContext: UserContext): Unit = {
+    applyChanges(Seq(change))
+  }
+
+  /**
+    * Applies typed changes in order as one write: if any of them is rejected, none is applied.
+    * Each change is recorded in the project's change journal.
+    *
+    * @throws org.silkframework.workspace.changes.ChangeConflictException If the task is not in the state a change expects.
+    * @throws org.silkframework.workspace.exceptions.TaskNotFoundException If this task has been removed from its project.
+    */
+  def applyChanges(changes: Seq[TaskChange[_ <: TaskSpec]])(implicit userContext: UserContext): Unit = synchronized {
+    if(changes.nonEmpty) {
+      val newData = changes.foldLeft(data: TaskSpec)((current, change) => change.applyAny(current)).asInstanceOf[TaskType]
+      updateAndRecord(newData, None, None, changes)
+    }
+  }
+
+  /** Writes the task. Records `changes` in the journal, or a whole-task replacement if there are none. */
+  private def updateAndRecord(newData: TaskType, newMetaData: Option[MetaData], newExecutionVariables: Option[TemplateVariables],
+                              changes: Seq[Change])
+                             (implicit userContext: UserContext): Unit = {
+    if(removed) {
+      throw TaskNotFoundException(project.id, id, Module.taskTypeName(taskType))
+    }
+    val before = PlainTask.fromTask(this)
     // Validate
     module.validator.validate(project, PlainTask(id, newData, newMetaData.getOrElse(metaData)))
     // Adapt meta data before saving
@@ -130,19 +189,38 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       modified = Some(newMetaData.flatMap(_.modified).getOrElse(Instant.now)),
       lastModifiedByUser = newMetaData.flatMap(_.lastModifiedByUser).orElse(userContext.user.map(_.uri))
     )
-    // First persist task
-    persistTask(PlainTask.fromTask(ProjectTask.this).copy(data = newData, metaData = metaDataToPersist))
+    // Validate and resolve before persisting, so that a failure does not leave persisted and in-memory state inconsistent.
+    // Variable templates are resolved at save time; unresolvable templates keep the provided value.
+    val executionVariablesToPersist = newExecutionVariables match {
+      case Some(newVariables) =>
+        executionVariablesValueHolder.validateScope(newVariables)
+        newVariables.resolvedKeepingUnresolved(executionVariablesValueHolder.parentVariables.withoutSensitiveVariables())
+      case None =>
+        executionVariablesValueHolder.all
+    }
+    // Persisted and restarted as the loading user, who holds the provider rights; the journal records who asked.
+    val providerUser = project.readWriteUser
+    persistTask(PlainTask.fromTask(ProjectTask.this).copy(data = newData, metaData = metaDataToPersist, executionVariables = executionVariablesToPersist))(providerUser)
     // Invalidate plugin usage cache
     _cachedPluginUsages = None
     // Update (in-memory) data
     dataValueHolder.update(newData)
     metaDataValueHolder.update(metaDataToPersist)
+    executionVariablesValueHolder.put(executionVariablesToPersist)
     // Restart each activity, don't wait for completion.
     for (activity <- taskActivities if shouldAutoRun(activity)) {
-      activity.control.restart()
+      activity.control.restart()(providerUser)
     }
 
     log.info(s"Updated task '$id' of project ${project.id}." + userContext.logInfo)
+    if(changes.nonEmpty) {
+      changes.foreach(change => project.changeJournal.record(change))
+    } else {
+      val after = PlainTask.fromTask(this)
+      if(!TaskChanges.same(before, after)) {
+        project.changeJournal.record(ReplaceTask(before, after))
+      }
+    }
   }
 
   /**
@@ -151,6 +229,14 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   def updateMetaData(newMetaData: MetaData)
                     (implicit userContext: UserContext): Unit = {
     update(dataValueHolder(), Some(newMetaData))
+  }
+
+  /**
+    * Updates the execution variables of this task.
+    */
+  def updateExecutionVariables(newExecutionVariables: TemplateVariables)
+                              (implicit userContext: UserContext): Unit = {
+    update(dataValueHolder(), newExecutionVariables = Some(newExecutionVariables))
   }
 
   /**

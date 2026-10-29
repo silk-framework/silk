@@ -18,6 +18,7 @@ import {
     mockAxiosResponse,
     mockedAxiosError,
     mockedAxiosResponse,
+    pressKeyDown,
     RecursivePartial,
     renderWrapper,
 } from "../../TestHelper";
@@ -27,12 +28,57 @@ import {
     IOverviewArtefactItemList,
     IPluginDetails,
     IProjectTaskUpdatePayload,
+    TaskPreConfiguration,
 } from "../../../../src/app/store/ducks/common/typings";
 import { atomicParamDescription, mockAutoCompleteResponse, objectParamDescription } from "./CreateArtefactModalHelper";
 import { INPUT_TYPES } from "../../../../src/app/constants";
 import { TaskTypes } from "../../../../src/app/store/ducks/shared/typings";
 import { MemoryHistory } from "history/createMemoryHistory";
 import { bluePrintClassPrefix } from "../../../HierarchicalMapping/utils/TestHelpers";
+
+jest.mock("@eccenca/gui-elements", () => {
+    const React = jest.requireActual("react");
+    const actual = jest.requireActual("@eccenca/gui-elements");
+    const jestTestUtils = jest.requireActual("../../../../src/app/test/jestTestUtils").default;
+    const BaseCodeEditor = jestTestUtils.createCodeEditorMock(React);
+    function CodeEditor(props) {
+        return React.createElement(
+            "div",
+            { "data-test-id": props["data-test-id"] },
+            React.createElement(BaseCodeEditor, props),
+        );
+    }
+    CodeEditor.supportedModes = [];
+    return {
+        ...actual,
+        CodeEditor,
+    };
+});
+
+jest.mock("../../../../src/app/views/shared/FileUploader/FileSelectionMenu", () => {
+    const React = jest.requireActual("react");
+
+    function MockFileSelectionMenu(props) {
+        const { id, onChange, defaultValue } = props;
+        const triggerChange = () => {
+            if (onChange) {
+                onChange(defaultValue ?? "");
+            }
+        };
+        return React.createElement(
+            "div",
+            { id, "data-test-id": "file-selection-menu-mock" },
+            React.createElement("input", { type: "radio", name: `${id}-upload`, onChange: triggerChange }),
+            React.createElement("input", { type: "radio", name: `${id}-select`, onChange: triggerChange }),
+            React.createElement("input", { type: "radio", name: `${id}-create`, onChange: triggerChange }),
+        );
+    }
+
+    return {
+        __esModule: true,
+        default: MockFileSelectionMenu,
+    };
+});
 
 describe("Task creation widget", () => {
     beforeAll(() => {
@@ -55,6 +101,14 @@ describe("Task creation widget", () => {
     const createArtefactWrapper = (
         currentUrl: string = `${SERVE_PATH}`,
         existingTask?: RecursivePartial<IProjectTaskUpdatePayload>,
+        newTaskPreConfiguration?: TaskPreConfiguration,
+        availableDataTypes?: RecursivePartial<{
+            type: {
+                label: string;
+                field: string;
+                options: { id: string; label: string }[];
+            };
+        }>,
     ): IWrapper => {
         const history = createMemoryHistory<{}>();
         history.push(currentUrl);
@@ -68,20 +122,40 @@ describe("Task creation widget", () => {
                 artefactModal: {
                     isOpen: true,
                     updateExistingTask: existingTask,
+                    newTaskPreConfiguration,
                 },
+                availableDataTypes,
             },
         });
         return { element: wrapper.baseElement, history };
     };
 
     // Loads the selection list modal with mocked artefact list
-    const createMockedListWrapper = async (existingTask?: RecursivePartial<IProjectTaskUpdatePayload>) => {
-        const wrapper = await act(() => createArtefactWrapper(`${SERVE_PATH}/projects/${PROJECT_ID}`, existingTask));
+    const createMockedListWrapper = async (
+        existingTask?: RecursivePartial<IProjectTaskUpdatePayload>,
+        artefactListResponse: IOverviewArtefactItemList = mockArtefactListResponse,
+        newTaskPreConfiguration?: TaskPreConfiguration,
+        availableDataTypes?: RecursivePartial<{
+            type: {
+                label: string;
+                field: string;
+                options: { id: string; label: string }[];
+            };
+        }>,
+    ) => {
+        const wrapper = await act(() =>
+            createArtefactWrapper(
+                `${SERVE_PATH}/projects/${PROJECT_ID}`,
+                existingTask,
+                newTaskPreConfiguration,
+                availableDataTypes,
+            ),
+        );
         const url = apiUrl("core/taskPlugins?addMarkdownDocumentation=true");
-        mockAxios.mockResponseFor({ url }, mockedAxiosResponse({ data: mockArtefactListResponse }));
+        mockAxios.mockResponseFor({ url }, mockedAxiosResponse({ data: artefactListResponse }));
         if (!existingTask) {
             await waitFor(() => {
-                expect(selectionItems(wrapper.element)).toHaveLength(3);
+                expect(selectionItems(wrapper.element).length).toBeGreaterThan(0);
             });
         }
         return wrapper;
@@ -94,7 +168,10 @@ describe("Task creation widget", () => {
     };
 
     const selectionItems = (dialogWrapper: RenderResult | Element): Element[] => {
-        return findAllDOMElements(dialogWrapper, ".eccgui-overviewitem__list .eccgui-overviewitem__item");
+        return findAllDOMElements(
+            dialogWrapper,
+            `${byTestId("item-to-create-selection-list")} [data-test-id^="artefact-plugin-"]:not([data-test-id$="-documentation-btn"])`,
+        );
     };
 
     const pluginCreationDialogWrapper: (
@@ -138,6 +215,85 @@ describe("Task creation widget", () => {
         return wrapper;
     };
 
+    const respondWithPluginDetails = async (pluginId: string, pluginDetails: IPluginDetails) => {
+        await waitFor(() => {
+            mockAxiosResponse(apiUrl(`core/plugins/${pluginId}`), mockedAxiosResponse({ data: pluginDetails }));
+        });
+    };
+
+    const expectFormParameterLabels = async (wrapper: RenderResult | Element, ...expectedLabels: string[]) => {
+        await waitFor(() => {
+            const labels = findAllDOMElements(wrapper, ".eccgui-label .eccgui-label__text").map((e) => e.textContent);
+            expectedLabels.forEach((label) => expect(labels).toContain(label));
+        });
+    };
+
+    const respondWithProjectTags = async (
+        projectId: string,
+        filter: string,
+        tags: Array<{ uri: string; label: string }>,
+    ) => {
+        await waitFor(() => {
+            mockAxiosResponse(
+                apiUrl(`/workspace/projects/${projectId}/tags?filter=${filter}`),
+                mockedAxiosResponse({ data: { tags } }),
+            );
+        });
+    };
+
+    const expectTaskTags = async (wrapper: RenderResult | Element, ...expectedTags: string[]) => {
+        await waitFor(() => {
+            const tagSelection = findElement(wrapper, byTestId("task-tags-select"));
+            expectedTags.forEach((tag) => expect(tagSelection.textContent).toContain(tag));
+        });
+    };
+
+    const selectTaskTag = async (
+        wrapper: RenderResult | Element,
+        tag: {
+            uri: string;
+            label: string;
+        },
+    ) => {
+        const tagSelection = findElement(wrapper, byTestId("task-tags-select"));
+        const tagInput = findElement(tagSelection, "input") as HTMLInputElement;
+
+        clickRenderedElement(tagInput);
+        await pressKeyDown(tagInput, tag.label[0]);
+        changeInputValue(tagInput, tag.label);
+        await respondWithProjectTags(PROJECT_ID, tag.label, [tag]);
+
+        const tagOption = await waitFor(() => {
+            const listbox = findElement(document.body, '[role="listbox"]');
+            const option = findAllDOMElements(listbox, ".eccgui-menu__item").find((item) =>
+                item.textContent?.includes(tag.label),
+            );
+            expect(option).toBeTruthy();
+            return option as HTMLElement;
+        });
+        clickRenderedElement(tagOption);
+        await expectTaskTags(wrapper, tag.label);
+    };
+
+    const openSelectionDocumentation = async (
+        wrapper: RenderResult | Element,
+        pluginId: string,
+        pluginDetails: IPluginDetails,
+    ) => {
+        clickRenderedElement(findElement(wrapper, byTestId(`artefact-plugin-${pluginId}-documentation-btn`)));
+        await respondWithPluginDetails(pluginId, pluginDetails);
+        return await waitFor(() => findElement(wrapper, byTestId("artefact-documentation-modal")));
+    };
+
+    const openSelectedPluginDocumentation = async (wrapper: RenderResult | Element) => {
+        clickRenderedElement(findElement(wrapper, byTestId("show-enhanced-description-btn")));
+        return await waitFor(() => findElement(wrapper, byTestId("artefact-documentation-modal")));
+    };
+
+    const useRelatedPlugin = (documentationModal: RenderResult | Element, pluginId: string) => {
+        clickRenderedElement(findElement(documentationModal, byTestId(`related-plugin-${pluginId}-use-btn`)));
+    };
+
     const mockArtefactListResponse: IOverviewArtefactItemList = {
         pluginA: {
             title: "Plugin A",
@@ -161,6 +317,12 @@ describe("Task creation widget", () => {
         categories: ["category A", "category B"],
         required: ["intParam"],
         pluginId: "pluginA",
+        relatedPlugins: [
+            {
+                id: "pluginB",
+                description: "Use Plugin B when you need dataset-specific handling.",
+            },
+        ],
         properties: {
             intParam: atomicParamDescription({ title: "integer param", parameterType: INPUT_TYPES.INTEGER }),
             booleanParam: atomicParamDescription({ title: "boolean param", parameterType: INPUT_TYPES.BOOLEAN }),
@@ -209,6 +371,27 @@ describe("Task creation widget", () => {
         },
     };
 
+    const mockPluginBDescription: IPluginDetails = {
+        title: "Plugin B",
+        description: "This is plugin B",
+        type: "object",
+        taskType: TaskTypes.DATASET,
+        categories: ["category C"],
+        required: ["bParam"],
+        pluginId: "pluginB",
+        properties: {
+            bParam: atomicParamDescription({
+                title: "plugin B param",
+                parameterType: INPUT_TYPES.STRING,
+            }),
+        },
+    };
+
+    const mockTag = {
+        uri: "tag1",
+        label: "Tag1",
+    };
+
     it("should show only the project artefact to select when on the main search page", async () => {
         const { element } = await createMockedListWrapper();
         const dialog = await fetchDialog(element);
@@ -226,6 +409,40 @@ describe("Task creation widget", () => {
         // Double click list item to trigger create dialog
         clickRenderedElement(items[2], 2);
         checkRequestMade(apiUrl("/core/plugins/pluginB"));
+    });
+
+    it("should hide blacklisted item types from the left selection and artefact list", async () => {
+        const artefactListWithRuleBlock: IOverviewArtefactItemList = {
+            ...mockArtefactListResponse,
+            pluginRuleBlock: {
+                title: "Plugin Rule Block",
+                description: "This is a rule block plugin",
+                taskType: TaskTypes.RULE_BLOCK,
+                categories: [],
+            },
+        };
+        const availableDataTypes = {
+            type: {
+                label: "Item type",
+                field: "type",
+                options: [
+                    { id: "task", label: "Task" },
+                    { id: "dataset", label: "Dataset" },
+                    { id: "ruleBlock", label: "Rule block" },
+                ],
+            },
+        };
+
+        const { element } = await createMockedListWrapper(
+            undefined,
+            artefactListWithRuleBlock,
+            { itemTypeBlackList: ["ruleBlock"] },
+            availableDataTypes,
+        );
+
+        expect(element.querySelector(byTestId("item-type-ruleBlock"))).not.toBeInTheDocument();
+        const itemTexts = selectionItems(element).map((item) => item.textContent ?? "");
+        expect(itemTexts.some((text) => text.includes("Plugin Rule Block"))).toBe(false);
     });
 
     it("should open the plugin configuration dialog when double-clicking an item from the list", async () => {
@@ -356,28 +573,38 @@ describe("Task creation widget", () => {
     });
 
     it("should allow to reset optional auto-completed values", async () => {
-        const { element } = await pluginCreationDialogWrapper();
-        const autoCompleteInput = findElement(element, "#optionalAutoCompletionParamCustom");
-        expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(0);
-        // input must be focused in order to fire requests
-        act(() => {
-            autoCompleteInput.focus();
-        });
-        changeInputValue(autoCompleteInput as HTMLInputElement, "abc");
-        const beforePortals = window.document.querySelectorAll(`div.${bluePrintClassPrefix}-portal`).length;
-        await waitFor(() => {
-            expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(1);
-        });
-        await waitFor(() => {
-            // Request is delayed by 200ms
-            mockAutoCompleteResponse(
-                { textQuery: "abc" },
-                mockedAxiosResponse({ data: [{ value: "abc1" }, { value: "abc2" }] }),
-            );
-        });
-        await waitFor(() => {
+        jest.useFakeTimers();
+        try {
+            const { element } = await pluginCreationDialogWrapper();
+            const autoCompleteInput = findElement(element, "#optionalAutoCompletionParamCustom");
             expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(0);
-        });
+            // input must be focused in order to fire requests
+            act(() => {
+                autoCompleteInput.focus();
+            });
+            changeInputValue(autoCompleteInput as HTMLInputElement, "abc");
+            const beforePortals = window.document.querySelectorAll(`div.${bluePrintClassPrefix}-portal`).length;
+            await waitFor(() => {
+                expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(1);
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(200);
+            });
+            await waitFor(() => {
+                mockAutoCompleteResponse(
+                    { textQuery: "abc" },
+                    mockedAxiosResponse({ data: [{ value: "abc1" }, { value: "abc2" }] }),
+                );
+            });
+            await waitFor(() => {
+                expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(0);
+            });
+        } finally {
+            await act(async () => {
+                jest.runOnlyPendingTimers();
+            });
+            jest.useRealTimers();
+        }
     });
 
     const createDependentParameterWrapper = async () => {
@@ -581,21 +808,63 @@ describe("Task creation widget", () => {
 
     it("should check if the info Icon for task artefact exist", async () => {
         const { element } = await createMockedListWrapper();
-        const dialog = await fetchDialog(element);
-        const items = selectionItems(dialog);
-        const randomItem = items[0];
-        const iconButton = randomItem.querySelector(".eccgui-overviewitem__actions .eccgui-button--icon");
-        expect(iconButton !== null).toBeTruthy();
+        const iconButton = await waitFor(() =>
+            findElement(element, byTestId("artefact-plugin-pluginA-documentation-btn")),
+        );
+        expect(iconButton).toBeTruthy();
     });
 
     it("should show the info dialog when info icon is clicked", async () => {
         const { element } = await createMockedListWrapper();
-        const dialog = await fetchDialog(element);
-        const items = selectionItems(dialog);
-        const randomItem = items[0];
-        const iconButton = randomItem.querySelector(".eccgui-overviewitem__actions button.eccgui-button--icon");
-        iconButton && fireEvent.click(iconButton);
-        const infoDialog = element.querySelector(".eccgui-card");
-        expect(infoDialog !== null).toBeTruthy();
+        const infoDialog = await openSelectionDocumentation(element, "pluginA", mockPluginDescription);
+        expect(infoDialog).toBeTruthy();
+        expect(infoDialog.textContent).toContain("Related plugins");
+        expect(infoDialog.textContent).toContain("Plugin B");
+        expect(infoDialog.textContent).toContain("Use Plugin B when you need dataset-specific handling.");
+    });
+
+    it("should switch to a related plugin from the documentation modal", async () => {
+        const { element } = await createMockedListWrapper();
+        const documentationModal = await openSelectionDocumentation(element, "pluginA", mockPluginDescription);
+        useRelatedPlugin(documentationModal, "pluginB");
+        await respondWithPluginDetails("pluginB", mockPluginBDescription);
+        await expectFormParameterLabels(element, "plugin B param");
+    });
+
+    it("should not show the related plugin action in update mode", async () => {
+        const { element } = await pluginCreationDialogWrapper(true, existingTask);
+        const documentationModal = await openSelectedPluginDocumentation(element);
+        expect(findAllDOMElements(documentationModal, byTestId("related-plugin-pluginB-use-btn"))).toHaveLength(0);
+    });
+
+    it("should keep tags when switching to a related plugin", async () => {
+        const { element } = await pluginCreationDialogWrapper();
+        await selectTaskTag(element, mockTag);
+        const documentationModal = await openSelectedPluginDocumentation(element);
+        useRelatedPlugin(documentationModal, "pluginB");
+        await respondWithPluginDetails("pluginB", mockPluginBDescription);
+        await expectFormParameterLabels(element, "plugin B param");
+        await expectTaskTags(element, mockTag.label);
+    });
+
+    it("should ask for confirmation before switching to a related plugin when the form has changed", async () => {
+        const { element } = await pluginCreationDialogWrapper();
+        changeInputValue(findElement(element, "#intParam") as HTMLInputElement, "100");
+        const documentationModal = await openSelectedPluginDocumentation(element);
+        useRelatedPlugin(documentationModal, "pluginB");
+        const warningModal = await waitFor(() => findElement(element, byTestId("related-plugin-switch-warning-modal")));
+        expect(warningModal.textContent).toContain("There are unsaved changes in the form.");
+        expect(mockAxios.getReqByUrl(apiUrl("/core/plugins/pluginB"))).toBeFalsy();
+
+        clickRenderedElement(findElement(element, byTestId("related-plugin-switch-cancel-btn")));
+        await waitFor(() => {
+            expect(findAllDOMElements(element, byTestId("related-plugin-switch-warning-modal"))).toHaveLength(0);
+        });
+        expect((findElement(element, "#intParam") as HTMLInputElement).value).toBe("100");
+
+        useRelatedPlugin(documentationModal, "pluginB");
+        clickRenderedElement(findElement(element, byTestId("related-plugin-switch-confirm-btn")));
+        await respondWithPluginDetails("pluginB", mockPluginBDescription);
+        await expectFormParameterLabels(element, "plugin B param");
     });
 });

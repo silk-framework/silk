@@ -1,0 +1,25 @@
+{
+  "id" : "templatedDatasetTask",
+  "metadata" : {
+    "label" : "Task label"
+  },
+  "executionVariables" : [ {
+    "name" : "param1Value",
+    "value" : "valueFromVariable",
+    "isSensitive" : false,
+    "scope" : "execution"
+  } ],
+  "taskType" : "Dataset",
+  "data" : {
+    "taskType" : "Dataset",
+    "readOnly" : false,
+    "type" : "taskJsonRegressionDataset",
+    "parameters" : {
+      "param1" : "valueFromVariable",
+      "param2" : "6.0"
+    },
+    "templates" : {
+      "param1" : "{{execution.param1Value}}"
+    }
+  }
+}

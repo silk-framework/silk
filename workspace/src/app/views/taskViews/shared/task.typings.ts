@@ -2,7 +2,7 @@ import { StickyNote } from "@eccenca/gui-elements";
 
 /** Input source of a task. */
 export interface IInputSource {
-    /** ID of the input task. */
+    /** ID of the input task. Empty string if no input is configured. */
     inputId: string;
     /** Requested type of the input task. */
     typeUri?: string;

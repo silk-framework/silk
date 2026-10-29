@@ -16,6 +16,8 @@ import { ColorLike } from "color";
 import getColorConfiguration from "@eccenca/gui-elements/src/common/utils/getColorConfiguration";
 import { useTranslation } from "react-i18next";
 import { RuleEditorUiContext } from "../../contexts/RuleEditorUiContext";
+import { RuleEditorContext } from "../../contexts/RuleEditorContext";
+import { ruleOperatorToPluginDocumentation } from "../../RuleEditorDocumentation";
 
 interface RuleOperatorProps {
     // The rule operator that should be rendered
@@ -36,6 +38,7 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
     const [t] = useTranslation();
     const operatorDoc = ruleOperator.markdownDocumentation || ruleOperator.description || "";
     const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
+    const ruleEditorContext = React.useContext(RuleEditorContext);
 
     return (
         <OverviewItemDescription>
@@ -46,6 +49,21 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                     <OverflowText ellipsis={"reverse"}>
                         <Highlighter label={itemLabel} searchValue={textQuery} />
                     </OverflowText>
+                    {ruleOperator.statusIndicator && (
+                        <>
+                            <Spacing vertical={true} size={"tiny"} />
+                            <Icon
+                                name={ruleOperator.statusIndicator.icon}
+                                intent={ruleOperator.statusIndicator.intent}
+                                small
+                                tooltipText={ruleOperator.statusIndicator.tooltipText}
+                                tooltipProps={{
+                                    placement: "right",
+                                    rootBoundary: "viewport",
+                                }}
+                            />
+                        </>
+                    )}
                     {ruleOperator.description && !ruleOperator.markdownDocumentation && (
                         <>
                             <Spacing vertical={true} size={"tiny"} />
@@ -68,8 +86,11 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                                 name="item-question"
                                 onClick={() =>
                                     ruleEditorUiContext.setCurrentRuleNodeInfo({
-                                        description: operatorDoc,
-                                        label: ruleOperator.label,
+                                        ...ruleOperatorToPluginDocumentation(
+                                            ruleOperator,
+                                            ruleEditorContext.operatorList,
+                                        ),
+                                        markdownDocumentation: operatorDoc,
                                     })
                                 }
                                 small
@@ -113,11 +134,13 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
 
 const tagColors = getColorConfiguration("react-flow-linking");
 export const tagColor = (
-    tag: "Input" | "Transform" | "Comparison" | "Aggregation" | "Source path" | "Target path",
+    tag: "Input" | "Transform" | "Comparison" | "Aggregation" | "Source path" | "Target path" | "Rule block",
 ): ColorLike | undefined => {
     switch (tag) {
         case "Transform":
             return tagColors[`${eccgui}-transformation-node-bright`];
+        case "Rule block":
+            return tagColors[`${eccgui}-ruleblock-node-bright`];
         case "Input":
             return tagColors[`${eccgui}-value-edge`];
         case "Comparison":

@@ -33,6 +33,13 @@ class ReportsApiTest extends AnyFlatSpec with IntegrationTestTrait with ReportsA
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(30, Seconds)))
 
+  it should "not resolve the project of the report websocket while the controller method is evaluated" in {
+    // A request that is not a websocket upgrade must be answered as such. Resolving the project upfront made a missing
+    // project (and with access control enabled, any project) fail before the request was even looked at.
+    val url = controllers.workspaceApi.routes.ReportsApi.currentReportUpdatesWebsocket("missingProject", "missingTask").url
+    checkResponseExactStatusCode(client.url(s"$baseUrl$url").get(), UPGRADE_REQUIRED)
+  }
+
   it should "provide updates to the current report" in {
     PluginRegistry.registerPlugin(classOf[TestCustomTask])
     PluginRegistry.registerPlugin(classOf[TestCustomTaskExecutor])
@@ -126,7 +133,6 @@ class ReportsApiTest extends AnyFlatSpec with IntegrationTestTrait with ReportsA
         errorOutputs = Seq.empty,
         position = (0, 0),
         nodeId = taskId1,
-        outputPriority = None,
         configInputs = Seq.empty,
         dependencyInputs = Seq.empty
       )
@@ -139,7 +145,6 @@ class ReportsApiTest extends AnyFlatSpec with IntegrationTestTrait with ReportsA
         errorOutputs = Seq.empty,
         position = (0, 0),
         nodeId = taskId2,
-        outputPriority = None,
         configInputs = Seq.empty,
         dependencyInputs = Seq.empty
       )

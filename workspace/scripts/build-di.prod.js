@@ -21,15 +21,13 @@ const webpack = require("webpack");
 const bfj = require("bfj");
 const configFactory = require("../config/webpack.di.config");
 const paths = require("../config/paths");
-const checkRequiredFiles = require("react-dev-utils/checkRequiredFiles");
+const checkRequiredFiles = require("./checkRequiredFiles");
 const formatWebpackMessages = require("react-dev-utils/formatWebpackMessages");
-const printHostingInstructions = require("react-dev-utils/printHostingInstructions");
 const FileSizeReporter = require("react-dev-utils/FileSizeReporter");
 const printBuildError = require("react-dev-utils/printBuildError");
 
 const measureFileSizesBeforeBuild = FileSizeReporter.measureFileSizesBeforeBuild;
 const printFileSizesAfterBuild = FileSizeReporter.printFileSizesAfterBuild;
-const useYarn = fs.existsSync(paths.yarnLockFile);
 
 // These sizes are pretty large. We'll warn for bundles exceeding them.
 const WARN_AFTER_BUNDLE_GZIP_SIZE = 512 * 1024;
@@ -38,16 +36,20 @@ const WARN_AFTER_CHUNK_GZIP_SIZE = 1024 * 1024;
 const isInteractive = process.stdout.isTTY;
 
 // Warn and crash if required files are missing
-if (!checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
+if (!checkRequiredFiles([paths.appHtml, paths.appIndexJs, paths.stylesEntry])) {
     process.exit(1);
 }
 
 // Process CLI arguments
 const argv = process.argv.slice(2);
-const writeStatsJson = argv.indexOf("--stats") !== -1;
+const writeStatsJson = argv.includes("--stats") || argv.includes("--profile");
+const diagnostics = {
+    analyze: argv.includes("--analyze"),
+    profile: argv.includes("--profile"),
+};
 
 // Generate configuration
-const config = configFactory("production");
+const config = configFactory("production", false, diagnostics);
 
 function logSpentTime() {
     const timers = [];
@@ -107,7 +109,7 @@ checkBrowsers(paths.appPath, isInteractive)
                 previousFileSizes,
                 paths.appDIBuild,
                 WARN_AFTER_BUNDLE_GZIP_SIZE,
-                WARN_AFTER_CHUNK_GZIP_SIZE
+                WARN_AFTER_CHUNK_GZIP_SIZE,
             );
             console.log();
 
@@ -116,80 +118,43 @@ checkBrowsers(paths.appPath, isInteractive)
         (err) => {
             console.log(chalk.red("Failed to compile.\n"));
             printBuildError(err);
-            process.exit(1);
-        }
+            process.exitCode = 1;
+        },
     )
     .catch((err) => {
         if (err && err.message) {
             console.log(err.message);
         }
-        process.exit(1);
+        process.exitCode = 1;
     })
     .finally(() => {
         stopLog("Production built ready:");
     });
 
 // Create the production build and print the deployment instructions.
-function build(previousFileSizes) {
-    const adaptedConfig = utils.adaptWebpackConfig(config);
-    const compiler = webpack(adaptedConfig);
+async function build(previousFileSizes) {
+    const compiler = webpack(config);
+    const stats = await utils.runCompiler(compiler);
+    const messages = formatWebpackMessages(stats.toJson({ all: false, warnings: true, errors: true }));
 
-    return new Promise((resolve, reject) => {
-        compiler.run((err, stats) => {
-            let messages;
-            if (err) {
-                if (!err.message) {
-                    return reject(err);
-                }
-                messages = formatWebpackMessages({
-                    errors: [err.message],
-                    warnings: [],
-                });
-            } else {
-                messages = formatWebpackMessages(stats.toJson({ all: false, warnings: true, errors: true }));
-            }
-            if (messages.errors.length) {
-                // Only keep the first error. Others are often indicative
-                // of the same problem, but confuse the reader with noise.
-                // if (messages.errors.length > 1) {
-                //     messages.errors.length = 1;
-                // }
-                return reject(new Error(messages.errors.join("\n\n")));
-            }
-            if (
-                process.env.CI &&
-                (typeof process.env.CI !== "string" || process.env.CI.toLowerCase() !== "false") &&
-                messages.warnings.length
-            ) {
-                // Disabled: Do not fail build because of warnings, e.g. linter warnings
-                // console.log(
-                //     chalk.yellow(
-                //         "\nTreating warnings as errors because process.env.CI = true.\n" +
-                //             "Most CI servers set it automatically.\n"
-                //     )
-                // );
-                // return reject(new Error(messages.warnings.join("\n\n")));
-            }
+    if (messages.errors.length) {
+        throw new Error(messages.errors.join("\n\n"));
+    }
 
-            const resolveArgs = {
-                stats,
-                previousFileSizes,
-                warnings: messages.warnings,
-            };
-            if (writeStatsJson) {
-                startLog("Generated bundle-stat.json");
-                return bfj
-                    .write(paths.appDIBuild + "/bundle-stats.json", stats.toJson())
-                    .then(() => resolve(resolveArgs))
-                    .catch((error) => reject(new Error(error)))
-                    .finally(() => {
-                        stopLog("Generated bundle-stat.json:");
-                    });
-            }
+    if (writeStatsJson) {
+        startLog("Generated bundle-stats.json:");
+        try {
+            await bfj.write(path.join(paths.appDIBuild, "bundle-stats.json"), stats.toJson());
+        } finally {
+            stopLog("Generated bundle-stats.json:");
+        }
+    }
 
-            return resolve(resolveArgs);
-        });
-    });
+    return {
+        stats,
+        previousFileSizes,
+        warnings: messages.warnings,
+    };
 }
 
 function copyPublicFolder() {

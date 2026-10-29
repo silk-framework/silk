@@ -14,11 +14,13 @@
 
 package org.silkframework.rule.plugins.distance.numeric
 
+import org.silkframework.rule.annotations.{DistanceMeasureExample, DistanceMeasureExamples}
 import org.silkframework.rule.similarity.SingleValueDistanceMeasure
 import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
 
-import javax.xml.datatype.{DatatypeConstants, DatatypeFactory, XMLGregorianCalendar}
+import javax.xml.datatype.{DatatypeConstants, DatatypeFactory}
 import scala.math._
+import DateTimeMetric._
 
 @Plugin(
   id = DateTimeMetric.pluginId,
@@ -32,54 +34,56 @@ import scala.math._
     )
   )
 )
+@DistanceMeasureExamples(Array(
+  new DistanceMeasureExample(
+    description = "Returns 0 for equal date times.",
+    input1 = Array("2010-09-24T05:00:00"),
+    input2 = Array("2010-09-24T05:00:00"),
+    output = 0.0
+  ),
+  new DistanceMeasureExample(
+    description = "Returns the distance in seconds.",
+    input1 = Array("2001-10-26T21:32:10"),
+    input2 = Array("2001-10-26T21:32:40"),
+    output = 30.0
+  ),
+  new DistanceMeasureExample(
+    description = "Date times crossing a month boundary are one day (86400 seconds) apart.",
+    input1 = Array("2020-01-31T00:00:00"),
+    input2 = Array("2020-02-01T00:00:00"),
+    output = 86400.0
+  ),
+  new DistanceMeasureExample(
+    description = "Explicit timezone offsets are taken into account.",
+    input1 = Array("2020-01-01T00:00:00Z"),
+    input2 = Array("2020-01-01T02:00:00+02:00"),
+    output = 0.0
+  ),
+  new DistanceMeasureExample(
+    description = "Invalid date times do not match.",
+    input1 = Array("2020-01-01T00:00:00"),
+    input2 = Array("not a date"),
+    output = Double.PositiveInfinity
+  )
+))
 case class DateTimeMetric() extends SingleValueDistanceMeasure {
 
-  import DateTimeMetric._
-
-  override def evaluate(str1: String, str2: String, threshold: Double) = {
+  override def evaluate(str1: String, str2: String, threshold: Double): Double = {
     try {
-      val date1 = dataTypeFactory.newXMLGregorianCalendar(str1)
-      val date2 = dataTypeFactory.newXMLGregorianCalendar(str2)
-
-      abs(totalSeconds(date1) - totalSeconds(date2)).toDouble
+      abs(epochSeconds(str1) - epochSeconds(str2)).toDouble
     }
     catch {
       case ex: IllegalArgumentException => Double.PositiveInfinity
     }
   }
 
-  private def totalSeconds(date: XMLGregorianCalendar) = {
-    val seconds = date.getSecond match {
-      case DatatypeConstants.FIELD_UNDEFINED => 0
-      case s => s
+  private def epochSeconds(str: String): Long = {
+    val date = dataTypeFactory.newXMLGregorianCalendar(str)
+    // Pin timezone-less values to UTC so distances do not depend on the server timezone.
+    if(date.getTimezone == DatatypeConstants.FIELD_UNDEFINED) {
+      date.setTimezone(0)
     }
-
-    val minuteSeconds = date.getMinute match {
-      case DatatypeConstants.FIELD_UNDEFINED => 0
-      case m => m * 60
-    }
-
-    val hourSeconds = date.getHour match {
-      case DatatypeConstants.FIELD_UNDEFINED => 0
-      case h => h * 60 * 60
-    }
-
-    val daySeconds = date.getDay match {
-      case DatatypeConstants.FIELD_UNDEFINED => 0
-      case d => d * 24 * 60 * 60
-    }
-
-    val monthSeconds = date.getMonth match {
-      case DatatypeConstants.FIELD_UNDEFINED => 0
-      case m => m * 30 * 24 * 60 * 60
-    }
-
-    val yearSeconds = date.getYear match {
-      case DatatypeConstants.FIELD_UNDEFINED => 0
-      case y => y * 365 * 24 * 60 * 60
-    }
-
-    seconds + minuteSeconds + hourSeconds + daySeconds + monthSeconds + yearSeconds
+    date.toGregorianCalendar.getTimeInMillis / 1000
   }
 }
 

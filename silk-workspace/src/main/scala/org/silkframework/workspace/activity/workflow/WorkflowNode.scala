@@ -5,7 +5,7 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow.taskIds
 import org.silkframework.workspace.activity.workflow.WorkflowNode.{convertOptionToString, convertStringToOption}
 
-import scala.xml.{Node, Text}
+import scala.xml.Node
 
 /**
   * A workflow step.
@@ -40,12 +40,6 @@ sealed trait WorkflowNode {
     */
   def nodeId: NodeReference
 
-  /**
-    * Workflow nodes with a smaller priority are executed first. A node with a defined priority is executed before a node without priority.
-    * This only applies for output nodes, i.e. nodes that do not have any outgoing connections. For other nodes this has no effect.
-    */
-  def outputPriority: Option[Double]
-
   /** Allows to re-configure the config parameters of this workflow node with values output from other workflow nodes.
     * This is used to re-configure workflow tasks at workflow runtime. */
   def configInputs: Seq[NodeReference]
@@ -54,13 +48,12 @@ sealed trait WorkflowNode {
                inputs: Seq[Option[NodeReference]] = inputs,
                outputs: Seq[NodeReference] = outputs,
                position: (Int, Int) = position,
-               nodeId: NodeReference = nodeId,
-               outputPriority: Option[Double] = outputPriority): WorkflowNode = {
+               nodeId: NodeReference = nodeId): WorkflowNode = {
     this match {
       case wo: WorkflowOperator =>
-        wo.copy(task = task, inputs = inputs, outputs = outputs, position = position, nodeId = nodeId, outputPriority = outputPriority)
+        wo.copy(task = task, inputs = inputs, outputs = outputs, position = position, nodeId = nodeId)
       case wd: WorkflowDataset =>
-        wd.copy(task = task, inputs = inputs, outputs = outputs, position = position, nodeId = nodeId, outputPriority = outputPriority)
+        wd.copy(task = task, inputs = inputs, outputs = outputs, position = position, nodeId = nodeId)
     }
   }
 
@@ -78,15 +71,6 @@ object WorkflowNode {
   def convertStringToOption(input: String): Option[String] = if(input != "") Some(input) else None
   def convertOptionToString(input: Option[String]): String = input.getOrElse("")
 
-  def parseOutputPriority(op: Node): Option[Double] = {
-    val node = op \ "@outputPriority"
-    if (node.isEmpty) {
-      None
-    } else {
-      Some(node.text.toDouble)
-    }
-  }
-
   def parseNodeId(op: Node, task: String): String = {
     val node = op \ "@id"
     if (node.isEmpty) {
@@ -103,7 +87,6 @@ case class WorkflowOperator(inputs: Seq[Option[WorkflowNode#NodeReference]],
                             errorOutputs: Seq[String],
                             position: (Int, Int),
                             nodeId: WorkflowNode#NodeReference,
-                            outputPriority: Option[Double],
                             configInputs: Seq[WorkflowNode#NodeReference],
                             dependencyInputs: Seq[WorkflowNode#NodeReference]) extends WorkflowNode
 
@@ -124,7 +107,6 @@ object WorkflowOperator {
         errorOutputs = if (errorOutputStr.trim.isEmpty) Seq() else errorOutputStr.split(',').toSeq,
         position = (Math.round((op \ "@posX").text.toDouble).toInt, Math.round((op \ "@posY").text.toDouble).toInt),
         nodeId = WorkflowNode.parseNodeId(op, task),
-        outputPriority = WorkflowNode.parseOutputPriority(op),
         configInputs = if (configInputStr.isEmpty) Seq.empty else configInputStr.split(',').toSeq,
         dependencyInputs = if (dependencyInputStr.isEmpty) Seq.empty else dependencyInputStr.split(',').toSeq
       )
@@ -139,7 +121,6 @@ object WorkflowOperator {
         outputs={op.outputs.mkString(",")}
         errorOutputs={op.errorOutputs.mkString(",")}
         id={op.nodeId}
-        outputPriority={op.outputPriority map (priority => Text(priority.toString))}
         configInputs={op.configInputs.mkString(",")}
         dependencyInputs={op.dependencyInputs.mkString(",")}/>
     }
@@ -151,7 +132,6 @@ case class WorkflowDataset(inputs: Seq[Option[WorkflowNode#NodeReference]],
                            outputs: Seq[WorkflowNode#NodeReference],
                            position: (Int, Int),
                            nodeId: WorkflowNode#NodeReference,
-                           outputPriority: Option[Double],
                            configInputs: Seq[WorkflowNode#NodeReference],
                            dependencyInputs: Seq[WorkflowNode#NodeReference]) extends WorkflowNode
 
@@ -169,7 +149,6 @@ object WorkflowDataset {
         outputs = outputs,
         position = (Math.round((ds \ "@posX").text.toDouble).toInt, Math.round((ds \ "@posY").text.toDouble).toInt),
         nodeId = WorkflowNode.parseNodeId(ds, task),
-        outputPriority = WorkflowNode.parseOutputPriority(ds),
         configInputs = if (configInputStr.isEmpty) Seq.empty else configInputStr.split(',').toSeq,
         dependencyInputs = if (dependencyInputStr.isEmpty) Seq.empty else dependencyInputStr.split(',').toSeq
       )
@@ -183,7 +162,6 @@ object WorkflowDataset {
         inputs={ds.inputs.map(convertOptionToString).mkString(",")}
         outputs={ds.outputs.mkString(",")}
         id={ds.nodeId}
-        outputPriority={ds.outputPriority map (priority => Text(priority.toString))}
         configInputs={ds.configInputs.mkString(",")}
         dependencyInputs={ds.dependencyInputs.mkString(",")}/>
     }

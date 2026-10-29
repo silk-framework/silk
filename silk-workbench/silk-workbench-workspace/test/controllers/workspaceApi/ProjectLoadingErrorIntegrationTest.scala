@@ -1,6 +1,7 @@
 package controllers.workspaceApi
 
 import controllers.errorReporting.ErrorReport.ErrorReportItem
+import controllers.workspaceApi.WorkspaceStatusApi.WorkspaceStatus
 import helper.IntegrationTestTrait
 
 import org.silkframework.config.MetaData
@@ -76,6 +77,24 @@ class ProjectLoadingErrorIntegrationTest extends AnyFlatSpec with SingleProjectW
     errorReport.flatMap(_.taskId) mustBe Seq(failingDataset, failingCustomTask)
     val datasetError = errorReport.head
     checkFailingDatasetReport(datasetError)
+  }
+
+  it should "report failed tasks of all projects grouped by project in the workspace status" in {
+    updateProjectMetaData()
+    val statusUrl = controllers.workspaceApi.routes.WorkspaceStatusApi.status().url
+    val statusJson = checkResponse(client.url(s"$baseUrl$statusUrl").withHttpHeaders(ACCEPT -> APPLICATION_JSON).get()).json
+    val status = Json.fromJson[WorkspaceStatus](statusJson).get
+    // Summary counts: exactly one project is failing with both of its tasks failing.
+    status.failedProjectCount mustBe 1
+    status.failedTaskCount mustBe 2
+    status.projectCount must be >= 1
+    status.projects must have size 1
+    val failingProject = status.projects.head
+    failingProject.projectId mustBe projectId
+    failingProject.projectLabel mustBe Some(projectLabel)
+    failingProject.failedTaskCount mustBe 2
+    failingProject.failedTasks.flatMap(_.taskId) mustBe Seq(failingDataset, failingCustomTask)
+    checkFailingDatasetReport(failingProject.failedTasks.head)
   }
 
   it should "consider changes in the workspace for the loading errors correctly" in {

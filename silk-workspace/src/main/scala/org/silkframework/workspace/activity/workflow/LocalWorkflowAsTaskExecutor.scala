@@ -30,7 +30,10 @@ class LocalWorkflowAsTaskExecutor extends Executor[Workflow, LocalExecution] {
       projectTask,
       clearDatasets = false,
       replaceDataSources = execution.replaceDataSources,
-      replaceSinks = execution.replaceSinks
+      replaceSinks = execution.replaceSinks,
+      parentExecution = Some(execution),
+      // Share the enclosing run's execution scope; the nested workflow's own defaults are ignored.
+      parentExecutionVariablesHolder = Some(pluginContext.templateVariables.holder)
     ).run(workflowContext)
 
     None

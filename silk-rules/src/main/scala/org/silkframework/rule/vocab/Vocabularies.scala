@@ -5,7 +5,6 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFo
 
 import scala.xml.Node
 import language.implicitConversions
-import scala.util.control.Breaks.{break, breakable}
 
 /**
   * Holds multiple vocabularies.
@@ -18,28 +17,21 @@ case class Vocabularies(vocabularies: Seq[Vocabulary]) {
     * Returns the first class with the given URI in any vocabulary.
     */
   def findClass(uri: String): Option[VocabularyClass] = {
-    vocabularies.flatMap(_.getClass(uri)).headOption
+    vocabularies.iterator.collectFirst(Function.unlift(_.getClass(uri)))
   }
 
   /**
     * Returns the first property with the given URI in any vocabulary.
     */
   def findProperty(uri: String): Option[VocabularyProperty] = {
-    vocabularies.flatMap(_.getProperty(uri)).headOption
+    vocabularies.iterator.collectFirst(Function.unlift(_.getProperty(uri)))
   }
 
   /** Returns the vocabulary given the property URI. */
   def findVocabularyOfProperty(uri: String): Option[Vocabulary] = {
-    var vocabulary: Option[Vocabulary] = None
-    breakable {
-      for(vocab <- vocabularies) {
-        vocab.getProperty(uri) foreach { _ =>
-          vocabulary = Some(vocab)
-          break()
-        }
-      }
-    }
-    vocabulary
+    vocabularies.iterator.collectFirst(Function.unlift { vocabulary =>
+      vocabulary.getProperty(uri).map(_ => vocabulary)
+    })
   }
 
   def forwardPropertiesOfClass(classUri: String): Seq[VocabularyProperty] = {
@@ -81,5 +73,3 @@ object Vocabularies {
   }
 
 }
-
-

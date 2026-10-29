@@ -1,5 +1,5 @@
 package org.silkframework.workspace.resources
-
+
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers

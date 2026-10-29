@@ -17,7 +17,7 @@ export interface RuleNodeContentProps {
     nodeOperations: IOperatorNodeOperations;
     nodeParameters: RuleOperatorNodeParameters;
     /** Force an update of the content from the outside. */
-    updateSwitch?: boolean;
+    updateSwitch?: number;
     /** If the rule node form edit modal should be shown. */
     showEditModal: boolean;
     /** Must be called when the edit modal gets closed. */
@@ -36,20 +36,21 @@ export const NodeContent = ({
     showEditModal,
     onCloseEditModal = () => {},
 }: RuleNodeContentProps) => {
-    const [rerender, setRerender] = React.useState(false);
+    const [resetRequestVersion, setResetRequestVersion] = React.useState(0);
+    const [renderedResetVersion, setRenderedResetVersion] = React.useState(0);
 
     /** Forced re-render logic. */
     React.useEffect(() => {
-        if (typeof updateSwitch === "boolean") {
-            setRerender(true);
+        if (typeof updateSwitch === "number") {
+            setResetRequestVersion((currentVersion) => currentVersion + 1);
         }
     }, [updateSwitch]);
 
     React.useEffect(() => {
-        if (rerender) {
-            setRerender(false);
+        if (renderedResetVersion !== resetRequestVersion) {
+            setRenderedResetVersion(resetRequestVersion);
         }
-    }, [rerender]);
+    }, [renderedResetVersion, resetRequestVersion]);
 
     const parameters: IRuleNodeParameter[] = Object.entries(nodeParameters)
         .filter(([paramId]) => operatorContext.operatorParameterSpecification.has(paramId))
@@ -94,7 +95,7 @@ export const NodeContent = ({
         [operatorContext.inputPathFunctions, nodeId],
     );
 
-    return rerender ? null : (
+    return resetRequestVersion !== renderedResetVersion ? null : (
         <>
             {parameters.length ? (
                 <RuleNodeParameterForm
@@ -120,7 +121,7 @@ export const NodeContent = ({
                     dependentValue={dependentValue}
                     parameterDefaultValue={parameterDefaultValue}
                     onClose={() => {
-                        setRerender(true);
+                        setResetRequestVersion((currentVersion) => currentVersion + 1);
                         onCloseEditModal();
                     }}
                     updateNodeParameters={operatorContext.updateNodeParameters}

@@ -21,6 +21,13 @@ class PasswordParameterTest extends AnyFlatSpec with Matchers {
     PasswordParameterType.fromString(passwordParameter.toString).decryptedString mustBe password
   }
 
+  it should "preserve non-ASCII passwords" in {
+    val password = "pässwörd-日本語-🔑"
+    val passwordParameter = PasswordParameterType.fromString(password)
+    passwordParameter.decryptedString mustBe password
+    PasswordParameterType.fromString(passwordParameter.toString).decryptedString mustBe password
+  }
+
   it should "not encrypt empty string and null as these represent no password" in {
     val nullPassword = PasswordParameterType.fromString(null)
     nullPassword.toString mustBe null

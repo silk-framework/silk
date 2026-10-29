@@ -14,12 +14,20 @@ case class Vocabulary(info: GenericInfo,
                       properties: Iterable[VocabularyProperty],
                       endpoint: Option[SparqlEndpoint with GraphStoreTrait] = None) {
 
+  private lazy val classesByUri: Map[String, VocabularyClass] = {
+    classes.iterator.map(clazz => clazz.info.uri -> clazz).toMap
+  }
+
+  private lazy val propertiesByUri: Map[String, VocabularyProperty] = {
+    properties.iterator.map(property => property.info.uri -> property).toMap
+  }
+
   def getClass(uri: String): Option[VocabularyClass] = {
-    classes.find(_.info.uri == uri)
+    classesByUri.get(uri)
   }
 
   def getProperty(uri: String): Option[VocabularyProperty] = {
-    properties.find(_.info.uri == uri)
+    propertiesByUri.get(uri)
   }
 }
 

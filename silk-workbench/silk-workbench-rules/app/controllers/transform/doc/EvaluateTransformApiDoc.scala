@@ -131,7 +131,7 @@ object EvaluateTransformApiDoc {
                 "propertyRules": [
                     {
                         "type": "complex",
-                        "id": "URI",
+                        "id": "objecturi",
                         "operator": {
                             "type": "transformInput",
                             "id": "buildUri",

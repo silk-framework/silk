@@ -3,6 +3,7 @@ package org.silkframework.plugins.dataset.rdf
 
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
@@ -24,8 +25,7 @@ class SparqlUpdateTaskExtensionIntegrationTest extends AnyFlatSpec with Matchers
     3. In-memory RDF output
      */
     val datasetTask = project.task[GenericDatasetSpec]("outputRdf")
-    val dataset = datasetTask.data
-    val paths = dataset.source.retrievePaths("")
+    val paths = ExecutorRegistry.access(datasetTask).source.retrievePaths("")
     paths.size mustBe 1
     paths.head.normalizedSerialization mustBe "<urn:prop:1>"
   }

@@ -7,12 +7,8 @@ module.exports = {
         url: "http://localhost/",
         globalsCleanup: "on",
     },
-    globals: {
-        __DEBUG__: false,
-    },
     roots: ["<rootDir>/src/", "<rootDir>/test/"],
     collectCoverageFrom: ["test/**/*.{js,jsx,ts,tsx}", "src/**/*.{js,jsx,ts,tsx}", "!src/**/*.d.ts"],
-    resolver: "jest-pnp-resolver",
     setupFiles: ["react-app-polyfill/jsdom"],
     setupFilesAfterEnv: ["<rootDir>/src/setupTests.ts"],
     testMatch: [
@@ -32,6 +28,8 @@ module.exports = {
         "^react-native$": "react-native-web",
         "^react-markdown$": "<rootDir>/../node_modules/react-markdown",
         "^@eccenca/gui-elements$": "<rootDir>/../node_modules/@eccenca/gui-elements",
+        "^@eccenca/gui-elements/config/sassOptions$":
+            "<rootDir>/../node_modules/@eccenca/gui-elements/scripts/sassConfig.js",
         "^@eccenca/gui-elements/(.*)$": "<rootDir>/../node_modules/@eccenca/gui-elements/$1",
         "^@reduxjs/toolkit$": "<rootDir>/../node_modules/@reduxjs/toolkit/dist/cjs/redux-toolkit.development.cjs",
         "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy",

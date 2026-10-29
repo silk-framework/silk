@@ -55,10 +55,13 @@ trait ActivityContext[T] {
   def blockUntil(condition: () => Boolean): Unit
 
   /**
-    * Possibly executes other activities that are blocked.
+    * Possibly executes other activities that are blocked, for a bounded amount of time.
     * Can be called to avoid deadlocks if child activities are run in the background.
+    *
+    * @return True, if the pool is quiescent, i.e., there are no other activities left to help with.
+    *         Always true if the current thread is not running in our own pool.
     */
-  def helpQuiesce(): Unit
+  def helpQuiesce(): Boolean
 
   /**
     * The user that started the activity.

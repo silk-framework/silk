@@ -3,7 +3,7 @@ import org.silkframework.runtime.activity.Status.Canceling
 
 import java.util.concurrent.ForkJoinPool.ManagedBlocker
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{ForkJoinPool, ForkJoinTask, ForkJoinWorkerThread}
+import java.util.concurrent.{ForkJoinPool, ForkJoinWorkerThread, TimeUnit}
 import java.util.logging.Logger
 import scala.reflect.ClassTag
 import scala.reflect.ClassTag._
@@ -77,42 +77,48 @@ class ActivityMonitor[T](name: String,
     * @param condition Evaluates the condition to wait for. Will be called frequently.
     */
   def blockUntil(condition: () => Boolean): Unit = {
-    val sleepTime = 500
     while(!condition() && !status().isInstanceOf[Canceling]) {
-      helpQuiesce()
+      if(helpQuiesce()) {
+        // The pool is quiescent, i.e., there are no other activities to help with, so we sleep before re-checking the condition.
+        ForkJoinPool.managedBlock(
+          new ManagedBlocker {
+            @volatile
+            private var releasable = false
 
-      ForkJoinPool.managedBlock(
-        new ManagedBlocker {
-          @volatile
-          private var releasable = false
+            override def block(): Boolean = {
+              Thread.sleep(ActivityMonitor.blockPollIntervalMs)
+              releasable = true
+              true
+            }
 
-          override def block(): Boolean = {
-            Thread.sleep(sleepTime)
-            releasable = true
-            true
+            override def isReleasable: Boolean = {
+              releasable
+            }
           }
-
-          override def isReleasable: Boolean = {
-            releasable
-          }
-        }
-      )
+        )
+      }
     }
   }
 
   /**
-    * Possibly executes other activities that are blocked.
+    * Possibly executes other activities that are blocked, for at most [[ActivityMonitor.blockPollIntervalMs]] milliseconds.
     * Can be called to avoid deadlocks if child activities are run in the background.
+    *
+    * @return True, if the pool is quiescent, i.e., there are no other activities left to help with.
+    *         Always true if the current thread is not running in our own pool.
     */
-  def helpQuiesce(): Unit = {
-    // helpQuiesce() might execute another activity in this thread
+  def helpQuiesce(): Boolean = {
+    // Helping might execute another activity in this thread
     interruptEnabled.synchronized {
       interruptEnabled.set(false)
     }
     try {
-      // Only execute helpQuiesce() in our own thread pool
+      // Only help executing other activities in our own thread pool
       if(runningInOwnPool()) {
-        ForkJoinTask.helpQuiesce()
+        Thread.currentThread().asInstanceOf[ForkJoinWorkerThread]
+          .getPool.awaitQuiescence(ActivityMonitor.blockPollIntervalMs, TimeUnit.MILLISECONDS)
+      } else {
+        true
       }
     } finally {
       interruptEnabled.synchronized {
@@ -182,4 +188,13 @@ class ActivityMonitor[T](name: String,
     * Refers to the empty user until the activity has been started the first time.
     */
   override def startedBy: UserContext = UserContext.Empty
+}
+
+object ActivityMonitor {
+
+  /**
+    * Interval (in milliseconds) at which blocking waits re-check their condition. Also used as the upper bound for a
+    * single helpQuiesce() assist, so that the waiting condition is re-evaluated even while the pool stays busy.
+    */
+  private val blockPollIntervalMs = 500
 }

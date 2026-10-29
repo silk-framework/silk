@@ -12,10 +12,9 @@ class TemplateEngineAutocompletionProvider extends PluginParameterAutoCompletion
                            (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
     val multiSearchWords = extractSearchTerms(searchQuery)
     TemplateEngines.availableEngines
-      .filter(_ != DisabledTemplateEngine.id) // Disabled template engine should not be suggested to the user
-      .filter(_ != UnresolvedTemplateEngine.id) // Unresolved template engine should not be suggested to the user
-      .filter(r => matchesSearchTerm(multiSearchWords, r.toLowerCase))
-      .map(r => AutoCompletionResult(r, None))
+      .filter(engine => !TemplateEngineAutocompletionProvider.hiddenEngines.contains(engine.id.toString))
+      .filter(engine => matchesSearchTerm(multiSearchWords, engine.id.toLowerCase))
+      .map(engine => AutoCompletionResult(engine.id, Some(engine.label)))
   }
 
   /** Returns the label if exists for the given auto-completion value. This is needed if a value should
@@ -30,4 +29,10 @@ class TemplateEngineAutocompletionProvider extends PluginParameterAutoCompletion
                            (implicit context: PluginContext): Option[String] = {
     PluginRegistry.pluginByIdOpt[TemplateEngine](value).map(_.label)
   }
+}
+
+object TemplateEngineAutocompletionProvider {
+
+  /** Engines that are not offered for selection in the UI (internal or test-oriented engines). */
+  private val hiddenEngines = Set(DisabledTemplateEngine.id, UnresolvedTemplateEngine.id, SimpleSubstitutionTemplateEngine.id)
 }

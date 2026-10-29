@@ -23,15 +23,16 @@ import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.rule.util.UriPatternParser.UriPatternParserException
 import org.silkframework.runtime.activity.{Activity, UserContext}
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
-import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationError, ValidationException}
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, RequestException, ValidationError, ValidationException}
 import org.silkframework.serialization.json.JsonParseException
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{Identifier, IdentifierGenerator, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
+import org.silkframework.workspace.changes.{AddMapping, Change, RemoveMapping, ReorderMappings, UpdateMapping}
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc._
@@ -118,7 +119,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                       createOnly: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = getProject(projectName)
     implicit val prefixes: Prefixes = project.config.prefixes
-    implicit val readContext: ReadContext = ReadContext.fromProject(project)
+    implicit val readContext: ReadContext = taskUpdateReadContext(project, taskName)
 
     request.body match {
       case AnyContentAsFormUrlEncoded(v) =>
@@ -147,7 +148,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
       case _ =>
         catchExceptions {
           deserializeCompileTime[TransformTask]() { task =>
-            project.updateTask(task.id, task.data, Some(task.metaData))
+            project.updateTask(task.id, task.data, Some(task.metaData), executionVariablesIfProvided(task))
             Ok
           }
         }
@@ -159,6 +160,10 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     responses = Array(
       new ApiResponse(
         responseCode = "200"
+      ),
+      new ApiResponse(
+        responseCode = "409",
+        description = "If other tasks reference the task and removeDependentTasks is false. The message names them and every task that removeDependentTasks=true would delete."
       )
     )
   )
@@ -180,8 +185,9 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                           taskName: String,
                           @Parameter(
                             name = "removeDependentTasks",
-                            description = "If true, transform and linking tasks that directly reference this task are removed as well.",
-                            required = true,
+                            description = "If true, all tasks that directly or indirectly reference this task are removed as well. " +
+                              "Otherwise the deletion is rejected while other tasks reference it.",
+                            required = false,
                             in = ParameterIn.QUERY,
                             schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
                           )
@@ -365,7 +371,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val resources: ResourceManager = project.resources
-    implicit val readContext: ReadContext = ReadContext(resources, prefixes, validationEnabled = true)
+    implicit val readContext: ReadContext = ReadContext(resources, prefixes, validationEnabled = true, taskResolver = TaskResolver.empty)
 
     catchExceptions {
       task.synchronized {
@@ -373,7 +379,8 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
           deserializeCompileTime[RootMappingRule]() { updatedRules =>
             //Update transformation task
             val updatedTask = task.data.copy(mappingRule = updatedRules)
-            project.updateTask(taskName, updatedTask)
+            // Not via the project, whose monitor must not be taken while holding the task's.
+            task.update(updatedTask)
             Ok
           }
         }
@@ -517,7 +524,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
           implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
           implicit val updatedRequest: Request[AnyContent] = updateJsonRequest(request, currentRule)
           deserializeCompileTime[TransformRule]() { updatedRule =>
-            updateRule(currentRule.update(updatedRule))
+            task.applyChange(UpdateMapping.of(task, Identifier(ruleId), updatedRule))
             serializeCompileTime[TransformRule](updatedRule, Some(project))
           }
         }
@@ -567,17 +574,13 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                    schema = new Schema(implementation = classOf[String])
                  )
                  rule: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+    val (_, task) = getProjectAndTask[TransformSpec](projectName, taskName)
 
-    try {
+    catchExceptions {
       task.synchronized {
-        val updatedTree = RuleTraverser(task.data.mappingRule).remove(rule)
-        task.update(task.data.copy(mappingRule = updatedTree.operator.asInstanceOf[RootMappingRule]))
+        task.applyChange(RemoveMapping.of(task, rule))
         Ok
       }
-    } catch {
-      case ex: NoSuchElementException =>
-        ErrorResult(NotFoundException(ex))
     }
   }
 
@@ -648,7 +651,8 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                  afterRuleId: Option[String] = None): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     task.synchronized {
-      implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task), validationEnabled = true)
+      implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task),
+        validationEnabled = true, taskResolver = TaskResolver.empty)
       processRule(task, ruleName) { parentRule =>
         handleValidationExceptions {
           deserializeCompileTime[TransformRule]() { newChildRule =>
@@ -676,19 +680,9 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                                      task: ProjectTask[TransformSpec],
                                      userContext: UserContext,
                                      project: Project): Result = {
-    if (task.data.nestedRuleAndSourcePath(newChildRule.id).isDefined) {
-      throw new ValidationException(s"Rule with ID ${newChildRule.id} already exists!")
-    }
-    val children = parentRule.operator.children
-    val newChildren = children.indexWhere(rule => afterRuleId.contains(rule.id.toString)) match {
-      case afterRuleIdx: Int if afterRuleIdx >= 0 =>
-        val (before, after) = children.splitAt(afterRuleIdx + 1)
-        (before :+ newChildRule) ++ after // insert after specified rule
-      case -1 => // append
-        children :+ newChildRule
-    }
-    val updatedRule = parentRule.operator.withChildren(newChildren)
-    updateRule(parentRule.update(updatedRule))
+    // Inserted after the given rule, or appended if that is not a child of the parent
+    val index = afterRuleId.map(after => parentRule.operator.children.indexWhere(_.id.toString == after)).filter(_ >= 0).map(_ + 1)
+    task.applyChange(AddMapping.of(task, parentRule.operator.id, newChildRule, index))
     serializeCompileTime(newChildRule, Some(project))
   }
 
@@ -827,9 +821,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                afterRuleId: Option[String] = None): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     val (_, fromTask) = getProjectAndTask[TransformSpec](sourceProject, sourceTask)
-    implicit val prefixes: Prefixes = project.config.prefixes
     task.synchronized {
-      implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task))
       processRule(fromTask, sourceRule) { ruleToCopy =>
         processRule(task, ruleName) { parentRule =>
           val newChildRule = convertRootMappingRule(assignNewIdsAndLabelToRule(task, ruleToCopy))
@@ -891,27 +883,16 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                      schema = new Schema(implementation = classOf[String])
                    )
                    ruleName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
-    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
-    implicit val prefixes: Prefixes = project.config.prefixes
+    val (_, task) = getProjectAndTask[TransformSpec](projectName, taskName)
 
     task.synchronized {
       processRule(task, ruleName) { parentRule =>
         request.body.asJson match {
           case Some(json) =>
-            val currentRules = parentRule.operator.asInstanceOf[TransformRule].rules
-            val currentOrder = currentRules.propertyRules.map(_.id.toString).toList
-            val newOrder = json.as[JsArray].value.map(_.as[JsString].value).toList
-            if (newOrder.toSet == currentOrder.toSet) {
-              val newPropertyRules =
-                for (id <- newOrder) yield {
-                  parentRule.operator.children.find(_.id == id).get
-                }
-              val newRules = currentRules.uriRule.toSeq ++ currentRules.typeRules ++ newPropertyRules
-              updateRule(parentRule.update(parentRule.operator.withChildren(newRules)))
-              Ok(JsArray(newPropertyRules.map(r => JsString(r.id))))
-            } else {
-              ErrorResult(BadUserInputException(s"Provided list $newOrder does not contain the same elements as current list $currentOrder."))
-            }
+            val newOrder = json.as[JsArray].value.map(_.as[JsString].value).toSeq
+            val change = ReorderMappings.of(task, parentRule.operator.id, newOrder)
+            task.applyChange(change)
+            Ok(JsArray(change.after.map(id => JsString(id.toString))))
           case None =>
             ErrorResult(UnsupportedMediaTypeException.supportedFormats("application/json."))
         }
@@ -947,6 +928,9 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
       case ex: JsonParseException =>
         log.log(Level.INFO, "Invalid transformation rule JSON", ex)
         ErrorResult(BadUserInputException(ex))
+      case ex: RequestException =>
+        log.log(Level.FINE, "Rejected mapping rule request", ex)
+        ErrorResult(ex)
       case ex: Exception =>
         log.log(Level.WARNING, "Failed process mapping rule", ex)
         ErrorResult.validation(INTERNAL_SERVER_ERROR, "Failed to process mapping rule", ValidationError("Error in back end: " + ex.getMessage) :: Nil)
@@ -966,14 +950,6 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
         request.map(_ => AnyContentAsJson(updatedJson))
       case None => request
     }
-  }
-
-  private def updateRule(ruleTraverser: RuleTraverser)
-                        (implicit task: ProjectTask[TransformSpec],
-                         userContext: UserContext): Unit = {
-    val updatedRoot = ruleTraverser.root.operator.asInstanceOf[RootMappingRule]
-    val updatedTask = task.data.copy(mappingRule = updatedRoot)
-    task.project.updateTask(task.id, updatedTask)
   }
 
   def reloadTransformCache(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
@@ -1054,7 +1030,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                                dataSource: DataSource,
                                errorEntitySinkOpt: Option[EntitySink])
                               (implicit userContext: UserContext): Unit = {
-    val inputTask = task.project.anyTask(task.selection.inputId)
+    val inputTask = task.selection.inputTaskId.map(id => task.project.anyTask(id))
     val transform = new ExecuteTransform(
       task = task,
       inputTask = _ => inputTask,

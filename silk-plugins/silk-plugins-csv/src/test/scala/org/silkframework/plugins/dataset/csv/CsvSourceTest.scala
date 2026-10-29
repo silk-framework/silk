@@ -3,11 +3,13 @@ package org.silkframework.plugins.dataset.csv
 
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{DataSource, DatasetSpec}
-import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.execution.ExecutorRegistry
+import org.silkframework.entity.paths.{PathNotFoundException, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{PluginContext, TestPluginContext}
 import org.silkframework.runtime.resource._
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
 import java.io.StringReader
@@ -23,6 +25,11 @@ class CsvSourceTest extends AnyFlatSpec with Matchers {
   implicit val userContext: UserContext = UserContext.Empty
   implicit val prefixes: Prefixes = Prefixes.empty
   implicit val pluginContext: PluginContext = TestPluginContext(prefixes, resources)
+
+  private def datasetSource(dataset: CsvDataset): DataSource =
+    ExecutorRegistry.access(dataset).source
+  private def datasetSource(datasetSpec: DatasetSpec[CsvDataset]): DataSource =
+    ExecutorRegistry.access(datasetSpec).source
 
   val settings =
     CsvSettings(
@@ -82,6 +89,29 @@ class CsvSourceTest extends AnyFlatSpec with Matchers {
     persons(2).values should equal(IndexedSeq(Seq("John Doe"), Seq("55")))
   }
 
+  "For persons.csv, CsvParser" should "report a path that names no column, instead of failing internally" in {
+    // A path may start with a filter, which a flat source cannot resolve to a column.
+    val entityDesc = EntitySchema(typeUri = Uri(""),
+      typedPaths = IndexedSeq(UntypedPath.parse("""[Name = "Max Mustermann"]/Age""").asStringTypedPath))
+    val error = intercept[PathNotFoundException](source.retrieveEntities(entityDesc).entities.toIndexedSeq)
+    error.getMessage should include ("Available paths: ID, Name, Age")
+  }
+
+  "For ragged.csv, CsvParser" should "report a line with too few elements by its values" in {
+    val entityDesc = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(UntypedPath("ID").asStringTypedPath))
+    val raggedSource = new CsvSource(resources.get("ragged.csv"), settings)
+    val error = intercept[ValidationException](raggedSource.retrieve(entityDesc).entities.toIndexedSeq)
+    error.getMessage should include ("'2,20' in resource 'ragged.csv' with 2 elements. Expected number of elements 3.")
+    error.getMessage should include ("ignoreBadLines")
+  }
+
+  it should "skip such a line if ignoreBadLines is set" in {
+    val entityDesc = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(UntypedPath("ID").asStringTypedPath))
+    val tolerantSource = new CsvSource(resources.get("ragged.csv"), settings, ignoreBadLines = true)
+    val ids = tolerantSource.retrieve(entityDesc).entities.map(_.values.head).toIndexedSeq
+    ids shouldBe IndexedSeq(Seq("1"), Seq("3"))
+  }
+
   "For spaced_persons.csv, CsvParser" should "trim the whitespaces if so configured" in {
     val entityDesc = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(UntypedPath("ID").asStringTypedPath, UntypedPath("Name").asStringTypedPath, UntypedPath("Age").asStringTypedPath))
     val persons = spacedSource.retrieve(entityDesc).entities.toIndexedSeq
@@ -103,10 +133,10 @@ class CsvSourceTest extends AnyFlatSpec with Matchers {
     val resource = manager.get("empty.csv")
     val csvDataset = CsvDataset(resource)
     val datasetSpec = DatasetSpec(csvDataset)
-    val emptyPaths = datasetSpec.source.retrievePaths("")
+    val emptyPaths = datasetSource(datasetSpec).retrievePaths("")
     emptyPaths shouldBe empty
     resource.writeString("id,name\n1,doe")
-    val nonEmptyPaths = datasetSpec.source.retrievePaths("")
+    val nonEmptyPaths = datasetSource(datasetSpec).retrievePaths("")
     nonEmptyPaths.size shouldBe 2
   }
 
@@ -157,7 +187,7 @@ class CsvSourceTest extends AnyFlatSpec with Matchers {
   }
 
   it should "interpret escaped separators" in {
-    val source = tabSeparated.source
+    val source = datasetSource(tabSeparated)
     val entities: Seq[Entity] = getEntities(source)
     entities.size shouldBe 2
     entities.map(_.values.flatten.head) shouldBe Seq("value1", "abc")
@@ -165,7 +195,7 @@ class CsvSourceTest extends AnyFlatSpec with Matchers {
   }
 
   it should "accept tab as array separator char" in {
-    for(source <- Seq(tabArraySeparated.source, tabArraySeparated.copy(arraySeparator = "\\t").source)) {
+    for(source <- Seq(datasetSource(tabArraySeparated), datasetSource(tabArraySeparated.copy(arraySeparator = "\\t")))) {
       val entities: Seq[Entity] = getEntities(source)
       entities.size shouldBe 2
       entities.head.values shouldBe IndexedSeq(Seq("val1a", "val1b"), Seq("val2a", "val2b"))
@@ -176,7 +206,7 @@ class CsvSourceTest extends AnyFlatSpec with Matchers {
   "CsvDataset" should "detect separator on multi line instances and read entities accordingly" in {
     val autoConfigured = datasetHard.autoConfigured
     autoConfigured.separator shouldBe ","
-    val source = autoConfigured.source
+    val source = datasetSource(autoConfigured)
     val entities: Seq[Entity] = getEntities(source)
     entities.size shouldBe 3
     val multilineEntity = entities.drop(1).head
@@ -200,9 +230,9 @@ class CsvSourceTest extends AnyFlatSpec with Matchers {
   it should "auto-configure random example correctly" in {
     val autoConfigured = nonStandard.autoConfigured
     autoConfigured.separator shouldBe ";"
-    autoConfigured.source.retrievePaths("").map(_.normalizedSerialization) shouldBe Seq("id", "label")
+    datasetSource(autoConfigured).retrievePaths("").map(_.normalizedSerialization) shouldBe Seq("id", "label")
     autoConfigured.linesToSkip shouldBe 3
-    autoConfigured.source.retrieve(EntitySchema("", IndexedSeq(UntypedPath.parse("id").asStringTypedPath)))
+    datasetSource(autoConfigured).retrieve(EntitySchema("", IndexedSeq(UntypedPath.parse("id").asStringTypedPath)))
       .headOption.toSeq
       .flatMap(_.values.flatten) shouldBe Seq("1")
   }
@@ -219,7 +249,7 @@ class CsvSourceTest extends AnyFlatSpec with Matchers {
   }
 
   it should "skip header detection when properties are provided" in {
-    val source = noHeaders.source
+    val source = datasetSource(noHeaders)
     val entities: Seq[Entity] = getEntities(source)
     entities.size shouldBe 4                        //in this case number of entities is the same as number of lines in csv
     val top = entities.head
@@ -228,7 +258,7 @@ class CsvSourceTest extends AnyFlatSpec with Matchers {
   }
 
   it should "encode manually provided properties, if necessary" in {
-    val source = noHeaders.copy(properties = "path with spaces,path+already%20encoded,path3").source
+    val source = datasetSource(noHeaders.copy(properties = "path with spaces,path+already%20encoded,path3"))
     val entities: Seq[Entity] = getEntities(source)
     val top = entities.head
     top.schema.propertyNames shouldBe IndexedSeq("path+with+spaces", "path+already%20encoded", "path3")

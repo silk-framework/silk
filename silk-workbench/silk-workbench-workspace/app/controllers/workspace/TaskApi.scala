@@ -19,7 +19,7 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.MetaDataSerializers._
-import org.silkframework.serialization.json.{JsonSerialization, JsonSerializers}
+import org.silkframework.serialization.json.{JsonSerialization, JsonSerializers, TaskDto}
 import org.silkframework.workbench.utils.ErrorResult.ErrorResultFormat
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
@@ -46,7 +46,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
         description = "The added task.",
         content = Array(new Content(
           mediaType = "application/json",
-          schema = new Schema(`type` = "object"),
+          schema = new Schema(implementation = classOf[TaskDto]),
           examples = Array(new ExampleObject(TaskApiDoc.taskExampleJson))
         ))
       ),
@@ -69,7 +69,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     content = Array(
       new Content(
         mediaType = "application/json",
-        schema = new Schema(`type` = "object"),
+        schema = new Schema(implementation = classOf[TaskDto]),
         examples = Array(new ExampleObject(TaskApiDoc.taskExampleJson))
       ))
   )
@@ -84,7 +84,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     val project = WorkspaceFactory().workspace.project(projectName)
     implicit val readContext: ReadContext = ReadContext.fromProject(project)
     SerializationUtils.deserializeCompileTime[Task[TaskSpec]]() { task =>
-      project.addAnyTask(task.id, task.data, task.metaData)
+      project.addAnyTask(task.id, task.data, task.metaData, task.executionVariables)
       accessMonitor.saveProjectTaskAccess(projectName, task.id)
       implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
       Created(JsonSerializers.GenericTaskJsonFormat.write(task)).
@@ -115,7 +115,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     content = Array(
       new Content(
         mediaType = "application/json",
-        schema = new Schema(`type` = "object"),
+        schema = new Schema(implementation = classOf[TaskDto]),
         examples = Array(new ExampleObject(TaskApiDoc.taskExampleJson))
       ))
   )
@@ -136,12 +136,12 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
               )
               taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    implicit val readContext: ReadContext = ReadContext.fromProject(project)
+    implicit val readContext: ReadContext = SerializationUtils.taskUpdateReadContext(project, taskName)
     SerializationUtils.deserializeCompileTime[Task[TaskSpec]]() { task =>
       if(task.id.toString != taskName) {
         throw new BadUserInputException(s"Inconsistent task identifiers: Got $taskName in URL, but ${task.id} in payload.")
       }
-      project.updateAnyTask(task.id, task.data, Some(task.metaData))
+      project.updateAnyTask(task.id, task.data, Some(task.metaData), SerializationUtils.executionVariablesIfProvided(task))
       accessMonitor.saveProjectTaskAccess(projectName, taskName)
       Ok
     }
@@ -165,12 +165,13 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
       )
     ))
   @RequestBody(
-    description = "The task description",
+    description = "The task properties to update. Uses the same JSON format as the task itself; all attributes are optional and " +
+      "only the sent JSON paths are updated.",
     required = true,
     content = Array(
       new Content(
         mediaType = "application/json",
-        schema = new Schema(`type` = "object"),
+        schema = new Schema(implementation = classOf[TaskDto]),
         examples = Array(new ExampleObject("{ \"metadata\": { \"description\": \"task description\" } }"))
       ))
   )
@@ -211,7 +212,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     if(updatedTask.id.toString != taskName) {
       throw new BadUserInputException(s"Inconsistent task identifiers: Got $taskName in URL, but ${updatedTask.id} in payload.")
     }
-    project.updateAnyTask(updatedTask.id, updatedTask.data, Some(updatedTask.metaData))
+    project.updateAnyTask(updatedTask.id, updatedTask.data, Some(updatedTask.metaData), Some(updatedTask.executionVariables))
 
     accessMonitor.saveProjectTaskAccess(projectName, taskName)
     Ok
@@ -223,9 +224,10 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     responses = Array(
       new ApiResponse(
         responseCode = "200",
-        description = "The task.",
+        description = "The task. With 'withLabels' set to true, parameter values are reified into objects with 'value' and optional 'label' properties (see the example).",
         content = Array(new Content(
           mediaType = "application/json",
+          schema = new Schema(implementation = classOf[TaskDto]),
           examples = Array(
             new ExampleObject(name = "Without labels", value = TaskApiDoc.taskExampleWithoutLabelsJson),
             new ExampleObject(name = "With labels", value = TaskApiDoc.taskMetadataExampleWithLabelsJson)
@@ -300,6 +302,10 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
         description = "If the task has been deleted or there is no task with that identifier."
       ),
       new ApiResponse(
+        responseCode = "409",
+        description = "If other tasks reference the task and removeDependentTasks is false. The message names them and every task that removeDependentTasks=true would delete."
+      ),
+      new ApiResponse(
         responseCode = "404",
         description = "If the project does not exist."
       )
@@ -323,10 +329,11 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
                 taskName: String,
                 @Parameter(
                   name = "removeDependentTasks",
-                  description = "If true, all tasks that directly or indirectly reference this task are removed as well.",
-                  required = true,
+                  description = "If true, all tasks that directly or indirectly reference this task are removed as well. " +
+                    "Otherwise the deletion is rejected while other tasks reference it.",
+                  required = false,
                   in = ParameterIn.QUERY,
-                  schema = new Schema(implementation = classOf[Boolean])
+                  schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
                 )
                 removeDependentTasks: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
@@ -379,7 +386,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     val task = project.anyTask(taskName)
 
     validateJson[MetaDataPlain] { metaData =>
-      task.updateMetaData(metaData.toMetaData)
+      project.updateTaskMetaData(task.id)(_ => metaData.toMetaData)
       Ok(taskMetaDataJson(task, None))
     }
   }
@@ -544,7 +551,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     // Clone task spec, since task specs may contain state, e.g. RDF file dataset
     implicit val context: PluginContext = PluginContext.fromProject(project)
     val clonedTaskSpec = Try(fromTask.data.withParameters(ParameterValues.empty)).getOrElse(fromTask.data)
-    project.addAnyTask(newTask, clonedTaskSpec, MetaData.empty.copy(tags = fromTask.metaData.tags))
+    project.addAnyTask(newTask, clonedTaskSpec, MetaData.empty.copy(tags = fromTask.metaData.tags), fromTask.executionVariables)
     Ok
   }
 

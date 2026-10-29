@@ -1,6 +1,7 @@
 package controllers.workflowApi.workflow
 
 import org.silkframework.config._
+import org.silkframework.entity.{CustomValueType, ValueType}
 import play.api.libs.json._
 
 /** The port configuration of all nodes in a workflow.
@@ -57,7 +58,7 @@ object WorkflowNodePortConfig {
     port match {
       case FixedSchemaPort(schema) =>
         val paths = schema.typedPaths
-          .map(p => PortSchemaProperty(p.normalizedSerialization))
+          .map(p => PortSchemaProperty(p.normalizedSerialization, dataTypeLabel(p.valueType)))
         val typeUri = schema.typeUri
         FixedSchemaPortDefinition(PortSchema(
           Some(typeUri),
@@ -67,6 +68,17 @@ object WorkflowNodePortConfig {
         FlexiblePortDefinition(explicitSchema)
       case UnknownSchemaPort =>
         UnknownTypePortDefinition
+    }
+  }
+
+  private def dataTypeLabel(valueType: ValueType): Option[String] = {
+    valueType match {
+      case ValueType.STRING | ValueType.UNTYPED =>
+        None
+      case CustomValueType(typeUri) =>
+        Some(s"custom: $typeUri")
+      case _ =>
+        Some(valueType.label)
     }
   }
 }
@@ -82,9 +94,11 @@ case class PortSchema(typeUri: Option[String],
 /**
   * A single property of a port schema.
   *
-  * @param value The value e.g. URI of the property.
+  * @param value         The value e.g. URI of the property.
+  * @param dataTypeLabel The optional human-readable datatype label if it is not the default string/untyped case.
   */
-case class PortSchemaProperty(value: String)
+case class PortSchemaProperty(value: String,
+                              dataTypeLabel: Option[String] = None)
 
 /**
   * The plugin specific port config.

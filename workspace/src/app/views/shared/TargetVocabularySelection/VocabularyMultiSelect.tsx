@@ -45,7 +45,8 @@ export default function VocabularyMultiSelect({
     allowCustomEntries,
 }: IProps) {
     const [preselectedVocabs, setPreselectedVocabs] = useState<IVocabularyInfo[]>([]);
-    const selectedVocabs = React.useRef<IVocabularyInfo[]>([]);
+    // Mirrors the current selection of the multi-select, in tag order
+    const [selectedVocabs, setSelectedVocabs] = useState<IVocabularyInfo[]>([]);
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
     const [warning, setWarning] = React.useState<React.JSX.Element | null>(null);
@@ -68,12 +69,14 @@ export default function VocabularyMultiSelect({
 
     useEffect(() => {
         if (preselection) {
-            setPreselectedVocabs(preselect());
+            const preselected = preselect();
+            setPreselectedVocabs(preselected);
+            setSelectedVocabs(preselected);
         }
     }, []);
 
     const vocabSelected = (vocab: IVocabularyInfo): boolean => {
-        return selectedVocabs.current.some((v) => v.uri === vocab.uri);
+        return selectedVocabs.some((v) => v.uri === vocab.uri);
     };
 
     const vocabInfoString = (vocabInfo: IVocabularyInfo): string => {
@@ -163,7 +166,7 @@ export default function VocabularyMultiSelect({
                 }}
                 selectedItems={preselectedVocabs}
                 onSelection={(selection) => {
-                    selectedVocabs.current = selection.selectedItems;
+                    setSelectedVocabs(selection.selectedItems);
                     const vocab = selection.newlySelected;
                     if (vocab && !availableVocabUris.has(vocab.uri)) {
                         setWarning(

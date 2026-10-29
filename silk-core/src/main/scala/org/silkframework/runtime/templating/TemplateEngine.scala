@@ -31,9 +31,25 @@ trait CompiledTemplate {
   def variables: Option[Seq[TemplateVariableName]] = None
 
   /**
+    * Returns all method usages on a given variable in the template.
+    * Each usage contains the method name and its string parameter value.
+    * Only methods with a single string constant parameter are returned.
+    * Returns an empty sequence by default if not supported by the template engine.
+    */
+  def methodUsages(variableName: String): Seq[TemplateMethodUsage] = Seq.empty
+
+  /**
    * Evaluates this template using a map of variable values.
    */
   def evaluate(values: Map[String, AnyRef], writer: Writer): Unit
+
+  /**
+    * Evaluates this template with explicitly provided values in addition to template variables.
+    * The explicit values take precedence over a variable with the same top-level name.
+    */
+  def evaluate(values: Map[String, AnyRef], variables: Seq[TemplateVariableValue], writer: Writer): Unit = {
+    evaluate(convertValues(variables) ++ values, writer)
+  }
 
   /**
     * Evaluates this template using provided values.
@@ -43,40 +59,22 @@ trait CompiledTemplate {
   def evaluate(values: Seq[TemplateVariableValue], writer: Writer, evaluationConfig: EvaluationConfig = EvaluationConfig()): Unit
 
   /**
-    * Evaluates this template using a provided entity.
-    *
-    * @throws TemplateEvaluationException If the evaluation failed.
-    */
-  def evaluate(entity: Entity, writer: Writer): Unit = {
-    evaluate(entityToMap(entity), writer)
-  }
-
-  /**
-   * Converts an entity to a sequence of template variables.
-   */
-  protected def entityToMap(entity: Entity): Seq[TemplateVariableValue] = {
-    for((path, value) <- entity.schema.typedPaths zip entity.values if value.nonEmpty) yield {
-       new TemplateVariableValue(path.normalizedSerialization, "", value)
-    }
-  }
-
-  /**
-   * Converts template values to a Java Map
+   * Converts template variable values to a nested Java-compatible map.
+   * Variables with an empty scope are placed at the top level.
+   * Variables with a scope are placed in nested maps corresponding to each scope element,
+   * e.g., scope "project.meta" produces Map("project" -> Map("meta" -> Map(name -> value))).
+   * On a top-level name collision, flat (empty-scope) values take precedence over a scope map of the
+   * same name, so that explicitly provided values (e.g. input entity attributes) are never silently
+   * shadowed by variable scopes.
    */
   protected def convertValues(value: Seq[TemplateVariableValue]): Map[String, AnyRef] = {
-    value.groupBy(_.scope).flatMap { case (scope, values) =>
-      if (scope.isEmpty) {
-        for (value <- values) yield {
-          (value.name, IterableTemplateValues.fromValues(value.values))
-        }
-      } else {
-        val nestedValues =
-          for (value <- values) yield {
-            (value.name, IterableTemplateValues.fromValues(value.values))
-          }
-        Seq((scope, nestedValues.toMap.asJava))
-      }
+    val (flatVars, scopedVars) = value.partition(_.scope.isEmpty)
+    val flatEntries = flatVars.map(v => v.name -> IterableTemplateValues.fromValues(v.values).asInstanceOf[AnyRef])
+    val scopedEntries = scopedVars.groupBy(_.scope.path.head).map { case (topScope, vars) =>
+      val shallowVars = vars.map(v => new TemplateVariableValue(v.name, VariableScope(v.scope.path.tail), v.values))
+      topScope -> convertValues(shallowVars).asJava.asInstanceOf[AnyRef]
     }
+    (scopedEntries ++ flatEntries).toMap
   }
 }
 
@@ -86,3 +84,11 @@ trait CompiledTemplate {
   *                               to the variable name itself.
   */
 case class EvaluationConfig(ignoreUnboundVariables: Boolean = false)
+
+/**
+  * Represents a method invocation on a template variable with a single string parameter.
+  *
+  * @param methodName     The name of the invoked method.
+  * @param parameterValue The string constant passed as parameter.
+  */
+case class TemplateMethodUsage(methodName: String, parameterValue: String)

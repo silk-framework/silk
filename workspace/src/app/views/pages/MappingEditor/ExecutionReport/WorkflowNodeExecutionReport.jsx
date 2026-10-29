@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { ContentGroup, Spacing } from "@eccenca/gui-elements";
 import silkStore from "../api/silkStore";
 import ExecutionReport from "./ExecutionReport";
 import WorkflowExecutionReport from "./WorkflowExecutionReport";
@@ -38,25 +39,49 @@ export default class WorkflowNodeExecutionReport extends React.Component {
     }
 
     render() {
-        return this.state.executionReports.map((report) => {
+        return this.state.executionReports.map((report, index) => {
+            const reportTitle = this.reportTitle(report);
+            const title =
+                this.state.executionReports.length > 1
+                    ? `Report ${index + 1} of ${this.state.executionReports.length} — ${reportTitle}`
+                    : reportTitle;
             if ("taskReports" in report) {
                 // This is a nested workflow execution report
                 return (
-                    <div style={{ position: "relative", height: "100%" }}>
-                        <WorkflowExecutionReport project={this.props.project} executionReport={report} />
-                    </div>
+                    <React.Fragment key={`${report.nodeId ?? this.props.nodeId}-${index}`}>
+                        <ContentGroup title={title} whitespaceSize="medium">
+                            <div style={{ position: "relative", height: "100%" }}>
+                                <WorkflowExecutionReport project={this.props.project} executionReport={report} />
+                            </div>
+                        </ContentGroup>
+                        {index < this.state.executionReports.length - 1 && <Spacing size="medium" />}
+                    </React.Fragment>
                 );
             } else {
                 return (
-                    <ExecutionReport
-                        project={this.props.project}
-                        nodeId={this.props.nodeId}
-                        executionReport={report}
-                        trackRuleInUrl={false}
-                    />
+                    <React.Fragment key={`${report.nodeId ?? this.props.nodeId}-${index}`}>
+                        <ContentGroup title={title} whitespaceSize="medium">
+                            <ExecutionReport
+                                project={this.props.project}
+                                nodeId={this.props.nodeId}
+                                executionReport={report}
+                                trackRuleInUrl={false}
+                            />
+                        </ContentGroup>
+                        {index < this.state.executionReports.length - 1 && <Spacing size="medium" />}
+                    </React.Fragment>
                 );
             }
         });
+    }
+
+    reportTitle(report) {
+        if (report.title) {
+            return report.title;
+        }
+
+        const operation = report.operation ? `${report.operation}: ` : "";
+        return `${report.label ?? "Execution"} · ${operation}${report.entityCount ?? 0} ${report.operationDesc ?? "entities processed"}`;
     }
 }
 

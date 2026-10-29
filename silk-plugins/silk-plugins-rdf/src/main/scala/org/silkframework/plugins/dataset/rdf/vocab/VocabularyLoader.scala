@@ -80,8 +80,14 @@ class VocabularyLoader(endpoint: SparqlEndpoint with GraphStoreTrait) {
   )
   private val baseInfoProperties: Seq[String] = (descriptionProperties ++ labelProperties ++ altLabelProperties).distinct
   private val subClassOfProperty: String = "http://www.w3.org/2000/01/rdf-schema#subClassOf"
-  private val domainProperty: String = "http://www.w3.org/2000/01/rdf-schema#domain"
-  private val rangeProperty: String = "http://www.w3.org/2000/01/rdf-schema#range"
+  private val domainProperties: Seq[String] = Seq(
+    "http://www.w3.org/2000/01/rdf-schema#domain",
+    "https://schema.org/domainIncludes"
+  )
+  private val rangeProperties: Seq[String] = Seq(
+    "http://www.w3.org/2000/01/rdf-schema#range",
+    "https://schema.org/rangeIncludes"
+  )
 
   val prefixes: String =
     """PREFIX owl: <http://www.w3.org/2002/07/owl#>
@@ -142,8 +148,8 @@ class VocabularyLoader(endpoint: SparqlEndpoint with GraphStoreTrait) {
     valuesByProperty.getOrElse(propertyUri, Seq.empty).map(_.value).distinct
   }
 
-  private def getFirstPropertyValue(valuesByProperty: Map[String, Seq[RdfNode]], propertyUri: String): Option[String] = {
-    valuesByProperty.get(propertyUri).flatMap(_.headOption).map(_.value)
+  private def getFirstPropertyValue(valuesByProperty: Map[String, Seq[RdfNode]], propertyUris: Seq[String]): Option[String] = {
+    propertyUris.iterator.flatMap(uri => valuesByProperty.get(uri).flatMap(_.headOption)).map(_.value).nextOption()
   }
 
   private def extractGenericInfo(uri: String,
@@ -269,8 +275,8 @@ class VocabularyLoader(endpoint: SparqlEndpoint with GraphStoreTrait) {
           .sortWith(_.preference > _.preference).headOption.getOrElse(BasePropertyType)
       VocabularyProperty(
         info = info,
-        domain = getFirstPropertyValue(valuesByProperty, domainProperty).map(getClass),
-        range = getFirstPropertyValue(valuesByProperty, rangeProperty).map(getClass),
+        domain = getFirstPropertyValue(valuesByProperty, domainProperties).map(getClass),
+        range = getFirstPropertyValue(valuesByProperty, rangeProperties).map(getClass),
         propertyType = propertyType
       )
     }
@@ -285,7 +291,7 @@ class VocabularyLoader(endpoint: SparqlEndpoint with GraphStoreTrait) {
        | WHERE {
        |   ?p a ?class .
        |   FILTER (?class IN ( rdf:Property, owl:ObjectProperty, owl:DatatypeProperty))
-       |   ${genericInfoPropertiesPattern("p", Seq(domainProperty, rangeProperty))}
+       |   ${genericInfoPropertiesPattern("p", domainProperties ++ rangeProperties)}
        | }
       """.stripMargin
   }

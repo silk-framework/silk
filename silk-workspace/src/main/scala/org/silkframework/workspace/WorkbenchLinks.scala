@@ -2,7 +2,7 @@ package org.silkframework.workspace
 
 import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.rule.{LinkSpec, RuleBlockSpec, TransformSpec}
 import org.silkframework.workspace.activity.workflow.Workflow
 
 object WorkbenchLinks {
@@ -25,6 +25,7 @@ object WorkbenchLinks {
       case _: GenericDatasetSpec => "dataset"
       case _: TransformSpec      => "transform"
       case _: LinkSpec           => "linking"
+      case _: RuleBlockSpec      => "ruleBlock"
       case _: Workflow           => "workflow"
       case _                     => "task"
     }

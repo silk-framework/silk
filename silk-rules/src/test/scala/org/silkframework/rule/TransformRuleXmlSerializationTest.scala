@@ -6,7 +6,7 @@ import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, Xm
 import TransformRule.TransformRuleFormat
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.rule.input.{Input, PathInput}
+import org.silkframework.rule.input.{Input, PathInput, RuleBlockBinding, RuleBlockInput}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -38,6 +38,22 @@ class TransformRuleXmlSerializationTest extends AnyFlatSpec with Matchers {
     </Input>
     val input = Input.InputFormat.read(xml)
     input shouldBe PathInput(id = "my_field", path = UntypedPath("my_field"))
+  }
+
+  it should "serialize transform rules that use rule block inputs" in {
+    testSerialzation(
+      ComplexMapping(
+        id = "ruleBlockMapping",
+        operator = RuleBlockInput(
+          id = "ruleBlockUsage",
+          ruleBlockId = "normalizePersonName",
+          bindings = IndexedSeq(
+            RuleBlockBinding("inputName", PathInput(id = "sourceName", path = UntypedPath("name")))
+          )
+        ),
+        target = Some(MappingTarget("outputProperty", ValueType.STRING))
+      )
+    )
   }
 
   def testSerialzation(obj: TransformRule): Unit = {

@@ -36,7 +36,7 @@ Path examples:
 - `/#id` Is a special syntax for generating an id for a selected element. It can be used in URI patterns for entities which do not provide an identifier. Examples: `http://example.org/{#id}` or `http://example.org/{/pathToEntity/#id}`.
 - The wildcard * enumerates all direct children, e.g., `/Persons/*/Name`.
 - The wildcard ** enumerates all direct and indirect children.
-- The backslash can be used to navigate to the parent XML node, e.g., `\Persons/SomeHeader`.
+- The backslash can be used to navigate to the parent XML node, e.g., `\Persons/SomeHeader`. The name directly after the backslash (here `Persons`) is ignored and only serves readability. Backward paths require the `streaming` parameter to be disabled.
 - `#text` retrieves the text of the selected node.
 
 ## Writing

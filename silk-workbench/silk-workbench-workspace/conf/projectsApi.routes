@@ -17,6 +17,7 @@ PUT           /:projectId/accessControl                                controlle
 
 # Prefixes
 GET           /:projectId/prefixes                                     controllers.projectApi.ProjectApi.fetchProjectPrefixes(projectId: String)
+GET           /:projectId/prefixes/detailed                            controllers.projectApi.ProjectApi.fetchDetailedProjectPrefixes(projectId: String)
 PUT           /:projectId/prefixes/:prefixName                         controllers.projectApi.ProjectApi.addProjectPrefix(projectId: String, prefixName: String)
 DELETE        /:projectId/prefixes/:prefixName                         controllers.projectApi.ProjectApi.deleteProjectPrefix(projectId: String, prefixName: String)
 
@@ -35,7 +36,9 @@ POST          /:projectId/reloadFailedTask                             controlle
 # Project Tasks
 #################
 GET           /:projectId/validateIdentifier                           controllers.projectApi.ProjectTaskApi.validateIdentifier(projectId: String, taskIdentifier:String)
-GET           /:projectId/tasks/:taskId/relatedItems                   controllers.projectApi.ProjectTaskApi.relatedItems(projectId: String, taskId: String, textQuery: Option[String] ?= None)
+GET           /:projectId/ruleBlocks                                   controllers.projectApi.ProjectTaskApi.ruleBlocks(projectId: String)
+POST          /:projectId/tasks/:taskId/evaluateRuleBlock              controllers.ruleBlock.RuleBlockTaskApi.evaluateRuleBlock(projectId: String, taskId: String)
+GET           /:projectId/tasks/:taskId/relatedItems                   controllers.projectApi.ProjectTaskApi.relatedItems(projectId: String, taskId: String, textQuery: Option[String] ?= None, limit: Option[Int] ?= None)
 GET           /:projectId/tasks/:taskId/links                          controllers.projectApi.ProjectTaskApi.itemLinks(projectId: String, taskId: String)
 GET           /:projectId/tasks/:taskId/itemInfo                       controllers.projectApi.ProjectTaskApi.itemInfo(projectId: String, taskId: String)
 POST          /:projectId/tasks/:taskId/clone                          controllers.projectApi.ProjectTaskApi.cloneTask(projectId: String, taskId: String)
@@ -46,3 +49,11 @@ DELETE        /:projectId/datasets/:datasetId/content                  controlle
 POST          /:projectId/dataset/autoConfigure                        controllers.projectApi.ProjectTaskApi.postDatasetAutoConfigured(projectId: String)
 
 POST          /:projectId/taskContext                                  controllers.projectApi.ProjectTaskApi.taskContext(projectId: String)
+
+# Change journal
+GET           /:projectId/changes                                      controllers.projectApi.ChangeJournalApi.changes(projectId: String)
+GET           /:projectId/changes/summary                              controllers.projectApi.ChangeJournalApi.summary(projectId: String)
+GET           /:projectId/changes/conflicts                            controllers.projectApi.ChangeJournalApi.conflicts(projectId: String, seq: Seq[Int])
+POST          /:projectId/changes/:seq/revert                          controllers.projectApi.ChangeJournalApi.revert(projectId: String, seq: Int)
+POST          /:projectId/changes/revert                               controllers.projectApi.ChangeJournalApi.revertAll(projectId: String)
+PUT           /:projectId/changes/reviewed                             controllers.projectApi.ChangeJournalApi.markReviewed(projectId: String)

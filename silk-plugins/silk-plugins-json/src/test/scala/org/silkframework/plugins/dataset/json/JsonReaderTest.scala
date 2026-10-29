@@ -77,6 +77,22 @@ class JsonReaderTest extends AnyFlatSpec with Matchers {
     evaluate(rootItems, "nonExistingProperty/#arrayText") should equal (Seq.empty)
   }
 
+  it should "format numbers in plain notation unless it would become excessively long" in {
+    val example = JsonTraverser.fromNode("alibi_task_id",
+      JsonNodeSerializer.parse("""{"small": 1e-7, "decimal": 1.50, "negative": -12.5, "huge": 1e1000, "tiny": 1e-1000}"""), navigateIntoArrays = true)
+    evaluate(Seq(example), "small/#arrayText") should equal (Seq("0.0000001"))
+    evaluate(Seq(example), "decimal/#arrayText") should equal (Seq("1.5"))
+    evaluate(Seq(example), "negative/#arrayText") should equal (Seq("-12.5"))
+    // Numbers whose plain notation would be excessively long are written in scientific notation
+    evaluate(Seq(example), "huge/#arrayText") should equal (Seq("1E+1000"))
+    evaluate(Seq(example), "tiny/#arrayText") should equal (Seq("1E-1000"))
+
+    // Values retrieved directly are formatted the same way
+    evaluate(Seq(example), "small") should equal (Seq("0.0000001"))
+    evaluate(Seq(example), "decimal") should equal (Seq("1.5"))
+    evaluate(Seq(example), "huge") should equal (Seq("1E+1000"))
+  }
+
   it should "allow retrieving ids and texts from array values (if navigateToArrays is false)" in {
     val example = json("exampleArrays.json", navigateIntoArrays = false)
 

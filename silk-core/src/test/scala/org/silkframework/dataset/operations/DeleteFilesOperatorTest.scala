@@ -4,7 +4,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.operations.DeleteFilesOperatorTest.createResourceManager
-import org.silkframework.runtime.plugin.{ClassPluginDescription, ParameterValues, PluginContext}
+import org.silkframework.runtime.plugin.{ClassPluginDescription, ParameterValues, PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.{FileResourceManager, ResourceManager}
 import org.silkframework.util.FileUtils
 
@@ -31,13 +31,13 @@ class DeleteFilesOperatorTest extends AnyFlatSpec with Matchers {
   def testDryRun(regex: String, existingFiles: Seq[String]): Seq[String] = {
     val deleteFiles = DeleteFilesOperator(regex)
     val resourceManager = createResourceManager(existingFiles)
-    implicit val pluginContext: PluginContext = PluginContext(Prefixes.empty, resourceManager)
+    implicit val pluginContext: PluginContext = PluginContext(Prefixes.empty, resourceManager, taskResolver = TaskResolver.empty)
     deleteFiles.dryRun.filesToDelete
   }
 
   def testDryRunPlugin(regex: String, existingFiles: Seq[String]): String = {
     val resourceManager = createResourceManager(existingFiles)
-    implicit val pluginContext: PluginContext = PluginContext(Prefixes.empty, resourceManager)
+    implicit val pluginContext: PluginContext = PluginContext(Prefixes.empty, resourceManager, taskResolver = TaskResolver.empty)
 
     val pluginDesc = ClassPluginDescription(classOf[DeleteFilesOperator])
     pluginDesc.actions.size shouldBe 1

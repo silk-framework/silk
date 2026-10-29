@@ -38,14 +38,14 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
   /** The purpose of this value is to store the change notify callback function
     * because it will be in a WeakHashMap in the Observable and would else be garbage collected */
   private var inputSpecObserverFunctions: Option[TaskSpec => Unit] = None
-  private var observedInputTasks: Option[DPair[Identifier]] = None
+  private var observedInputTasks: Option[DPair[Option[Identifier]]] = None
 
   private def setInputSpecObserverFunction()(implicit userContext: UserContext): Unit = {
     val fn: TaskSpec => Unit = _ => {
       this.startDirty(task.activity[LinkingPathsCache].control)
     }
-    val inputIds = task.data.dataSelections.map(_.inputId)
-    for(sourceInputId <- inputIds) {
+    val inputIds = task.data.dataSelections.map(_.inputTaskId)
+    for(sourceInputId <- inputIds.toSeq.flatten) {
       // Only do this automatically if the input is a transformation
       task.project.taskOption[TransformSpec](sourceInputId).foreach { inputTask =>
         inputTask.dataValueHolder.subscribe(fn)
@@ -64,7 +64,7 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
    */
   override def loadCache(context: ActivityContext[DPair[EntitySchema]], fullReload: Boolean)
                         (implicit userContext: UserContext): Unit = {
-    if(inputSpecObserverFunctions.isEmpty || !observedInputTasks.contains(linkSpec.dataSelections.map(_.inputId))) {
+    if(inputSpecObserverFunctions.isEmpty || !observedInputTasks.contains(linkSpec.dataSelections.map(_.inputTaskId))) {
       setInputSpecObserverFunction()
     }
     context.status.update("Retrieving frequent property paths", 0.0)
@@ -78,8 +78,8 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
         for((dataSelection, entitySchema) <- linkSpec.dataSelections zip currentEntityDescs) yield {
           if(fullReload && !(emptyPaths || typeChanged)) {
             // Only transformation sources changed
-            if(task.project.taskOption[TransformSpec](dataSelection.inputId).isDefined
-              || task.project.taskOption[CustomTask](dataSelection.inputId).isDefined) {
+            if(task.project.taskOption[TransformSpec](dataSelection.inputTaskId).isDefined
+              || task.project.taskOption[CustomTask](dataSelection.inputTaskId).isDefined) {
               updateSchema(dataSelection, entitySchema, context)
             } else {
               entitySchema // Do not update other source schemata automatically
@@ -129,7 +129,7 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
                            context: ActivityContext[DPair[EntitySchema]])
                           (implicit userContext: UserContext): EntitySchema = {
     implicit val prefixes: Prefixes = task.project.config.prefixes
-    val paths = retrievePathsOfInput(datasetSelection.inputId, Some(datasetSelection), task.project, context)
+    val paths = datasetSelection.inputTaskId.map(id => retrievePathsOfInput(id, Some(datasetSelection), task.project, context)).getOrElse(IndexedSeq.empty)
     entitySchema.copy(typedPaths = (paths ++ entitySchema.typedPaths).distinct)
   }
 

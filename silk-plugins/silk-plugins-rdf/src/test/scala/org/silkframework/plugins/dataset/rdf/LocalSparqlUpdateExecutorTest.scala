@@ -1,22 +1,25 @@
 package org.silkframework.plugins.dataset.rdf
 
 
-import org.silkframework.config.{CustomTask, FixedNumberOfInputs, InputPorts, PlainTask, Port, Prefixes, Task}
+import org.apache.jena.update.UpdateFactory
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
+import org.silkframework.runtime.templating.{TemplateVariableName, VariableScope}
+import org.silkframework.config._
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution}
+import org.silkframework.execution.typed.SparqlUpdateEntitySchema
+import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
 import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlUpdateExecutor
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
-import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlUpdateTemplatingMode
+import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlSimpleTemplateEngine
+import org.silkframework.plugins.templating.velocity.VelocityTemplateEngine
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, TestPluginContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, TestMocks}
 import org.silkframework.workspace.TestWorkspaceProviderTestTrait
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.must.Matchers
-import org.silkframework.execution.typed.SparqlUpdateEntitySchema
 
 class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait {
   behavior of "Local SPARQL Update Executor"
@@ -30,11 +33,8 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
   private val batchSize = 5
   private val sparqlUpdateTemplate = s"""INSERT DATA { $${<s>} <urn:prop> $${"v"} } ;"""
   private val schema = EntitySchema("", typedPaths = IndexedSeq(TypedPath("s", ValueType.URI), TypedPath("v", ValueType.STRING)))
-  private val notIncluded = "NOT_INCLUDED"
   private val inputEntities: Seq[Entity] = Seq(
     Entity("http://example.org/entity/1", IndexedSeq(Seq("http://s1"), Seq("s1a", "s1b")), schema),
-    Entity("http://example.org/entity/2", IndexedSeq(Seq(s"http://$notIncluded"), Seq()), schema),
-    Entity("http://example.org/entity/3", IndexedSeq(Seq(), Seq(notIncluded)), schema),
     Entity("http://example.org/entity/4", IndexedSeq(Seq("http://s2a", "http://s2b"), Seq("s2a", "s2b", "s2c")), schema)
   )
   private def mockInputTable(properties: Seq[(String, String)] = Seq.empty,
@@ -66,16 +66,29 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
       """INSERT DATA { <http://s2b> <urn:prop> "s2a" } ;
         |INSERT DATA { <http://s2b> <urn:prop> "s2b" } ;
         |INSERT DATA { <http://s2b> <urn:prop> "s2c" } ;""".stripMargin)
-    list mustBe comp.map(_.replace("\r\n", "\n"))
+    list mustBe comp
     // Check report for sample queries
     val report = activityContext.value.get
     report mustBe defined
     report.get.sampleOutputEntities must not be empty
     val samplesEntities = report.get.sampleOutputEntities.head
-    // One sample entities is emitted
+    // Both batches are emitted as sample entities, including the final partial batch
     samplesEntities.schema.properties must not be empty
-    samplesEntities.entities must have size 1
+    samplesEntities.entities must have size 2
     samplesEntities.entities.head.values.head.head must startWith ("""INSERT DATA { <http://s1> <urn:prop> "s1a" } ;""")
+    samplesEntities.entities.last.values.head.head must startWith ("""INSERT DATA { <http://s2b> <urn:prop> "s2a" } ;""")
+    report.get.entityCount mustBe 2
+  }
+
+  it should "fail when an input entity is missing a value referenced by the template" in {
+    val incompleteEntities = Seq(
+      Entity("http://example.org/entity/incomplete", IndexedSeq(Seq("http://s1"), Seq()), schema)
+    )
+    val inputTaskMock = PlainTask("mockTask", new DummyTaskSpec(Map.empty))
+    val input = Seq(GenericEntityTable(incompleteEntities, schema, inputTaskMock))
+    intercept[ValidationException] {
+      executeTask(sparqlUpdateTemplate, input).entities.toList
+    }
   }
 
   it should "throw validation exception if an invalid input schema is found" in {
@@ -96,7 +109,7 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
   it should "output one UPDATE query per input task when the template contains input property placeholders" in {
     val templateWithInputPropertyPlaceholders = """INSERT DATA { $inputProperties.uri("graph") <urn:prop:label> $inputProperties.plainLiteral("graph") };"""
     val result = executeTask(templateWithInputPropertyPlaceholders, Seq(mockInputTable(Seq("graph" -> "g1")),
-      mockInputTable(Seq("graph" -> "g2"))), SparqlUpdateTemplatingMode.velocity)
+      mockInputTable(Seq("graph" -> "g2"))), VelocityTemplateEngine.id)
     result.entities.map(_.values.flatten.head).toList mustBe List("INSERT DATA { <g1> <urn:prop:label> \"g1\" };\n" +
                                                                   "INSERT DATA { <g2> <urn:prop:label> \"g2\" };")
   }
@@ -104,20 +117,69 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
   it should "output one UPDATE query overall even for multiple inputs when no placeholder is used at all" in {
     val staticTemplate = """INSERT DATA { <urn:subject:1> <urn:prop:label> "1" };"""
     val result = executeTask(staticTemplate, Seq(mockInputTable(Seq("graph" -> "g1")),
-      mockInputTable(Seq("graph" -> "g2"))), SparqlUpdateTemplatingMode.velocity)
+      mockInputTable(Seq("graph" -> "g2"))), VelocityTemplateEngine.id)
     result.entities.map(_.values.flatten.head).toList mustBe List(staticTemplate)
   }
 
+  it should "auto-insert a missing trailing semicolon for Jinja templates when batching" in {
+    val templateMissingSemicolon = """INSERT DATA { <{{ input.entity.s }}> <urn:prop> "{{ input.entity.v }}" }"""
+    val entities = Seq(
+      Entity("e1", IndexedSeq(Seq("http://s1"), Seq("v1")), schema),
+      Entity("e2", IndexedSeq(Seq("http://s2"), Seq("v2")), schema)
+    )
+    val inputTaskMock = PlainTask("mockTask", new DummyTaskSpec(Map.empty))
+    val input = Seq(GenericEntityTable(entities, schema, inputTaskMock))
+    val result = executeTask(templateMissingSemicolon, input, language = "jinja")
+    val batched = result.entities.toSeq.map(_.values.flatten.head)
+    batched mustBe Seq(
+      """INSERT DATA { <http://s1> <urn:prop> "v1" };
+        |INSERT DATA { <http://s2> <urn:prop> "v2" };""".stripMargin
+    )
+  }
+
+  it should "auto-insert a missing trailing semicolon for rawUnsafe Velocity templates when batching" in {
+    val templateMissingSemicolon = """INSERT DATA { $row.rawUnsafe("s") <urn:prop> $row.plainLiteral("v") }"""
+    val result = executeTask(templateMissingSemicolon, Seq(mockInputTable()), language = VelocityTemplateEngine.id)
+    val batched = result.entities.toSeq.map(_.values.flatten.head)
+    batched.foreach { entry =>
+      entry.split("\n").foreach { line => line must endWith(";") }
+    }
+  }
+
+  it should "terminate a malformed rawUnsafe query without fixing its other syntax errors — this fix only adds termination, not validation" in {
+    val malformedAndMissingSemicolon = """INSERT DATA { $row.rawUnsafe("s") <urn:prop> $row.plainLiteral("v") """ // no closing '}', no trailing ';'
+    val result = executeTask(malformedAndMissingSemicolon, Seq(mockInputTable()), language = VelocityTemplateEngine.id)
+    val batched = result.entities.toSeq.map(_.values.flatten.head)
+    batched.head must endWith(";")
+    batched.head must not include "}"
+    an [Exception] must be thrownBy UpdateFactory.create(batched.head)
+  }
+
+  it should "mis-terminate a query ending in a trailing SPARQL comment — documented, accepted limitation" in {
+    val templateEndingInComment = """INSERT DATA { $row.rawUnsafe("s") <urn:prop> $row.plainLiteral("v") } # trailing comment"""
+    val result = executeTask(templateEndingInComment, Seq(mockInputTable()), language = VelocityTemplateEngine.id)
+    val batched = result.entities.toSeq.map(_.values.flatten.head)
+    val firstBatch = batched.head
+    firstBatch must include("# trailing comment;")
+    an [Exception] must be thrownBy UpdateFactory.create(firstBatch + "\n" + firstBatch)
+  }
+
+  it should "report the template variables referenced by the update template" in {
+    val task = SparqlUpdateCustomTask("""INSERT DATA { GRAPH <{{ execution.graph }}> { <{{ input.entity.s }}> <urn:p> "{{ project.label }}" } } ;""")
+    task.referencedVariables must contain theSameElementsAs Seq(
+      new TemplateVariableName("graph", VariableScope.execution), new TemplateVariableName("label", VariableScope.project))
+  }
+
   private def sparqlUpdateTask(template: String,
-                               mode: SparqlUpdateTemplatingMode): Task[SparqlUpdateCustomTask] = {
-    project.updateTask("task", SparqlUpdateCustomTask(template, batchSize = batchSize, templatingMode = mode))
+                               language: String): Task[SparqlUpdateCustomTask] = {
+    project.updateTask("task", SparqlUpdateCustomTask(template, batchSize = batchSize, templatingMode = language))
   }
 
   private def executeTask(template: String,
                           input: Seq[GenericEntityTable],
-                          mode: SparqlUpdateTemplatingMode = SparqlUpdateTemplatingMode.simple,
+                          language: String = SparqlSimpleTemplateEngine.id,
                           activityContext: ActivityContext[ExecutionReport] = context): LocalEntities = {
-    val result = executor.execute(sparqlUpdateTask(template, mode), input, ExecutorOutput.empty, LocalExecution(true), activityContext)
+    val result = executor.execute(sparqlUpdateTask(template, language), input, ExecutorOutput.empty, LocalExecution(true), activityContext)
     result mustBe defined
     result.get
   }

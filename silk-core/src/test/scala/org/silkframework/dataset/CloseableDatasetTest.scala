@@ -1,5 +1,5 @@
 package org.silkframework.dataset
-
+
 import org.silkframework.runtime.activity.UserContext
 import CloseableDataset.using
 import org.scalatest.flatspec.AnyFlatSpec

@@ -8,11 +8,13 @@ import org.silkframework.runtime.serialization.{ReadContext, TestReadContext}
 
 import java.io.{InputStream, OutputStream}
 import java.time.Instant
+import java.util.concurrent.CountDownLatch
 import scala.xml.XML
+import org.scalatest.concurrent.Eventually
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 
-class CachedActivityTest extends AnyFlatSpec with Matchers with TestUserContextTrait {
+class CachedActivityTest extends AnyFlatSpec with Matchers with Eventually with TestUserContextTrait {
 
   behavior of "CachedActivity"
 
@@ -82,6 +84,88 @@ class CachedActivityTest extends AnyFlatSpec with Matchers with TestUserContextT
     cachedActivity.waitUntilFinished()
     cache.loadCount = 3
     cachedActivity.value().label mustBe value3.label
+  }
+
+  it must "perform a full reload on the guaranteed re-run when the dirty flag is set while a run is in progress" in {
+    val gate = new CountDownLatch(1)
+    @volatile var blockedOnce = false
+    // A cache that blocks its first run inside loadCache, so we can set the dirty flag mid-run.
+    val cache = new TestCache() {
+      override protected val persistent: Boolean = false // load instead of reading a persisted value
+      override def loadCache(context: ActivityContext[MetaData], fullReload: Boolean)
+                            (implicit userContext: UserContext): Unit = {
+        super.loadCache(context, fullReload)
+        if (!blockedOnce) {
+          blockedOnce = true
+          gate.await()
+        }
+      }
+    }
+    val cachedActivity = Activity(cache)
+
+    // First run loads value2 and then blocks inside loadCache.
+    currentValue = value2
+    cachedActivity.start()
+    eventually { blockedOnce mustBe true }
+    cachedActivity.value().label mustBe value2.label
+
+    // Mark dirty while blocked. value3 shares value2's modified date, so only a full reload picks it up.
+    currentValue = value3
+    cache.startDirty(cachedActivity)
+
+    // Release the first run; the guaranteed re-run must perform a full reload and pick up value3.
+    gate.countDown()
+    cachedActivity.waitUntilFinished()
+    cachedActivity.value().label mustBe value3.label
+  }
+
+  it must "reload on the first run when the dirty flag was set before it, even if a persisted value exists" in {
+    // Own resource, so the shared CacheResource counters of the other tests are not affected
+    val sharedResource = InMemoryResourceManager().get("dirtyBeforeFirstRun")
+    class FreshCache extends TestCache {
+      override def resource: WritableResource = sharedResource
+    }
+
+    // First cache instance loads and persists value2
+    currentValue = value2
+    Activity(new FreshCache).startBlocking()
+
+    // A new cache instance on the same resource simulates a restart: not initialized, persisted value exists.
+    // value3 shares value2's modified date, so only a full reload picks it up.
+    currentValue = value3
+    val cache = new FreshCache
+    val cacheActivity = Activity(cache)
+    cache.startDirty(cacheActivity)
+    cacheActivity.waitUntilFinished()
+    // The reload request must win over the persisted value
+    cacheActivity.value().label mustBe value3.label
+  }
+
+  it must "keep the full-reload request if the reloading run fails" in {
+    @volatile var failNext = false
+    @volatile var receivedReloads: List[Boolean] = Nil
+    val cache = new TestCache() {
+      override protected val persistent: Boolean = false // do not touch the shared CacheResource counters
+      override def loadCache(context: ActivityContext[MetaData], fullReload: Boolean)
+                            (implicit userContext: UserContext): Unit = {
+        receivedReloads = receivedReloads :+ fullReload
+        if (failNext) {
+          failNext = false
+          throw new RuntimeException("Intentional load failure")
+        }
+        super.loadCache(context, fullReload)
+      }
+    }
+    val activity = Activity(cache)
+    activity.startBlocking() // initial load
+    failNext = true
+    cache.startDirty(activity) // this run fails inside loadCache
+    intercept[RuntimeException] {
+      activity.waitUntilFinished()
+    }
+    // The failed run must not consume the request: the next run must still perform the full reload.
+    activity.startBlocking()
+    receivedReloads mustBe List(false, true, true)
   }
 
   /**

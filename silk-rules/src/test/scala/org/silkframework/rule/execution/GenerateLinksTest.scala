@@ -18,6 +18,7 @@ import java.util.Locale
 import java.util.logging.{Level, Logger}
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset.DatasetSpec
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.entity.Link
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.evaluation.ReferenceLinksReader
@@ -158,7 +159,7 @@ object GenerateLinksTest {
                             linkSpec: LinkSpec,
                             runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig()): GenerateLinks = {
       val sourcePair = linkSpec.findSources(datasets)
-      val outputs = linkSpec.output.flatMap(o => datasets.find(_.id == o)).map(_.linkSink)
+      val outputs = linkSpec.output.flatMap(o => datasets.find(_.id == o)).map(ExecutorRegistry.access(_).linkSink)
       new GenerateLinks(PlainTask(id, linkSpec), sourcePair, outputs, TaskContext.empty, runtimeConfig)
     }
 

@@ -1,8 +1,15 @@
 import fetch from "../../../services/fetch";
-import { legacyLinkingEndpoint, legacyTransformEndpoint } from "../../../utils/getApiEndpoint";
+import { legacyLinkingEndpoint } from "../../../utils/getApiEndpoint";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { PathWithMetaData } from "../shared/rules/rule.typings";
-import { IEntityLink, IEvaluatedReferenceLinks, ILinkingRule, ILinkingTaskParameters } from "./linking.types";
+import {
+    IEntityLink,
+    IEvaluatedReferenceLinks,
+    IEvaluatedReferenceLinksWithInspection,
+    ILinkingRule,
+    ILinkingRuleEvaluationResponse,
+    ILinkingTaskParameters,
+} from "./linking.types";
 import { IAutocompleteDefaultResponse, TaskPlugin } from "@ducks/shared/typings";
 import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
@@ -69,6 +76,24 @@ export const evaluateLinkingRuleAgainstReferenceEntities = (
     });
 };
 
+/** Get an evaluation of the linkage rule against the reference links including reusable rule block inspection snapshots. */
+export const evaluateLinkingRuleAgainstReferenceEntitiesWithInspection = (
+    projectId: string,
+    linkingTaskId: string,
+    linkingRule: ILinkingRule,
+    linkLimit: number = 100,
+): Promise<FetchResponse<IEvaluatedReferenceLinksWithInspection>> => {
+    return fetch({
+        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/referenceLinksEvaluated`),
+        method: "POST",
+        body: linkingRule,
+        query: {
+            linkLimit,
+            includeRuleBlockInspection: true,
+        },
+    });
+};
+
 /** Get a an evaluation of the currently saved linkage rule against the reference links.
  *
  * @param projectId
@@ -88,6 +113,21 @@ export const referenceLinksEvaluated = (
     });
 };
 
+/** Get an evaluation of the currently saved linkage rule against the reference links including reusable rule block inspection snapshots. */
+export const referenceLinksEvaluatedWithInspection = (
+    projectId: string,
+    linkingTaskId: string,
+    withEntitiesAndSchema: boolean,
+): Promise<FetchResponse<IEvaluatedReferenceLinksWithInspection>> => {
+    return fetch({
+        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/referenceLinksEvaluated`),
+        query: {
+            withEntitiesAndSchema,
+            includeRuleBlockInspection: true,
+        },
+    });
+};
+
 /** Fetch evaluated links for the given linkage rule. */
 export const evaluateLinkingRule = (
     projectId: string,
@@ -103,6 +143,26 @@ export const evaluateLinkingRule = (
         query: {
             linkLimit,
             timeoutInMs,
+        },
+    });
+};
+
+/** Fetch evaluated links plus reusable rule block inspection snapshots for the given linkage rule. */
+export const evaluateLinkingRuleWithInspection = (
+    projectId: string,
+    linkingTaskId: string,
+    linkingRule: ILinkingRule,
+    linkLimit: number = 100,
+    timeoutInMs: number = 30000,
+): Promise<FetchResponse<ILinkingRuleEvaluationResponse>> => {
+    return fetch({
+        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/evaluateLinkageRule`),
+        method: "POST",
+        body: linkingRule,
+        query: {
+            linkLimit,
+            timeoutInMs,
+            includeRuleBlockInspection: true,
         },
     });
 };

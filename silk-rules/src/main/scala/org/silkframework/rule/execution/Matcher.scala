@@ -50,6 +50,9 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
 
   private val log = Logger.getLogger(getClass.getName)
 
+  // Number of partition match tasks that failed with an error, so an incomplete link set is not silently returned.
+  private val partitionMatchFailures = new AtomicInteger(0)
+
   /**
    * Executes the matching.
    */
@@ -65,38 +68,47 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     //Start matching thread scheduler
     val errors = new AtomicReference[Seq[Throwable]](Seq.empty)
     val scheduler = new SchedulerThread(executor, errors)
-    scheduler.start()
+    // Make sure the thread pool and scheduler are always shut down, even if the matching fails or is interrupted.
+    try {
+      scheduler.start()
 
-    //Process finished tasks
-    val finishedTasks = new AtomicInteger()
-    val logProgress = progressLogger(context, finishedTasks, scheduler)
-    while (!cancelled && (scheduler.isAlive || finishedTasks.get() < scheduler.taskCount) && errors.get().isEmpty) {
-      for(result <- poll(executor, context)) {
-        context.value.updateWith(_.addLinks(result))
-        finishedTasks.incrementAndGet()
-        if(runtimeConfig.linkLimit.getOrElse(Int.MaxValue) <= context.value().links.size) {
-          context.value.updateWith(_.addWarning(s"The configured maximum number of links has been reached and the matching has been stopped."))
-          cancelled = true
-        } else if(timeoutReached) {
-          context.value.updateWith(_.addWarning(s"The configured timeout has been exceeded and the matching has been stopped."))
-          cancelled = true
-        } else if(Thread.currentThread().isInterrupted || context.status.isCanceling) {
-          cancelled = true
+      //Process finished tasks
+      val finishedTasks = new AtomicInteger()
+      val logProgress = progressLogger(context, finishedTasks, scheduler)
+      while (!cancelled && (scheduler.isAlive || finishedTasks.get() < scheduler.taskCount) && errors.get().isEmpty) {
+        for(result <- poll(executor, context)) {
+          context.value.updateWith(_.addLinks(result))
+          finishedTasks.incrementAndGet()
+          if(runtimeConfig.linkLimit.getOrElse(Int.MaxValue) <= context.value().links.size) {
+            context.value.updateWith(_.addWarning(s"The configured maximum number of links has been reached and the matching has been stopped."))
+            cancelled = true
+          } else if(timeoutReached) {
+            context.value.updateWith(_.addWarning(s"The configured timeout has been exceeded and the matching has been stopped."))
+            cancelled = true
+          } else if(Thread.currentThread().isInterrupted || context.status.isCanceling) {
+            cancelled = true
+          }
+          logProgress()
         }
-        logProgress()
       }
-    }
 
-    if (errors.get().nonEmpty) {
-      handleErrors(errors.get())
-    }
+      if (errors.get().nonEmpty) {
+        handleErrors(errors.get())
+      }
 
-    for (result <- poll(executor, context)) {
-      context.value.updateWith(_.addLinks(result))
-      updateStatus(context, finishedTasks.get(), scheduler.taskCount)
-    }
+      for (result <- poll(executor, context)) {
+        context.value.updateWith(_.addLinks(result))
+        updateStatus(context, finishedTasks.get(), scheduler.taskCount)
+      }
 
-    shutdown(executorService, scheduler)
+      // Surface partition match failures in the report, so a silently truncated link set is not mistaken for a complete one.
+      val failures = partitionMatchFailures.get()
+      if (failures > 0) {
+        context.value.updateWith(_.addWarning(s"$failures partition match task(s) failed with an error; the generated link set may be incomplete. See the log for details."))
+      }
+    } finally {
+      shutdown(executorService, scheduler)
+    }
   }
 
   private def poll[T](executor: ExecutorCompletionService[T], context: ActivityContext[MatcherResult]): Option[T] = {
@@ -296,6 +308,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
       }
       catch {
         case ex: Exception =>  if(!cancelled) {
+          partitionMatchFailures.incrementAndGet()
           log.log(Level.WARNING, s"Could not execute match task for block $blockIndex, source partition $sourcePartitionIndex, target partition $targetPartitionIndex", ex)
         }
       }

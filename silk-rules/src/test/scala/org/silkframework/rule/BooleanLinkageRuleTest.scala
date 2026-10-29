@@ -1,5 +1,5 @@
 package org.silkframework.rule
-
+
 import org.silkframework.entity.{StringValueType, ValueType}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.rule.input.PathInput

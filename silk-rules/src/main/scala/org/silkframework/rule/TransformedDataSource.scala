@@ -9,7 +9,7 @@ import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder}
 import org.silkframework.rule.execution.local.TransformedEntities
 import org.silkframework.runtime.activity.{ActivityMonitor, UserContext}
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.util.Uri
 
 /**
@@ -55,8 +55,8 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     implicit val prefixes: Prefixes = context.prefixes
     val sourceEntities = source.retrieve(inputSchema, limit).entities
     val taskContext = new ActivityMonitor[TransformReport](task.id, None)
-    val reportBuilder = new TransformReportBuilder(task, taskContext)
-    val transformedEntities = new TransformedEntities(task, sourceEntities, transformRule.label(), transformRule.execution(TaskContext.noInput),
+    val reportBuilder = new TransformReportBuilder(task, taskContext, outputTableCount = 1)
+    val transformedEntities = new TransformedEntities(task, sourceEntities, transformRule.label(), transformRule.execution(TaskContext.noInput()),
       entitySchema, isRequestedSchema = true, abortIfErrorsOccur = false, report = reportBuilder).iterator
     GenericEntityTable(transformedEntities, entitySchema, underlyingTask)
   }

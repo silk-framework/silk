@@ -27,7 +27,6 @@
             ],
             "errorOutputs": [],
             "id": "transform",
-            "outputPriority": null,
             "configInputs": []
           }
         ],
@@ -41,7 +40,6 @@
               "transform"
             ],
             "id": "DBpedia",
-            "outputPriority": null,
             "configInputs": []
           },
           {
@@ -53,7 +51,6 @@
             ],
             "outputs": [],
             "id": "output",
-            "outputPriority": null,
             "configInputs": []
           }
         ]

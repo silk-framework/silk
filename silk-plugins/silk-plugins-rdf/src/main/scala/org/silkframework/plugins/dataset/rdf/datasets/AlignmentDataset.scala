@@ -21,40 +21,5 @@ case class AlignmentDataset(
 
   override def mimeType: Option[String] = None
 
-  /**
-   * Returns a data source for reading entities from the data set.
-   */
-  override def source(implicit userContext: UserContext): DataSource = throw new UnsupportedOperationException("This dataset only support writing alignments.")
-
-  /**
-   * Returns a link sink for writing data to the data set.
-   */
-  override def linkSink(implicit userContext: UserContext): LinkSink = new FormattedLinkSink(file, new AlignmentLinkFormatter)
-
-  /**
-   * Returns a entity sink for writing data to the data set.
-   */
-  override def entitySink(implicit userContext: UserContext): EntitySink = {
-    new AlignmentEntitySink()
-  }
-
   override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly()
-
-  /**
-   * The alignment dataset cannot write generic entities, but it needs to support the clear method.
-   */
-  private class AlignmentEntitySink extends EntitySink {
-    override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
-      file.delete()
-    }
-
-    override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean)
-                          (implicit userContext: UserContext, prefixes: Prefixes): Unit = throwNotSupportedException
-    override def closeTable()(implicit userContext: UserContext): Unit = throwNotSupportedException
-    override def writeEntity(subject: String, values: IndexedSeq[Seq[String]])(implicit userContext: UserContext): Unit = throwNotSupportedException
-
-    private def throwNotSupportedException: Nothing = {
-      throw new UnsupportedOperationException("The Alignment dataset only supports writing links. Writing entities is not supported.")
-    }
-  }
 }

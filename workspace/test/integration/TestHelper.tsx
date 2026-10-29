@@ -13,10 +13,6 @@ import { fireEvent, render, RenderResult, waitFor } from "@testing-library/react
 import "@testing-library/jest-dom";
 import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements";
 
-import {
-    responseInterceptorOnError,
-    responseInterceptorOnSuccess,
-} from "../../src/app/services/fetch/responseInterceptor";
 import { AxiosError } from "axios";
 
 interface IMockValues {
@@ -32,6 +28,7 @@ const mockValues: IMockValues = {
     },
 };
 const host = process.env.HOST;
+const isDebugLoggingEnabled = () => process.env.DEBUG === "true";
 
 jest.mock("@codemirror/view", () => ({
     ...jest.requireActual("@codemirror/view"),
@@ -141,10 +138,17 @@ export const setUseParams = (projectId: string, taskId: string): void => {
 };
 
 /** Logs all requests to the console. */
+export const debugLog = (...args: unknown[]) => {
+    if (isDebugLoggingEnabled()) {
+        console.info(...args);
+    }
+};
+
+/** Logs all requests to the console when DEBUG=true. */
 export const logRequests = (axiosMock?: AxiosMockType) => {
     const mock = axiosMock ? axiosMock : mockAxios;
     mock.queue().forEach((request) => {
-        console.log(request);
+        debugLog(request);
     });
 };
 
@@ -220,7 +224,9 @@ export const byTestId = (testId: string) => `[data-test-id="${testId}"]`;
 
 /** Prints the complete page HTML string to console. */
 export const logPageHtml = (): void => {
-    process.stdout.write(window.document.documentElement.outerHTML);
+    if (isDebugLoggingEnabled()) {
+        process.stdout.write(window.document.documentElement.outerHTML);
+    }
 };
 
 /** Get the page HTML */
@@ -228,14 +234,14 @@ export const pageHtml = (): string => window.document.documentElement.outerHTML;
 
 /** Returns a function that logs the page HTML and returns the error. */
 export const logPageOnError = (err: Error) => {
-    console.log(logPageHtml());
+    debugLog(pageHtml());
     return err;
 };
 
-/** Log the wrapper HTML to the console */
+/** Log the wrapper HTML to the console when DEBUG=true. */
 export const logWrapperHtml = (root: RenderResult | Element) => {
     const container = "container" in root ? root.container : root;
-    console.log(container.innerHTML);
+    debugLog(container.innerHTML);
 };
 
 /** Returns a name selector. */
@@ -331,7 +337,6 @@ export const mockAxiosResponse = (
     response?: HttpResponse | AxiosError,
     silentMode?: boolean,
 ): void => {
-    mockAxios.interceptors.response.use(responseInterceptorOnSuccess, responseInterceptorOnError);
     const requestQueueItem = axiosMockItemByCriteria(criteria);
     if (requestQueueItem) {
         if (response) {
@@ -346,16 +351,6 @@ export const mockAxiosResponse = (
     } else {
         throw new Error("No request to mock for " + criteria);
     }
-};
-
-/** Jest does not allow to set the window.location. In order to test changes on that object, we need to mock it.
- * This function mocks the window.location object and restores it afterwards. */
-export const withWindowLocation = async (block: () => void, location: any = {}) => {
-    const oldLocation = window.location;
-    //delete window.location;
-    window.location = location;
-    await block();
-    window.location = oldLocation;
 };
 
 /** Returns the absolute path under the workspace path with the given path value appended. */
@@ -454,16 +449,12 @@ export class RenderResultApi {
             element,
             `No element with selector '${cssSelector}' ${idx !== 0 ? `at index ${idx} ` : ""}has been found!`,
         );
-        if (element.click) {
-            element.click();
-        } else {
-            element.dispatchEvent(new Event("click"));
-        }
+        fireEvent.click(element);
     };
 
     printHtml = (selector?: string) => {
         const elementToPrint = selector ? this.findExisting(selector) : this.renderResult.container;
-        console.log(elementToPrint.outerHTML);
+        debugLog(elementToPrint.outerHTML);
     };
 
     static testId = (testId: string): string => {

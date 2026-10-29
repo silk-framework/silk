@@ -19,7 +19,11 @@ import {
 import { routerOp } from "@ducks/router";
 import { IProjectTask, TaskType } from "@ducks/shared/typings";
 import { HttpError } from "../../../services/fetch/responseInterceptor";
-import i18Instance, { fetchStoredLang } from "../../../../language";
+import i18Instance, {
+    fetchRequestedLanguage,
+    fetchUserSelectedLanguage,
+    markLanguageAsUserChoice,
+} from "../../../../language";
 import { URI_PROPERTY_PARAMETER_ID } from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/UriAttributeParameterInput";
 import utils from "../../../views/shared/Metadata/MetadataUtils";
 import { Keyword } from "@ducks/workspace/typings";
@@ -86,13 +90,8 @@ const fetchCommonSettingsAsync = () => {
             await fillCustomPluginStore(taskPluginOverviews);
             dispatch(setTaskPluginOverviews(taskPluginOverviews));
 
-            const selectedLng = fetchStoredLang();
-            if (!selectedLng) {
-                dispatch(changeLocale(data.initialLanguage));
-            } else {
-                // Just make sure that specific flags for DM are set
-                dispatch(changeLocale(selectedLng));
-            }
+            const selectedLng = fetchUserSelectedLanguage();
+            dispatch(changeLocale(selectedLng ?? fetchRequestedLanguage() ?? data.initialLanguage));
         } catch (error) {
             dispatch(setError(error));
         }
@@ -292,6 +291,23 @@ const extractDataAttributes = (formData): ArtefactDataParameters => {
     return returnValue;
 };
 
+/** Extracts the plugin parameters from the form data, i.e. removes the meta data fields and the data attributes.
+ * The backend rejects values for parameters that the plugin does not declare.
+ * A field name only counts as meta data if the plugin does not declare a parameter of that name, so a
+ * plugin parameter called e.g. 'description' is not silently dropped from the request. */
+const extractParameterValues = (
+    formData: Record<string, any>,
+    declaredParameters?: Record<string, unknown>,
+): Record<string, any> => {
+    const parameters = { ...formData };
+    ["label", "description", "id", "tags", URI_PROPERTY_PARAMETER_ID, READ_ONLY_PARAMETER].forEach((field) => {
+        if (!declaredParameters || !(field in declaredParameters)) {
+            delete parameters[field];
+        }
+    });
+    return parameters;
+};
+
 const fetchCreateTaskAsync = (
     formData: any,
     artefactId: string,
@@ -304,9 +320,10 @@ const fetchCreateTaskAsync = (
 ) => {
     return async (dispatch, getState) => {
         const currentProjectId = commonSel.currentProjectIdSelector(getState());
-        const { label, description, id, tags, ...restFormData } = formData;
+        const { cachedArtefactProperties } = commonSel.artefactModalSelector(getState());
+        const { label, description, id, tags } = formData;
         const { parameters, variableTemplateParameters } = splitParameterAndVariableTemplateParameters(
-            restFormData,
+            extractParameterValues(formData, cachedArtefactProperties[artefactId]?.properties),
             variableTemplateParameterSet,
         );
         const parameterData = buildStringValuedObject(parameters);
@@ -379,10 +396,12 @@ const fetchUpdateTaskAsync = (
     variableTemplateParameterSet: Set<string>,
     /** Function that is called instead of the task PATCH endpoint. */
     alternativeUpdateFunction?: AlternativeTaskUpdateFunction,
+    /** The parameters the plugin declares; form fields of these names are parameters, not meta data. */
+    declaredParameters?: Record<string, unknown>,
 ) => {
     return async (dispatch) => {
         const { parameters, variableTemplateParameters } = splitParameterAndVariableTemplateParameters(
-            formData,
+            extractParameterValues(formData, declaredParameters),
             variableTemplateParameterSet,
         );
         const parameterData = buildStringValuedObject(parameters);
@@ -465,9 +484,12 @@ const resetArtefactModal =
         });
     };
 
-const changeLocale = (locale: string) => {
+const changeLocale = (locale: string, userSelected = false) => {
     return async (dispatch) => {
         await i18Instance.changeLanguage(locale);
+        if (userSelected) {
+            markLanguageAsUserChoice();
+        }
         dispatch(changeLanguage(locale));
     };
 };
@@ -496,6 +518,7 @@ const commonOps = {
     resetArtefactModal,
     fetchExportTypesAsync,
     extractDataAttributes,
+    extractParameterValues,
     splitParameterAndVariableTemplateParameters,
     toggleNotificationMenuDisplay,
     toggleUserMenuDisplay,

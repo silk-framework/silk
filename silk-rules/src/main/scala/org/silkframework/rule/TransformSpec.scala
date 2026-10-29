@@ -6,7 +6,7 @@ import org.silkframework.entity._
 import org.silkframework.entity.paths._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformSpec.{RuleSchemata, TargetVocabularyCategory, TargetVocabularyParameter}
-import org.silkframework.rule.input.{TransformInput, Transformer}
+import org.silkframework.rule.input.{RuleBlockInput, TransformInput, Transformer}
 import org.silkframework.rule.vocab.TargetVocabularyParameterEnum
 import org.silkframework.runtime.plugin.StringParameterType.{EnumerationType, StringIterableParameterType}
 import org.silkframework.runtime.plugin._
@@ -15,9 +15,9 @@ import org.silkframework.runtime.plugin.types.{IdentifierOptionParameter, IntOpt
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
-import org.silkframework.runtime.templating.TemplateVariableName
-import org.silkframework.runtime.validation.NotFoundException
-import org.silkframework.util.{Identifier, IdentifierGenerator}
+import org.silkframework.runtime.templating.{TemplateVariableName, TemplateVariables}
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationException}
+import org.silkframework.util.{Identifier, IdentifierGenerator, Uri}
 import org.silkframework.workspace.{OriginalTaskData, TaskLoadingException, WorkspaceReadTrait}
 import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
 
@@ -45,8 +45,10 @@ import scala.collection.immutable.ArraySeq
   description =
       """A transform task defines a mapping from a source structure to a target structure."""
 )
-case class TransformSpec(@Param(label = "Input", value = "The source from which data will be transformed when executed as a stand-alone task outside of a workflow.")
-                         selection: DatasetSelection,
+case class TransformSpec(@Param(label = "Input", value = "The source from which data will be transformed when executed as a stand-alone task outside of a workflow. " +
+                             "If left empty, the input must be provided by connecting it in a workflow. " +
+                             "Note that auto-completion of types and paths is only available if an input is selected here.")
+                         selection: DatasetSelection = DatasetSelection.empty,
                          @Param(label = "", value = "", visibleInDialog = false)
                          mappingRule: RootMappingRule = RootMappingRule.empty,
                          @Param(label = "Output dataset", value = "An optional dataset where the transformation results should be written to when executed" +
@@ -97,7 +99,7 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
   /**
     * The tasks that this task reads from.
     */
-  override def inputTasks: Set[Identifier] = Set(selection.inputId)
+  override def inputTasks: Set[Identifier] = selection.inputTaskId.toSet
 
   /**
     * The tasks that this task writes to.
@@ -108,7 +110,7 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     * The tasks that are directly referenced by this task.
     * This includes input tasks and output tasks.
     */
-  override def referencedTasks: Set[Identifier] = inputTasks ++ outputTasks
+  override def referencedTasks: Set[Identifier] = inputTasks ++ outputTasks ++ referencedRuleBlocks
 
   override lazy val referencedResources: Seq[Resource] = {
     val resources = new mutable.HashSet[Resource]()
@@ -120,15 +122,37 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     updatedResourceOfRule(mappingRule, resource)
   }
 
-  override def referencedVariables: Seq[TemplateVariableName] = {
+  override def referencedVariables: Seq[TemplateVariableName] = collectFromTransformers(_.referencedVariables)
+
+  override def modifiedVariables: Seq[TemplateVariableName] = collectFromTransformers(_.modifiedVariables)
+
+  /** Collects variables from all transformers in the mapping rule tree. */
+  private def collectFromTransformers(f: Transformer => Seq[TemplateVariableName]): Seq[TemplateVariableName] = {
     val variables = mutable.Buffer[TemplateVariableName]()
-    iterateAllTransformersFromRule(mappingRule, _.referencedVariables.foreach(variables.append))
+    iterateAllTransformersFromRule(mappingRule, transformer => variables ++= f(transformer))
     variables.toSeq
   }
+
+  private lazy val referencedRuleBlocks: Set[Identifier] = referencedRuleBlocksFromRule(mappingRule)
 
   private def iterateAllTransformersFromRule(rule: TransformRule, f: Transformer => Unit): Unit = {
     iterateAllTransformersFromOperator(rule.operator, f)
     rule.rules.foreach(rule => iterateAllTransformersFromRule(rule, f))
+  }
+
+  private def referencedRuleBlocksFromRule(rule: TransformRule): Set[Identifier] = {
+    referencedRuleBlocksFromOperator(rule.operator) ++ rule.rules.flatMap(referencedRuleBlocksFromRule)
+  }
+
+  private def referencedRuleBlocksFromOperator(operator: Operator): Set[Identifier] = {
+    operator match {
+      case TransformInput(_, _, inputs) =>
+        inputs.flatMap(referencedRuleBlocksFromOperator).toSet
+      case RuleBlockInput(_, ruleBlockId, bindings) =>
+        bindings.flatMap(binding => referencedRuleBlocksFromOperator(binding.input)).toSet + ruleBlockId
+      case _ =>
+        Set.empty
+    }
   }
 
   private def iterateAllTransformersFromOperator(operator: Operator,
@@ -137,6 +161,8 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
       case TransformInput(_, transformer, inputs) =>
         inputs.foreach(input => iterateAllTransformersFromOperator(input, f))
         f(transformer)
+      case RuleBlockInput(_, _, bindings) =>
+        bindings.foreach(binding => iterateAllTransformersFromOperator(binding.input, f))
       case _ =>
     }
   }
@@ -153,6 +179,8 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
         if(transformer.referencedResources.exists(_.path == resource.path)) {
           transformer.resourceUpdated(resource)
         }
+      case RuleBlockInput(_, _, bindings) =>
+        bindings.foreach(binding => updateResourceOfOperator(binding.input, resource))
       case _ =>
     }
   }
@@ -169,6 +197,16 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     **/
   lazy val ruleSchemataWithoutEmptyObjectRules: Seq[RuleSchemata] = {
     collectSchemata(mappingRule, UntypedPath.empty, UntypedPath.empty, withEmptyObjectRules = false)
+  }
+
+  /**
+    * The schemata of the rule that generates the given target type.
+    *
+    * @throws ValidationException If no rule generates the given type.
+    */
+  def ruleSchemataForTargetType(targetType: Uri): RuleSchemata = {
+    ruleSchemataWithoutEmptyObjectRules.find(_.transformRule.rules.typeRules.map(_.typeUri).contains(targetType))
+      .getOrElse(throw new ValidationException(s"No rule matching target type $targetType found."))
   }
 
   /**
@@ -225,6 +263,24 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     */
   def nestedRuleAndSourcePathWithParents(ruleName: String): List[(TransformRule, List[PathOperator])] = {
     fetchRuleAndSourcePath(mappingRule, ruleName, List.empty)
+  }
+
+  /**
+    * Throws if the given id for a new rule is taken already. Rule ids are unique across the whole
+    * transform and not per parent rule, which is the surprising half, so the message names where the
+    * existing rule sits and states the scope.
+    *
+    * @param ruleName The ID of the rule that should be added.
+    */
+  def validateNewRuleId(ruleName: String): Unit = {
+    nestedRuleAndSourcePathWithParents(ruleName) match {
+      case Nil =>
+      case ruleWithParents =>
+        val parent = ruleWithParents.dropRight(1).lastOption
+          .map(parentRule => s" (under parent '${parentRule._1.id}')").getOrElse("")
+        throw BadUserInputException(s"A rule with id '$ruleName' already exists in this transform$parent. " +
+          "Rule ids must be unique across the whole transform, not just within a parent rule.")
+    }
   }
 
   /** Either the rule itself if it is an object mapping or the parent object mapping if it is a value rule. */
@@ -358,9 +414,19 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
   override def mainActivities: Seq[String] = Seq("ExecuteTransform")
 }
 
-case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData = MetaData.empty) extends Task[TransformSpec] {
+case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData = MetaData.empty, executionVariables: TemplateVariables = TemplateVariables.empty) extends Task[TransformSpec] {
 
   override def taskType: Class[_] = classOf[TransformSpec]
+}
+
+object TransformTask {
+
+  /**
+    * Creates a TransformTask from a generic task, keeping all task properties.
+    */
+  def fromTask(task: Task[TransformSpec]): TransformTask = {
+    TransformTask(task.id, task.data, task.metaData, task.executionVariables)
+  }
 }
 
 /**
@@ -368,7 +434,7 @@ case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData
   */
 object TransformSpec {
 
-  implicit def toTransformTask(task: Task[TransformSpec]): TransformTask = TransformTask(task.id, task.data, task.metaData)
+  implicit def toTransformTask(task: Task[TransformSpec]): TransformTask = TransformTask.fromTask(task)
 
   def empty: TransformSpec = TransformSpec(DatasetSelection.empty, RootMappingRule.empty)
 
@@ -457,7 +523,7 @@ object TransformSpec {
       */
     override def read(node: Node)(implicit readContext: ReadContext): TransformSpec = {
       // Get the required parameters from the XML configuration.
-      val datasetSelection = DatasetSelection.fromXML((node \ "SourceDataset").head)
+      val datasetSelection = (node \ "SourceDataset").headOption.map(DatasetSelection.fromXML).getOrElse(DatasetSelection.empty)
       val sink = (node \ "Outputs" \ "Output" \ "@id").headOption.map(_.text).map(Identifier(_))
       val errorSink = (node \ "ErrorOutputs" \ "ErrorOutput" \ "@id").headOption.map(_.text).map(Identifier(_))
       val targetVocabularyParameter = (node \ "TargetVocabularyCategory").headOption match {

@@ -1,32 +1,17 @@
 package org.silkframework.runtime.templating
 
-import java.util
-import scala.jdk.CollectionConverters.IteratorHasAsJava
-
 /**
-  * An iterable wrapper around sequences of values.
+  * A list wrapper around sequences of values.
+  * Being a Java list makes the values indexable (e.g. 'values[0]') and iterable in templates.
   * Overrides toString for template output.
   */
-class IterableTemplateValues(val values: Seq[String]) extends java.lang.Iterable[String] {
+class IterableTemplateValues(val values: Seq[String]) extends java.util.AbstractList[String] {
+
+  override def get(index: Int): String = values(index)
+
+  override def size(): Int = values.size
 
   override def toString: String = values.mkString("")
-
-  override def iterator(): util.Iterator[String] = {
-    values.iterator.asJava
-  }
-
-  override def equals(obj: Any): Boolean = {
-    obj match {
-      case iterableValues: IterableTemplateValues =>
-        iterableValues.values == this.values
-      case _ =>
-        false
-    }
-  }
-
-  override def hashCode(): Int = {
-    values.hashCode()
-  }
 }
 
 object IterableTemplateValues {

@@ -84,56 +84,57 @@ private abstract class XmlSerializer[TaskType <: TaskSpec : ClassTag] {
     * Reports errors on invalid XML and on invalid expected structure for parsing the task.
     *
     * @param resourceName The name of the resource with the serialized task XML content.
+    * @param taskId       The identifier of the task, taken from the name of its resource. Tasks that cannot be loaded are
+    *                     reported under this identifier.
     * @param resources    The resource loader from which the resource should be loaded from.
     */
   protected def loadTaskSafelyFromXML(resourceName: String,
-                                      alternativeTaskId: Option[Identifier],
+                                      taskId: Identifier,
                                       resources: ResourceLoader)
                                      (implicit xmlFormat: XmlFormat[TaskType], context: PluginContext): LoadedTask[TaskType] = {
     implicit val readContext = ReadContext.fromPluginContext()
-    loadTaskSafelyFromXML(extractTaskMetaData(resources, resourceName), resourceName, alternativeTaskId)
+    loadTaskSafelyFromXML(extractTaskMetaData(resources, resourceName), resourceName, taskId)
   }
 
   protected def loadTaskSafelyFromXML(taskXml: Elem,
                                       resourceName: String,
-                                      alternativeTaskId: Option[Identifier],
+                                      taskId: Identifier,
                                       resources: ResourceLoader)
                                      (implicit xmlFormat: XmlFormat[TaskType], context: PluginContext): LoadedTask[TaskType] = {
     implicit val readContext = ReadContext.fromPluginContext()
-    loadTaskSafelyFromXML(extractTaskMetaData(taskXml), resourceName, alternativeTaskId)
+    loadTaskSafelyFromXML(extractTaskMetaData(taskXml), resourceName, taskId)
   }
 
   protected def loadTaskSafelyFromXML(taskElemWithMetaData: Try[(Option[MetaData], Elem)],
                                       resourceName: String,
-                                      alternativeTaskId: Option[Identifier])
+                                      taskId: Identifier)
                                      (implicit xmlFormat: XmlFormat[TaskType],
                                       readContext: ReadContext): LoadedTask[TaskType] = {
     val taskOrError: Either[TaskLoadingError, Task[TaskType]] =
       taskElemWithMetaData match {
         case Success((metaData, elem)) =>
-          (elem \ "@id").headOption.map(att => Identifier(att.text)).orElse(alternativeTaskId) match {
-            case Some(taskId) =>
-              def loadInternal(parameterValues: ParameterValues, pluginContext: PluginContext): Task[TaskType] = {
-                implicit val taskXmlFormat: XmlFormat[Task[TaskType]] = Task.taskFormat[TaskType]
-                val updatedReadContext = ReadContext.fromPluginContext()(pluginContext).copy(validationEnabled = readContext.validationEnabled, identifierGenerator = readContext.identifierGenerator)
-                val newParameterValues = XmlSerialization.serializeParameters(parameterValues)
-                // Nested parameters are not merged, but overwritten on the top level. As long as the complete parameter is sent and not a deep patch, this should be fine.
-                val updatedElem = new Elem(elem.prefix, elem.label, elem.attributes, elem.scope, false, elem.child ++ newParameterValues : _*)
-                XmlSerialization.fromXml[Task[TaskType]](updatedElem)(taskXmlFormat, updatedReadContext)
-              }
+          if((elem \ "@id").isEmpty) {
+            // Tasks are always serialized with an id, so this can only happen if a user removed it from the XML file.
+            Left(TaskLoadingError(None, taskId,
+              new RuntimeException(s"Could not find 'id' attribute in XML from file $resourceName for task '$taskId'."),
+              factoryFunction = None, originalParameterValues = None))
+          } else {
+            def loadInternal(parameterValues: ParameterValues, pluginContext: PluginContext): Task[TaskType] = {
+              implicit val taskXmlFormat: XmlFormat[Task[TaskType]] = Task.taskFormat[TaskType]
+              val updatedReadContext = ReadContext.fromPluginContext()(pluginContext).copy(validationEnabled = readContext.validationEnabled, identifierGenerator = readContext.identifierGenerator)
+              val newParameterValues = XmlSerialization.serializeParameters(parameterValues)
+              // Nested parameters are not merged, but overwritten on the top level. As long as the complete parameter is sent and not a deep patch, this should be fine.
+              val updatedElem = new Elem(elem.prefix, elem.label, elem.attributes, elem.scope, false, elem.child ++ newParameterValues : _*)
+              XmlSerialization.fromXml[Task[TaskType]](updatedElem)(taskXmlFormat, updatedReadContext)
+            }
 
-              LoadedTask.factory[TaskType](loadInternal, ParameterValues(Map.empty), PluginContext.fromReadContext(readContext),
-                readContext.projectId, taskId, metaData.flatMap(_.label), metaData.flatMap(_.description)).taskOrError
-            case None =>
-              // Nothing we can do here. XML element currently cannot be reloaded. This should only happen if a user actively removes the ID from the XML file.
-              Left(TaskLoadingError(None, alternativeTaskId.getOrElse(s"No ID! Resource:$resourceName"),
-                new RuntimeException(s"Could not find 'id' attribute in XML from file $resourceName${alternativeTaskId.map(n => s" for task '$n'").getOrElse("")}."),
-                factoryFunction = None, originalParameterValues = None))
+            LoadedTask.factory[TaskType](loadInternal, ParameterValues(Map.empty), PluginContext.fromReadContext(readContext),
+              readContext.projectId, taskId, metaData.flatMap(_.label), metaData.flatMap(_.description)).taskOrError
           }
 
         case Failure(ex) =>
-          // Nothing we can do here. XML element currently cannot be reloaded. This should only happen if a user actively removes the ID from the XML file.
-          Left(TaskLoadingError(None, alternativeTaskId.getOrElse(s"No ID! Resource:$resourceName"), ex, factoryFunction = None, originalParameterValues = None))
+          // Nothing we can do here. XML element currently cannot be reloaded.
+          Left(TaskLoadingError(None, taskId, ex, factoryFunction = None, originalParameterValues = None))
       }
     LoadedTask[TaskType](taskOrError)
   }

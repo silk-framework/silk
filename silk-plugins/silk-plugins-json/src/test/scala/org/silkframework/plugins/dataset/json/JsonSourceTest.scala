@@ -4,6 +4,7 @@ package org.silkframework.plugins.dataset.json
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.dataset._
+import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.runtime.activity.TestPluginContextTrait
@@ -305,6 +306,28 @@ abstract class JsonSourceTest extends AnyFlatSpec with Matchers with TestPluginC
     entities.map(_.values).toSeq mustBe Seq(Seq(Seq("Berlin")), Seq(Seq("Hamburg")))
   }
 
+  private val jsonWithEmptyKeys =
+    """[
+      |  {"name": "no empty key", "key": "value"},
+      |  {"name": "empty key", "": "value", "nested": {"": {"ignored": 1}, "kept": 2}}
+      |]""".stripMargin
+
+  it should "ignore empty keys" in {
+    val source = jsonSource(jsonWithEmptyKeys)
+    source.retrievePaths("").map(_.toUntypedPath.normalizedSerialization) mustBe IndexedSeq("name", "key", "nested", "nested/kept")
+    source.retrieveTypes().map(_._1).toSeq mustBe Seq("", "nested")
+    source.collectPaths(Int.MaxValue).map(_.mkString("/")) mustBe Seq("", "name", "key", "nested", "nested/kept")
+  }
+
+  it should "read entities from objects that have empty keys" in {
+    val schema = EntitySchema("", typedPaths = IndexedSeq("name", "key", "nested/kept").map(UntypedPath.parse(_).asStringTypedPath))
+    val entities = jsonSource(jsonWithEmptyKeys).retrieve(schema).entities
+    entities.map(_.values).toSeq mustBe Seq(
+      Seq(Seq("no empty key"), Seq("value"), Seq()),
+      Seq(Seq("empty key"), Seq(), Seq("2"))
+    )
+  }
+
   it should "generate consistent URIs for array values" in {
     val source2 = createSource(resources.get("exampleArrays.json"), "", "")
 
@@ -316,6 +339,16 @@ abstract class JsonSourceTest extends AnyFlatSpec with Matchers with TestPluginC
     entities2.head.values.head mustBe entities3.map(_.uri.uri)
   }
 
+  it should "generate position-based default URIs" in {
+    val source = createSource(resources.get("exampleArrays.json"), "", "")
+    val entities = source.retrieve(EntitySchema("data", typedPaths = IndexedSeq.empty)).entities.toList
+
+    entities.map(_.uri.toString) mustBe Seq(
+      "urn:instance:exampleArraysjson#L3C5",
+      "urn:instance:exampleArraysjson#L4C5"
+    )
+  }
+
   it should "not generate any entities for this object path" in {
     val source = createSource(resources.get("objectPathTest.json"), "", "")
     val entities = source.retrieve(EntitySchema("pathA/pathA", typedPaths = IndexedSeq(UntypedPath("#text").asStringTypedPath))).entities.toList
@@ -324,7 +357,7 @@ abstract class JsonSourceTest extends AnyFlatSpec with Matchers with TestPluginC
 
   it should "work with bulk zip files" in {
     val jsonDataset = createDataset(ReadOnlyResource(resources.get("example.zip")))
-    val source = jsonDataset.source
+    val source = ExecutorRegistry.access(jsonDataset).source
     val paths = source.retrievePaths("persons")
     // Check for merged schema
     paths.map(_.normalizedSerialization) mustBe IndexedSeq("id", "name", "phoneNumbers", "additionalProperty")
@@ -353,7 +386,7 @@ abstract class JsonSourceTest extends AnyFlatSpec with Matchers with TestPluginC
 
   it should "retrieve paths when the asterisk operator is used in the type string" in {
     val jsonDataset = createDataset(ReadOnlyResource(resources.get("example.zip")))
-    val source = jsonDataset.source
+    val source = ExecutorRegistry.access(jsonDataset).source
     source.retrievePaths("persons/*").map(_.serialize()) mustBe IndexedSeq("type", "number")
     source.retrievePaths("*/phoneNumbers").map(_.serialize()) mustBe IndexedSeq("type", "number")
   }

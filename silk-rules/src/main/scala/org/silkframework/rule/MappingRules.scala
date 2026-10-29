@@ -2,6 +2,7 @@ package org.silkframework.rule
 
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.serialization.XmlSerialization.{fromXml, toXml}
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 
 import scala.collection.mutable.ArrayBuffer
@@ -44,8 +45,13 @@ object MappingRules {
   implicit def toSeq(rules: MappingRules): Seq[TransformRule] = rules.allRules
 
   implicit def fromSeq(rules: Seq[TransformRule]): MappingRules = {
+    val uriRules = rules.collect{ case u: UriMapping => u }
+    if(uriRules.size > 1) {
+      throw new ValidationException(s"A mapping rule holds at most one URI rule, but '${uriRules.head.id}' and " +
+        s"'${uriRules(1).id}' were given. Update the existing URI rule instead of adding a second one.")
+    }
     MappingRules(
-      uriRule = rules.collectFirst{ case u: UriMapping => u },
+      uriRule = uriRules.headOption,
       typeRules = rules.collect{ case t: TypeMapping => t },
       propertyRules = rules.filterNot(r => r.isInstanceOf[UriMapping] || r.isInstanceOf[TypeMapping])
     )

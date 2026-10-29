@@ -195,14 +195,14 @@ abstract class XmlSourceTestBase extends AnyFlatSpec with Matchers with TestPlug
     it should s"support retrieving the source position (#line and #column) ($fileName)" in {
       if(isFormatted) {
         (persons atPath "Person/ID" valuesAt "#line") shouldBe Seq(Seq("3"), Seq("25"))
-        (persons atPath "Person/ID" valuesAt "#column") shouldBe Seq(Seq("12"), Seq("12"))
+        (persons atPath "Person/ID" valuesAt "#column") shouldBe Seq(Seq("5"), Seq("5"))
         (persons atPath "Person" valuesAt "Properties/Property/Key/#line") shouldBe Seq(Seq("11", "15", "19"), Seq())
-        (persons atPath "Person" valuesAt "Properties/Property/Key/#column") shouldBe Seq(Seq("14", "26", "15"), Seq())
+        (persons atPath "Person" valuesAt "Properties/Property/Key/#column") shouldBe Seq(Seq("9", "9", "9"), Seq())
       } else {
         (persons atPath "Person/ID" valuesAt "#line") shouldBe Seq(Seq("1"), Seq("9"))
-        (persons atPath "Person/ID" valuesAt "#column") shouldBe Seq(Seq("42"), Seq("26"))
+        (persons atPath "Person/ID" valuesAt "#column") shouldBe Seq(Seq("38"), Seq("22"))
         (persons atPath "Person" valuesAt "Properties/Property/Key/#line") shouldBe Seq(Seq("6", "6", "6"), Seq())
-        (persons atPath "Person" valuesAt "Properties/Property/Key/#column") shouldBe Seq(Seq("32", "91", "147"), Seq())
+        (persons atPath "Person" valuesAt "Properties/Property/Key/#column") shouldBe Seq(Seq("27", "77", "141"), Seq())
       }
     }
   }

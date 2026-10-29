@@ -11,11 +11,12 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, PluginReference}
   id = CurrentDateTransformer.pluginId,
   label = "Current date",
   categories = Array("Date", "Value"),
-  description = "Outputs the current date.",
+  description = "Outputs the current date and time as an xsd:dateTime value, e.g. 2024-05-03T10:15:30.123+02:00. " +
+    "The value is generated at the moment each value is transformed, not once per workflow execution.",
   relatedPlugins = Array(
     new PluginReference(
       id = ParseDateTransformer.pluginId,
-      description = "Current date always outputs today's date, ignoring whatever values it receives. Parse date is input-driven: it reads a date from the input string and converts it according to a configured format."
+      description = "Current date always outputs the current date and time, ignoring whatever values it receives. Parse date is input-driven: it reads a date from the input string and converts it according to a configured format."
     )
   )
 )

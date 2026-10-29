@@ -1,5 +1,5 @@
 package org.silkframework.rule
-
+
 import org.silkframework.config.Prefixes
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -15,6 +15,10 @@ class UriPatternTest extends AnyFlatSpec with Matchers {
   it should "parse patterns with no prefix" in {
     testRoundtrip("{}suffix")
     testRoundtrip("{uri}suffix")
+  }
+
+  it should "parse a bare whole-value pattern" in {
+    testRoundtrip("{}")
   }
 
   def testRoundtrip(uriPattern: String): Unit = {

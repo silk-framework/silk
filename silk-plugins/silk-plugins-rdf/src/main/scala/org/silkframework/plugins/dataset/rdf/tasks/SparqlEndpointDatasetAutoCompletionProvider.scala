@@ -24,7 +24,12 @@ case class SparqlEndpointDatasetAutoCompletionProvider() extends PluginParameter
   override def valueToLabel(value: String, dependOnParameterValues: Seq[ParamValue], workspace: WorkspaceReadTrait)
                            (implicit context: PluginContext): Option[String] = {
     implicit val userContext: UserContext = context.user
-    val projectId = context.projectId.getOrElse(throw new ValidationException("Project not provided"))
-    workspace.project(projectId).taskOption[GenericDatasetSpec](value).flatMap(_.metaData.label)
+    if(value == "") {
+      // No endpoint selected
+      None
+    } else {
+      val projectId = context.projectId.getOrElse(throw new ValidationException("Project not provided"))
+      workspace.project(projectId).taskOption[GenericDatasetSpec](value).flatMap(_.metaData.label)
+    }
   }
 }

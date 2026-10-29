@@ -60,6 +60,16 @@ import scala.math._
     description = "Missing scores always lead to an output of none.",
     inputs = Array(-1.0, Double.NaN, 1.0),
     output = Double.NaN
+  ),
+  new AggregatorExample(
+    description = "If any score is negative (a definite mismatch), the lowest score is returned instead of a link-generating 0.",
+    inputs = Array(-1.0, 1.0),
+    output = -1.0
+  ),
+  new AggregatorExample(
+    description = "The lowest of several negative scores is returned.",
+    inputs = Array(-0.2, -0.5, 1.0),
+    output = -0.5
   )
 ))
 case class GeometricMeanAggregator() extends SimpleAggregator {
@@ -68,18 +78,28 @@ case class GeometricMeanAggregator() extends SimpleAggregator {
     if (values.nonEmpty) {
       var sumWeights = 0
       var weightedProduct = 1.0
+      var minScore = 1.0
 
       for (WeightedSimilarityScore(score, weight) <- values) {
         score match {
           case Some(score) =>
             sumWeights += weight
-            weightedProduct *= pow(score, weight)
+            minScore = min(minScore, score)
+            // The product is only accumulated while all scores are non-negative, since the mismatch branch below discards it.
+            if (minScore >= 0.0) {
+              weightedProduct *= pow(score, weight)
+            }
           case None =>
             return SimilarityScore.none
         }
       }
 
-      SimilarityScore(pow(weightedProduct, 1.0 / sumWeights))
+      if (minScore < 0.0) {
+        // A definite mismatch must stay negative instead of producing a link-generating 0.
+        SimilarityScore(minScore)
+      } else {
+        SimilarityScore(pow(weightedProduct, 1.0 / sumWeights))
+      }
     }
     else {
       SimilarityScore.none

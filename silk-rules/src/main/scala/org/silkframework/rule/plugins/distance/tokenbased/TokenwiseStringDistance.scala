@@ -18,6 +18,7 @@ import java.util.regex.Pattern
 import org.silkframework.entity.Index
 import org.silkframework.rule.plugins.distance.characterbased.{JaroDistanceMetric, JaroWinklerDistance, LevenshteinMetric}
 import org.silkframework.rule.similarity.{NormalizedDistanceMeasure, SingleValueDistanceMeasure, TokenBasedDistanceMeasure}
+import org.silkframework.runtime.plugin.FixedValuesAutoCompletionProvider
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 /**
@@ -87,6 +88,8 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 )
 case class TokenwiseStringDistance(
         ignoreCase: Boolean = true,
+        @Param(value = "The metric used to compare tokens. One of `levenshtein`, `jaro`, `jaroWinkler`.",
+               autoCompletionProvider = classOf[TokenMetricAutoCompletionProvider], allowOnlyAutoCompletedValues = true)
         metricName: String = "levenshtein",
         splitRegex: String =  "[\\s\\d\\p{Punct}]+",
         stopwords: String = "",
@@ -114,8 +117,9 @@ case class TokenwiseStringDistance(
     case _ => throw new IllegalArgumentException("unknown value '" + metricName +"' for parameter 'metricName', must be one of ['levenshtein', 'jaro', 'jaroWinkler')");
   }
 
-  private val documentFrequencies = scala.collection.mutable.Map[String, Int]()
-  private var documentCount = 0
+  // Mutated concurrently by the indexing threads, so both must be thread-safe.
+  private val documentFrequencies = new java.util.concurrent.ConcurrentHashMap[String, Int]()
+  private val documentCount = new java.util.concurrent.atomic.AtomicInteger(0)
 
   private val stopwordsSet = stopwords.split("[,\\s]+").map(x => if (ignoreCase) x.toLowerCase else x).toSet
 
@@ -123,7 +127,7 @@ case class TokenwiseStringDistance(
    * Calculates a jaccard-like aggregation of string similarities of tokens. Order of tokens is not taken into account.
    */
   def tokenize(string1: String): Array[String] = {
-    string1.split(splitRegex).map(x => if (ignoreCase) x.toLowerCase else x).filter(_.length > 0).toArray
+    splitPattern.split(string1).map(x => if (ignoreCase) x.toLowerCase else x).filter(_.length > 0)
   }
 
   override def evaluate(string1: String, string2: String, limit : Double) : Double =
@@ -295,11 +299,11 @@ case class TokenwiseStringDistance(
     if (!useIncrementalIdfWeights) {
       fixedWeight
     } else {
-      val docFreq = documentFrequencies.getOrElse(token,0)
+      val docFreq = documentFrequencies.getOrDefault(token, 0)
       if (docFreq == 0) {
         fixedWeight
       } else {
-        val weight = math.log(documentCount/docFreq.toDouble)
+        val weight = math.log(documentCount.get/docFreq.toDouble)
         math.min(fixedWeight,weight)
       }
     }
@@ -345,9 +349,9 @@ case class TokenwiseStringDistance(
       emptyIndex(limit)
     } else {
       if (useIncrementalIdfWeights){
-        documentCount += 1
+        documentCount.incrementAndGet()
         for (token <- tokens.distinct) {
-          documentFrequencies.put(token, documentFrequencies.getOrElse(token,0) + 1)
+          documentFrequencies.merge(token, 1, (a, b) => a + b)
         }
       }
       //Set(tokens.map(_.hashCode % blockCounts.head).toSeq)
@@ -357,3 +361,11 @@ case class TokenwiseStringDistance(
     }
   }
 }
+
+object TokenwiseStringDistance {
+  /** The supported token comparison metrics. */
+  final val metricNames = Seq("levenshtein", "jaro", "jaroWinkler")
+}
+
+/** Provides autocomplete suggestions for the token comparison metric. */
+case class TokenMetricAutoCompletionProvider() extends FixedValuesAutoCompletionProvider(TokenwiseStringDistance.metricNames)

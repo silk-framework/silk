@@ -2,7 +2,7 @@ package org.silkframework.workspace.xml
 
 import org.silkframework.config._
 import org.silkframework.rule.TransformSpec
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
@@ -31,7 +31,8 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpec] {
     val taskResources = resources.child(data.id)
 
     // Only serialize file paths correctly, paths should not be prefixed
-    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager, prefixes = Prefixes.empty)
+    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager, prefixes = Prefixes.empty,
+      taskResolver = TaskResolver.empty)
 
     val datasetXml = data.selection.toXML(asSource = true, writeContext.prefixes)
     val rulesXml = toXml(data)
@@ -57,12 +58,8 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpec] {
       // Currently the transform spec is distributed in two xml files
       val datasetXml = loadResourceAsXml(taskResources, "dataset.xml")
       val rulesXml = loadResourceAsXml(taskResources, "rules.xml")
-      var xml = rulesXml.copy(child = datasetXml ++ rulesXml.child)
-      // Old XML versions do not contain the id
-      if((xml \ "@id").isEmpty) {
-        xml = xml % Attribute("id", Text(name), Null)
-      }
-      loadTaskSafelyFromXML(xml, resourceName = "rules.xml", alternativeTaskId = Some(name), taskResources)
+      val xml = rulesXml.copy(child = datasetXml ++ rulesXml.child)
+      loadTaskSafelyFromXML(xml, resourceName = "rules.xml", taskId = name, taskResources)
     } catch {
       case NonFatal(ex) =>
         throw new ValidationException(s"Error loading task '$name': ${ex.getMessage}", ex)
