@@ -20,7 +20,7 @@ import scala.util.control.NonFatal
   * Entities that come from a transform task.
   *
   * @param task              The transform task these entities originate from.
-  * @param entities          The source entities the transformation is applied to.
+  * @param entities          The source entities the transformation is applied to. Limited to the input limit of the task, if set.
   * @param ruleExecution     The contextualized container rule that is applied against the source entities.
   * @param outputSchema      The output schema of the transformation.
   * @param isRequestedSchema True, if the output schema was requested by the following task. False if this is the output
@@ -70,8 +70,9 @@ class TransformedEntities(task: Task[TransformSpec],
     var lastCount = 0
     report.addRules(rules)
 
+    val inputEntities = task.data.inputLimit.value.map(entities.take).getOrElse(entities)
     val mappedEntities =
-      for (entity <- entities; mappedEntity <- mapEntity(entity, report)) yield {
+      for (entity <- inputEntities; mappedEntity <- mapEntity(entity, report)) yield {
         if(count < ExecutionReport.SAMPLE_ENTITY_LIMIT) {
           if(count == 1) {
             report.setContainerRule(rule.id.toString, outputSchema)

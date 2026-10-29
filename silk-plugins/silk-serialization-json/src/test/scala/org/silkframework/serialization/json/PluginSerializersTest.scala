@@ -38,7 +38,7 @@ class PluginSerializersTest extends AnyFlatSpec with Matchers {
     stringValue(js, "pluginId") mustBe "transform"
     stringValueOption(js, TASKTYPE) mustBe empty
     val properties = objectValue(js, PROPERTIES)
-    properties.keys mustBe Set("selection", "mappingRule", "output", "errorOutput", "targetVocabularies", "abortIfErrorsOccur")
+    properties.keys mustBe Set("selection", "mappingRule", "output", "errorOutput", "targetVocabularies", "abortIfErrorsOccur", "inputLimit")
     mustBeJsObject(properties.value("selection")) { operatorsParam =>
       stringValue(operatorsParam, "type") mustBe "object"
       stringValue(operatorsParam, "pluginId") mustBe "datasetSelectionParameter"

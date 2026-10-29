@@ -20,8 +20,7 @@ class ExecuteTransform(task: Task[TransformSpec],
                        input: UserContext => DataSource,
                        output: UserContext => EntitySink,
                        errorOutput: UserContext => Option[EntitySink] = _ => None,
-                       pluginContext: UserContext => PluginContext,
-                       limit: Option[Int] = None) extends Activity[TransformReport] {
+                       pluginContext: UserContext => PluginContext) extends Activity[TransformReport] {
 
   private def transform = task.data
 
@@ -88,6 +87,7 @@ class ExecuteTransform(task: Task[TransformSpec],
     errorEntitySink.foreach(_.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get) :+ ErrorOutputWriter.errorProperty, singleEntity))
 
     val entityTable = try {
+      // No limit: TransformedEntities applies the input limit, since some sources (e.g. SPARQL) limit result rows instead of entities.
       dataSource.retrieve(rule.inputSchema)
     } catch {
       case NonFatal(ex) =>
@@ -95,7 +95,6 @@ class ExecuteTransform(task: Task[TransformSpec],
     }
     val transformedEntities = new TransformedEntities(task, entityTable.entities, rule.transformRule.label(), rule.transformRuleExecution, rule.outputSchema,
       isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, report = reportBuilder).iterator
-    var count = 0
     try {
       breakable {
         // No for loop, since CloseableIterator.foreach would close the iterator before the catch below runs
@@ -105,8 +104,7 @@ class ExecuteTransform(task: Task[TransformSpec],
           if(entity.hasFailed) {
             errorEntitySink.foreach(_.writeEntity(entity.uri, entity.values :+ Seq(entity.failure.get.message.getOrElse("Unknown error"))))
           }
-          count += 1
-          if (cancelled || limit.exists(_ <= count)) {
+          if (cancelled) {
             break()
           }
         }
@@ -117,7 +115,7 @@ class ExecuteTransform(task: Task[TransformSpec],
         reportBuilder.executionFailed(ex.getMessage)
         throw ex
     } finally {
-      // Completes this output table in the report and closes the input iterator, also on cancellation or limit.
+      // Completes this output table in the report and closes the input iterator, also on cancellation.
       transformedEntities.close()
     }
     entitySink.closeTable()
