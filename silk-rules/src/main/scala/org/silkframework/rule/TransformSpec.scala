@@ -66,9 +66,8 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
                                 "If false, the execution will continue, adding a validation error to the execution report.")
                          abortIfErrorsOccur: Boolean = false,
                          @Param(label = "Input limit", value = "If set, only the first N input entities are transformed. " +
-                             "Note: for hierarchical mappings, the limit is applied to each level independently. This can lead to inconsistent results between " +
-                             "parent and child tables, because a kept parent entity may reference child entities that were left out (and vice versa). " +
-                             "For this reason, some datasets like XML or JSON might fail during writing.", advanced = true)
+                             "For hierarchical mappings, the limit applies to each level separately, so a kept parent entity may reference child entities that were cut. " +
+                             "Writing to a JSON or XML dataset then fails with 'Could not find entity with URI'; other datasets are written with references to the missing child entities.", advanced = true)
                          inputLimit: IntOptionParameter = None
                         ) extends TaskSpec with AnyPlugin {
 
