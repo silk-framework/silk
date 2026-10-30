@@ -1,5 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { batch, useDispatch, useSelector } from "react-redux";
 import {
     Button,
     Notification,
@@ -14,12 +15,16 @@ import {
     Toolbar,
     ToolbarSection,
 } from "@eccenca/gui-elements";
-import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import { ISearchListRequest, ISearchListResponse } from "@ducks/workspace/requests";
+import { AppDispatch } from "store/configureStore";
+import { GlobalTableContext } from "../../../GlobalContextsWrapper";
 import Loading from "../../shared/Loading";
+import Pagination from "../../shared/Pagination";
 import DeleteModal from "../../shared/modals/DeleteModal";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { useModalError } from "../../../hooks/useModalError";
-import { ErrorResponse } from "../../../services/fetch/responseInterceptor";
+import { ErrorResponse, FetchResponse } from "../../../services/fetch/responseInterceptor";
 import {
     IChangeEntry,
     IRevertOutcome,
@@ -27,14 +32,19 @@ import {
     requestProjectChanges,
     requestRevertChange,
     requestRevertConflicts,
+    searchChanges,
+    STATE_FACET,
+    UNREVIEWED_STATE,
 } from "./changesRequests";
-import { entriesBackTo, hasInverse } from "./changeListUtils";
+import { entriesBackTo, hasInverse, relatedSeqs } from "./changeListUtils";
 import ChangeRow from "./ChangeRow";
 import BatchRevertModal from "./BatchRevertModal";
 
 interface IProps {
     /** Must not change while the list is mounted, as the list keeps the state of its project: key the list by it. */
     projectId: string;
+    /** Whether the page has set the shared search store up for this project; the list fetches only then. */
+    ready?: boolean;
     /** Increment to reload the list from the outside. */
     refreshKey?: number;
 }
@@ -46,18 +56,63 @@ interface IBatchRevert {
     entries: IChangeEntry[];
 }
 
-/** The changes of a project, newest first, with revert actions per entry and review actions for the agent changes. */
-const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
+/** The journal's numbers that come with every page: the latest seq, for marking reviewed, and the unreviewed count. */
+interface IJournalNumbers {
+    latestSeq: number;
+    unreviewed: number;
+}
+
+const PAGE_SIZES = [25, 50, 100];
+
+/** The sort properties of the change search; a property persisted on another page is not sent. */
+const CHANGE_SORT_PROPERTIES = ["time"];
+
+/** The list before the page has taken the store over: one instance, so that an effect keyed on the entries runs once. */
+const NO_ENTRIES: IChangeEntry[] = [];
+
+/**
+ * The changes of a project that match the search store's query, facets and sort, one page at a time, with revert actions
+ * per entry and review actions for the agent changes.
+ */
+const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
     const [t] = useTranslation();
+    const dispatch = useDispatch<AppDispatch>();
     const { registerError } = useErrorHandler();
-    const [entries, setEntries] = React.useState<IChangeEntry[]>([]);
-    const [loading, setLoading] = React.useState<boolean>(true);
+    const results = useSelector(workspaceSel.resultsSelector) as unknown as IChangeEntry[];
+    // Until the page has taken the store over, its results are another page's items
+    const entries = ready ? results : NO_ENTRIES;
+    const isLoading = useSelector(workspaceSel.isLoadingSelector);
+    // The store empties its results while it fetches: the rows of the last answer stay until the next arrives
+    const lastEntries = React.useRef<IChangeEntry[]>(NO_ENTRIES);
+    React.useEffect(() => {
+        if (!isLoading) {
+            lastEntries.current = entries;
+        }
+    }, [isLoading, entries]);
+    const shown = isLoading ? lastEntries.current : entries;
+    const error = useSelector(workspaceSel.errorSelector);
+    const pagination = useSelector(workspaceSel.paginationSelector);
+    const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
+    const appliedFacets = useSelector(workspaceSel.appliedFacetsSelector);
+    const facets = useSelector(workspaceSel.facetsSelector);
+    const { globalTableSettings } = React.useContext(GlobalTableContext);
+    // Settings stored before this page existed lack its key
+    const tableSettings = globalTableSettings["changes"] ?? {};
+    const sortBy =
+        tableSettings.sortBy && CHANGE_SORT_PROPERTIES.includes(tableSettings.sortBy)
+            ? tableSettings.sortBy
+            : undefined;
+    const { sortOrder, pageSize } = tableSettings;
+    const [journal, setJournal] = React.useState<IJournalNumbers>({ latestSeq: 0, unreviewed: 0 });
     const [revertEntry, setRevertEntry] = React.useState<IChangeEntry | undefined>(undefined);
+    // The entry the pointer is on: its related entries on the page are highlighted with it
+    const [hoveredSeq, setHoveredSeq] = React.useState<number | undefined>(undefined);
     const [revertLoading, setRevertLoading] = React.useState<boolean>(false);
     const [revertError, setRevertError] = React.useState<ErrorResponse | undefined>(undefined);
-    const [markReviewedOpen, setMarkReviewedOpen] = React.useState<boolean>(false);
+    // The seq the pending review marks reviewed up to: the latest fetched one for 'mark all', an entry's for 'up to here'
+    const [markReviewedUpTo, setMarkReviewedUpTo] = React.useState<number | undefined>(undefined);
     const [batchRevert, setBatchRevert] = React.useState<IBatchRevert | undefined>(undefined);
-    // Why the entries of the shown page cannot be reverted now, by seq; asked per page, not for the whole journal
+    // Why the entries of the shown page cannot be reverted now, by seq; asked per page
     const [conflicts, setConflicts] = React.useState<Map<number, string>>(new Map());
     const conflictsRequest = React.useRef(0);
     const [reviewLoading, setReviewLoading] = React.useState<boolean>(false);
@@ -65,42 +120,55 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
         { intent: "success" | "warning"; text: string } | undefined
     >(undefined);
     const displayRevertError = useModalError({ setError: setRevertError });
-    const [pagination, paginationElement, onTotalChange] = usePagination({
-        pageSizes: [25, 50, 100],
-        initialPageSize: 25,
-    });
 
-    const loadChanges = React.useCallback(async () => {
-        setLoading(true);
-        try {
-            const response = await requestProjectChanges(projectId);
-            setEntries(response.data.changes);
-            onTotalChange(response.data.changes.length);
-        } catch (ex) {
-            registerError("ChangeList.loadChanges", t("pages.changes.errors.fetchChanges"), ex);
-        } finally {
-            setLoading(false);
+    /** Answers the store's search with the journal's page, keeping the numbers that come with it. */
+    const fetcher = React.useCallback(
+        async (payload: ISearchListRequest): Promise<FetchResponse<ISearchListResponse>> => {
+            try {
+                const response = await searchChanges(projectId, payload);
+                setJournal({ latestSeq: response.data.latestSeq, unreviewed: response.data.unreviewed });
+                // The entries take the place of the search items in the store
+                return response as unknown as FetchResponse<ISearchListResponse>;
+            } catch (ex) {
+                // The store shows the detail of an error, which a fetch error holds in its response
+                throw ex?.errorResponse ?? ex;
+            }
+        },
+        [projectId],
+    );
+
+    const loadChanges = () => dispatch(workspaceOp.fetchListAsync({ sortBy, sortOrder, pageSize }, fetcher));
+
+    // Fetched again whenever the query, a facet, the sort or the page changes
+    React.useEffect(() => {
+        if (ready) {
+            loadChanges();
         }
-    }, [projectId, refreshKey]);
+    }, [
+        ready,
+        fetcher,
+        pagination.current,
+        pagination.limit,
+        appliedFilters,
+        appliedFacets,
+        sortBy,
+        sortOrder,
+        pageSize,
+        refreshKey,
+    ]);
 
+    // Asked again whenever the page changes; an answer that a later request has overtaken is dropped
     React.useEffect(() => {
-        loadChanges();
-    }, [loadChanges]);
-
-    /** The entries of the current page. */
-    const pageOf = (all: IChangeEntry[]): IChangeEntry[] =>
-        all.slice((pagination.current - 1) * pagination.limit, pagination.current * pagination.limit);
-
-    // Asked again whenever the list or the page changes; an answer that a later request has overtaken is dropped
-    React.useEffect(() => {
-        const request = ++conflictsRequest.current;
-        const seqs = pageOf(entries)
-            .filter(hasInverse)
-            .map((entry) => entry.seq);
+        const seqs = entries.filter(hasInverse).map((entry) => entry.seq);
         if (seqs.length === 0) {
-            setConflicts(new Map());
+            // While a page loads, the rows still shown keep their reasons, an answer under way included
+            if (!isLoading) {
+                conflictsRequest.current++;
+                setConflicts(new Map());
+            }
             return;
         }
+        const request = ++conflictsRequest.current;
         (async () => {
             try {
                 const answer = await requestRevertConflicts(projectId, seqs);
@@ -115,7 +183,7 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                 }
             }
         })();
-    }, [entries, pagination.current, pagination.limit]);
+    }, [entries]);
 
     const openRevertDialog = (entry: IChangeEntry) => {
         setRevertError(undefined);
@@ -138,21 +206,75 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
         }
     };
 
-    const unreviewedEntries = entries.filter((entry) => entry.unreviewed);
-    const latestSeq = Math.max(...entries.map((entry) => entry.seq));
+    /** The filters are on: what the page shows is a selection, not the journal. */
+    const filtered = !!appliedFilters.textQuery || appliedFacets.length > 0;
+
+    /**
+     * The unreviewed entries the current query and facets match, as the state facet counts them. The facet counts its
+     * own values as if it were not applied, so a state facet applied without the unreviewed value hides them all.
+     */
+    const stateFacet = appliedFacets.find((facet) => facet.facetId === STATE_FACET);
+    const shownUnreviewed =
+        stateFacet && !stateFacet.keywordIds.includes(UNREVIEWED_STATE)
+            ? 0
+            : (facets.find((facet) => facet.id === STATE_FACET)?.values.find((value) => value.id === UNREVIEWED_STATE)
+                  ?.count ?? 0);
+    /** The unreviewed entries a filter hides: marking reviewed would approve them unseen. */
+    const hiddenUnreviewed = filtered ? Math.max(0, journal.unreviewed - shownUnreviewed) : 0;
+    const markReviewedBlocker =
+        hiddenUnreviewed > 0 ? t("pages.changes.markReviewed.hidden", { count: hiddenUnreviewed }) : undefined;
 
     const markReviewed = async () => {
+        if (markReviewedUpTo == null) {
+            return;
+        }
         setReviewLoading(true);
         try {
-            // The latest fetched seq, so that entries that arrived after the page rendered are never approved unseen.
-            await requestMarkReviewed(projectId, latestSeq);
-            setMarkReviewedOpen(false);
+            await requestMarkReviewed(projectId, markReviewedUpTo);
+            setMarkReviewedUpTo(undefined);
             await loadChanges();
         } catch (ex) {
             registerError("ChangeList.markReviewed", t("pages.changes.errors.markReviewed"), ex);
-            setMarkReviewedOpen(false);
+            setMarkReviewedUpTo(undefined);
         } finally {
             setReviewLoading(false);
+        }
+    };
+
+    /** The unreviewed entries the current query and facets match, all of them, newest first. */
+    const unreviewedEntries = async (): Promise<IChangeEntry[]> => {
+        const stateFacet = { facetId: STATE_FACET, type: "keyword", keywordIds: [UNREVIEWED_STATE] };
+        const response = await searchChanges(projectId, {
+            textQuery: appliedFilters.textQuery,
+            facets: [...appliedFacets.filter((facet) => facet.facetId !== STATE_FACET), stateFacet],
+            limit: 0,
+        });
+        return response.data.results;
+    };
+
+    const openRevertUnreviewed = async () => {
+        try {
+            setBatchRevert({
+                title: t("pages.changes.revertAll.title"),
+                confirmText: t("pages.changes.revertAll.confirmText"),
+                entries: await unreviewedEntries(),
+            });
+        } catch (ex) {
+            registerError("ChangeList.loadUnreviewed", t("pages.changes.errors.fetchChanges"), ex);
+        }
+    };
+
+    /** Back to before an entry: the entries from it upwards, which the page may not hold, come from the journal. */
+    const openRevertBack = async (entry: IChangeEntry) => {
+        try {
+            const fromEntry = (await requestProjectChanges(projectId, entry.seq)).data.changes;
+            setBatchRevert({
+                title: t("pages.changes.revertBack.title", { seq: entry.seq }),
+                confirmText: t("pages.changes.revertBack.confirmText"),
+                entries: entriesBackTo(fromEntry, entry.seq),
+            });
+        } catch (ex) {
+            registerError("ChangeList.loadNewer", t("pages.changes.errors.fetchChanges"), ex);
         }
     };
 
@@ -188,36 +310,37 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
         setRevertAllSummary(revertAllSummaryText(results));
     };
 
-    /** The row of an entry; the latest entry has nothing newer, so no state before it to return to. */
-    const changeRow = (entry: IChangeEntry): React.ReactNode => {
-        const backTo = entry.seq !== latestSeq ? entriesBackTo(entries, entry.seq) : undefined;
-        return (
-            <ChangeRow
-                key={entry.seq}
-                entry={entry}
-                conflict={conflicts.get(entry.seq)}
-                revertBackEntries={backTo}
-                onRevert={() => openRevertDialog(entry)}
-                onRevertBack={() =>
-                    backTo &&
-                    setBatchRevert({
-                        title: t("pages.changes.revertBack.title", { seq: entry.seq }),
-                        confirmText: t("pages.changes.revertBack.confirmText"),
-                        entries: backTo,
-                    })
-                }
-            />
-        );
+    const handlePaginationOnChange = (page: number, pageSize: number) => {
+        batch(() => {
+            dispatch(workspaceOp.changeLimitOp(pageSize));
+            dispatch(workspaceOp.changePageOp(page));
+        });
     };
 
-    if (loading && !entries.length) {
+    const related = hoveredSeq != null ? relatedSeqs(shown, hoveredSeq) : new Set<number>();
+
+    /** The row of an entry: an unreviewed one can be marked reviewed up to; the latest has nothing newer, so no state before it to return to. */
+    const changeRow = (entry: IChangeEntry): React.ReactNode => (
+        <ChangeRow
+            key={entry.seq}
+            entry={entry}
+            conflict={conflicts.get(entry.seq)}
+            searchValue={appliedFilters.textQuery}
+            related={related.has(entry.seq)}
+            onHover={(hovered) => setHoveredSeq(hovered ? entry.seq : undefined)}
+            onRevert={() => openRevertDialog(entry)}
+            onRevertBack={entry.seq !== journal.latestSeq ? () => openRevertBack(entry) : undefined}
+            onMarkReviewed={entry.unreviewed ? () => setMarkReviewedUpTo(entry.seq) : undefined}
+            markReviewedBlocker={markReviewedBlocker}
+        />
+    );
+
+    if (!ready || (isLoading && !shown.length)) {
         return <Loading description={t("pages.changes.loading")} />;
     }
-
-    if (!entries.length) {
-        return <Notification message={t("pages.changes.noChanges")} />;
+    if (error?.detail) {
+        return <Notification intent="danger" message={error.detail} />;
     }
-
     return (
         <>
             {revertAllSummary && (
@@ -228,54 +351,59 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                     <Spacing size="small" />
                 </>
             )}
-            {unreviewedEntries.length > 0 && (
+            {journal.unreviewed > 0 && (
                 <>
                     <Toolbar noWrap>
                         <ToolbarSection canGrow canShrink>
-                            {t("pages.changes.unreviewedInfo", { count: unreviewedEntries.length })}
+                            {t("pages.changes.unreviewedInfo", { count: journal.unreviewed })}
                         </ToolbarSection>
                         <ToolbarSection>
                             <Button
                                 data-test-id={"changes-revert-unreviewed-btn"}
                                 disruptive
                                 text={t("pages.changes.revertAll.button")}
-                                onClick={() =>
-                                    setBatchRevert({
-                                        title: t("pages.changes.revertAll.title"),
-                                        confirmText: t("pages.changes.revertAll.confirmText"),
-                                        entries: unreviewedEntries,
-                                    })
-                                }
+                                onClick={openRevertUnreviewed}
                             />
                             <Spacing vertical size="small" />
                             <Button
                                 data-test-id={"changes-mark-reviewed-btn"}
                                 text={t("pages.changes.markReviewed.button")}
-                                onClick={() => setMarkReviewedOpen(true)}
+                                disabled={markReviewedBlocker != null}
+                                tooltip={markReviewedBlocker}
+                                // Up to the latest fetched seq, so that entries that arrived after the page rendered are never approved unseen
+                                onClick={() => setMarkReviewedUpTo(journal.latestSeq)}
                             />
                         </ToolbarSection>
                     </Toolbar>
                     <Spacing size="small" />
                 </>
             )}
-            <TableContainer>
-                <Table columnWidths={["50px", "14%", "18%", "56%", "130px"]}>
-                    <TableHead>
-                        <TableRow>
-                            <TableHeader>{t("pages.changes.column.seq")}</TableHeader>
-                            <TableHeader>{t("pages.changes.column.date")}</TableHeader>
-                            <TableHeader>{t("pages.changes.column.user")}</TableHeader>
-                            <TableHeader>{t("pages.changes.column.change")}</TableHeader>
-                            <TableHeader>{""}</TableHeader>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>{pageOf(entries).map(changeRow)}</TableBody>
-                </Table>
-            </TableContainer>
-            {entries.length > Math.min(pagination.total, pagination.minPageSize) && (
+            {!shown.length ? (
+                <Notification message={t(filtered ? "pages.changes.noMatch" : "pages.changes.noChanges")} />
+            ) : (
+                <TableContainer>
+                    <Table columnWidths={["50px", "14%", "18%", "56%", "130px"]}>
+                        <TableHead>
+                            <TableRow>
+                                <TableHeader>{t("pages.changes.column.seq")}</TableHeader>
+                                <TableHeader>{t("pages.changes.column.date")}</TableHeader>
+                                <TableHeader>{t("pages.changes.column.user")}</TableHeader>
+                                <TableHeader>{t("pages.changes.column.change")}</TableHeader>
+                                <TableHeader>{""}</TableHeader>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>{shown.map(changeRow)}</TableBody>
+                    </Table>
+                </TableContainer>
+            )}
+            {pagination.total > Math.min(...PAGE_SIZES) && (
                 <>
                     <Spacing size="small" />
-                    {paginationElement}
+                    <Pagination
+                        pagination={pagination}
+                        pageSizes={PAGE_SIZES}
+                        onChangeSelect={handlePaginationOnChange}
+                    />
                 </>
             )}
             {revertEntry && (
@@ -308,13 +436,13 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                     onReverted={batchReverted}
                 />
             )}
-            {markReviewedOpen && (
+            {markReviewedUpTo != null && (
                 <SimpleDialog
                     data-test-id={"changes-mark-reviewed-modal"}
                     size="small"
                     title={t("pages.changes.markReviewed.title")}
                     isOpen={true}
-                    onClose={() => setMarkReviewedOpen(false)}
+                    onClose={() => setMarkReviewedUpTo(undefined)}
                     actions={[
                         <Button
                             key="confirm"
@@ -325,12 +453,16 @@ const ChangeList = ({ projectId, refreshKey = 0 }: IProps) => {
                         >
                             {t("common.action.confirm")}
                         </Button>,
-                        <Button key="cancel" onClick={() => setMarkReviewedOpen(false)} disabled={reviewLoading}>
+                        <Button key="cancel" onClick={() => setMarkReviewedUpTo(undefined)} disabled={reviewLoading}>
                             {t("common.action.cancel")}
                         </Button>,
                     ]}
                 >
-                    <p>{t("pages.changes.markReviewed.confirmText")}</p>
+                    <p>
+                        {markReviewedUpTo === journal.latestSeq
+                            ? t("pages.changes.markReviewed.confirmText")
+                            : t("pages.changes.markReviewed.confirmUpToText", { seq: markReviewedUpTo })}
+                    </p>
                 </SimpleDialog>
             )}
         </>

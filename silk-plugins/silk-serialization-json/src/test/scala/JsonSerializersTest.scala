@@ -540,6 +540,15 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers with ConfigTestTrai
     rule.target.get.valueType shouldBe ValueType.STRING
   }
 
+  it should "not keep an inputId equal to the rule id of a value mapping, as simplify does not" in {
+    def direct(inputId: String): DirectMapping = {
+      JsonSerialization.fromJson[TransformRule](Json.obj(TYPE -> "direct", ID -> "name", "sourcePath" -> "name",
+        "mappingTarget" -> Json.obj(URI -> "https://ex.org/name"), "inputId" -> inputId)).asInstanceOf[DirectMapping]
+    }
+    direct("name").inputId shouldBe None
+    direct("namePath").inputId.map(_.toString) shouldBe Some("namePath")
+  }
+
   it should "default the target valueType of a root mapping rule to a URI" in {
     val json =
       Json.obj(
