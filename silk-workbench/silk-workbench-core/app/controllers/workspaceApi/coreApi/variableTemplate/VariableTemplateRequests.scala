@@ -19,7 +19,7 @@ trait VariableTemplateRequest {
 
   def task: Option[String]
 
-  /** Whether the variable being edited is sensitive, for a variable that is not saved yet. A saved one is recognized by its name. */
+  /** Whether the variable being edited is sensitive, as set in the editor. If not given, a saved variable is recognized by its name. */
   def variableIsSensitive: Option[Boolean]
 
   /**
@@ -46,9 +46,9 @@ trait VariableTemplateRequest {
     }
   }
 
-  /** True if the variable being edited is sensitive, by the request or as saved in the given scope, so that it may reference sensitive siblings. */
+  /** True if the variable being edited is sensitive, by the request or else as saved in the given scope, so that it may reference sensitive siblings. */
   protected def validatesSensitiveVariable(scopeVariables: TemplateVariables): Boolean = {
-    variableIsSensitive.getOrElse(false) || variableName.exists(name => scopeVariables.map.get(name).exists(_.isSensitive))
+    variableIsSensitive.getOrElse(variableName.exists(name => scopeVariables.map.get(name).exists(_.isSensitive)))
   }
 
 }
@@ -88,7 +88,7 @@ case class ValidateVariableTemplateRequest(templateString: String,
         invalid(SensitiveVariableReferenceException.message(withheld, otherMissing))
       case ex: UnboundVariablesException if variableName.isDefined && ex.missingVars.size == 1 =>
         // Check if the variable is unbound because it is defined after the current one
-        Try(collectVariables(ignoreVariableName = true).resolveTemplateValue(templateString, evaluationConfig)) match {
+        Try(collectVariables(ignoreVariableName = true).resolveMaskedTemplateValue(templateString, evaluationConfig)) match {
           case _: Success[_] =>
             invalid(s"'${ex.missingVars.head}' cannot be used because it's defined after '${variableName.get}'.")
           case _: Failure[_] =>
@@ -126,9 +126,9 @@ case class ValidateVariableTemplateRequest(templateString: String,
 
   /** Whether the validated variable is sensitive, by the request flag or as saved under its name. */
   private def isSensitiveVariable()(implicit user: UserContext): Boolean = {
-    variableIsSensitive.getOrElse(false) || project.exists { projectName =>
+    variableIsSensitive.getOrElse(project.exists { projectName =>
       variableName.isDefined && validatesSensitiveVariable(WorkspaceFactory().workspace.project(projectName).variablesManager(task).all)
-    }
+    })
   }
 
   /**

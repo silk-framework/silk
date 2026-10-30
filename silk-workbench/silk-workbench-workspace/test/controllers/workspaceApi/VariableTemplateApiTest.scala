@@ -448,6 +448,9 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     val sensitiveValidation = validateTemplate(ValidateVariableTemplateRequest(token.template.get, Some(projectName), variableName = Some(token.name)))
     sensitiveValidation.parseError shouldBe None
     sensitiveValidation.evaluatedTemplate shouldBe Some(TemplateVariables.SensitiveValuePlaceholder)
+    // Unless the editor switches it to non-sensitive
+    val switchedOff = validateTemplate(ValidateVariableTemplateRequest("{{project.password}}", Some(projectName), variableName = Some(token.name), variableIsSensitive = Some(false)))
+    switchedOff.parseError.map(_.message) shouldBe Some(sensitivityMessage)
     autoCompleteTemplate(projectName, variableName = Some(token.name)) should contain allOf("project.password", "project.user")
     autoCompleteTemplate(projectName, variableName = Some(derived.name)) should contain noneOf("project.password", "project.user")
     // A sensitive sibling defined after it is reported as such, not as withheld

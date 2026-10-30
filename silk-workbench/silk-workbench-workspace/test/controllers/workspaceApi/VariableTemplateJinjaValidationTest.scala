@@ -6,14 +6,15 @@ import org.scalatest.matchers.should.Matchers
 import org.silkframework.plugins.templating.jinja.JinjaTemplateEngine
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ClassPluginDescription, InvalidPluginParameterValueException, ParameterStringValue, ParameterTemplateValue, ParameterValues, TestPluginContext}
-import org.silkframework.runtime.templating.TemplateVariables
+import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables, VariableScope}
 import org.silkframework.util.ConfigTestTrait
+import org.silkframework.workspace.{ProjectConfig, TestWorkspaceProviderTestTrait, WorkspaceFactory}
 
 /**
   * Tests template validation with the Jinja engine.
   * Complements [[VariableTemplateApiTest]], which runs on the simple substitution engine.
   */
-class VariableTemplateJinjaValidationTest extends AnyFlatSpec with Matchers with ConfigTestTrait {
+class VariableTemplateJinjaValidationTest extends AnyFlatSpec with Matchers with ConfigTestTrait with TestWorkspaceProviderTestTrait {
 
   behavior of "variable template validation with the Jinja engine"
 
@@ -23,6 +24,8 @@ class VariableTemplateJinjaValidationTest extends AnyFlatSpec with Matchers with
     "config.variables.global.secret.value" -> Some("s3cret"),
     "config.variables.global.secret.isSensitive" -> Some("true")
   )
+
+  override def workspaceProviderId = "inMemoryWorkspaceProvider"
 
   private implicit val user: UserContext = UserContext.Empty
 
@@ -81,6 +84,18 @@ class VariableTemplateJinjaValidationTest extends AnyFlatSpec with Matchers with
     }
     error.getMessage should include (template)
     error.getMessage should not include "s3cret"
+  }
+
+  it should "check on the masked values whether a variable is defined after the validated one" in {
+    val projectName = "jinja-defined-after"
+    val project = WorkspaceFactory().workspace.createProject(ProjectConfig(projectName))
+    project.templateVariables.put(TemplateVariables(Seq(
+      TemplateVariable("password", "s3cret", None, None, isSensitive = true, VariableScope.project),
+      TemplateVariable("token", "t", None, None, isSensitive = true, VariableScope.project),
+      TemplateVariable("laterVar", "l", None, None, isSensitive = false, VariableScope.project))))
+    // On the real value, the answer would depend on whether the secret is a number
+    val response = ValidateVariableTemplateRequest("{{ project.laterVar }}{{ 5 | add(project.password) }}", Some(projectName), variableName = Some("token")).execute()
+    response.parseError.map(_.message) shouldBe Some("'project.laterVar' cannot be used because it's defined after 'token'.")
   }
 
   private def validate(template: String, lenient: Boolean): VariableTemplateValidationResponse = {
