@@ -2,7 +2,7 @@ package org.silkframework.runtime.templating
 
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.templating.TemplateVariable.TemplateVariableFormat
-import org.silkframework.runtime.templating.exceptions.{SensitiveVariableReferenceException, TemplateEvaluationException, TemplateVariableEvaluationException, TemplateVariablesEvaluationException, UnboundVariablesException}
+import org.silkframework.runtime.templating.exceptions.{SensitiveVariableReferenceException, TemplateEvaluationException, TemplateSyntaxException, TemplateVariableEvaluationException, TemplateVariablesEvaluationException, UnboundVariablesException}
 import org.silkframework.runtime.validation.BadUserInputException
 
 import java.io.StringWriter
@@ -153,6 +153,34 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
     TemplateVariables(variables.filterNot(_.isSensitive))
   }
 
+  /**
+   * Resolves a template whose value is displayed or passed on, such as previews, task property lists and the task JSON.
+   * Sensitive variables carry [[TemplateVariables.SensitiveValuePlaceholder]] instead of their value.
+   * A template that references a sensitive variable and fails on the placeholder, e.g. because it computes with the
+   * value, resolves to the placeholder as a whole.
+   *
+   * @throws TemplateEvaluationException If the template evaluation failed for another reason.
+   */
+  def resolveMaskedTemplateValue(template: String, evaluationConfig: EvaluationConfig = EvaluationConfig()): String = {
+    val masked = TemplateVariables(variables.map(variable => if (variable.isSensitive) variable.copy(value = TemplateVariables.SensitiveValuePlaceholder) else variable))
+    try {
+      masked.resolveTemplateValue(template, evaluationConfig)
+    } catch {
+      case ex @ (_: TemplateSyntaxException | _: UnboundVariablesException) =>
+        throw ex
+      case _: TemplateEvaluationException if referencesSensitiveVariable(template) =>
+        TemplateVariables.SensitiveValuePlaceholder
+    }
+  }
+
+  private def referencesSensitiveVariable(template: String): Boolean = {
+    val sensitiveNames = variables.filter(_.isSensitive).map(_.scopedName).toSet
+    GlobalTemplateVariablesConfig.templateEngine().compile(template).variables match {
+      case Some(referenced) => referenced.exists(name => sensitiveNames.contains(name.scopedName))
+      case None => sensitiveNames.nonEmpty
+    }
+  }
+
   private def validate(): Unit = {
     val duplicateNames = variables.groupBy(_.scopedName).filter(_._2.size > 1).keys
     if (duplicateNames.nonEmpty) {
@@ -165,6 +193,9 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
 object TemplateVariables {
 
   def empty: TemplateVariables = TemplateVariables(Seq.empty)
+
+  /** The value that stands in for a sensitive variable in evaluated templates that are displayed. */
+  final val SensitiveValuePlaceholder = "••••••"
 
   /**
     * The preceding variables of the same scope that a variable may reference in its template.

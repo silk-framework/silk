@@ -92,13 +92,15 @@ case class ParameterValues(values: Map[String, ParameterValue]) extends Paramete
   /**
     * Converts the root parameter values to a string map.
     * Nested values are ignored.
+    * Sensitive variables are masked, see [[TemplateVariables.resolveMaskedTemplateValue]].
     */
   def toStringMap(implicit pluginContext: PluginContext): Map[String, String] = {
+    lazy val templateVariables = pluginContext.templateVariables.all
     values.collect {
       case (key, ParameterStringValue(value)) =>
         (key, value)
       case (key, template: ParameterTemplateValue) =>
-        (key, template.evaluate(pluginContext.templateVariables.all))
+        (key, templateVariables.resolveMaskedTemplateValue(template.template))
     }
   }
 

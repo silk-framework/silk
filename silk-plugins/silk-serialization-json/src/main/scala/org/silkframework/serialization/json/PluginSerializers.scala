@@ -70,13 +70,14 @@ object PluginSerializers {
 
     private def writeParameters(params: ParameterValues, failOnInvalidTemplates: Boolean)
                                (implicit writeContext: WriteContext[JsValue]): JsObject = {
+      lazy val templateVariables = writeContext.templateVariables.all
       JsObject(
         params.values.collect {
           case (key, ParameterStringValue(strValue)) =>
             (key, JsString(strValue))
           case (key, template: ParameterTemplateValue) =>
             try {
-              (key, JsString(template.evaluate(writeContext.templateVariables.all)))
+              (key, JsString(templateVariables.resolveMaskedTemplateValue(template.template)))
             } catch {
               case _: TemplateEvaluationException if !failOnInvalidTemplates =>
                 (key, JsString(""))

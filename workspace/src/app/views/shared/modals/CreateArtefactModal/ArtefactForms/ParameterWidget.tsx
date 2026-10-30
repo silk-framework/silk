@@ -288,6 +288,7 @@ export const ParameterWidget = (props: IProps) => {
                 infoMessage={errorText ? errorText : (dependencyReviewMessage ?? infoHelperText)}
                 infoMessageDanger={!!errorText}
                 parameterType={propertyDetails.parameterType}
+                allowSensitiveVariables={propertyDetails.allowSensitiveVariables}
                 highlightForReview={dependencyReviewHighlighted}
                 supportVariableTemplateElement={{
                     onChange: changeHandlers[formParamId],

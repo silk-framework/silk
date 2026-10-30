@@ -74,6 +74,8 @@ interface Props {
         defaultValue?: string | number | boolean | OptionallyLabelledParameter<string | number | boolean>;
     };
     parameterType?: string;
+    /** If templates of this parameter may use sensitive variables. Password parameters always may. */
+    allowSensitiveVariables?: boolean;
     highlightForReview?: boolean;
 }
 
@@ -83,6 +85,7 @@ export const ArtefactFormParameter = ({
     parameterId,
     label,
     parameterType,
+    allowSensitiveVariables = false,
     required = false,
     infoMessage,
     // Default is that the info message is an error
@@ -227,7 +230,7 @@ export const ArtefactFormParameter = ({
                             // The preview of template parameters cannot resolve unknown variables, e.g. input attributes or execution variables
                             noteUnresolvedVariables={isTemplateInputType && !showVariableTemplateInput}
                             intent={inputIntent}
-                            allowSensitiveVariables={isPasswordInput}
+                            allowSensitiveVariables={isPasswordInput || allowSensitiveVariables}
                             // If the parameter is a template parameter, the validation is not aware in general what variables exist
                             ignoreUnboundVariables={isTemplateInputType && !showVariableTemplateInput}
                         />

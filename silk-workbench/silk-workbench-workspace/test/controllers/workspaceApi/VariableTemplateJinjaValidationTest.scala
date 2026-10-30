@@ -5,6 +5,8 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.silkframework.plugins.templating.jinja.JinjaTemplateEngine
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.{ClassPluginDescription, InvalidPluginParameterValueException, ParameterStringValue, ParameterTemplateValue, ParameterValues, TestPluginContext}
+import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.util.ConfigTestTrait
 
 /**
@@ -17,7 +19,9 @@ class VariableTemplateJinjaValidationTest extends AnyFlatSpec with Matchers with
 
   override def propertyMap: Map[String, Option[String]] = Map(
     "config.variables.engine" -> Some(JinjaTemplateEngine.id),
-    "config.variables.global.myVar" -> Some("globalValue")
+    "config.variables.global.myVar" -> Some("globalValue"),
+    "config.variables.global.secret.value" -> Some("s3cret"),
+    "config.variables.global.secret.isSensitive" -> Some("true")
   )
 
   private implicit val user: UserContext = UserContext.Empty
@@ -64,6 +68,19 @@ class VariableTemplateJinjaValidationTest extends AnyFlatSpec with Matchers with
     validate("{{ global.myVar.trim() ~ 'x' }}", lenient = true).valid shouldBe true
     // Property access does not resolve on variable values, so it is reported
     validate("{{ global.myVar.length }}", lenient = true).valid shouldBe false
+  }
+
+  it should "keep sensitive values out of the preview and the errors of parameter templates that compute with them" in {
+    val template = "{{ 5 | add(global.secret) }}"
+    val preview = ValidateVariableTemplateRequest(template, includeSensitiveVariables = Some(true)).execute()
+    preview.valid shouldBe true
+    preview.evaluatedTemplate shouldBe Some(TemplateVariables.SensitiveValuePlaceholder)
+    val error = intercept[InvalidPluginParameterValueException] {
+      ClassPluginDescription(classOf[VariablesTestTask])(ParameterValues(Map(
+        "title" -> ParameterStringValue("T"), "year" -> ParameterStringValue("2002"), "secretContent" -> ParameterTemplateValue(template))))(TestPluginContext())
+    }
+    error.getMessage should include (template)
+    error.getMessage should not include "s3cret"
   }
 
   private def validate(template: String, lenient: Boolean): VariableTemplateValidationResponse = {

@@ -44,10 +44,13 @@ trait PluginParameter {
   /** Is this an advanced parameter that should only be changed by experienced users. */
   def advanced: Boolean = false
 
-  /**  */
+  /** True, if it can be edited in the UI plugin dialogs. */
   def visibleInDialog: Boolean = true
 
-  /** True, if it can be edited in the UI plugin dialogs. */
+  /** True, if templates of this parameter may resolve sensitive variables, like password parameters do. */
+  def allowSensitiveVariables: Boolean = false
+
+  /** The parameter auto-completion, if any. */
   def autoCompletion: Option[ParameterAutoCompletion] = None
 
   /**
@@ -90,6 +93,7 @@ trait PluginParameter {
   * @param advanced     Is this an advanced parameter that should only be changed by experienced users.
   * @param visibleInDialog True, if it can be edited in the UI plugin dialogs.
   * @param autoCompletion The parameter auto-completion object.
+  * @param allowSensitiveVariables True, if templates of this parameter may resolve sensitive variables.
   */
 case class ClassPluginParameter(override val name: String,
                                 override val parameterType: ParameterType[_],
@@ -99,7 +103,8 @@ case class ClassPluginParameter(override val name: String,
                                 override val exampleValue: Option[AnyRef] = None,
                                 override val advanced: Boolean = false,
                                 override val visibleInDialog: Boolean = true,
-                                override val autoCompletion: Option[ParameterAutoCompletion] = None) extends PluginParameter {
+                                override val autoCompletion: Option[ParameterAutoCompletion] = None,
+                                override val allowSensitiveVariables: Boolean = false) extends PluginParameter {
 
   /**
     * Retrieves the current value of this parameter.

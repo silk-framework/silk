@@ -15,7 +15,11 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.{CustomTask, InputPorts, Port}
+import org.silkframework.runtime.plugin.annotations.Param
 import org.silkframework.runtime.plugin.{ClassPluginDescription, ParameterTemplateValue, ParameterValues, PluginContext, PluginRegistry}
+import org.silkframework.runtime.serialization.WriteContext
+import org.silkframework.serialization.json.TaskPropertyDto
+import controllers.workspaceApi.routes.{SearchApi => SearchApiRoutes}
 import org.silkframework.runtime.templating.exceptions.{CannotDeleteUsedVariableException, InvalidScopeException, TemplateVariablesEvaluationException}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.{ConfigTestTrait, Identifier}
@@ -359,6 +363,28 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
 
     // The dependency check must list the task for the referenced variable without errors
     variablesDependencies(projectName, "year").dependentTasks.map(_.id) shouldBe Seq(taskName)
+  }
+
+  it should "resolve sensitive variables in parameters that allow them, but mask them in previews, properties and the search" in {
+    val projectName = "variables-test-masked"
+    val secretValue = "very-secret-masked"
+    val taskName = "maskedTask"
+    val masked = "key=" + TemplateVariables.SensitiveValuePlaceholder
+    val project = createProjectWithVariablesTask(projectName, taskName,
+      projectVariables = Seq(projectVariable("password", secretValue, isSensitive = true)),
+      taskParameters = Map("title" -> "T", "year" -> "2002", "secretContent" -> "key={{project.password}}"))
+    // The plugin holds the value
+    project.task[VariablesTestTask](taskName).data.secretContent shouldBe "key=" + secretValue
+    // The preview of a parameter template that includes sensitive variables shows the placeholder
+    val preview = validateTemplate(ValidateVariableTemplateRequest("key={{project.password}}", Some(projectName), includeSensitiveVariables = Some(true)))
+    preview.valid shouldBe true
+    preview.evaluatedTemplate shouldBe Some(masked)
+    // The task property list and the task JSON show the placeholder and the search does not match the value
+    TaskPropertyDto.fromTask(project.task[VariablesTestTask](taskName))(WriteContext.fromProject(project)) should contain (TaskPropertyDto("secretContent", masked))
+    val taskResponse = checkResponse(createRequest(controllers.workspace.routes.TaskApi.getTask(projectName, taskName)).addHttpHeaders("Accept" -> "application/json").get())
+    (taskResponse.json \ "data" \ "parameters" \ "secretContent").as[String] shouldBe masked
+    val search = checkResponse(createRequest(SearchApiRoutes.search()).post(Json.obj("project" -> projectName, "searchTerm" -> secretValue)))
+    search.json.as[Seq[JsValue]] shouldBe empty
   }
 
   it should "not disclose sensitive parent variables when retrieving variables" in {
@@ -1108,7 +1134,8 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
   }
 }
 
-case class VariablesTestTask(title: String, year: Int, referenced: String = "", variableReference: String = "") extends CustomTask {
+case class VariablesTestTask(title: String, year: Int, referenced: String = "", variableReference: String = "",
+                             @Param(value = "May hold a secret.", allowSensitiveVariables = true) secretContent: String = "") extends CustomTask {
   require(year >= 0, "year cannot be negative")
 
   override def inputPorts: InputPorts = InputPorts.NoInputPorts

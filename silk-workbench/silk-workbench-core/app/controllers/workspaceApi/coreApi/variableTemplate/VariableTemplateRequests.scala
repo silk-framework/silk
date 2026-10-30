@@ -65,7 +65,13 @@ case class ValidateVariableTemplateRequest(templateString: String,
     }
     val isWithheldSensitive = withheldSensitiveVariable()
     try {
-      val evaluatedTemplate = variables.resolveTemplateValue(templateString, evaluationConfig)
+      // Sensitive variables are included for parameter templates, whose preview must not show their values
+      val evaluatedTemplate =
+        if (includeSensitiveVariables.getOrElse(false)) {
+          variables.resolveMaskedTemplateValue(templateString, evaluationConfig)
+        } else {
+          variables.resolveTemplateValue(templateString, evaluationConfig)
+        }
       valid(Some(evaluatedTemplate))
     } catch {
       case ex: UnboundVariablesException if ex.missingVars.exists(isWithheldSensitive) =>
