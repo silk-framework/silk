@@ -94,9 +94,18 @@ export type NewComplexMappingRule = PartialBy<IComplexMappingRule, "id" | "metad
 
 // Mapping rule editor parameter types
 
+export interface AlternativeSaveResult {
+    /** Use this rule for subsequent reloads. Omitting it restores the normal reload behavior. */
+    ruleToCache?: NewComplexMappingRule;
+}
+
 interface RuleToBeEdited {
-    /** The alternative save function, since the rule cannot be saved in the backend directly. If no function is given, the normal save function for existing rules is used. */
-    alternativeSave: undefined | ((updatedRule: NewComplexMappingRule) => void | Promise<void>);
+    /** Overrides the normal backend save. Return ruleToCache to opt in to local reloads; throw or reject on failure. */
+    alternativeSave:
+        | undefined
+        | ((
+              updatedRule: NewComplexMappingRule,
+          ) => void | AlternativeSaveResult | Promise<void | AlternativeSaveResult>);
 }
 
 export interface InitialRuleHighlighting {
