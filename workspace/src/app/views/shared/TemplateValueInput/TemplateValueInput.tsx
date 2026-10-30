@@ -142,7 +142,9 @@ const TemplateValueInput = React.forwardRef(
                     >
                         {showVariableTemplateInput ? (
                             <TemplateInputComponent
-                                initialValue={valueStateRef.current.templateValueBeforeSwitch ?? ""}
+                                // Remounting validates the current template again when the sensitivity changes
+                                key={variableIsSensitive ? "sensitive" : "notSensitive"}
+                                initialValue={valueStateRef.current.currentTemplateValue ?? ""}
                                 onTemplateValueChange={onTemplateValueChange}
                                 setValidationError={setValidationError}
                                 evaluatedValueMessage={setTemplateInfoMessage}

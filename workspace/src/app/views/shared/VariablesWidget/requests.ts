@@ -31,7 +31,7 @@ export const getVariables = (
  */
 export const updateVariable = (payload, project: string, name: string, task?: string): Promise<FetchResponse<any>> =>
     fetch({
-        url: coreApi(`/variableTemplate/variables/${name}`),
+        url: coreApi(`/variableTemplate/variables/${encodeURIComponent(name)}`),
         query: {
             project,
             task,
@@ -49,7 +49,7 @@ export const updateVariable = (payload, project: string, name: string, task?: st
  */
 export const deleteVariableRequest = (project: string, name: string, task?: string) =>
     fetch({
-        url: coreApi(`/variableTemplate/variables/${name}`),
+        url: coreApi(`/variableTemplate/variables/${encodeURIComponent(name)}`),
         query: {
             project,
             name,
@@ -76,7 +76,7 @@ export const getVariableDependencies = (
     task?: string,
 ): Promise<FetchResponse<VariableDependencies>> =>
     fetch({
-        url: coreApi(`/variableTemplate/variables/${variable}/dependencies`),
+        url: coreApi(`/variableTemplate/variables/${encodeURIComponent(variable)}/dependencies`),
         query: { project, task },
         method: "get",
     });

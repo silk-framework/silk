@@ -127,6 +127,12 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
         return error;
     }, [name, valueState, keepsSensitiveValue]);
 
+    React.useEffect(() => {
+        if (keepsSensitiveValue) {
+            setValidationError((prevError) => prevError && { ...prevError, valueOrTemplate: undefined });
+        }
+    }, [keepsSensitiveValue]);
+
     /**
      * handles name input changes and ensures no duplicated variable names
      */
