@@ -15,7 +15,7 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.templating.exceptions._
 import org.silkframework.workspace.variables.{DeleteVariableModification, UpdateVariableModification, UpdateVariablesModification}
 import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables, TemplateVariablesManager, VariableScope}
-import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
 import org.silkframework.serialization.json.{JsonHelpers, TemplateVariableJson, TemplateVariablesJson}
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.workflow.Workflow
@@ -156,7 +156,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
 
   @Operation(
     summary = "Put variables",
-    description = "Updates all variables at a specific scope.",
+    description = "Updates all variables at a specific scope. Sensitive variables have to be sent with their value or template, since the GET endpoints omit them.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -201,7 +201,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
 
   @Operation(
     summary = "Get variable",
-    description = "Retrieves a single variable by name. The value and template of a sensitive variable are omitted.",
+    description = "Retrieves a single variable by name. The value and template of a sensitive variable are omitted, as is the value of a variable whose template cannot be resolved.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -244,7 +244,8 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                   )
                   task: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
       val project = WorkspaceFactory().workspace.project(projectName)
-      Ok(Json.toJson(TemplateVariableJson.masked(project.variablesManager(task).get(variableName))))
+      val (variables, _) = ResolvedVariablesJson(project.variablesManager(task), masked = true)
+      Ok(Json.toJson(variables.find(_.name == variableName).getOrElse(throw new NotFoundException(s"No variable '$variableName' has been found."))))
   }
 
   @Operation(

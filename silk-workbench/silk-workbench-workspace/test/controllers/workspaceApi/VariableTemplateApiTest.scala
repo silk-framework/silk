@@ -550,6 +550,8 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     scopeJson.variables.map(v => (v.name, v.value)) shouldBe projectJson.variables.get.map(v => (v.name, v.value))
     scopeJson.errors.map(_.map(_.variableName)) shouldBe Some(Seq("dbUrl", "api2"))
     projectJson.errors.get.head.message should include("'project.password' is sensitive")
+    // And so does the endpoint for a single variable
+    checkResponse(createRequest(TemplateApi.getVariable(projectName, "dbUrl", None)).get()).body should not include secretValue
 
     // The error of a sensitive variable is not reported verbatim, since it may quote the template
     project.templateVariables.put(TemplateVariables(Seq(password, derived,
