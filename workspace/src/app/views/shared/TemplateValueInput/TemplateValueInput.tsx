@@ -16,6 +16,10 @@ interface TemplateValueInputProps {
     /** ID of the input component. */
     parameterId?: string;
     existingVariableName?: string;
+    /** True if the variable being edited is sensitive, so that its preview is masked and it may reference sensitive siblings. */
+    variableIsSensitive?: boolean;
+    /** False if the value may stay empty, e.g. to keep the stored value of a sensitive variable. Default: true. */
+    required?: boolean;
     /** take note of any error found */
     handleCheckTemplateErrors?: (error) => void;
     /** modal validation errors */
@@ -33,6 +37,8 @@ const TemplateValueInput = React.forwardRef(
             messageText,
             parameterId = "template-value-input",
             existingVariableName,
+            variableIsSensitive,
+            required = true,
             handleCheckTemplateErrors,
             setModalError,
         }: TemplateValueInputProps,
@@ -43,6 +49,8 @@ const TemplateValueInput = React.forwardRef(
         const [templateInfoMessage, setTemplateInfoMessage] = React.useState<string>();
         const [showRareActions, setShowRareActions] = React.useState(false);
         const showRareElementState = React.useRef<{ timeout?: number }>({});
+        const requiredRef = React.useRef<boolean>(required);
+        requiredRef.current = required;
         const [t] = useTranslation();
 
         React.useEffect(() => {
@@ -72,9 +80,10 @@ const TemplateValueInput = React.forwardRef(
                 setModalError &&
                     setModalError((prevError) => ({
                         ...prevError,
-                        valueOrTemplate: !val.length
-                            ? t("widget.VariableWidget.formErrors.mustProvideValOrTemplate")
-                            : undefined,
+                        valueOrTemplate:
+                            requiredRef.current && !val.length
+                                ? t("widget.VariableWidget.formErrors.mustProvideValOrTemplate")
+                                : undefined,
                     }));
             },
             [setModalError],
@@ -111,7 +120,7 @@ const TemplateValueInput = React.forwardRef(
                 labelProps={{
                     htmlFor: "value",
                     text: t("widget.VariableWidget.form.value"),
-                    info: t("common.words.required"),
+                    info: required ? t("common.words.required") : undefined,
                 }}
                 intent={hasStateDanger || !!validationError ? "danger" : undefined}
                 messageText={messageText || validationError || templateInfoMessage}
@@ -141,6 +150,7 @@ const TemplateValueInput = React.forwardRef(
                                 taskId={taskId}
                                 parameterId={parameterId}
                                 variableName={existingVariableName}
+                                variableIsSensitive={variableIsSensitive}
                                 handleTemplateErrors={handleCheckTemplateErrors}
                                 ignoreUnboundVariables={false}
                             />

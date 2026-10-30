@@ -284,6 +284,8 @@ interface TemplateInputComponentProps {
     noteUnresolvedVariables?: boolean;
     /** optional parameter to make correct suggestions for when an existing variable is edited **/
     variableName?: string;
+    /** True if the variable being edited is sensitive: its preview is masked and it may reference sensitive siblings. */
+    variableIsSensitive?: boolean;
     handleTemplateErrors?: (error?: string) => any;
     multiline?: boolean;
     allowSensitiveVariables?: boolean;
@@ -306,6 +308,7 @@ export const TemplateInputComponent = memo(
         projectId,
         taskId,
         variableName,
+        variableIsSensitive,
         handleTemplateErrors,
         multiline,
         allowSensitiveVariables,
@@ -315,6 +318,8 @@ export const TemplateInputComponent = memo(
     }: TemplateInputComponentProps) => {
         const currentUB = React.useRef<boolean>(ignoreUnboundVariables);
         currentUB.current = ignoreUnboundVariables;
+        const currentSensitive = React.useRef<boolean | undefined>(variableIsSensitive);
+        currentSensitive.current = variableIsSensitive;
         const modalContext = React.useContext(CreateArtefactModalContext);
         const { registerError: globalErrorHandler } = useErrorHandler();
         const [t] = useTranslation();
@@ -355,6 +360,7 @@ export const TemplateInputComponent = memo(
                         variableName,
                         allowSensitiveVariables,
                         taskId,
+                        currentSensitive.current,
                     )
                 ).data;
             } catch (error) {
@@ -379,6 +385,7 @@ export const TemplateInputComponent = memo(
                             allowSensitiveVariables,
                             currentUB.current,
                             taskId,
+                            currentSensitive.current,
                         )
                     ).data;
                     const evaluatedValueKey =

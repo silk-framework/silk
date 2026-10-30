@@ -5,13 +5,14 @@ import {
     IconButton,
     Notification,
     SimpleDialog,
+    Switch,
     TextArea,
     TextField,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Variable } from "../typing";
-import { createNewVariable, updateVariable } from "../requests";
+import { updateVariable } from "../requests";
 import TemplateValueInput from "../../../../views/shared/TemplateValueInput/TemplateValueInput";
 import { ErrorResponse } from "../../../../services/fetch/responseInterceptor";
 import { useModalError } from "../../../../hooks/useModalError";
@@ -71,6 +72,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
     const [loading, setLoading] = React.useState<boolean>(false);
     const [name, setName] = React.useState<string>("");
     const [description, setDescription] = React.useState<string>("");
+    const [isSensitive, setIsSensitive] = React.useState<boolean>(targetVariable?.isSensitive ?? false);
     const [showModalHelperText, setShowModalHelperText] = React.useState<boolean>(false);
     const [validationError, setValidationError] = React.useState<Partial<{ name: string; valueOrTemplate: string }>>();
     const [templateError, setTemplateError] = React.useState<ErrorResponse | undefined>();
@@ -79,6 +81,8 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
     const checkAndDisplaySubmitRequestError = useModalError({ setError: setSubmitRequestError });
     const [t] = useTranslation();
     const isEditMode = targetVariable;
+    // The value of a sensitive variable is not sent to the client, so an empty value keeps the stored one while it stays sensitive
+    const keepsSensitiveValue = !!targetVariable?.isSensitive && isSensitive;
 
     const valueState = React.useRef<ValueStateRef>({
         // Input value needs to be undefined, so it gets set to the default value
@@ -95,6 +99,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
     React.useEffect(() => {
         setName(targetVariable?.name ?? "");
         setDescription(targetVariable?.description ?? "");
+        setIsSensitive(targetVariable?.isSensitive ?? false);
         valueState.current = {
             inputValueBeforeSwitch: targetVariable?.value ?? "",
             templateValueBeforeSwitch: targetVariable?.template ?? "",
@@ -112,13 +117,15 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
         const error = {
             name: !name.length ? t("widget.VariableWidget.formErrors.nameMustBeSpecified") : undefined,
             valueOrTemplate:
-                !valueState.current.currentInputValue?.length && !valueState.current.currentTemplateValue?.length
+                !keepsSensitiveValue &&
+                !valueState.current.currentInputValue?.length &&
+                !valueState.current.currentTemplateValue?.length
                     ? t("widget.VariableWidget.formErrors.mustProvideValOrTemplate")
                     : undefined,
         };
         setValidationError(error);
         return error;
-    }, [name, valueState]);
+    }, [name, valueState, keepsSensitiveValue]);
 
     /**
      * handles name input changes and ensures no duplicated variable names
@@ -143,6 +150,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
     const resetModalState = React.useCallback(() => {
         setName("");
         setDescription("");
+        setIsSensitive(false);
         clearErrors();
         setValidationError(undefined);
         valueState.current = {
@@ -171,19 +179,11 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                 value: (isTemplate ? null : currentInputValue) || null,
                 description,
                 template: (isTemplate ? valueState.current.currentTemplateValue : null) || null,
-                isSensitive: targetVariable?.isSensitive ?? false,
+                isSensitive,
                 scope: taskId ? "execution" : "project",
             };
 
-            isEditMode
-                ? await updateVariable(formPayload, projectId, name, taskId)
-                : await createNewVariable(
-                      {
-                          variables: [...variables, formPayload],
-                      },
-                      projectId,
-                      taskId,
-                  );
+            await updateVariable(formPayload, projectId, name, taskId);
 
             resetModalState();
             refresh();
@@ -196,7 +196,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
         } finally {
             setLoading(false);
         }
-    }, [name, valueState, description, taskId, isEditMode, targetVariable]);
+    }, [name, valueState, description, isSensitive, taskId, validationChecker]);
 
     const handleModalClose = React.useCallback(() => {
         closeModal();
@@ -278,9 +278,26 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                     projectId={projectId}
                     taskId={taskId}
                     existingVariableName={targetVariable?.name}
+                    variableIsSensitive={isSensitive}
+                    required={!keepsSensitiveValue}
+                    helperText={keepsSensitiveValue ? t("widget.VariableWidget.form.keepSensitiveValue") : undefined}
                     setModalError={setValidationError}
                     handleCheckTemplateErrors={handleCheckTemplateErrors}
                 />
+                <FieldItem
+                    labelProps={{
+                        htmlFor: "sensitive",
+                        text: t("widget.VariableWidget.form.sensitive", "Sensitive"),
+                    }}
+                    helperText={t("widget.VariableWidget.form.sensitiveDescription")}
+                >
+                    <Switch
+                        id="sensitive"
+                        data-test-id="variable-sensitive-switch"
+                        checked={isSensitive}
+                        onChange={setIsSensitive}
+                    />
+                </FieldItem>
                 <FieldItem
                     labelProps={{
                         htmlFor: "description",

@@ -22,30 +22,7 @@ export const getVariables = (
     });
 
 /**
- * Add a new variable
- *
- * @param payload
- * @param project
- * @param task
- * @returns
- */
-export const createNewVariable = (
-    payload,
-    project: string,
-    task?: string,
-): Promise<FetchResponse<{ variables: Variable[] }>> =>
-    fetch({
-        url: coreApi("/variableTemplate/variables"),
-        query: {
-            project,
-            task,
-        },
-        method: "post",
-        body: payload,
-    });
-
-/**
- * Update a single variable
+ * Add or update a single variable
  * @param project
  * @param name
  * @param payload

@@ -19,6 +19,9 @@ trait VariableTemplateRequest {
 
   def task: Option[String]
 
+  /** Whether the variable being edited is sensitive, for a variable that is not saved yet. A saved one is recognized by its name. */
+  def variableIsSensitive: Option[Boolean]
+
   /**
     * Collects all variables given the optional project, task, and variable name.
     * Unless sensitive variables are included, sensitive parents are withheld and sensitive siblings are only
@@ -43,9 +46,9 @@ trait VariableTemplateRequest {
     }
   }
 
-  /** True if the variable being edited exists in the given scope and is sensitive, so that it may reference sensitive siblings. */
+  /** True if the variable being edited is sensitive, by the request or as saved in the given scope, so that it may reference sensitive siblings. */
   protected def validatesSensitiveVariable(scopeVariables: TemplateVariables): Boolean = {
-    variableName.exists(name => scopeVariables.map.get(name).exists(_.isSensitive))
+    variableIsSensitive.getOrElse(false) || variableName.exists(name => scopeVariables.map.get(name).exists(_.isSensitive))
   }
 
 }
@@ -55,7 +58,8 @@ case class ValidateVariableTemplateRequest(templateString: String,
                                            variableName: Option[String] = None,
                                            task: Option[String] = None,
                                            includeSensitiveVariables: Option[Boolean] = None,
-                                           ignoreUnboundVariables: Option[Boolean] = None) extends VariableTemplateRequest {
+                                           ignoreUnboundVariables: Option[Boolean] = None,
+                                           variableIsSensitive: Option[Boolean] = None) extends VariableTemplateRequest {
   private val evaluationConfig: EvaluationConfig = EvaluationConfig(ignoreUnboundVariables = ignoreUnboundVariables.getOrElse(false))
 
   def execute()(implicit user: UserContext): VariableTemplateValidationResponse = {
@@ -65,10 +69,14 @@ case class ValidateVariableTemplateRequest(templateString: String,
     }
     val isWithheldSensitive = withheldSensitiveVariable()
     try {
-      // Sensitive variables are included for parameter templates, whose preview must not show their values
+      // Sensitive variables are included for parameter templates, whose preview must not show their values.
+      // The value of a sensitive variable is not shown either, only its errors.
       val evaluatedTemplate =
         if (includeSensitiveVariables.getOrElse(false)) {
           variables.resolveMaskedTemplateValue(templateString, evaluationConfig)
+        } else if (isSensitiveVariable()) {
+          variables.resolveMaskedTemplateValue(templateString, evaluationConfig)
+          TemplateVariables.SensitiveValuePlaceholder
         } else {
           variables.resolveTemplateValue(templateString, evaluationConfig)
         }
@@ -113,6 +121,13 @@ case class ValidateVariableTemplateRequest(templateString: String,
         if (validatesSensitiveVariable(scopeVariables)) _ => false else scopeVariables.isSensitiveMember
       case _ =>
         _ => false
+    }
+  }
+
+  /** Whether the validated variable is sensitive, by the request flag or as saved under its name. */
+  private def isSensitiveVariable()(implicit user: UserContext): Boolean = {
+    variableIsSensitive.getOrElse(false) || project.exists { projectName =>
+      variableName.isDefined && validatesSensitiveVariable(WorkspaceFactory().workspace.project(projectName).variablesManager(task).all)
     }
   }
 
@@ -196,7 +211,8 @@ case class AutoCompleteVariableTemplateRequest(inputString: String,
                                                project: Option[String] = None,
                                                variableName: Option[String] = None,
                                                task: Option[String] = None,
-                                               includeSensitiveVariables: Option[Boolean] = None) extends AutoSuggestAutoCompletionRequest with VariableTemplateRequest {
+                                               includeSensitiveVariables: Option[Boolean] = None,
+                                               variableIsSensitive: Option[Boolean] = None) extends AutoSuggestAutoCompletionRequest with VariableTemplateRequest {
   def execute()(implicit user: UserContext): AutoSuggestAutoCompletionResponse = {
     AutoCompleteVariableTemplateRequest.suggestions(this, collectVariables(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false)).variableNames)
   }
