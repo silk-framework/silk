@@ -310,6 +310,28 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     (json4 \ "taskId").as[String] shouldBe taskName
   }
 
+  it should "not allow turning a variable sensitive while a task uses it where sensitive variables are not allowed" in {
+    val projectName = "variables-test-turn-sensitive"
+    val taskName = "turnSensitiveTask"
+    val project = createProjectWithVariablesTask(projectName, taskName,
+      projectVariables = Seq(projectVariable("title", "T"), projectVariable("base", "2002"), projectVariable("ref", "r"), projectVariable("secret", "s")),
+      taskParameters = Map("title" -> "{{project.title}}", "year" -> "{{execution.derived}}", "variableReference" -> "project.ref",
+        "secretContent" -> "{{project.secret}}"),
+      taskExecutionVariables = TemplateVariables(Seq(
+        TemplateVariable("derived", "2002", Some("{{project.base}}"), None, isSensitive = false, VariableScope.execution))))
+
+    // Neither a normal parameter template, an execution-variable template nor a template in the task data may use a sensitive variable
+    for (name <- Seq("title", "base", "ref")) {
+      val ex = the[RequestFailedException] thrownBy putVariable(projectName, project.templateVariables.all.map(name).copy(isSensitive = true))
+      (ex.response.json \ "taskId").as[String] shouldBe taskName
+      project.templateVariables.all.map(name).isSensitive shouldBe false
+    }
+    // A parameter that allows sensitive variables may, and the task keeps its value
+    putVariable(projectName, project.templateVariables.all.map("secret").copy(isSensitive = true))
+    project.templateVariables.all.map("secret").isSensitive shouldBe true
+    project.anyTask(taskName).data.asInstanceOf[VariablesTestTask].secretContent shouldBe "s"
+  }
+
   it should "resolve execution variable templates referencing project variables and other execution variables" in {
     val projectName = "variables-test-task-2"
     val taskName = "testTask2"
