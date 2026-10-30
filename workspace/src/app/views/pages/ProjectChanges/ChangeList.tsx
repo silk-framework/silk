@@ -109,7 +109,8 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
     const [hoveredSeq, setHoveredSeq] = React.useState<number | undefined>(undefined);
     const [revertLoading, setRevertLoading] = React.useState<boolean>(false);
     const [revertError, setRevertError] = React.useState<ErrorResponse | undefined>(undefined);
-    const [markReviewedOpen, setMarkReviewedOpen] = React.useState<boolean>(false);
+    // The seq the pending review marks reviewed up to: the latest fetched one for 'mark all', an entry's for 'up to here'
+    const [markReviewedUpTo, setMarkReviewedUpTo] = React.useState<number | undefined>(undefined);
     const [batchRevert, setBatchRevert] = React.useState<IBatchRevert | undefined>(undefined);
     // Why the entries of the shown page cannot be reverted now, by seq; asked per page
     const [conflicts, setConflicts] = React.useState<Map<number, string>>(new Map());
@@ -218,19 +219,23 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
             ? 0
             : (facets.find((facet) => facet.id === STATE_FACET)?.values.find((value) => value.id === UNREVIEWED_STATE)
                   ?.count ?? 0);
-    /** The unreviewed entries a filter hides: marking all as reviewed would approve them unseen. */
+    /** The unreviewed entries a filter hides: marking reviewed would approve them unseen. */
     const hiddenUnreviewed = filtered ? Math.max(0, journal.unreviewed - shownUnreviewed) : 0;
+    const markReviewedBlocker =
+        hiddenUnreviewed > 0 ? t("pages.changes.markReviewed.hidden", { count: hiddenUnreviewed }) : undefined;
 
     const markReviewed = async () => {
+        if (markReviewedUpTo == null) {
+            return;
+        }
         setReviewLoading(true);
         try {
-            // The latest fetched seq, so that entries that arrived after the page rendered are never approved unseen.
-            await requestMarkReviewed(projectId, journal.latestSeq);
-            setMarkReviewedOpen(false);
+            await requestMarkReviewed(projectId, markReviewedUpTo);
+            setMarkReviewedUpTo(undefined);
             await loadChanges();
         } catch (ex) {
             registerError("ChangeList.markReviewed", t("pages.changes.errors.markReviewed"), ex);
-            setMarkReviewedOpen(false);
+            setMarkReviewedUpTo(undefined);
         } finally {
             setReviewLoading(false);
         }
@@ -314,7 +319,7 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
 
     const related = hoveredSeq != null ? relatedSeqs(shown, hoveredSeq) : new Set<number>();
 
-    /** The row of an entry; the latest entry has nothing newer, so no state before it to return to. */
+    /** The row of an entry: an unreviewed one can be marked reviewed up to; the latest has nothing newer, so no state before it to return to. */
     const changeRow = (entry: IChangeEntry): React.ReactNode => (
         <ChangeRow
             key={entry.seq}
@@ -325,6 +330,8 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
             onHover={(hovered) => setHoveredSeq(hovered ? entry.seq : undefined)}
             onRevert={() => openRevertDialog(entry)}
             onRevertBack={entry.seq !== journal.latestSeq ? () => openRevertBack(entry) : undefined}
+            onMarkReviewed={entry.unreviewed ? () => setMarkReviewedUpTo(entry.seq) : undefined}
+            markReviewedBlocker={markReviewedBlocker}
         />
     );
 
@@ -361,13 +368,10 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
                             <Button
                                 data-test-id={"changes-mark-reviewed-btn"}
                                 text={t("pages.changes.markReviewed.button")}
-                                disabled={hiddenUnreviewed > 0}
-                                tooltip={
-                                    hiddenUnreviewed > 0
-                                        ? t("pages.changes.markReviewed.hidden", { count: hiddenUnreviewed })
-                                        : undefined
-                                }
-                                onClick={() => setMarkReviewedOpen(true)}
+                                disabled={markReviewedBlocker != null}
+                                tooltip={markReviewedBlocker}
+                                // Up to the latest fetched seq, so that entries that arrived after the page rendered are never approved unseen
+                                onClick={() => setMarkReviewedUpTo(journal.latestSeq)}
                             />
                         </ToolbarSection>
                     </Toolbar>
@@ -432,13 +436,13 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
                     onReverted={batchReverted}
                 />
             )}
-            {markReviewedOpen && (
+            {markReviewedUpTo != null && (
                 <SimpleDialog
                     data-test-id={"changes-mark-reviewed-modal"}
                     size="small"
                     title={t("pages.changes.markReviewed.title")}
                     isOpen={true}
-                    onClose={() => setMarkReviewedOpen(false)}
+                    onClose={() => setMarkReviewedUpTo(undefined)}
                     actions={[
                         <Button
                             key="confirm"
@@ -449,12 +453,16 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
                         >
                             {t("common.action.confirm")}
                         </Button>,
-                        <Button key="cancel" onClick={() => setMarkReviewedOpen(false)} disabled={reviewLoading}>
+                        <Button key="cancel" onClick={() => setMarkReviewedUpTo(undefined)} disabled={reviewLoading}>
                             {t("common.action.cancel")}
                         </Button>,
                     ]}
                 >
-                    <p>{t("pages.changes.markReviewed.confirmText")}</p>
+                    <p>
+                        {markReviewedUpTo === journal.latestSeq
+                            ? t("pages.changes.markReviewed.confirmText")
+                            : t("pages.changes.markReviewed.confirmUpToText", { seq: markReviewedUpTo })}
+                    </p>
                 </SimpleDialog>
             )}
         </>

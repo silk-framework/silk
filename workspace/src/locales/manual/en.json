@@ -726,10 +726,12 @@
             },
             "markReviewed": {
                 "button": "Mark all as reviewed",
-                "hidden": "Unreviewed changes hidden by the current search: {{count}}. Clear it to mark all as reviewed.",
-                "hidden_plural": "Unreviewed changes hidden by the current search: {{count}}. Clear it to mark all as reviewed.",
+                "action": "Mark as reviewed up to here",
+                "hidden": "Unreviewed changes hidden by the current search: {{count}}. Clear it to mark changes as reviewed.",
+                "hidden_plural": "Unreviewed changes hidden by the current search: {{count}}. Clear it to mark changes as reviewed.",
                 "title": "Mark changes as reviewed",
-                "confirmText": "Mark all listed changes as reviewed?"
+                "confirmText": "Mark all listed changes as reviewed?",
+                "confirmUpToText": "Mark change #{{seq}} and all older changes as reviewed?"
             },
             "revertAll": {
                 "button": "Revert unreviewed",

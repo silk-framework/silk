@@ -406,6 +406,21 @@ describe("Project changes", () => {
         });
     });
 
+    it("should mark reviewed up to an unreviewed change from its menu", async () => {
+        const wrapper = await loadChangeList();
+        // The user's own change needs no review, so its menu offers none
+        await openMenuItem(wrapper, 4, "change-revert-btn-4");
+        expect(document.body.querySelector(byTestId("change-mark-reviewed-btn-4"))).not.toBeInTheDocument();
+        fireEvent.click(await openMenuItem(wrapper, 2, "change-mark-reviewed-btn-2"));
+        await waitFor(() => {
+            expect(document.body.textContent).toContain("Mark change #2 and all older changes as reviewed?");
+        });
+        clickFoundElement(document.body, byTestId("changes-mark-reviewed-confirm-btn"));
+        await waitFor(() => {
+            checkRequestMade(reviewedUrl, "PUT", { upTo: 2 });
+        });
+    });
+
     it("should send the search to the server and not mark reviewed while it hides unreviewed changes", async () => {
         const wrapper = renderWrapper(<ChangeList projectId={PROJECT_ID} />, createBrowserHistory(), {
             workspace: { filters: { appliedFilters: { textQuery: "mapping" } } },
@@ -421,6 +436,7 @@ describe("Project changes", () => {
         });
         expect(wrapper.container.textContent).toContain("Unreviewed changes: 2");
         expect(findElement(wrapper, byTestId("changes-mark-reviewed-btn"))).toBeDisabled();
+        expect(isDisabled(await openMenuItem(wrapper, 5, "change-mark-reviewed-btn-5"))).toBe(true);
         expect(findElement(wrapper, byTestId("changes-revert-unreviewed-btn"))).toBeEnabled();
     });
 

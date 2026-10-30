@@ -34,13 +34,27 @@ interface IProps {
     onRevert: () => void;
     /** Asks to revert back to before the entry; left out for the latest entry, which has nothing newer. */
     onRevertBack?: () => void;
+    /** Asks to mark the entry and all older ones as reviewed; only for an unreviewed entry. */
+    onMarkReviewed?: () => void;
+    /** Why marking reviewed is disabled, if it is: the filter hides unreviewed entries that it would approve unseen. */
+    markReviewedBlocker?: string;
 }
 
 /** How many detail lines an entry shows before the rest is behind a 'more' link, as the tag list does it. */
 const DETAILS_PREVIEW_LIMIT = 6;
 
 /** A change as a row of the change list: when and by whom, what changed, its links and its revert actions. */
-const ChangeRow = ({ entry, conflict, searchValue, related, onHover, onRevert, onRevertBack }: IProps) => {
+const ChangeRow = ({
+    entry,
+    conflict,
+    searchValue,
+    related,
+    onHover,
+    onRevert,
+    onRevertBack,
+    onMarkReviewed,
+    markReviewedBlocker,
+}: IProps) => {
     const [t] = useTranslation();
 
     /** A value of a detail: the previous one marked as gone, the new one as current; an empty value spelled out. */
@@ -118,8 +132,8 @@ const ChangeRow = ({ entry, conflict, searchValue, related, onHover, onRevert, o
         }
     };
 
-    /** The revert actions of the entry, behind a menu so that none is hit by accident: the entry alone, or back to before it. */
-    const revertMenu = (): React.ReactNode => {
+    /** The actions of the entry behind a menu, so that none is hit by accident: mark reviewed up to it, revert it alone, or back to before it. */
+    const actionsMenu = (): React.ReactNode => {
         const items = [
             <MenuItem
                 key="revert"
@@ -141,6 +155,19 @@ const ChangeRow = ({ entry, conflict, searchValue, related, onHover, onRevert, o
                     intent="danger"
                     text={t("pages.changes.revertBack.action")}
                     onClick={onRevertBack}
+                />,
+            );
+        }
+        if (onMarkReviewed) {
+            items.unshift(
+                <MenuItem
+                    key="markReviewed"
+                    data-test-id={`change-mark-reviewed-btn-${entry.seq}`}
+                    icon="state-checkedsimple"
+                    text={t("pages.changes.markReviewed.action")}
+                    htmlTitle={markReviewedBlocker}
+                    disabled={markReviewedBlocker != null}
+                    onClick={onMarkReviewed}
                 />,
             );
         }
@@ -234,7 +261,7 @@ const ChangeRow = ({ entry, conflict, searchValue, related, onHover, onRevert, o
                             rel="noopener noreferrer"
                         />
                     ))}
-                    {revertMenu()}
+                    {actionsMenu()}
                 </div>
             </TableCell>
         </TableRow>
