@@ -76,8 +76,8 @@ class LocalWorkflowExecutorTest extends AnyFlatSpec with Matchers with SinglePro
     workflow.activity[LocalWorkflowExecutorGeneratingProvenance].startBlocking()
 
     val entries = journal.all.drop(recorded)
-    entries.map(_.change.describe) shouldBe Seq("Executed workflow 'workflow'")
-    val executed = entries.head.change.asInstanceOf[WorkflowExecuted]
+    entries.map(_.describe) shouldBe Seq("Executed workflow 'workflow'")
+    val executed = journal.entry(entries.head.seq).get.change.asInstanceOf[WorkflowExecuted]
     executed.executionId shouldBe workflow.activity[LocalWorkflowExecutorGeneratingProvenance].value().reportId.map(_.time.toString)
     executed.failed shouldBe false
     a[ChangeConflictException] should be thrownBy journal.revert(entries.head.seq)

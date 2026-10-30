@@ -1,30 +1,10 @@
 import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
-import { IChangeEntry } from "./changesRequests";
+import { ChangeKind, IChangeEntry } from "./changesRequests";
 
 /** The last segment of a user URI, e.g. 'alice' for 'urn:user:alice'. */
 export const userDisplayName = (uri: string): string => {
     const idx = Math.max(uri.lastIndexOf("/"), uri.lastIndexOf(":"), uri.lastIndexOf("#"));
     return idx >= 0 && idx < uri.length - 1 ? uri.substring(idx + 1) : uri;
-};
-
-export type ChangeKind = "added" | "updated" | "removed" | "run";
-
-/** The kind of change by its type name, e.g. 'AddMapping' adds, 'ResourceDeleted' removes, 'WorkflowExecuted' and its proposal are runs. */
-export const changeKind = (type: string): ChangeKind => {
-    if (type === "WorkflowExecuted" || type === "ProposedWorkflowRun") {
-        return "run";
-    } else if (type.startsWith("Add") || type === "ResourceCreated") {
-        return "added";
-    } else if (
-        type.startsWith("Remove") ||
-        type.startsWith("Discarded") ||
-        type === "ResourceDeleted" ||
-        type === "DisconnectWorkflowNodes"
-    ) {
-        return "removed";
-    } else {
-        return "updated";
-    }
 };
 
 export const kindIntent: Record<ChangeKind, "success" | "danger" | "info" | undefined> = {
@@ -90,4 +70,20 @@ export const entriesBackTo = (entries: IChangeEntry[], seq: number): IChangeEntr
             }
         });
     return heads.sort((a, b) => b.seq - a.seq);
+};
+
+/**
+ * The entries related to one on the page: what it reverts or is reverted by, and the run of a proposal or the proposal
+ * of a run. Both directions, as a run does not name the proposal it fulfilled.
+ */
+export const relatedSeqs = (entries: IChangeEntry[], seq: number): Set<number> => {
+    const related = new Set<number>();
+    const entry = entries.find((candidate) => candidate.seq === seq);
+    [entry?.reverts, entry?.revertedBy, entry?.fulfilledBy].forEach((other) => other != null && related.add(other));
+    entries.forEach((other) => {
+        if (other.reverts === seq || other.revertedBy === seq || other.fulfilledBy === seq) {
+            related.add(other.seq);
+        }
+    });
+    return related;
 };

@@ -278,20 +278,32 @@ export default function SearchItem({
                             onClick={() => toggleShowIdentifierModal(item)}
                         />
                         {item.type === DATA_TYPES.PROJECT ? (
-                            <MenuItem
-                                data-test-id={"search-item-activities-btn"}
-                                icon="application-activities"
-                                text={t("widget.ActivityInfoWidget.title", "Activities")}
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    dispatch(
-                                        routerOp.goToPage(
-                                            `projects/${item.id}/activities?page=1&limit=25&sortBy=recentlyUpdated&sortOrder=ASC`,
-                                        ),
-                                    );
-                                }}
-                            />
+                            <>
+                                <MenuItem
+                                    data-test-id={"search-item-activities-btn"}
+                                    icon="application-activities"
+                                    text={t("widget.ActivityInfoWidget.title", "Activities")}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        dispatch(
+                                            routerOp.goToPage(
+                                                `projects/${item.id}/activities?page=1&limit=25&sortBy=recentlyUpdated&sortOrder=ASC`,
+                                            ),
+                                        );
+                                    }}
+                                />
+                                <MenuItem
+                                    data-test-id={"search-item-changes-btn"}
+                                    icon="artefact-commit"
+                                    text={t("pages.changes.title", "Changes")}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        dispatch(routerOp.goToPage(`projects/${item.id}/changes`));
+                                    }}
+                                />
+                            </>
                         ) : (
                             <></>
                         )}

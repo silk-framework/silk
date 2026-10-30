@@ -11,11 +11,13 @@ import { AppDispatch } from "store/configureStore";
 interface IFilterBarProps {
     extraItemTypeModifiers?: IAvailableDataTypeOption[];
     projectId?: string;
+    /** Only the facets, for a search whose items have no item type, e.g. the changes of a project. */
+    facetsOnly?: boolean;
 }
 
 /** The filter menu that allows to filter the search results by selecting a specific item type and
  * filter by type specific facets. */
-export function Filterbar({ extraItemTypeModifiers = [], projectId }: IFilterBarProps) {
+export function Filterbar({ extraItemTypeModifiers = [], projectId, facetsOnly = false }: IFilterBarProps) {
     const dispatch = useDispatch<AppDispatch>();
     const [t] = useTranslation();
 
@@ -33,6 +35,13 @@ export function Filterbar({ extraItemTypeModifiers = [], projectId }: IFilterBar
         dispatch(workspaceOp.changePageOp(1));
     };
 
+    if (facetsOnly) {
+        return (
+            <nav>
+                <FacetsList projectId={projectId} />
+            </nav>
+        );
+    }
     return (
         <nav>
             {typeModifier && (
