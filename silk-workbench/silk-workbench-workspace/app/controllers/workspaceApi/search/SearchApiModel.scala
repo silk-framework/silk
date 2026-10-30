@@ -229,8 +229,15 @@ object SearchApiModel {
     // Project facets
     final val groups: Facet = Facet("groups", "Groups", "The groups that have access to this project", FacetType.keyword)
 
+    // Change journal facets
+    final val changeKind: Facet = Facet("changeKind", "Kind", "What the change did: added, updated, removed or run.", FacetType.keyword)
+    final val changeState: Facet = Facet("changeState", "State", "Whether the change awaits review, has been reverted, reverts another change, or proposes a run.", FacetType.keyword)
+    final val changeOrigin: Facet = Facet("changeOrigin", "Origin", "A person, or the client an agent change came from.", FacetType.keyword)
+    final val changeUser: Facet = Facet("changeUser", "User", "The user who made the change.", FacetType.keyword)
+    final val changeTask: Facet = Facet("changeTask", "Task", "The task the change concerns.", FacetType.keyword)
     val facetIds: Seq[String] = Seq(datasetType, fileResource, readOnly, taskType, transformInputResource, workflowExecutionStatus,
-      createdBy, lastModifiedBy, tags, activityStatus, activityType, activityStartedBy, workflowInputOutput, groups).map(_.id)
+      createdBy, lastModifiedBy, tags, activityStatus, activityType, activityStartedBy, workflowInputOutput, groups,
+      changeKind, changeState, changeOrigin, changeUser, changeTask).map(_.id)
     assert(facetIds.distinct.size == facetIds.size, "Facet IDs must be unique!")
   }
 

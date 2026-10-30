@@ -119,6 +119,21 @@ describe("Search Items", () => {
         });
     });
 
+    it("should open the changes page of a project from its menu", async () => {
+        const wrapper = getWrapper();
+        mockItemTypesRequest();
+        mockSearchItemsRequest();
+        await waitFor(() => {
+            expect(findAllDOMElements(wrapper, byTestId("search-item-context-menu")).length).toBeGreaterThan(0);
+        });
+        fireEvent.click(findAllDOMElements(wrapper, byTestId("search-item-context-menu"))[0]);
+        await waitFor(() => {
+            expect(document.body.querySelector(byTestId("search-item-changes-btn"))).toBeInTheDocument();
+        });
+        fireEvent.click(document.body.querySelector(byTestId("search-item-changes-btn")) as Element);
+        expect(history.location.pathname).toBe(workspacePath("/projects/ID-0/changes"));
+    });
+
     it("should item types requested", () => {
         getWrapper();
 

@@ -5,6 +5,7 @@ import {
     ContextMenu,
     ElapsedDateTimeDisplay,
     ElapsedDateTimeDisplayUnits,
+    Highlighter,
     Icon,
     IconButton,
     MenuItem,
@@ -17,25 +18,43 @@ import {
 } from "@eccenca/gui-elements";
 import { getDateData } from "../../shared/Metadata/Metadata";
 import { IChangeDetail, IChangeEntry } from "./changesRequests";
-import { changeKind, hasInverse, kindIntent, linkIcon, userDisplayName } from "./changeListUtils";
+import { hasInverse, kindIntent, linkIcon, userDisplayName } from "./changeListUtils";
 
 interface IProps {
     entry: IChangeEntry;
     /** Why the entry cannot be reverted as the project is now, if the server said so. */
     conflict?: string;
-    /** The entries to revert to return to the state before the entry; left out for the latest entry, which has none. */
-    revertBackEntries?: IChangeEntry[];
+    /** The text query the entry matched, to highlight it. */
+    searchValue?: string;
+    /** Whether the entry is related to the hovered one: a revert and what it reverted, a proposal and its run. */
+    related?: boolean;
+    /** Tells when the pointer enters or leaves the row. */
+    onHover?: (hovered: boolean) => void;
     /** Asks to revert the entry alone. */
     onRevert: () => void;
-    /** Asks to revert back to before the entry. */
-    onRevertBack: () => void;
+    /** Asks to revert back to before the entry; left out for the latest entry, which has nothing newer. */
+    onRevertBack?: () => void;
+    /** Asks to mark the entry and all older ones as reviewed; only for an unreviewed entry. */
+    onMarkReviewed?: () => void;
+    /** Why marking reviewed is disabled, if it is: the filter hides unreviewed entries that it would approve unseen. */
+    markReviewedBlocker?: string;
 }
 
 /** How many detail lines an entry shows before the rest is behind a 'more' link, as the tag list does it. */
 const DETAILS_PREVIEW_LIMIT = 6;
 
 /** A change as a row of the change list: when and by whom, what changed, its links and its revert actions. */
-const ChangeRow = ({ entry, conflict, revertBackEntries, onRevert, onRevertBack }: IProps) => {
+const ChangeRow = ({
+    entry,
+    conflict,
+    searchValue,
+    related,
+    onHover,
+    onRevert,
+    onRevertBack,
+    onMarkReviewed,
+    markReviewedBlocker,
+}: IProps) => {
     const [t] = useTranslation();
 
     /** A value of a detail: the previous one marked as gone, the new one as current; an empty value spelled out. */
@@ -113,8 +132,8 @@ const ChangeRow = ({ entry, conflict, revertBackEntries, onRevert, onRevertBack 
         }
     };
 
-    /** The revert actions of the entry, behind a menu so that none is hit by accident: the entry alone, or back to before it. */
-    const revertMenu = (): React.ReactNode => {
+    /** The actions of the entry behind a menu, so that none is hit by accident: mark reviewed up to it, revert it alone, or back to before it. */
+    const actionsMenu = (): React.ReactNode => {
         const items = [
             <MenuItem
                 key="revert"
@@ -127,7 +146,7 @@ const ChangeRow = ({ entry, conflict, revertBackEntries, onRevert, onRevertBack 
                 onClick={onRevert}
             />,
         ];
-        if (revertBackEntries) {
+        if (onRevertBack) {
             items.push(
                 <MenuItem
                     key="revertBack"
@@ -135,8 +154,20 @@ const ChangeRow = ({ entry, conflict, revertBackEntries, onRevert, onRevertBack 
                     icon="operation-undo"
                     intent="danger"
                     text={t("pages.changes.revertBack.action")}
-                    disabled={!revertBackEntries.some(hasInverse)}
                     onClick={onRevertBack}
+                />,
+            );
+        }
+        if (onMarkReviewed) {
+            items.unshift(
+                <MenuItem
+                    key="markReviewed"
+                    data-test-id={`change-mark-reviewed-btn-${entry.seq}`}
+                    icon="state-checkedsimple"
+                    text={t("pages.changes.markReviewed.action")}
+                    htmlTitle={markReviewedBlocker}
+                    disabled={markReviewedBlocker != null}
+                    onClick={onMarkReviewed}
                 />,
             );
         }
@@ -152,7 +183,16 @@ const ChangeRow = ({ entry, conflict, revertBackEntries, onRevert, onRevertBack 
     };
 
     return (
-        <TableRow className={entry.unreviewed ? "diapp-changes__row--unreviewed" : undefined}>
+        <TableRow
+            data-test-id={`change-row-${entry.seq}`}
+            className={
+                [entry.unreviewed ? "diapp-changes__row--unreviewed" : "", related ? "diapp-changes__row--related" : ""]
+                    .filter(Boolean)
+                    .join(" ") || undefined
+            }
+            onMouseEnter={() => onHover?.(true)}
+            onMouseLeave={() => onHover?.(false)}
+        >
             <TableCell alignVertical="middle">{entry.seq}</TableCell>
             <TableCell alignVertical="middle">{timestamp(entry.timestamp)}</TableCell>
             <TableCell alignVertical="middle">
@@ -168,7 +208,9 @@ const ChangeRow = ({ entry, conflict, revertBackEntries, onRevert, onRevertBack 
                 )}
             </TableCell>
             <TableCell alignVertical="middle">
-                <div title={entry.type}>{entry.summary}</div>
+                <div title={entry.type}>
+                    <Highlighter label={entry.summary} searchValue={searchValue} />
+                </div>
                 {entry.details.length <= DETAILS_PREVIEW_LIMIT ? (
                     detailLines()
                 ) : (
@@ -183,8 +225,8 @@ const ChangeRow = ({ entry, conflict, revertBackEntries, onRevert, onRevertBack 
                 <Spacing size="tiny" />
                 <div>
                     <TagList>
-                        <Tag small intent={kindIntent[changeKind(entry.type)]} htmlTitle={entry.type}>
-                            {t(`pages.changes.kind.${changeKind(entry.type)}`)}
+                        <Tag small intent={kindIntent[entry.kind]} htmlTitle={entry.type}>
+                            {t(`pages.changes.kind.${entry.kind}`)}
                         </Tag>
                         {entry.unreviewed && (
                             <Tag small intent="warning" htmlTitle={t("pages.changes.unreviewedTooltip")}>
@@ -204,20 +246,23 @@ const ChangeRow = ({ entry, conflict, revertBackEntries, onRevert, onRevertBack 
                 </div>
             </TableCell>
             <TableCell alignVertical="middle">
-                {/* Every link opens in a new tab, so the review keeps its place */}
-                {entry.links.map((link) => (
-                    <IconButton
-                        key={link.id}
-                        data-test-id={`change-link-${entry.seq}-${link.id}`}
-                        name={linkIcon(link.id)}
-                        small
-                        text={link.label}
-                        href={link.path}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    />
-                ))}
-                {revertMenu()}
+                {/* Right-aligned, so that the menu sits in the same place whatever the number of links before it */}
+                <div className="diapp-changes__actions">
+                    {/* Every link opens in a new tab, so the review keeps its place */}
+                    {entry.links.map((link) => (
+                        <IconButton
+                            key={link.id}
+                            data-test-id={`change-link-${entry.seq}-${link.id}`}
+                            name={linkIcon(link.id)}
+                            small
+                            text={link.label}
+                            href={link.path}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        />
+                    ))}
+                    {actionsMenu()}
+                </div>
             </TableCell>
         </TableRow>
     );

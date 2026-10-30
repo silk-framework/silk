@@ -1,6 +1,7 @@
 import React from "react";
 import "@testing-library/jest-dom";
 import { fireEvent, RenderResult, waitFor } from "@testing-library/react";
+import { createBrowserHistory } from "history";
 import mockAxios from "../../../../__mocks__/axios";
 import {
     apiUrl,
@@ -11,21 +12,26 @@ import {
     mockAxiosResponse,
     mockedAxiosError,
     mockedAxiosResponse,
+    pressKeyDown,
     renderWrapper,
     setUseParams,
+    workspacePath,
 } from "../../../TestHelper";
 import ProjectChanges from "../../../../../src/app/views/pages/ProjectChanges";
 import ChangeList from "../../../../../src/app/views/pages/ProjectChanges/ChangeList";
 import { IChangeEntry } from "../../../../../src/app/views/pages/ProjectChanges/changesRequests";
 import { triggerHotkeyHandler } from "../../../../../src/app/views/shared/HotKeyHandler/HotKeyHandler";
+import { APP_VIEWHEADER_ID } from "../../../../../src/app/views/shared/PageHeader/PageHeader";
 
 describe("Project changes", () => {
     afterEach(() => {
         mockAxios.reset();
+        document.getElementById(APP_VIEWHEADER_ID)?.remove();
     });
 
     const PROJECT_ID = "cmem";
     const changesUrl = apiUrl(`/workspace/projects/${PROJECT_ID}/changes`);
+    const searchUrl = apiUrl(`/workspace/projects/${PROJECT_ID}/changes/search`);
     const revertUrl = (seq: number) => apiUrl(`/workspace/projects/${PROJECT_ID}/changes/${seq}/revert`);
     const revertAllUrl = apiUrl(`/workspace/projects/${PROJECT_ID}/changes/revert`);
     const reviewedUrl = apiUrl(`/workspace/projects/${PROJECT_ID}/changes/reviewed`);
@@ -50,6 +56,7 @@ describe("Project changes", () => {
             user: "urn:user:alice",
             origin: "mcp:claude-code",
             type: "AddMapping",
+            kind: "added",
             description:
                 "Added value mapping 'name' (name → http://xmlns.com/foaf/0.1/name) under 'root' in transform 'persons'",
             summary:
@@ -64,6 +71,7 @@ describe("Project changes", () => {
             timestamp: "2026-08-26T09:50:40.000Z",
             user: "urn:user:alice",
             type: "ReplaceTask",
+            kind: "updated",
             description: "Updated transform 'persons': Output dataset 'out' → ''",
             summary: "Updated transform 'persons'",
             details: [{ label: "Output dataset", before: "out", after: "" }],
@@ -78,6 +86,7 @@ describe("Project changes", () => {
             user: "urn:user:alice",
             origin: "mcp:claude-code",
             type: "ReplaceTask",
+            kind: "updated",
             description: "Updated transform 'persons': Output dataset '' → 'out', Mapping rule changed",
             summary: "Updated transform 'persons'",
             details: [{ label: "Output dataset", before: "", after: "out" }, { label: "Mapping rule changed" }],
@@ -91,6 +100,7 @@ describe("Project changes", () => {
             user: "urn:user:alice",
             origin: "mcp:claude-code",
             type: "WorkflowExecuted",
+            kind: "run",
             description: "Executed workflow 'workflow'",
             summary: "Executed workflow 'workflow'",
             details: [],
@@ -113,6 +123,7 @@ describe("Project changes", () => {
             user: "urn:user:alice",
             origin: "mcp:claude-code",
             type: "ProposedWorkflowRun",
+            kind: "run",
             description: "Proposed to run workflow 'workflow'",
             summary: "Proposed to run workflow 'workflow'",
             details: [],
@@ -122,22 +133,44 @@ describe("Project changes", () => {
         },
     ];
     const [mappingChange, revertChange] = changes;
+    const unreviewedChanges = changes.filter((change) => change.unreviewed);
     // The mapping change since stands in the way of restoring the whole task, which the server tells when asked
     const changedSince = `Task 'persons' in project '${PROJECT_ID}' has been changed since.`;
     const defaultConflicts = [{ seq: revertChange.seq, reason: changedSince }];
-
     const reviewedChanges = changes.map(({ unreviewed, ...change }) => change);
 
-    /** Renders the list and answers the listing and, for the revertible entries of the page, the conflict check. */
+    /** The answer of the search for a list, as the server builds it: the page, the state facet counting the unreviewed entries, the journal's numbers. */
+    const searchAnswer = (list: IChangeEntry[], reviewedUpTo: number = 0, unreviewed?: number) => {
+        const unreviewedShown = list.filter((change) => change.unreviewed).length;
+        return {
+            total: list.length,
+            results: [...list],
+            facets:
+                unreviewedShown > 0
+                    ? [
+                          {
+                              id: "changeState",
+                              label: "State",
+                              description: "",
+                              type: "keyword",
+                              values: [{ id: "unreviewed", label: "Unreviewed", count: unreviewedShown }],
+                          },
+                      ]
+                    : [],
+            sortByProperties: [{ id: "time", label: "Time" }],
+            reviewedUpTo,
+            latestSeq: Math.max(0, ...list.map((change) => change.seq)),
+            unreviewed: unreviewed ?? unreviewedShown,
+        };
+    };
+
+    /** Renders the list and answers the search and, for the revertible entries of the page, the conflict check. */
     const loadChangeList = async (
         list: IChangeEntry[] = changes,
         conflicts: { seq: number; reason: string }[] = defaultConflicts,
     ): Promise<RenderResult> => {
         const wrapper = renderWrapper(<ChangeList projectId={PROJECT_ID} />);
-        mockAxios.mockResponseFor(
-            { url: changesUrl },
-            mockedAxiosResponse({ data: { reviewedUpTo: 0, changes: list } }),
-        );
+        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(list) }));
         await waitFor(() => {
             expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(list.length);
         });
@@ -151,14 +184,16 @@ describe("Project changes", () => {
         return wrapper;
     };
 
-    /** Answers the reload of the list that follows a revert or a review. */
+    /** Answers the search that follows a revert or a review. */
     const answerReload = async (list: IChangeEntry[] = changes, reviewedUpTo: number = 0) => {
-        await waitFor(() => checkRequestMade(changesUrl, "GET"));
-        // A fresh list, as a parsed response is; the same array would not count as a change to React
-        mockAxios.mockResponseFor(
-            { url: changesUrl },
-            mockedAxiosResponse({ data: { reviewedUpTo, changes: [...list] } }),
-        );
+        await waitFor(() => checkRequestMade(searchUrl, "POST"));
+        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(list, reviewedUpTo) }));
+    };
+
+    /** Answers the search for all unreviewed entries that the batch revert of them starts with. */
+    const answerUnreviewedSearch = async () => {
+        await waitFor(() => checkRequestMade(searchUrl, "POST", { limit: 0 }, true));
+        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(unreviewedChanges) }));
     };
 
     /** Answers the check the batch dialog makes when it opens, and waits until the dialog offers the revert. */
@@ -219,14 +254,24 @@ describe("Project changes", () => {
         );
     });
 
+    it("should highlight the related entries while one is hovered", async () => {
+        const wrapper = await loadChangeList();
+        const isRelated = (seq: number) =>
+            findElement(wrapper, byTestId(`change-row-${seq}`)).className.includes("diapp-changes__row--related");
+        // The revert and the change it reverted belong together; the proposal and its run too
+        fireEvent.mouseEnter(findElement(wrapper, byTestId("change-row-4")));
+        expect([3, 4, 5].map(isRelated)).toEqual([true, false, false]);
+        fireEvent.mouseLeave(findElement(wrapper, byTestId("change-row-4")));
+        expect(isRelated(3)).toBe(false);
+        fireEvent.mouseEnter(findElement(wrapper, byTestId("change-row-2")));
+        expect([1, 2, 3].map(isRelated)).toEqual([true, false, false]);
+    });
+
     it("should show only the first details of a long entry until expanded", async () => {
         const details = Array.from({ length: 8 }, (_, i) => ({ label: `Mapping rule 'rule-${i}' added` }));
         const longChange: IChangeEntry = { ...mappingChange, details };
         const wrapper = renderWrapper(<ChangeList projectId={PROJECT_ID} />);
-        mockAxios.mockResponseFor(
-            { url: changesUrl },
-            mockedAxiosResponse({ data: { reviewedUpTo: 0, changes: [longChange] } }),
-        );
+        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([longChange]) }));
         await waitFor(() => {
             expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(1);
         });
@@ -288,7 +333,9 @@ describe("Project changes", () => {
                 },
             }),
         );
-        // The list is reloaded after the revert
+        // The list is reloaded after the revert; the rows stay until the answer arrives
+        await waitFor(() => checkRequestMade(searchUrl, "POST"));
+        expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(changes.length);
         await answerReload();
         await waitFor(() => {
             expect(document.body.querySelector(byTestId("remove-item-button"))).not.toBeInTheDocument();
@@ -298,6 +345,13 @@ describe("Project changes", () => {
     it("should revert back to before a change, reverting a revert rather than its already reverted change", async () => {
         const wrapper = await loadChangeList();
         fireEvent.click(await openMenuItem(wrapper, 4, "change-revert-back-btn-4"));
+        // The entries from the change upwards come from the journal, as the page may not hold them
+        await waitFor(() => checkRequestMade(changesUrl, "GET"));
+        expect(mockAxios.getReqMatching({ url: changesUrl, params: { fromSeq: 4 } })).toBeDefined();
+        mockAxios.mockResponseFor(
+            { url: changesUrl },
+            mockedAxiosResponse({ data: { reviewedUpTo: 0, changes: changes.filter((change) => change.seq >= 4) } }),
+        );
         await waitFor(() => {
             expect(findElement(document.body, byTestId("remove-item-button"))).toBeInTheDocument();
         });
@@ -352,6 +406,90 @@ describe("Project changes", () => {
         });
     });
 
+    it("should mark reviewed up to an unreviewed change from its menu", async () => {
+        const wrapper = await loadChangeList();
+        // The user's own change needs no review, so its menu offers none
+        await openMenuItem(wrapper, 4, "change-revert-btn-4");
+        expect(document.body.querySelector(byTestId("change-mark-reviewed-btn-4"))).not.toBeInTheDocument();
+        fireEvent.click(await openMenuItem(wrapper, 2, "change-mark-reviewed-btn-2"));
+        await waitFor(() => {
+            expect(document.body.textContent).toContain("Mark change #2 and all older changes as reviewed?");
+        });
+        clickFoundElement(document.body, byTestId("changes-mark-reviewed-confirm-btn"));
+        await waitFor(() => {
+            checkRequestMade(reviewedUrl, "PUT", { upTo: 2 });
+        });
+    });
+
+    it("should send the search to the server and not mark reviewed while it hides unreviewed changes", async () => {
+        const wrapper = renderWrapper(<ChangeList projectId={PROJECT_ID} />, createBrowserHistory(), {
+            workspace: { filters: { appliedFilters: { textQuery: "mapping" } } },
+        });
+        await waitFor(() => checkRequestMade(searchUrl, "POST", { textQuery: "mapping" }, true));
+        // One of the two unreviewed changes matches: marking all as reviewed would approve the other one unseen
+        mockAxios.mockResponseFor(
+            { url: searchUrl },
+            mockedAxiosResponse({ data: searchAnswer([mappingChange], 0, 2) }),
+        );
+        await waitFor(() => {
+            expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(1);
+        });
+        expect(wrapper.container.textContent).toContain("Unreviewed changes: 2");
+        expect(findElement(wrapper, byTestId("changes-mark-reviewed-btn"))).toBeDisabled();
+        expect(isDisabled(await openMenuItem(wrapper, 5, "change-mark-reviewed-btn-5"))).toBe(true);
+        expect(findElement(wrapper, byTestId("changes-revert-unreviewed-btn"))).toBeEnabled();
+    });
+
+    it("should not mark reviewed while the state facet hides the unreviewed changes, whatever the facet counts", async () => {
+        const wrapper = renderWrapper(<ChangeList projectId={PROJECT_ID} />, createBrowserHistory(), {
+            workspace: {
+                filters: { appliedFacets: [{ facetId: "changeState", type: "keyword", keywordIds: ["reverted"] }] },
+            },
+        });
+        await waitFor(() => checkRequestMade(searchUrl, "POST"));
+        // The state facet counts its values as if it were not applied, so the count still says 2 while none is shown
+        const reverted = changes.filter((change) => change.revertedBy != null);
+        mockAxios.mockResponseFor(
+            { url: searchUrl },
+            mockedAxiosResponse({
+                data: { ...searchAnswer(reverted, 0, 2), facets: searchAnswer(unreviewedChanges).facets },
+            }),
+        );
+        await waitFor(() => {
+            expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(reverted.length);
+        });
+        expect(findElement(wrapper, byTestId("changes-mark-reviewed-btn"))).toBeDisabled();
+    });
+
+    it("should report a failed search instead of an empty journal", async () => {
+        const wrapper = renderWrapper(<ChangeList projectId={PROJECT_ID} />);
+        await waitFor(() => checkRequestMade(searchUrl, "POST"));
+        mockAxiosResponse(
+            searchUrl,
+            mockedAxiosError(500, { title: "Server error", detail: "The journal is unreadable." }),
+        );
+        await waitFor(() => {
+            expect(wrapper.container.textContent).toContain("The journal is unreadable.");
+        });
+        expect(wrapper.container.textContent).not.toContain("No changes have been recorded");
+    });
+
+    it("should not offer an empty batch when nothing newer can be reverted", async () => {
+        // The run and the proposal it fulfilled: nothing after the proposal can be reverted
+        const runAndProposal = changes.slice(3);
+        const wrapper = await loadChangeList(runAndProposal, []);
+        fireEvent.click(await openMenuItem(wrapper, 1, "change-revert-back-btn-1"));
+        await waitFor(() => checkRequestMade(changesUrl, "GET"));
+        mockAxios.mockResponseFor(
+            { url: changesUrl },
+            mockedAxiosResponse({ data: { reviewedUpTo: 0, changes: runAndProposal } }),
+        );
+        await waitFor(() => {
+            expect(findElement(document.body, byTestId("changes-revert-batch-nothing"))).toBeInTheDocument();
+        });
+        expect(findElement(document.body, byTestId("remove-item-button"))).toBeDisabled();
+    });
+
     it("should not keep an earlier answer when a later check fails", async () => {
         const wrapper = await loadChangeList();
         // Marking reviewed reloads the list, which asks again
@@ -377,6 +515,7 @@ describe("Project changes", () => {
     it("should not offer a batch whose newest change cannot be reverted now", async () => {
         const wrapper = await loadChangeList();
         clickFoundElement(wrapper, byTestId("changes-revert-unreviewed-btn"));
+        await answerUnreviewedSearch();
         // The dialog asks about the newest change of the batch: it conflicts, so the batch would stop at it before reverting anything
         const reason = "Rule 'name' in transform 'persons' has been changed since.";
         await waitFor(() => checkRequestMade(conflictsUrl([5]), "GET"));
@@ -400,6 +539,7 @@ describe("Project changes", () => {
     it("should revert the unreviewed changes and report the outcome", async () => {
         const wrapper = await loadChangeList();
         clickFoundElement(wrapper, byTestId("changes-revert-unreviewed-btn"));
+        await answerUnreviewedSearch();
         await waitFor(() => {
             expect(findElement(document.body, byTestId("remove-item-button"))).toBeInTheDocument();
         });
@@ -431,6 +571,122 @@ describe("Project changes", () => {
         });
     });
 
+    it("should explain the change journal in a help dialog", async () => {
+        setUseParams(PROJECT_ID, "");
+        const wrapper = renderWrapper(<ProjectChanges />);
+        clickFoundElement(wrapper, byTestId("changes-help-btn"));
+        await waitFor(() => {
+            const dialog = findElement(document.body, byTestId("changes-help-modal"));
+            expect(dialog.textContent).toContain("The change journal");
+            expect(dialog.textContent).toContain("Mark all as reviewed");
+        });
+    });
+
+    it("should offer time as the only sort property, active newest first", async () => {
+        setUseParams(PROJECT_ID, "");
+        const wrapper = renderWrapper(<ProjectChanges />);
+        await waitFor(() => checkRequestMade(searchUrl, "POST"));
+        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(changes) }));
+        await waitFor(() => {
+            expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(changes.length);
+        });
+        clickFoundElement(wrapper, `${byTestId("sortButton")} button`);
+        await waitFor(() => {
+            expect(findElement(document.body, byTestId("sort-option-time-DESC"))).toBeInTheDocument();
+        });
+        expect(document.body.querySelector('[data-test-id^="sort-option-default"]')).toBeNull();
+    });
+
+    it("should take nothing another page left in the search store: its items, facets or error", async () => {
+        setUseParams(PROJECT_ID, "");
+        // As after the project page: its tasks are the store's results until this page has searched
+        const wrapper = renderWrapper(<ProjectChanges />, createBrowserHistory(), {
+            workspace: {
+                preview: {
+                    searchResults: [{ id: "persons", label: "Persons", type: "dataset" }],
+                    error: { detail: "Stale error" },
+                },
+                filters: {
+                    facets: [
+                        {
+                            id: "staleFacet",
+                            label: "Stale facet",
+                            description: "",
+                            type: "keyword",
+                            values: [{ id: "x", label: "X", count: 1 }],
+                        },
+                    ],
+                },
+            },
+        });
+        await waitFor(() => checkRequestMade(searchUrl, "POST"));
+        expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(0);
+        expect(wrapper.container.textContent).not.toContain("Stale facet");
+        expect(wrapper.container.textContent).not.toContain("Stale error");
+        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(changes) }));
+        await waitFor(() => {
+            expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(changes.length);
+        });
+    });
+
+    it("should set the search up from the page's URL", async () => {
+        setUseParams(PROJECT_ID, "");
+        // The review link of the MCP server opens the page filtered to the changes awaiting review
+        const history = createBrowserHistory();
+        history.location.pathname = workspacePath(`/projects/${PROJECT_ID}/changes`);
+        history.location.search = "?f_ids=changeState&types=keyword&f_keys=unreviewed";
+        renderWrapper(<ProjectChanges />, history);
+        await waitFor(() => checkRequestMade(searchUrl, "POST"));
+        expect(mockAxios.getReqMatching({ url: searchUrl })?.data).toMatchObject({
+            facets: [{ facetId: "changeState", type: "keyword", keywordIds: ["unreviewed"] }],
+        });
+    });
+
+    it("should reload the list on Enter in the search field, keeping the query and the facets", async () => {
+        setUseParams(PROJECT_ID, "");
+        const history = createBrowserHistory();
+        history.location.pathname = workspacePath(`/projects/${PROJECT_ID}/changes`);
+        history.location.search = "?textQuery=persons&f_ids=changeState&types=keyword&f_keys=unreviewed";
+        const wrapper = renderWrapper(<ProjectChanges />, history);
+        await waitFor(() => checkRequestMade(searchUrl, "POST", { textQuery: "persons" }, true));
+        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(changes) }));
+        await waitFor(() => {
+            expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(changes.length);
+        });
+        // The search bar also fires for the query it was handed, after its debounce: no second search for it
+        await new Promise((resolve) => setTimeout(resolve, 600));
+        expect(mockAxios.queue().filter((item) => item.url === searchUrl)).toHaveLength(0);
+        // Enter reloads; the search bar's default would search the unchanged query and clear the facets
+        pressKeyDown(findElement(wrapper, byTestId("search-bar")) as HTMLElement);
+        await waitFor(() => checkRequestMade(searchUrl, "POST"));
+        expect(mockAxios.getReqMatching({ url: searchUrl })?.data).toMatchObject({
+            textQuery: "persons",
+            facets: [{ facetId: "changeState", type: "keyword", keywordIds: ["unreviewed"] }],
+        });
+    });
+
+    it("should link the breadcrumbs to the project list and to the project's default page", async () => {
+        // The page header renders into the application's header slot
+        const headerRoot = document.body.appendChild(document.createElement("div"));
+        headerRoot.id = APP_VIEWHEADER_ID;
+        setUseParams(PROJECT_ID, "");
+        renderWrapper(<ProjectChanges />);
+        const metaDataUrl = apiUrl(`/workspace/projects/${PROJECT_ID}/metaData`);
+        await waitFor(() => checkRequestMade(metaDataUrl, "GET"));
+        mockAxiosResponse(metaDataUrl, mockedAxiosResponse({ data: { label: "CMEM" } }));
+        await waitFor(() => expect(headerRoot.textContent).toContain("Changes: CMEM"));
+        // Without a layout, the breadcrumbs before the current one are collapsed into a menu
+        fireEvent.click(findElement(headerRoot, '[aria-label="collapsed breadcrumbs"]'));
+        await waitFor(() => {
+            const links = Array.from(document.body.querySelectorAll('a[role="menuitem"][href]')).map((link) =>
+                link.getAttribute("href"),
+            );
+            expect(links).toEqual(
+                expect.arrayContaining(["/workbench?itemType=project", `/workbench/projects/${PROJECT_ID}`]),
+            );
+        });
+    });
+
     it("should keep nothing of the previous project when the project changes", async () => {
         const metaDataUrl = (projectId: string) => apiUrl(`/workspace/projects/${projectId}/metaData`);
         const notFoundPage = () => wrapper.container.querySelector(byTestId("not-found-page"));
@@ -451,23 +707,23 @@ describe("Project changes", () => {
 
         // An existing project is not reported missing
         switchProject(PROJECT_ID);
-        await waitFor(() => checkRequestMade(changesUrl, "GET"));
+        await waitFor(() => checkRequestMade(searchUrl, "POST"));
         expect(notFoundPage()).not.toBeInTheDocument();
-        mockAxios.mockResponseFor({ url: changesUrl }, mockedAxiosResponse({ data: { reviewedUpTo: 0, changes } }));
+        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(changes) }));
         await waitFor(() => {
             expect(rows()).toHaveLength(changes.length);
         });
 
         // Another project does not show the changes of the previous one while it loads
         switchProject("otherProject");
-        const otherChangesUrl = apiUrl("/workspace/projects/otherProject/changes");
-        await waitFor(() => checkRequestMade(otherChangesUrl, "GET"));
+        const otherSearchUrl = apiUrl("/workspace/projects/otherProject/changes/search");
+        await waitFor(() => checkRequestMade(otherSearchUrl, "POST"));
         expect(rows()).toHaveLength(0);
         // An answer for the previous project that arrives late is not taken for this one
         mockAxiosResponse(metaDataUrl(PROJECT_ID), mockedAxiosError(404));
         mockAxios.mockResponseFor(
-            { url: otherChangesUrl },
-            mockedAxiosResponse({ data: { reviewedUpTo: 0, changes: [mappingChange] } }),
+            { url: otherSearchUrl },
+            mockedAxiosResponse({ data: searchAnswer([mappingChange]) }),
         );
         await waitFor(() => {
             expect(rows()).toHaveLength(1);

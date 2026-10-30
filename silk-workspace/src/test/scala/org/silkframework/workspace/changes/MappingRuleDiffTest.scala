@@ -7,10 +7,13 @@ import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.input.{PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
+import org.silkframework.rule.plugins.transformer.metadata.FileHashTransformer
 import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.plugins.transformer.replace.RegexReplaceTransformer
 import org.silkframework.rule.plugins.transformer.value.ConstantTransformer
 import org.silkframework.rule.{ComplexMapping, DirectMapping, MappingRules, MappingTarget, NodePosition, ObjectMapping, PatternUriMapping, RuleLayout, TransformRule, TypeMapping}
+import org.silkframework.runtime.plugin.types.ResourceOption
+import org.silkframework.runtime.resource.InMemoryResourceManager
 
 /** What a mapping rule update lists as details: the editor fields that differ, an operator tree as a formula. */
 class MappingRuleDiffTest extends AnyFlatSpec with Matchers {
@@ -47,6 +50,9 @@ class MappingRuleDiffTest extends AnyFlatSpec with Matchers {
       TransformInput("clean", RegexReplaceTransformer(regex = "\\s+", replace = " "), IndexedSeq(path("last")))))
     details(lower, lower.copy(operator = full)) shouldBe
       Seq("""Value formula 'lowerCase(name)' → 'concat[glue=" "](first, "\"-\"", regexReplace[regex="\s+", replace=" "](last))'""")
+    // A resource is shown by name: its path would need the project's resources, which the diff does not have
+    val hash = TransformInput("hash", FileHashTransformer(file = ResourceOption(Some(InMemoryResourceManager().get("data.xlsx")))), IndexedSeq(path("first")))
+    details(lower, lower.copy(operator = hash)) shouldBe Seq("""Value formula 'lowerCase(name)' → 'fileHash[file="data.xlsx"](first)'""")
     // A moved operator is an editor-only change; a long formula is cut
     details(lower, lower.copy(layout = RuleLayout(Map("lower" -> NodePosition(10, 10))))) shouldBe Seq("Editor layout changed")
     val long = ComplexMapping(id = "name", operator = path("x" * 250), target = name.target)

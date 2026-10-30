@@ -3,8 +3,11 @@ package controllers.projectApi
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import controllers.core.UserContextActions
+import controllers.core.util.ControllerUtilsTrait
 import controllers.projectApi.ChangeJournalApi.{ChangeDetailJson, ChangeEntryJson, ChangeListJson, ChangeSummaryJson, MarkReviewedJson, ReviewedJson, RevertConflictJson, RevertConflictsJson, RevertOutcomeJson, RevertRequestJson, RevertResultsJson}
 import controllers.util.{AkkaUtils, ItemLink}
+import controllers.workspaceApi.search.changes.ChangeSearchRequest
+import controllers.workspaceApi.search.changes.ChangeSearchRequest.ChangeSearchResult
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
@@ -13,7 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.workspace.changes.{ChangeDetail, ChangeEntry, ChangeJournal, RevertOutcome}
+import org.silkframework.workspace.changes.{ChangeDetail, ChangeHeader, ChangeJournal, RevertOutcome}
 import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json.{Format, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController, WebSocket}
@@ -22,14 +25,15 @@ import javax.inject.Inject
 
 /** The change journal of a project: what has been changed, and reverting single changes. */
 @Tag(name = "Project changes", description = "The changes made to a project, and reverting them.")
-class ChangeJournalApi @Inject()(implicit system: ActorSystem, mat: Materializer) extends InjectedController with UserContextActions {
+class ChangeJournalApi @Inject()(implicit system: ActorSystem, mat: Materializer) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   @Operation(
     summary = "List changes",
-    description = "The changes made to the project, as far as the configured store keeps them, newest first. A change can be reverted while " +
-      "'revertible' is true and 'revertedBy' does not name the change that reverted it already; whether its inverse applies " +
-      "as the project is now is asked per change (see the conflicts operation), the listing itself checks nothing. " +
-      "'reverts' names the change a revert undid.",
+    description = "The changes made to the project, newest first, as far as the configured store keeps them. " +
+      "With 'fromSeq' only the changes from that seq upwards are listed, e.g. to revert back to before a change. " +
+      "A change can be reverted if 'revertible' is true and 'revertedBy' is absent, i.e. it has not been reverted yet. " +
+      "Whether its inverse still applies to the project as it is now is not checked by this listing but per change " +
+      "by the conflicts operation. 'reverts' names the change that a revert undid.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -50,9 +54,17 @@ class ChangeJournalApi @Inject()(implicit system: ActorSystem, mat: Materializer
                 schema = new Schema(implementation = classOf[String])
               )
               projectId: String,
+              @Parameter(
+                name = "fromSeq",
+                description = "Only the changes from this seq upwards, e.g. for reverting back to before a change; the flags are still those of the whole journal.",
+                required = false,
+                in = ParameterIn.QUERY,
+                schema = new Schema(implementation = classOf[Int])
+              )
+              fromSeq: Option[Int],
               @Parameter(name = "unreviewedOnly", description = "Only return agent changes still awaiting review.", in = ParameterIn.QUERY)
               unreviewedOnly: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    Ok(Json.toJson(changeList(projectId, unreviewedOnly)))
+    Ok(Json.toJson(changeList(projectId, unreviewedOnly, fromSeq)))
   }
 
   @Operation(summary = "Change updates (websocket)",
@@ -90,7 +102,7 @@ class ChangeJournalApi @Inject()(implicit system: ActorSystem, mat: Materializer
       }
   }
 
-  private def changeList(projectId: String, unreviewedOnly: Boolean)(implicit userContext: UserContext): ChangeListJson = {
+  private def changeList(projectId: String, unreviewedOnly: Boolean, fromSeq: Option[Int] = None)(implicit userContext: UserContext): ChangeListJson = {
     val project = WorkspaceFactory().workspace.project(projectId)
     val journal = project.changeJournal
     // Derived from one snapshot, so that a write landing meanwhile cannot skew the flags against the entries.
@@ -99,7 +111,7 @@ class ChangeJournalApi @Inject()(implicit system: ActorSystem, mat: Materializer
     val fulfilledBy = journal.fulfilledBy(entries)
     val unreviewed = journal.unreviewed(entries, reviewedUpTo).map(_.seq).toSet
     ChangeListJson(reviewedUpTo,
-      entries.reverse.filter(entry => !unreviewedOnly || unreviewed.contains(entry.seq)).map { entry =>
+      entries.reverse.filter(entry => fromSeq.forall(entry.seq >= _) && (!unreviewedOnly || unreviewed.contains(entry.seq))).map { entry =>
         ChangeEntryJson.of(project, entry, revertedBy.get(entry.seq), fulfilledBy.get(entry.seq), unreviewed.contains(entry.seq))
       })
   }
@@ -160,9 +172,10 @@ class ChangeJournalApi @Inject()(implicit system: ActorSystem, mat: Materializer
 
   @Operation(
     summary = "Change summary",
-    description = "The state of the journal in numbers: the reviewed watermark, the latest change and how many changes are " +
-      "unreviewed, i.e. made by an agent after the watermark and not reverted. For clients that only need to know whether " +
-      "there is something to review, e.g. before a workflow run; it lists nothing and checks nothing.",
+    description = "The state of the journal in numbers: the reviewed watermark, the latest change, how many changes are " +
+      "unreviewed, i.e. made by an agent after the watermark and not reverted, and how many unreviewed changes the " +
+      "journal's cap has dropped. For clients that only need to know whether there is something to review, e.g. before " +
+      "a workflow run; it lists nothing and checks nothing.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -170,7 +183,7 @@ class ChangeJournalApi @Inject()(implicit system: ActorSystem, mat: Materializer
         content = Array(new Content(
           mediaType = "application/json",
           schema = new Schema(implementation = classOf[ChangeSummaryJson]),
-          examples = Array(new ExampleObject("""{"reviewedUpTo": 2, "latestSeq": 4, "unreviewed": 1}"""))
+          examples = Array(new ExampleObject("""{"reviewedUpTo": 2, "latestSeq": 4, "unreviewed": 1, "droppedUnreviewed": 0}"""))
         ))
       ),
       new ApiResponse(responseCode = "404", description = "The project does not exist.")
@@ -184,9 +197,9 @@ class ChangeJournalApi @Inject()(implicit system: ActorSystem, mat: Materializer
               )
               projectId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val journal = WorkspaceFactory().workspace.project(projectId).changeJournal
-    val (entries, reviewedUpTo) = journal.snapshot
-    Ok(Json.toJson(ChangeSummaryJson(reviewedUpTo, entries.lastOption.map(_.seq).getOrElse(0),
-      journal.unreviewed(entries, reviewedUpTo).size)))
+    val (entries, reviewedUpTo, latestSeq) = journal.snapshotWithLatestSeq
+    Ok(Json.toJson(ChangeSummaryJson(reviewedUpTo, latestSeq,
+      journal.unreviewed(entries, reviewedUpTo).size, journal.droppedUnreviewed(entries, reviewedUpTo))))
   }
 
   @Operation(
@@ -225,7 +238,7 @@ class ChangeJournalApi @Inject()(implicit system: ActorSystem, mat: Materializer
              )
              seq: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectId)
-    Ok(Json.toJson(ChangeEntryJson.of(project, project.changeJournal.revert(seq), revertedBy = None)))
+    Ok(Json.toJson(ChangeEntryJson.of(project, project.changeJournal.revert(seq).header, revertedBy = None)))
   }
 
   @Operation(
@@ -304,6 +317,45 @@ class ChangeJournalApi @Inject()(implicit system: ActorSystem, mat: Materializer
     val outcomes = project.changeJournal.revertAll(request.body.as[RevertRequestJson].seqs)
     Ok(Json.toJson(RevertResultsJson(outcomes.map(RevertOutcomeJson.of(project, _)))))
   }
+
+  @Operation(
+    summary = "Search changes",
+    description = "The changes of the project that match a text query and facets, sorted and paged, with the facets of what " +
+      "matches and the journal's numbers: the reviewed watermark, the latest change and how many changes are unreviewed in " +
+      "the whole journal. An entry is served as the listing serves it. Without a sort property the changes come newest first.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(implementation = classOf[ChangeSearchResult])
+        ))
+      ),
+      new ApiResponse(responseCode = "400", description = "An invalid request, e.g. an unknown facet or sort property."),
+      new ApiResponse(responseCode = "404", description = "The project does not exist.")
+    ))
+  @RequestBody(
+    description = "The search request.",
+    required = true,
+    content = Array(new Content(
+      mediaType = "application/json",
+      schema = new Schema(implementation = classOf[ChangeSearchRequest]),
+      examples = Array(new ExampleObject("""{"textQuery": "persons", "facets": [{"type": "keyword", "facetId": "changeState", "keywordIds": ["unreviewed"]}], "sortBy": "time", "sortOrder": "ASC", "offset": 0, "limit": 25}"""))
+    )))
+  def search(@Parameter(
+               name = "projectId",
+               description = "The project identifier",
+               required = true,
+               in = ParameterIn.PATH,
+               schema = new Schema(implementation = classOf[String])
+             )
+             projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectId)
+    validateJson[ChangeSearchRequest] { search =>
+      Ok(Json.toJson(search(project)))
+    }
+  }
 }
 
 object ChangeJournalApi {
@@ -319,6 +371,8 @@ object ChangeJournalApi {
                              origin: Option[String],
                              @Schema(description = "The kind of change, e.g. 'AddMapping', 'ReplaceTask' or 'SetVariable'.")
                              `type`: String,
+                             @Schema(description = "The kind of change, as the changes page tags it: added, updated, removed or run.")
+                             kind: String,
                              @Schema(description = "What has been changed, in one line: the summary with the details.")
                              description: String,
                              @Schema(description = "What has been changed, without the details.")
@@ -350,13 +404,13 @@ object ChangeJournalApi {
 
     implicit val format: Format[ChangeEntryJson] = Json.format[ChangeEntryJson]
 
-    /** The JSON of an entry; a freshly recorded entry is neither reverted nor fulfilled yet. */
-    def of(project: Project, entry: ChangeEntry, revertedBy: Option[Int], fulfilledBy: Option[Int] = None, unreviewed: Boolean = false)
+    /** The JSON of an entry from its header; a freshly recorded entry is neither reverted nor fulfilled yet. */
+    def of(project: Project, header: ChangeHeader, revertedBy: Option[Int], fulfilledBy: Option[Int] = None, unreviewed: Boolean = false)
           (implicit userContext: UserContext): ChangeEntryJson = {
-      ChangeEntryJson(entry.seq, entry.timestamp.toString, entry.user, entry.origin, entry.change.changeType,
-        entry.change.describe, entry.change.summary, entry.change.details.map(ChangeDetailJson.of), ChangeLinks.of(project, entry.change),
-        entry.change.inverse.isDefined && fulfilledBy.isEmpty, entry.reverts, revertedBy, fulfilledBy,
-        unreviewed = if(unreviewed) Some(true) else None, conversationId = entry.conversationId)
+      ChangeEntryJson(header.seq, header.timestamp.toString, header.user, header.origin, header.changeType, header.kind,
+        header.describe, header.summary, header.details.map(ChangeDetailJson.of), ChangeLinks.of(project, header),
+        header.revertible && fulfilledBy.isEmpty, header.reverts, revertedBy, fulfilledBy,
+        unreviewed = if(unreviewed) Some(true) else None, conversationId = header.conversationId)
     }
   }
 
@@ -376,7 +430,8 @@ object ChangeJournalApi {
   }
 
   @Schema(description = "The changes of a project, newest first.")
-  case class ChangeListJson(@Schema(description = "The seq up to which the user has reviewed the changes; 0 if never set.")
+  case class ChangeListJson(@Schema(description = "The seq up to which no change waits for review: set by a review, moved along while " +
+                              "no agent change waits; 0 at the start.")
                             reviewedUpTo: Int,
                             changes: Seq[ChangeEntryJson])
 
@@ -385,12 +440,16 @@ object ChangeJournalApi {
   }
 
   @Schema(description = "The state of a project's change journal in numbers.")
-  case class ChangeSummaryJson(@Schema(description = "The seq up to which the user has reviewed the changes; 0 if never set.")
+  case class ChangeSummaryJson(@Schema(description = "The seq up to which no change waits for review: set by a review, moved along while " +
+                                 "no agent change waits; 0 at the start.")
                                reviewedUpTo: Int,
                                @Schema(description = "The seq of the latest recorded change; 0 if there is none.")
                                latestSeq: Int,
                                @Schema(description = "How many changes are unreviewed: made by an agent after the reviewed watermark and not reverted.")
-                               unreviewed: Int)
+                               unreviewed: Int,
+                               @Schema(description = "How many changes the journal's cap dropped while agent changes were waiting for review, " +
+                                 "so they were never reviewed. Marking all as reviewed accepts them unseen.")
+                               droppedUnreviewed: Int)
 
   object ChangeSummaryJson {
     implicit val format: Format[ChangeSummaryJson] = Json.format[ChangeSummaryJson]
@@ -405,7 +464,7 @@ object ChangeJournalApi {
   }
 
   @Schema(description = "The reviewed watermark of a project.")
-  case class ReviewedJson(@Schema(description = "The seq up to which the user has reviewed the changes.")
+  case class ReviewedJson(@Schema(description = "The seq up to which no change waits for review.")
                           reviewedUpTo: Int)
 
   object ReviewedJson {
@@ -439,7 +498,7 @@ object ChangeJournalApi {
     def of(project: Project, outcome: RevertOutcome)(implicit userContext: UserContext): RevertOutcomeJson = {
       outcome match {
         case RevertOutcome.Reverted(seq, entry) =>
-          RevertOutcomeJson(seq, "reverted", None, Some(ChangeEntryJson.of(project, entry, revertedBy = None)))
+          RevertOutcomeJson(seq, "reverted", None, Some(ChangeEntryJson.of(project, entry.header, revertedBy = None)))
         case RevertOutcome.Skipped(seq, reason) =>
           RevertOutcomeJson(seq, "skipped", Some(reason), None)
         case RevertOutcome.Unchanged(seq, reason) =>
@@ -493,6 +552,7 @@ object ChangeJournalApi {
           "user": "urn:user:alice",
           "origin": "mcp:claude-code",
           "type": "WorkflowExecuted",
+          "kind": "run",
           "description": "Executed workflow 'workflow'",
           "summary": "Executed workflow 'workflow'",
           "details": [],
@@ -508,6 +568,7 @@ object ChangeJournalApi {
           "timestamp": "2026-08-26T09:51:02.417Z",
           "user": "urn:user:alice",
           "type": "RemoveMapping",
+          "kind": "removed",
           "description": "Removed mapping rule 'name' from transform 'persons'",
           "summary": "Removed mapping rule 'name' from transform 'persons'",
           "details": [],
@@ -521,6 +582,7 @@ object ChangeJournalApi {
           "user": "urn:user:alice",
           "origin": "mcp:claude-code",
           "type": "AddMapping",
+          "kind": "added",
           "description": "Added value mapping 'name' (name → http://xmlns.com/foaf/0.1/name) under 'root' in transform 'persons'",
           "summary": "Added value mapping 'name' (name → http://xmlns.com/foaf/0.1/name) under 'root' in transform 'persons'",
           "details": [],
@@ -555,6 +617,7 @@ object ChangeJournalApi {
         "timestamp": "2026-08-26T09:51:02.417Z",
         "user": "urn:user:alice",
         "type": "RemoveMapping",
+        "kind": "removed",
         "description": "Removed mapping rule 'name' from transform 'persons'",
           "summary": "Removed mapping rule 'name' from transform 'persons'",
           "details": [],
@@ -576,6 +639,7 @@ object ChangeJournalApi {
             "timestamp": "2026-08-26T09:51:02.417Z",
             "user": "urn:user:alice",
             "type": "RemoveMapping",
+            "kind": "removed",
             "description": "Removed mapping rule 'name' from transform 'persons'",
           "summary": "Removed mapping rule 'name' from transform 'persons'",
           "details": [],
