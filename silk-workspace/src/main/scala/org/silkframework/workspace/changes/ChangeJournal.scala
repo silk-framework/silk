@@ -1,6 +1,6 @@
 package org.silkframework.workspace.changes
 
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.activity.{Observable, UserContext, ValueHolder}
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.Project
@@ -20,9 +20,10 @@ import scala.util.control.NonFatal
   * @param reverts   The seq of the entry this change reverts, if it was recorded by reverting one.
   * @param fulfils   The seq of the proposal this change fulfilled, if any, e.g. a workflow run fulfils the proposal to run
   *                  that workflow.
+  * @param conversationId The companion conversation responsible for this change, if known.
   */
 case class ChangeEntry(seq: Int, timestamp: Instant, user: Option[String], origin: Option[String], change: Change,
-                       reverts: Option[Int] = None, fulfils: Option[Int] = None) {
+                       reverts: Option[Int] = None, fulfils: Option[Int] = None, conversationId: Option[String] = None) {
 
   /** Whether the change came in through a client that names itself, e.g. an MCP agent; these queue for user review. */
   def agentWrite: Boolean = origin.isDefined
@@ -118,6 +119,7 @@ class ChangeJournal(project: Project) {
       }
       if(upTo > currentStore.reviewedUpTo(project.id)) {
         currentStore.setReviewedUpTo(project.id, upTo)
+        ChangeJournal.changed()
       }
     }
   }
@@ -144,7 +146,10 @@ class ChangeJournal(project: Project) {
   }
 
   /** Drops all entries. Called when the project is deleted, so a later project of the same name starts clean. */
-  private[workspace] def clear(): Unit = store.remove(project.id)
+  private[workspace] def clear(): Unit = {
+    store.remove(project.id)
+    ChangeJournal.changed()
+  }
 
   /**
     * Runs writes that are derived from a change recorded on this thread, e.g. the tasks re-resolved after a variable
@@ -175,10 +180,12 @@ class ChangeJournal(project: Project) {
         // Links the change to the latest open proposal it fulfils, e.g. a workflow run to the proposal to run that workflow.
         val fulfils = openProposals(currentStore.entries(project.id)).findLast { case (_, proposal) => change.fulfils(proposal) }
         val entry = ChangeEntry(currentStore.latestSeq(project.id) + 1, Instant.now, requester.user.map(_.uri),
-          userContext.executionContext.origin, change, reverting.get(), fulfils.map(_._1.seq))
+          userContext.executionContext.origin, change, reverting.get(), fulfils.map(_._1.seq),
+          requester.executionContext.conversationId)
         // A revert can record several entries, one per task it writes. Only the first is marked as the revert.
         reverting.remove()
         currentStore.append(project.id, entry)
+        ChangeJournal.changed()
         Some(entry)
       }
     }
@@ -320,6 +327,13 @@ object RevertOutcome {
 }
 
 object ChangeJournal {
+
+  private val changeUpdates = new ValueHolder[Unit](Some(()))
+
+  /** Invalidates journal summaries after a write, review or project removal. Contains no project or user data. */
+  def updates: Observable[Unit] = changeUpdates
+
+  private def changed(): Unit = changeUpdates.update(())
 
   // The reverts in progress, as (project, seq): claimed, but not recorded yet, so the journal does not show them as reverted.
   // Held in the companion, as a project can have two journals while it is reloaded.

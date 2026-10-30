@@ -22,8 +22,10 @@ trait UserContext {
   * specific execution parameters are known and can be set.
   * @param insideWorkflow After entering a workflow execution this flag is set to true.
   * @param origin The client the request came from, e.g. "mcp:<client name>", to attribute changes to it. None if unknown.
+  * @param conversationId The companion conversation responsible for the request, if supplied by the client.
   */
-case class UserExecutionContext(insideWorkflow: Boolean = false, origin: Option[String] = None)
+case class UserExecutionContext(insideWorkflow: Boolean = false, origin: Option[String] = None,
+                                conversationId: Option[String] = None)
 
 object UserContext {
   val Empty: UserContext = empty(UserExecutionContext())
