@@ -14,7 +14,7 @@ import org.silkframework.rule.similarity._
 import org.silkframework.rule.util.UriPatternParser
 import org.silkframework.rule.vocab.{GenericInfo, Vocabulary, VocabularyClass, VocabularyProperty}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.templating.{TemplateVariables, TemplateVariablesParameter}
+import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables, TemplateVariablesParameter}
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, TaskValidationException, ValidationException}
@@ -1346,7 +1346,7 @@ object JsonSerializers {
         // Read the execution variables first, so that parameter templates referencing them resolve against the task's own defaults.
         // Variable templates are resolved like at save time. If the variables are absent, the context's
         // execution scope is kept (seeded with the stored variables on task updates).
-        val providedVariables = dto.executionVariables.map(variables => TemplateVariables(variables.map(_.convert)))
+        val providedVariables = dto.executionVariables.map(variables => TemplateVariables(variables.map(v => TemplateVariable.fromStorage(v.convert))))
         val dataContext = providedVariables.fold(readContext) { v =>
           val resolved = v.resolvedKeepingUnresolved(readContext.templateVariables.all.withoutSensitiveVariables())
           readContext.copy(templateVariables = readContext.templateVariables.withExecutionDefaults(resolved))
@@ -1377,7 +1377,7 @@ object JsonSerializers {
         id = task.id.toString,
         project = writeContext.projectId.map(_.toString),
         metadata = if(options.includeMetaData.getOrElse(true)) Some(MetaDataPlain.fromMetaData(task.metaData)) else None,
-        executionVariables = if(task.executionVariables.variables.nonEmpty) Some(task.executionVariables.variables.map(TemplateVariableJson(_))) else None,
+        executionVariables = if(task.executionVariables.variables.nonEmpty) Some(task.executionVariables.variables.map(v => TemplateVariableJson(v.forStorage))) else None,
         // The task type is always added at the top level, regardless of whether the task data is included
         taskType = (taskDataJson \ TASKTYPE).asOpt[String],
         data = if(options.includeTaskData.getOrElse(true)) Some(TaskDataDto.fromDataJson(taskDataJson)) else None,

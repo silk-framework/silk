@@ -487,6 +487,11 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     val executionDerived = TemplateVariable("dbUrl", "", Some("jdbc://u:{{execution.password}}@host"), None, isSensitive = false, VariableScope.execution)
     project.addTask("derivedTask", VariablesTestTask("T", 2002), executionVariables = TemplateVariables(Seq(executionPassword, executionDerived)))
     project.anyTask("derivedTask").executionVariables.map("dbUrl").value shouldBe ""
+    // The task JSON carries the sensitive value encrypted, and saving it back keeps the value
+    val taskResponse = checkResponse(createRequest(controllers.workspace.routes.TaskApi.getTask(projectName, "derivedTask")).addHttpHeaders("Accept" -> "application/json").get())
+    taskResponse.body should not include secretValue
+    checkResponse(createRequest(controllers.workspace.routes.TaskApi.putTask(projectName, "derivedTask")).put(taskResponse.json))
+    project.anyTask("derivedTask").executionVariables.map("password").value shouldBe secretValue
 
     // A sensitive variable may reference it and stays masked when retrieved
     putVariables(projectName, TemplateVariables(Seq(password, derived.copy(isSensitive = true))))
@@ -522,6 +527,11 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     validation.parseError shouldBe None
     validation.evaluatedTemplate shouldBe Some(TemplateVariables.SensitiveValuePlaceholder)
     autoCompleteTemplate(projectName, variableIsSensitive = Some(true)) should contain("project.password")
+
+    // A value that cannot be decrypted, e.g., after the key has been changed, is reported, so that it is entered again
+    project.templateVariables.put(TemplateVariables(Seq(TemplateVariable("rotated", "PASSWORD_PARAMETER:invalid", None, None, isSensitive = true, VariableScope.project))))
+    val errors = Json.fromJson[TemplateVariablesJson](checkResponse(createRequest(TemplateApi.getVariables(projectName, None, false)).get()).json).get.errors
+    errors.map(_.map(e => (e.variableName, e.message))) shouldBe Some(Seq(("rotated", ResolvedVariablesJson.undecryptableValueMessage)))
   }
 
   it should "withhold and reject a non-sensitive variable that was derived from a sensitive sibling before the rule existed" in {

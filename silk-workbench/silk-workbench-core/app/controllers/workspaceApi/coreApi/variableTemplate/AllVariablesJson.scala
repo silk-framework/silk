@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.config.TaskSpec
+import org.silkframework.runtime.plugin.StringParameterType.PasswordParameterType
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariable, TemplateVariables, TemplateVariablesManager, VariableScope}
 import org.silkframework.serialization.json.{TemplateVariableErrorJson, TemplateVariableJson, TemplateVariablesJson}
 import org.silkframework.workspace.{Project, ProjectTask, TaskExecutionVariablesManager, WorkspaceFactory}
@@ -166,6 +167,9 @@ object ResolvedVariablesJson {
   /** The error message reported for a sensitive variable when masking. */
   final val maskedErrorMessage = "The template of this sensitive variable could not be evaluated."
 
+  /** The error message reported for a sensitive variable whose stored value could not be decrypted. */
+  final val undecryptableValueMessage = s"The value cannot be decrypted with the key configured at '${PasswordParameterType.CONFIG_KEY}'. Please enter it again."
+
   def apply(manager: TemplateVariablesManager, masked: Boolean)
            (implicit userContext: UserContext): (Seq[TemplateVariableJson], Seq[TemplateVariableErrorJson]) = {
     apply(manager.all, manager.parentVariables.withoutSensitiveVariables(), masked)
@@ -186,6 +190,7 @@ object ResolvedVariablesJson {
       val message = if (masked && issue.variable.isSensitive) maskedErrorMessage else issue.ex.getMessage
       TemplateVariableErrorJson(issue.variable.name, message)
     }
-    (variablesJson, errors)
+    val undecryptable = variables.variables.filter(_.hasEncryptedValue).map(v => TemplateVariableErrorJson(v.name, undecryptableValueMessage))
+    (variablesJson, errors ++ undecryptable)
   }
 }

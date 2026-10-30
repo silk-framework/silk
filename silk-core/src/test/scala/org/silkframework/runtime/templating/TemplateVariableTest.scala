@@ -2,6 +2,7 @@ package org.silkframework.runtime.templating
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, XmlSerialization}
 import org.silkframework.runtime.templating.exceptions.{SensitiveVariableReferenceException, TemplateVariablesEvaluationException, UnboundVariablesException}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.ConfigTestTrait
@@ -26,6 +27,23 @@ class TemplateVariableTest extends AnyFlatSpec with Matchers with ConfigTestTrai
   it should "reject an empty variable name with the same error as any other invalid name" in {
     // Used to throw a raw index exception, which surfaced as a 500 instead of a 400
     an[BadUserInputException] should be thrownBy variableName("")
+  }
+
+  it should "store the value of a sensitive variable encrypted" in {
+    implicit val readContext: ReadContext = TestReadContext()
+    val variables = TemplateVariables(Seq(
+      TemplateVariable("password", "s3cret", None, None, isSensitive = true, VariableScope.project),
+      TemplateVariable("host", "localhost", None, None, isSensitive = false, VariableScope.project)))
+    val xml = XmlSerialization.toXml(variables).toString
+    xml should not include "s3cret"
+    xml should include("localhost")
+    XmlSerialization.fromXml[TemplateVariables](scala.xml.XML.loadString(xml)) shouldBe variables
+    // A plain value, stored before values were encrypted, is read as it is; one that cannot be decrypted is kept encrypted
+    val legacy = TemplateVariable("legacy", "plain", None, None, isSensitive = true, VariableScope.project)
+    TemplateVariable.fromStorage(legacy) shouldBe legacy
+    val undecryptable = legacy.copy(value = "PASSWORD_PARAMETER:invalid")
+    TemplateVariable.fromStorage(undecryptable) shouldBe undecryptable
+    undecryptable.forStorage shouldBe undecryptable
   }
 
   behavior of "TemplateVariables"
