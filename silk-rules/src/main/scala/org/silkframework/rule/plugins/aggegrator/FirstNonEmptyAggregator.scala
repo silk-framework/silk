@@ -28,7 +28,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 )
 @AggregatorExamples(Array(
   new AggregatorExample(
-    description = "The first defined score is returned, even if it's not the highest score.",
+    description = "Returns the first defined score, even if a higher score exists.",
     inputs = Array(Double.NaN, 0.2, 0.5),
     output = 0.2
   )
