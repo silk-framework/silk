@@ -691,6 +691,14 @@
                 "title": "The change journal"
             },
             "originTooltip": "The client the change came from",
+            "conversation": {
+                "badge": "C{{number}}",
+                "unavailableBadge": "?",
+                "untitled": "Untitled conversation",
+                "unavailable": "Conversation unavailable",
+                "id": "Conversation ID: {{id}}",
+                "filter": "Filter by conversation {{label}}"
+            },
             "emptyValue": "empty",
             "emptyValueTooltip": "The value is empty",
             "detailAdded": "added",
@@ -712,6 +720,7 @@
                 "seq": "#",
                 "date": "Date",
                 "user": "User",
+                "source": "Source",
                 "change": "Change"
             },
             "revert": {
@@ -1141,6 +1150,10 @@
         },
         "FacetsList": {
             "facet": {
+                "changeConversation": {
+                    "label": "Conversation",
+                    "description": "The conversation responsible for the change, identified by its ID."
+                },
                 "changeKind": {
                     "description": "What the change did: added, updated, removed or run.",
                     "label": "Kind",

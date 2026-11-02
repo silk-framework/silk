@@ -172,6 +172,31 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
     }
   }
 
+  it should "filter conversations by their IDs before paging and keep journal-wide review counts" in {
+    val project = WorkspaceFactory().workspace.createProject(ProjectConfig("conversationSearchProject"))
+    def agent(id: Option[String]): UserContext = UserContext.empty(UserExecutionContext(origin = Some("mcp:test"), conversationId = id))
+    project.addTask[TransformSpec]("first", TransformSpec())(implicitly, agent(Some("conversation-a")))
+    project.addTask[TransformSpec]("other", TransformSpec())(implicitly, agent(Some("conversation-b")))
+    project.addTask[TransformSpec]("third", TransformSpec())(implicitly, agent(Some("conversation-a")))
+    project.addTask[TransformSpec]("unattributed", TransformSpec())(implicitly, agent(None))
+    val url = baseUrl + controllers.projectApi.routes.ChangeJournalApi.search(project.id.toString).url
+    def search(body: JsObject): ChangeSearchResult = checkResponse(client.url(url).post(body)).json.as[ChangeSearchResult]
+    val all = search(Json.obj())
+    val conversations = all.facets.find(_.id == "changeConversation").get.values.collect {
+      case KeywordFacetValue(id, _, count) => id -> count
+    }.toMap
+    conversations mustBe Map("conversation-a" -> Some(2), "conversation-b" -> Some(1))
+    def filter(ids: String*): JsObject = Json.obj("facets" -> Json.arr(Json.obj(
+      "type" -> "keyword", "facetId" -> "changeConversation", "keywordIds" -> ids)))
+    val page = search(filter("conversation-a") ++ Json.obj("offset" -> 1, "limit" -> 1))
+    page.total mustBe 2
+    page.results.map(_.seq) mustBe Seq(1)
+    page.results.map(_.conversationId) mustBe Seq(Some("conversation-a"))
+    page.unreviewed mustBe 4
+    search(filter("conversation-a", "conversation-b")).total mustBe 3
+    search(filter("C1")).total mustBe 0
+  }
+
   it should "list the changes of a project, newest first, and revert one of them" in {
     val project = WorkspaceFactory().workspace.createProject(ProjectConfig(projectId))
     val task = project.addTask[TransformSpec]("transform", TransformSpec(mappingRule = RootMappingRule(MappingRules(propertyRules = Seq(rule("a"))))))

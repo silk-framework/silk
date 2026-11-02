@@ -39,6 +39,7 @@ import {
 import { entriesBackTo, hasInverse, relatedSeqs } from "./changeListUtils";
 import ChangeRow from "./ChangeRow";
 import BatchRevertModal from "./BatchRevertModal";
+import { CONVERSATION_FACET } from "./ChangeSource";
 
 interface IProps {
     /** Must not change while the list is mounted, as the list keeps the state of its project: key the list by it. */
@@ -332,6 +333,18 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
             onRevertBack={entry.seq !== journal.latestSeq ? () => openRevertBack(entry) : undefined}
             onMarkReviewed={entry.unreviewed ? () => setMarkReviewedUpTo(entry.seq) : undefined}
             markReviewedBlocker={markReviewedBlocker}
+            conversationSelected={appliedFacets.some(
+                (facet) => facet.facetId === CONVERSATION_FACET && facet.keywordIds.includes(entry.conversationId ?? ""),
+            )}
+            onFilterConversation={(id) => {
+                const facet = facets.find((candidate) => candidate.id === CONVERSATION_FACET);
+                if (facet) {
+                    batch(() => {
+                        dispatch(workspaceOp.toggleFacetOp(facet, id));
+                        dispatch(workspaceOp.changePageOp(1));
+                    });
+                }
+            }}
         />
     );
 
@@ -382,12 +395,13 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
                 <Notification message={t(filtered ? "pages.changes.noMatch" : "pages.changes.noChanges")} />
             ) : (
                 <TableContainer>
-                    <Table columnWidths={["50px", "14%", "18%", "56%", "130px"]}>
+                    <Table columnWidths={["50px", "14%", "18%", "100px", "auto", "130px"]}>
                         <TableHead>
                             <TableRow>
                                 <TableHeader>{t("pages.changes.column.seq")}</TableHeader>
                                 <TableHeader>{t("pages.changes.column.date")}</TableHeader>
                                 <TableHeader>{t("pages.changes.column.user")}</TableHeader>
+                                <TableHeader>{t("pages.changes.column.source")}</TableHeader>
                                 <TableHeader>{t("pages.changes.column.change")}</TableHeader>
                                 <TableHeader>{""}</TableHeader>
                             </TableRow>

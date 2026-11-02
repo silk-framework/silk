@@ -16,6 +16,7 @@ import {
     WorkspaceSide,
 } from "@eccenca/gui-elements";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import { commonSel } from "@ducks/common";
 import { routerSel } from "@ducks/router";
 import { filtersSlice } from "@ducks/workspace/filtersSlice";
 import { previewSlice } from "@ducks/workspace/previewSlice";
@@ -31,6 +32,8 @@ import SearchBar from "../../shared/SearchBar";
 import Filterbar from "../Workspace/Filterbar";
 import ChangeList from "./ChangeList";
 import { changeJournalHelpMarkdown } from "./changeJournalHelp";
+import { ChangeConversationsProvider, RefreshChangeConversationsContext } from "./ChangeConversationsContext";
+import { ChangeConversationLabel, CONVERSATION_FACET } from "./ChangeSource";
 
 const PAGE_SIZE = 25;
 
@@ -47,6 +50,11 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
     const tableSettings = globalTableSettings["changes"] ?? {};
     const [notFound, setNotFound] = React.useState(false);
     const [refreshKey, setRefreshKey] = React.useState(0);
+    const refreshConversations = React.useContext(RefreshChangeConversationsContext);
+    const reload = () => {
+        refreshConversations();
+        setRefreshKey((key) => key + 1);
+    };
     const [helpOpen, setHelpOpen] = React.useState(false);
     // The search store is shared with the workspace search and the activities page: the list waits until it is this page's
     const [ready, setReady] = React.useState(false);
@@ -159,7 +167,7 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
                                                 textQuery={ready ? textQuery : ""}
                                                 sorters={changeSorters}
                                                 onSearch={handleSearch}
-                                                onEnter={() => setRefreshKey((key) => key + 1)}
+                                                onEnter={reload}
                                                 globalTableKey={"changes"}
                                             />
                                         </div>
@@ -167,7 +175,7 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
                                             data-test-id={"changes-reload-btn"}
                                             name="item-reload"
                                             text={t("pages.changes.reload")}
-                                            onClick={() => setRefreshKey((key) => key + 1)}
+                                            onClick={reload}
                                         />
                                         <IconButton
                                             data-test-id={"changes-help-btn"}
@@ -184,7 +192,15 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
                     <Grid>
                         <GridRow>
                             <GridColumn small>
-                                <Filterbar facetsOnly projectId={projectId} />
+                                <Filterbar
+                                    facetsOnly
+                                    projectId={projectId}
+                                    renderValueLabel={(facetId, value) =>
+                                        facetId === CONVERSATION_FACET
+                                            ? <ChangeConversationLabel conversationId={value.id} />
+                                            : undefined
+                                    }
+                                />
                             </GridColumn>
                             <GridColumn>
                                 <ChangeList projectId={projectId} ready={ready} refreshKey={refreshKey} />
@@ -212,7 +228,12 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
  */
 const ProjectChanges = () => {
     const { projectId } = useParams<{ projectId: string }>();
-    return <ProjectChangesPage key={projectId} projectId={projectId} />;
+    const { userUri } = useSelector(commonSel.initialSettingsSelector);
+    return (
+        <ChangeConversationsProvider key={`${projectId}:${userUri ?? ""}`}>
+            <ProjectChangesPage projectId={projectId} />
+        </ChangeConversationsProvider>
+    );
 };
 
 export default ProjectChanges;

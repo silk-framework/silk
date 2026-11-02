@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { commonSel } from "@ducks/common";
 import { RadioButton, Spacing, TitleSubsection, Label } from "@eccenca/gui-elements";
-import FacetsList from "./FacetsList";
+import FacetsList, { FacetsListProps } from "./FacetsList";
 import { useTranslation } from "react-i18next";
 import { IAvailableDataTypeOption } from "@ducks/common/typings";
 import { AppDispatch } from "store/configureStore";
@@ -13,11 +13,12 @@ interface IFilterBarProps {
     projectId?: string;
     /** Only the facets, for a search whose items have no item type, e.g. the changes of a project. */
     facetsOnly?: boolean;
+    renderValueLabel?: FacetsListProps["renderValueLabel"];
 }
 
 /** The filter menu that allows to filter the search results by selecting a specific item type and
  * filter by type specific facets. */
-export function Filterbar({ extraItemTypeModifiers = [], projectId, facetsOnly = false }: IFilterBarProps) {
+export function Filterbar({ extraItemTypeModifiers = [], projectId, facetsOnly = false, renderValueLabel }: IFilterBarProps) {
     const dispatch = useDispatch<AppDispatch>();
     const [t] = useTranslation();
 
@@ -38,7 +39,7 @@ export function Filterbar({ extraItemTypeModifiers = [], projectId, facetsOnly =
     if (facetsOnly) {
         return (
             <nav>
-                <FacetsList projectId={projectId} />
+                <FacetsList projectId={projectId} renderValueLabel={renderValueLabel} />
             </nav>
         );
     }
@@ -82,7 +83,7 @@ export function Filterbar({ extraItemTypeModifiers = [], projectId, facetsOnly =
                             ))}
                     </ul>
                     <Spacing />
-                    <FacetsList projectId={projectId} />
+                    <FacetsList projectId={projectId} renderValueLabel={renderValueLabel} />
                 </>
             )}
         </nav>

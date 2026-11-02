@@ -8,8 +8,14 @@ import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 import { AppDispatch } from "store/configureStore";
 
+export interface FacetsListProps {
+    projectId?: string;
+    /** Optional display labels for opaque facet IDs; checkbox values remain unchanged. */
+    renderValueLabel?: (facetId: string, value: IFacetState["values"][number]) => React.ReactNode;
+}
+
 /** List of filter facets used to re-fine search results. */
-export default function FacetsList({ projectId }: { projectId?: string }) {
+export default function FacetsList({ projectId, renderValueLabel }: FacetsListProps) {
     const dispatch = useDispatch<AppDispatch>();
     const [t, i18n] = useTranslation();
 
@@ -95,7 +101,8 @@ export default function FacetsList({ projectId }: { projectId?: string }) {
                                             label={
                                                 <>
                                                     <span className={ClassNames.Typography.FORCELINEBREAK}>
-                                                        {i18n.exists(translationKey) ? t(translationKey) : val.label}
+                                                        {renderValueLabel?.(facet.id, val) ??
+                                                            (i18n.exists(translationKey) ? t(translationKey) : val.label)}
                                                     </span>
                                                     <span> ({val.count})</span>
                                                 </>

@@ -26,6 +26,8 @@ export interface IChangeEntry {
     user?: string;
     /** The client the change came from, e.g. 'mcp:<user agent>'. */
     origin?: string;
+    /** The conversation responsible for the change, if supplied by the client. */
+    conversationId?: string;
     /** The type of change, e.g. 'AddMapping' or 'ReplaceTask'. */
     type: string;
     /** The kind of change, as the page tags it. */
