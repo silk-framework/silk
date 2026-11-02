@@ -68,7 +68,7 @@ object TemplateVariable {
     * they are. One that cannot be decrypted, e.g., after the key has been changed, is kept encrypted, so that it is not lost.
     */
   def fromStorage(variable: TemplateVariable): TemplateVariable = {
-    if (variable.hasEncryptedValue) {
+    if (variable.isSensitive) {
       variable.copy(value = decrypted(variable, variable.value), template = variable.template.map(decrypted(variable, _)))
     } else {
       variable
