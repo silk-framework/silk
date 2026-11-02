@@ -1311,7 +1311,7 @@
                 "value": "Value",
                 "description": "Description",
                 "sensitive": "Sensitive",
-                "sensitiveDescription": "The value is never shown. It can only be used by password parameters, by parameters that allow sensitive variables and by other sensitive variables of the same scope.",
+                "sensitiveDescription": "The value is not displayed. It can only be used by password parameters, by parameters that allow sensitive variables and by other sensitive variables of the same scope.",
                 "keepSensitiveValue": "Leave empty to keep the current value or template.",
                 "infoBoxTitle": "Project variables",
                 "infoBoxDescription": "User-defined project variables. They can be used in dataset and task parameters and in the template transform operator. Variables may use templates that access other preceding project variables or globally configured variables."
