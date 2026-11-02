@@ -46,7 +46,8 @@ case class TemplateVariableJson(@Schema(
     if (value.isEmpty && template.isEmpty) {
       throw new BadUserInputException("Either the variable value or its template has to be defined.")
     }
-    TemplateVariable(name, value.getOrElse(""), template, description, isSensitive, VariableScope.parse(scope))
+    // A sensitive variable may be sent in its stored, encrypted form, e.g., from the task JSON
+    TemplateVariable.fromStorage(TemplateVariable(name, value.getOrElse(""), template, description, isSensitive, VariableScope.parse(scope)))
   }
 }
 

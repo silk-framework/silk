@@ -16,6 +16,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.{CustomTask, InputPorts, Port}
 import org.silkframework.runtime.plugin.annotations.Param
+import org.silkframework.runtime.plugin.types.PasswordParameter
 import org.silkframework.runtime.plugin.{ClassPluginDescription, ParameterTemplateValue, ParameterValues, PluginContext, PluginRegistry}
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.TaskPropertyDto
@@ -407,6 +408,9 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     (taskResponse.json \ "data" \ "parameters" \ "secretContent").as[String] shouldBe masked
     val search = checkResponse(createRequest(SearchApiRoutes.search()).post(Json.obj("project" -> projectName, "searchTerm" -> secretValue)))
     search.json.as[Seq[JsValue]] shouldBe empty
+    // A patch that leaves the templates out keeps them, instead of storing the placeholder as the value
+    checkResponse(createRequest(controllers.workspace.routes.TaskApi.patchTask(projectName, taskName)).patch(Json.obj("metadata" -> Json.obj("label" -> "Patched"))))
+    project.task[VariablesTestTask](taskName).data.secretContent shouldBe "key=" + secretValue
   }
 
   it should "not disclose sensitive parent variables when retrieving variables" in {
@@ -528,6 +532,9 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     validation.evaluatedTemplate shouldBe Some(TemplateVariables.SensitiveValuePlaceholder)
     autoCompleteTemplate(projectName, variableIsSensitive = Some(true)) should contain("project.password")
 
+    // A value sent in the encrypted form it is stored in is decrypted
+    putVariableJson(projectName, TemplateVariableJson("apiKey", Some(PasswordParameter.encrypt("k").toString), None, None, isSensitive = true, "project"))
+    project.templateVariables.all.map("apiKey").value shouldBe "k"
     // A value that cannot be decrypted, e.g., after the key has been changed, is reported, so that it is entered again
     project.templateVariables.put(TemplateVariables(Seq(TemplateVariable("rotated", "PASSWORD_PARAMETER:invalid", None, None, isSensitive = true, VariableScope.project))))
     val errors = Json.fromJson[TemplateVariablesJson](checkResponse(createRequest(TemplateApi.getVariables(projectName, None, false)).get()).json).get.errors

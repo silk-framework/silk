@@ -31,14 +31,16 @@ case class TemplateVariable(override val name: String,
   validate()
 
   /**
-    * True if this sensitive variable holds its value in the encrypted form it is stored in.
-    * After reading, this is only the case for a value that could not be decrypted, see [[TemplateVariable.fromStorage]].
+    * True if this sensitive variable holds its value or template in the encrypted form it is stored in.
+    * After reading, this is only the case for one that could not be decrypted, see [[TemplateVariable.fromStorage]].
     */
-  def hasEncryptedValue: Boolean = isSensitive && value.startsWith(PasswordParameterType.PREAMBLE)
+  def hasEncryptedValue: Boolean = {
+    isSensitive && (value +: template.toSeq).exists(_.startsWith(PasswordParameterType.PREAMBLE))
+  }
 
-  /** This variable as it is stored: the value of a sensitive variable is encrypted like a password parameter. */
+  /** This variable as it is stored: the value and template of a sensitive variable are encrypted like a password parameter. */
   def forStorage: TemplateVariable = {
-    if (isSensitive && !hasEncryptedValue) copy(value = PasswordParameter.encrypt(value).toString) else this
+    if (isSensitive) copy(value = TemplateVariable.encrypted(value), template = template.map(TemplateVariable.encrypted)) else this
   }
 
   private def validate(): Unit = {
@@ -62,21 +64,33 @@ object TemplateVariable {
 
   /**
     * Reads a variable as it is stored, see [[TemplateVariable.forStorage]].
-    * The value of a sensitive variable is decrypted; a plain value, stored before values were encrypted, is read as it is.
-    * A value that cannot be decrypted, e.g., after the key has been changed, is kept encrypted, so that it is not lost.
+    * The value and template of a sensitive variable are decrypted; plain ones, stored before they were encrypted, are read as
+    * they are. One that cannot be decrypted, e.g., after the key has been changed, is kept encrypted, so that it is not lost.
     */
   def fromStorage(variable: TemplateVariable): TemplateVariable = {
     if (variable.hasEncryptedValue) {
-      try {
-        variable.copy(value = PasswordParameter.decrypt(variable.value.stripPrefix(PasswordParameterType.PREAMBLE)))
-      } catch {
-        case NonFatal(ex) =>
-          log.log(Level.WARNING, s"The value of the sensitive variable '${variable.scopedName}' cannot be decrypted with the key configured at " +
-            s"'${PasswordParameterType.CONFIG_KEY}'. It is kept encrypted until it is entered again.", ex)
-          variable
-      }
+      variable.copy(value = decrypted(variable, variable.value), template = variable.template.map(decrypted(variable, _)))
     } else {
       variable
+    }
+  }
+
+  private def encrypted(str: String): String = {
+    if (str.startsWith(PasswordParameterType.PREAMBLE)) str else PasswordParameter.encrypt(str).toString
+  }
+
+  private def decrypted(variable: TemplateVariable, str: String): String = {
+    if (str.startsWith(PasswordParameterType.PREAMBLE)) {
+      try {
+        PasswordParameter.decrypt(str.stripPrefix(PasswordParameterType.PREAMBLE))
+      } catch {
+        case NonFatal(ex) =>
+          log.log(Level.WARNING, s"The sensitive variable '${variable.scopedName}' cannot be decrypted with the key configured at " +
+            s"'${PasswordParameterType.CONFIG_KEY}'. It is kept encrypted until it is entered again.", ex)
+          str
+      }
+    } else {
+      str
     }
   }
 
@@ -101,11 +115,12 @@ object TemplateVariable {
     }
 
     override def write(value: TemplateVariable)(implicit writeContext: WriteContext[Node]): Node = {
+      val stored = value.forStorage
       <Variable name={value.name}
                 isSensitive={value.isSensitive.toString}
                 scope={value.scope.toString}>
-        <Value xml:space="preserve">{PCData(value.forStorage.value)}</Value>
-        { value.template.toSeq.map(template => <Template xml:space="preserve">{PCData(template)}</Template>) }
+        <Value xml:space="preserve">{PCData(stored.value)}</Value>
+        { stored.template.toSeq.map(template => <Template xml:space="preserve">{PCData(template)}</Template>) }
         <Description xml:space="preserve">{value.description.getOrElse("")}</Description>
       </Variable>
     }

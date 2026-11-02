@@ -29,13 +29,15 @@ class TemplateVariableTest extends AnyFlatSpec with Matchers with ConfigTestTrai
     an[BadUserInputException] should be thrownBy variableName("")
   }
 
-  it should "store the value of a sensitive variable encrypted" in {
+  it should "store the value and template of a sensitive variable encrypted" in {
     implicit val readContext: ReadContext = TestReadContext()
     val variables = TemplateVariables(Seq(
       TemplateVariable("password", "s3cret", None, None, isSensitive = true, VariableScope.project),
+      TemplateVariable("token", "Bearer s3cret", Some("Bearer {{project.password}}"), None, isSensitive = true, VariableScope.project),
       TemplateVariable("host", "localhost", None, None, isSensitive = false, VariableScope.project)))
     val xml = XmlSerialization.toXml(variables).toString
     xml should not include "s3cret"
+    xml should not include "Bearer"
     xml should include("localhost")
     XmlSerialization.fromXml[TemplateVariables](scala.xml.XML.loadString(xml)) shouldBe variables
     // A plain value, stored before values were encrypted, is read as it is; one that cannot be decrypted is kept encrypted

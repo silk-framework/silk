@@ -167,8 +167,8 @@ object ResolvedVariablesJson {
   /** The error message reported for a sensitive variable when masking. */
   final val maskedErrorMessage = "The template of this sensitive variable could not be evaluated."
 
-  /** The error message reported for a sensitive variable whose stored value could not be decrypted. */
-  final val undecryptableValueMessage = s"The value cannot be decrypted with the key configured at '${PasswordParameterType.CONFIG_KEY}'. Please enter it again."
+  /** The error message reported for a sensitive variable whose stored value or template could not be decrypted. */
+  final val undecryptableValueMessage = s"The variable cannot be decrypted with the key configured at '${PasswordParameterType.CONFIG_KEY}'. Please enter it again."
 
   def apply(manager: TemplateVariablesManager, masked: Boolean)
            (implicit userContext: UserContext): (Seq[TemplateVariableJson], Seq[TemplateVariableErrorJson]) = {
