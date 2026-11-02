@@ -11,7 +11,7 @@ export interface ChangeConversationSummary {
 
 /** An optional host supplies only the conversations visible to the logged-in user. */
 export interface ChangeConversationSource {
-    loadConversations: (signal: AbortSignal) => Promise<readonly ChangeConversationSummary[]>;
+    loadConversations: (signal: AbortSignal, apiBasePath?: string) => Promise<readonly ChangeConversationSummary[]>;
 }
 
 export interface ChangeConversationIdentity {
@@ -69,7 +69,7 @@ export const ChangeConversationsProvider = ({ children }: { children: React.Reac
             const current = new AbortController();
             controller = current;
             try {
-                const summaries = await source.loadConversations(current.signal);
+                const summaries = await source.loadConversations(current.signal, companion.apiBasePath);
                 if (!current.signal.aborted) {
                     setConversations(identifyChangeConversations(summaries, numbers.current));
                 }
@@ -89,7 +89,7 @@ export const ChangeConversationsProvider = ({ children }: { children: React.Reac
             controller?.abort();
             window.removeEventListener("focus", onFocus);
         };
-    }, [source, companion?.enabled, revision]);
+    }, [source, companion?.enabled, companion?.apiBasePath, revision]);
 
     return (
         <RefreshChangeConversationsContext.Provider value={refresh}>

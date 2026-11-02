@@ -177,7 +177,7 @@ case class CompanionFrontendConfig(enabled: Boolean, apiBasePath: String, stream
 object CompanionFrontendConfig {
   private val configPath = "com.eccenca.di.assistant.CompanionConfig"
   private val companionAction = "https://vocab.eccenca.com/auth/Action/Explore-Companion-Use"
-  private val defaultApiBasePath = "/dataplatform/api/companion"
+  private val defaultApiBasePath = "/dataplatform/api/companion2"
   private val defaultStreamPath = "/dataplatform/companion-websocket"
 
   val disabled: CompanionFrontendConfig = CompanionFrontendConfig(
