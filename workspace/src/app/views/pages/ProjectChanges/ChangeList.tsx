@@ -395,7 +395,7 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
                 <Notification message={t(filtered ? "pages.changes.noMatch" : "pages.changes.noChanges")} />
             ) : (
                 <TableContainer>
-                    <Table columnWidths={["50px", "14%", "18%", "100px", "auto", "130px"]}>
+                    <Table columnWidths={["50px", "14%", "18%", "100px", "auto", "160px"]}>
                         <TableHead>
                             <TableRow>
                                 <TableHeader>{t("pages.changes.column.seq")}</TableHeader>

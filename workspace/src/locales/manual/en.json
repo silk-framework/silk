@@ -697,7 +697,8 @@
                 "untitled": "Untitled conversation",
                 "unavailable": "Conversation unavailable",
                 "id": "Conversation ID: {{id}}",
-                "filter": "Filter by conversation {{label}}"
+                "filter": "Filter by conversation {{label}}",
+                "open": "Open companion conversation"
             },
             "emptyValue": "empty",
             "emptyValueTooltip": "The value is empty",

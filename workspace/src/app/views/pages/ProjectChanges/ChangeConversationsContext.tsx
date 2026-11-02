@@ -12,6 +12,7 @@ export interface ChangeConversationSummary {
 /** An optional host supplies only the conversations visible to the logged-in user. */
 export interface ChangeConversationSource {
     loadConversations: (signal: AbortSignal, apiBasePath?: string) => Promise<readonly ChangeConversationSummary[]>;
+    openConversation?: (conversationId: string) => void;
 }
 
 export interface ChangeConversationIdentity {
@@ -23,6 +24,7 @@ export const ChangeConversationsContext = React.createContext<ReadonlyMap<string
     new Map(),
 );
 export const RefreshChangeConversationsContext = React.createContext<() => void>(() => {});
+export const OpenChangeConversationContext = React.createContext<((id: string) => void) | undefined>(undefined);
 
 /** Page-local identities survive list reordering and deletion; removed conversations leave a gap. */
 export function identifyChangeConversations(
@@ -92,8 +94,12 @@ export const ChangeConversationsProvider = ({ children }: { children: React.Reac
     }, [source, companion?.enabled, companion?.apiBasePath, revision]);
 
     return (
-        <RefreshChangeConversationsContext.Provider value={refresh}>
-            <ChangeConversationsContext.Provider value={conversations}>{children}</ChangeConversationsContext.Provider>
-        </RefreshChangeConversationsContext.Provider>
+        <OpenChangeConversationContext.Provider value={companion?.enabled ? source?.openConversation : undefined}>
+            <RefreshChangeConversationsContext.Provider value={refresh}>
+                <ChangeConversationsContext.Provider value={conversations}>
+                    {children}
+                </ChangeConversationsContext.Provider>
+            </RefreshChangeConversationsContext.Provider>
+        </OpenChangeConversationContext.Provider>
     );
 };

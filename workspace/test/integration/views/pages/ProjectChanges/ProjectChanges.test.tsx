@@ -21,8 +21,15 @@ import ProjectChanges from "../../../../../src/app/views/pages/ProjectChanges";
 import ChangeList from "../../../../../src/app/views/pages/ProjectChanges/ChangeList";
 import { IChangeEntry } from "../../../../../src/app/views/pages/ProjectChanges/changesRequests";
 import { triggerHotkeyHandler } from "../../../../../src/app/views/shared/HotKeyHandler/HotKeyHandler";
-import { ChangeConversationsContext, ChangeConversationIdentity } from "../../../../../src/app/views/pages/ProjectChanges/ChangeConversationsContext";
-import { ChangeConversationLabel, CONVERSATION_FACET } from "../../../../../src/app/views/pages/ProjectChanges/ChangeSource";
+import {
+    ChangeConversationsContext,
+    ChangeConversationIdentity,
+    OpenChangeConversationContext,
+} from "../../../../../src/app/views/pages/ProjectChanges/ChangeConversationsContext";
+import {
+    ChangeConversationLabel,
+    CONVERSATION_FACET,
+} from "../../../../../src/app/views/pages/ProjectChanges/ChangeSource";
 import Filterbar from "../../../../../src/app/views/pages/Workspace/Filterbar";
 import { APP_VIEWHEADER_ID } from "../../../../../src/app/views/shared/PageHeader/PageHeader";
 
@@ -148,14 +155,20 @@ describe("Project changes", () => {
     /** The answer of the search for a list, as the server builds it: the page, the state facet counting the unreviewed entries, the journal's numbers. */
     const searchAnswer = (list: IChangeEntry[], reviewedUpTo: number = 0, unreviewed?: number) => {
         const unreviewedShown = list.filter((change) => change.unreviewed).length;
-        const conversationFacet = { id: "changeConversation", label: "Conversation", type: "keyword",
-            values: Array.from(new Set(list.flatMap((change) => change.conversationId ? [change.conversationId] : [])))
-                .map((id) => ({ id, label: id, count: list.filter((change) => change.conversationId === id).length })),
+        const conversationFacet = {
+            id: "changeConversation",
+            label: "Conversation",
+            type: "keyword",
+            values: Array.from(
+                new Set(list.flatMap((change) => (change.conversationId ? [change.conversationId] : []))),
+            ).map((id) => ({ id, label: id, count: list.filter((change) => change.conversationId === id).length })),
         };
         return {
             total: list.length,
             results: [...list],
-            facets: [conversationFacet, ...(unreviewedShown > 0
+            facets: [
+                conversationFacet,
+                ...(unreviewedShown > 0
                     ? [
                           {
                               id: "changeState",
@@ -165,7 +178,8 @@ describe("Project changes", () => {
                               values: [{ id: "unreviewed", label: "Unreviewed", count: unreviewedShown }],
                           },
                       ]
-                    : [])],
+                    : []),
+            ],
             sortByProperties: [{ id: "time", label: "Time" }],
             reviewedUpTo,
             latestSeq: Math.max(0, ...list.map((change) => change.seq)),
@@ -178,15 +192,30 @@ describe("Project changes", () => {
         list: IChangeEntry[] = changes,
         conflicts: { seq: number; reason: string }[] = defaultConflicts,
         identities?: ReadonlyMap<string, ChangeConversationIdentity>,
+        history = createBrowserHistory(),
+        onOpenConversation?: (id: string) => void,
     ): Promise<RenderResult> => {
         const listElement = <ChangeList projectId={PROJECT_ID} />;
-        const wrapper = renderWrapper(identities
-            ? <ChangeConversationsContext.Provider value={identities}>
-                <Filterbar facetsOnly renderValueLabel={(facetId, value) => facetId === CONVERSATION_FACET
-                    ? <ChangeConversationLabel conversationId={value.id} /> : undefined} />
-                {listElement}
-            </ChangeConversationsContext.Provider>
-            : listElement);
+        const wrapper = renderWrapper(
+            identities ? (
+                <OpenChangeConversationContext.Provider value={onOpenConversation}>
+                    <ChangeConversationsContext.Provider value={identities}>
+                        <Filterbar
+                            facetsOnly
+                            renderValueLabel={(facetId, value) =>
+                                facetId === CONVERSATION_FACET ? (
+                                    <ChangeConversationLabel conversationId={value.id} />
+                                ) : undefined
+                            }
+                        />
+                        {listElement}
+                    </ChangeConversationsContext.Provider>
+                </OpenChangeConversationContext.Provider>
+            ) : (
+                listElement
+            ),
+            history,
+        );
         mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(list) }));
         await waitFor(() => {
             expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(list.length);
@@ -274,7 +303,12 @@ describe("Project changes", () => {
     it("should show the source beside the user and keep the agent indicator out of the user cell", async () => {
         const wrapper = await loadChangeList();
         expect(wrapper.getAllByRole("columnheader").map((header) => header.textContent)).toEqual([
-            "#", "Date", "User", "Source", "Change", "",
+            "#",
+            "Date",
+            "User",
+            "Source",
+            "Change",
+            "",
         ]);
         const agentCells = findElement(wrapper, byTestId("change-row-5")).querySelectorAll("td");
         const agentIndicator = findElement(wrapper, byTestId("change-agent-5"));
@@ -296,22 +330,93 @@ describe("Project changes", () => {
         expect(findElement(wrapper, byTestId("change-conversation-5"))).toHaveTextContent("C2");
         expect(wrapper.getByRole("checkbox", { name: /C2/ })).toHaveAttribute("value", "conversation-a");
         expect(findElement(wrapper, byTestId("change-conversation-3"))).toHaveTextContent("C7");
-        expect(findElement(wrapper, byTestId("change-agent-5"))).toHaveAttribute("title", expect.stringContaining("Duplicate title"));
-        expect(findElement(wrapper, byTestId("change-agent-5"))).toHaveAttribute("title", expect.stringContaining("conversation-a"));
+        expect(findElement(wrapper, byTestId("change-agent-5"))).toHaveAttribute(
+            "title",
+            expect.stringContaining("Duplicate title"),
+        );
+        expect(findElement(wrapper, byTestId("change-agent-5"))).toHaveAttribute(
+            "title",
+            expect.stringContaining("conversation-a"),
+        );
         expect(findElement(wrapper, byTestId("change-conversation-2"))).toHaveTextContent("?");
-        expect(findElement(wrapper, byTestId("change-agent-2"))).toHaveAttribute("title", expect.stringContaining("Conversation unavailable"));
+        expect(findElement(wrapper, byTestId("change-agent-2"))).toHaveAttribute(
+            "title",
+            expect.stringContaining("Conversation unavailable"),
+        );
         expect(wrapper.container.querySelector(byTestId("change-conversation-1"))).toBeNull();
         clickFoundElement(wrapper, byTestId("change-conversation-5"));
-        await waitFor(() => checkRequestMade(searchUrl, "POST", {
-            facets: [{ facetId: "changeConversation", type: "keyword", keywordIds: ["conversation-a"] }],
-        }, true));
-        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([mappingChange], 0, unreviewedChanges.length) }));
+        await waitFor(() =>
+            checkRequestMade(
+                searchUrl,
+                "POST",
+                {
+                    facets: [{ facetId: "changeConversation", type: "keyword", keywordIds: ["conversation-a"] }],
+                },
+                true,
+            ),
+        );
+        mockAxios.mockResponseFor(
+            { url: searchUrl },
+            mockedAxiosResponse({ data: searchAnswer([mappingChange], 0, unreviewedChanges.length) }),
+        );
         await waitFor(() => expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(1));
         expect(findElement(wrapper, byTestId("change-conversation-5"))).toHaveTextContent("C2");
         expect(findElement(wrapper, byTestId("change-conversation-5"))).toHaveAttribute("aria-pressed", "true");
         expect(findElement(wrapper, byTestId("changes-mark-reviewed-btn"))).toBeDisabled();
         fireEvent.click(wrapper.getByRole("checkbox", { name: /C2/ }));
         await waitFor(() => checkRequestMade(searchUrl, "POST", { facets: [] }, true));
+    });
+
+    it("should link to an available companion conversation while preserving journal filters and the hash", async () => {
+        const conversationId = "chat 1&two/?#";
+        const history = createBrowserHistory();
+        history.location.search =
+            "?textQuery=persons&f_ids=changeState&types=keyword&f_keys=unreviewed&conversationId=previous";
+        history.location.hash = "#change-5";
+        const entry = { ...mappingChange, conversationId };
+        const wrapper = await loadChangeList([entry], [], new Map([[conversationId, { number: 1 }]]), history);
+        const action = findElement(wrapper, byTestId("change-open-conversation-5"));
+        expect(action.tagName).toBe("A");
+        expect(action).toHaveAccessibleName("Open companion conversation");
+        const target = new URL(
+            action.getAttribute("href")!,
+            "http://localhost/dataintegration/workbench/projects/cmem/changes",
+        );
+        expect(target.pathname).toBe("/dataintegration/workbench/projects/cmem/changes");
+        expect(target.searchParams.getAll("conversationId")).toEqual([conversationId]);
+        expect(target.searchParams.get("textQuery")).toBe("persons");
+        expect(target.searchParams.get("f_ids")).toBe("changeState");
+        expect(target.searchParams.get("types")).toBe("keyword");
+        expect(target.searchParams.get("f_keys")).toBe("unreviewed");
+        expect(target.hash).toBe("#change-5");
+        expect(action).not.toHaveAttribute("target");
+    });
+
+    it("should ask the live host to open the real conversation ID and retain the row", async () => {
+        const open = jest.fn();
+        const wrapper = await loadChangeList(
+            changes,
+            defaultConflicts,
+            new Map([["conversation-a", { number: 7 }]]),
+            createBrowserHistory(),
+            open,
+        );
+        const row = findElement(wrapper, byTestId("change-row-5"));
+        fireEvent.click(findElement(wrapper, byTestId("change-open-conversation-5")));
+        expect(open).toHaveBeenCalledWith("conversation-a");
+        expect(findElement(wrapper, byTestId("change-row-5"))).toBe(row);
+    });
+
+    it("should only offer opening conversations available to the current user", async () => {
+        const wrapper = await loadChangeList(
+            changes,
+            defaultConflicts,
+            new Map([["conversation-a", { number: 1, title: "Own conversation" }]]),
+        );
+        expect(findElement(wrapper, byTestId("change-open-conversation-5"))).toBeInTheDocument();
+        [1, 2, 3, 4].forEach((seq) => {
+            expect(wrapper.container.querySelector(byTestId(`change-open-conversation-${seq}`))).toBeNull();
+        });
     });
 
     it("should highlight the related entries while one is hovered", async () => {

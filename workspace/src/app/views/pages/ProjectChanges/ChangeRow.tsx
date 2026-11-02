@@ -19,6 +19,7 @@ import { getDateData } from "../../shared/Metadata/Metadata";
 import { IChangeDetail, IChangeEntry } from "./changesRequests";
 import { hasInverse, kindIntent, linkIcon, userDisplayName } from "./changeListUtils";
 import { ChangeSource } from "./ChangeSource";
+import { ChangeConversationAction } from "./ChangeConversationAction";
 
 interface IProps {
     entry: IChangeEntry;
@@ -246,7 +247,8 @@ const ChangeRow = ({
             <TableCell alignVertical="middle">
                 {/* Right-aligned, so that the menu sits in the same place whatever the number of links before it */}
                 <div className="diapp-changes__actions">
-                    {/* Every link opens in a new tab, so the review keeps its place */}
+                    <ChangeConversationAction entry={entry} />
+                    {/* Artifact links open in a new tab, so the review keeps its place */}
                     {entry.links.map((link) => (
                         <IconButton
                             key={link.id}
