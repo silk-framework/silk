@@ -34,6 +34,8 @@ import ChangeList from "./ChangeList";
 import { changeJournalHelpMarkdown } from "./changeJournalHelp";
 import { ChangeConversationsProvider, RefreshChangeConversationsContext } from "./ChangeConversationsContext";
 import { ChangeConversationLabel, CONVERSATION_FACET } from "./ChangeSource";
+import { HIGHLIGHT_CONVERSATION_PARAM } from "../../../constants/queryParams";
+import { changeSearchMatches } from "./changeSearchQuery";
 
 const PAGE_SIZE = 25;
 
@@ -42,9 +44,14 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
     const [t] = useTranslation();
     const dispatch = useDispatch<AppDispatch>();
     const { registerError } = useErrorHandler();
-    const qs = useSelector(routerSel.routerSearchSelector);
+    const qs = useSelector(routerSel.routerSearchSelector) || "";
+    const highlightConversation = new URLSearchParams(qs).get(HIGHLIGHT_CONVERSATION_PARAM);
     const sorters = useSelector(workspaceSel.sortersSelector);
-    const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
+    const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
+    const { textQuery } = appliedFilters;
+    const appliedFacets = useSelector(workspaceSel.appliedFacetsSelector);
+    const pagination = useSelector(workspaceSel.paginationSelector);
+    const previousSearch = React.useRef(qs);
     const { clearSearchResults, setError } = previewSlice.actions;
     const { globalTableSettings, updateGlobalTableSettings } = React.useContext(GlobalTableContext);
     const tableSettings = globalTableSettings["changes"] ?? {};
@@ -111,17 +118,35 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
             dispatch(clearSearchResults());
             dispatch(setError({}));
             dispatch(workspaceOp.resetFilters());
+            dispatch(filtersSlice.actions.setPreservedQueryKeys([HIGHLIGHT_CONVERSATION_PARAM]));
             dispatch(filtersSlice.actions.updateFacets([]));
             dispatch(filtersSlice.actions.updateSorters([]));
             dispatch(filtersSlice.actions.changePage(1));
-            dispatch(workspaceOp.changeLimitOp(tableSettings.pageSize ?? PAGE_SIZE));
+            dispatch(filtersSlice.actions.changeProjectsLimit(tableSettings.pageSize ?? PAGE_SIZE));
             dispatch(workspaceOp.setupFiltersFromQs(qs));
         });
         setReady(true);
         return () => {
-            dispatch(clearSearchResults());
+            batch(() => {
+                dispatch(clearSearchResults());
+                dispatch(filtersSlice.actions.setPreservedQueryKeys([]));
+            });
         };
     }, [projectId]);
+
+    // Review links and browser navigation can change filters while this page stays mounted.
+    React.useEffect(() => {
+        if (!ready || previousSearch.current === qs) {
+            return;
+        }
+        previousSearch.current = qs;
+        if (!changeSearchMatches(qs, appliedFilters, appliedFacets, pagination.current)) {
+            batch(() => {
+                dispatch(workspaceOp.resetFilters());
+                dispatch(workspaceOp.setupFiltersFromQs(qs));
+            });
+        }
+    }, [qs, ready, appliedFilters, appliedFacets, pagination.current, dispatch]);
 
     // The store's default sorter is the workspace search's recently viewed order, which the journal has not: its one
     // sort property, time, is active from the start, newest first, which is also the server's order without a property
@@ -195,10 +220,15 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
                                 <Filterbar
                                     facetsOnly
                                     projectId={projectId}
-                                    renderValueLabel={(facetId, value) =>
-                                        facetId === CONVERSATION_FACET
-                                            ? <ChangeConversationLabel conversationId={value.id} />
+                                    prioritizedFacetValues={
+                                        highlightConversation
+                                            ? { [CONVERSATION_FACET]: highlightConversation }
                                             : undefined
+                                    }
+                                    renderValueLabel={(facetId, value) =>
+                                        facetId === CONVERSATION_FACET ? (
+                                            <ChangeConversationLabel conversationId={value.id} />
+                                        ) : undefined
                                     }
                                 />
                             </GridColumn>

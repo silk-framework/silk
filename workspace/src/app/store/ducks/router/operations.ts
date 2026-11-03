@@ -35,10 +35,16 @@ export const itemTypeToPath = (itemType: string): string => {
     }
 };
 
-const setQueryString = (queryParams: IQueryParams) => {
+const setQueryString = (queryParams: IQueryParams, options: { preserveKeys?: readonly string[] } = {}) => {
     return (dispatch, getState) => {
         const location = getLocation(getState());
         const currentQuery = Object.create(null);
+        const previousQuery = qs.parse(location.search, { ignoreQueryPrefix: true, comma: true });
+        for (const key of options.preserveKeys ?? []) {
+            if (previousQuery[key] !== undefined) {
+                currentQuery[key] = previousQuery[key];
+            }
+        }
 
         Object.keys(queryParams).forEach((paramName) => {
             const value = queryParams[paramName];

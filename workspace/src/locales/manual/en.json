@@ -691,12 +691,14 @@
                 "title": "The change journal"
             },
             "originTooltip": "The client the change came from",
+            "agentSource": "AI-origin change",
             "conversation": {
                 "badge": "C{{number}}",
                 "unavailableBadge": "?",
                 "untitled": "Untitled conversation",
                 "unavailable": "Conversation unavailable",
-                "id": "Conversation ID: {{id}}",
+                "label": "Conversation label: {{label}}",
+                "id": "ID: {{id}}",
                 "filter": "Filter by conversation {{label}}",
                 "open": "Open companion conversation"
             },

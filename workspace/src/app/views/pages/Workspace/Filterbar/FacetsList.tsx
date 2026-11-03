@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { IFacetState } from "@ducks/workspace/typings";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
@@ -12,10 +12,11 @@ export interface FacetsListProps {
     projectId?: string;
     /** Optional display labels for opaque facet IDs; checkbox values remain unchanged. */
     renderValueLabel?: (facetId: string, value: IFacetState["values"][number]) => React.ReactNode;
+    prioritizedFacetValues?: Readonly<Record<string, string>>;
 }
 
 /** List of filter facets used to re-fine search results. */
-export default function FacetsList({ projectId, renderValueLabel }: FacetsListProps) {
+export default function FacetsList({ projectId, renderValueLabel, prioritizedFacetValues }: FacetsListProps) {
     const dispatch = useDispatch<AppDispatch>();
     const [t, i18n] = useTranslation();
 
@@ -24,20 +25,9 @@ export default function FacetsList({ projectId, renderValueLabel }: FacetsListPr
     const location = useLocation();
     const locationParams = new URLSearchParams(location.search?.substring(1));
 
-    const [visibleFacetsKeywords, setVisibleFacetsKeywords] = useState({});
     const [toggledFacets, setToggledFacets] = useState<string[]>([]);
 
     const FACETS_PREVIEW_LIMIT = 7;
-
-    useEffect(() => {
-        const visiblesOnly = Object.create(null) as any;
-        facets.forEach((facet) => {
-            visiblesOnly[facet.id] = [...facet.values]
-                .sort((a, b) => Number(isChecked(facet.id, b.id)) - Number(isChecked(facet.id, a.id)))
-                .slice(0, FACETS_PREVIEW_LIMIT);
-        });
-        setVisibleFacetsKeywords(visiblesOnly);
-    }, [facets]);
 
     const isChecked = (facetId: string, value: string): boolean => {
         const existsFacet = appliedFacets.find((o) => o.facetId === facetId);
@@ -60,18 +50,19 @@ export default function FacetsList({ projectId, renderValueLabel }: FacetsListPr
     };
 
     const toggleShowMore = (facet: IFacetState) => {
-        const toggledIndex = toggledFacets.findIndex((f) => f === facet.id);
-        const keywords = { ...visibleFacetsKeywords };
+        setToggledFacets((current) =>
+            current.includes(facet.id) ? current.filter((id) => id !== facet.id) : [...current, facet.id],
+        );
+    };
 
-        if (toggledIndex > -1) {
-            keywords[facet.id] = [...facet.values.slice(0, FACETS_PREVIEW_LIMIT)];
-            toggledFacets.splice(toggledIndex, 1);
-        } else {
-            keywords[facet.id] = [...facet.values];
-            toggledFacets.push(facet.id);
-        }
-        setToggledFacets(toggledFacets);
-        setVisibleFacetsKeywords(keywords);
+    const visibleValues = (facet: IFacetState): IFacetState["values"] => {
+        const preferred = prioritizedFacetValues?.[facet.id];
+        const values = [...facet.values].sort(
+            (a, b) =>
+                Number(b.id === preferred) - Number(a.id === preferred) ||
+                Number(isChecked(facet.id, b.id)) - Number(isChecked(facet.id, a.id)),
+        );
+        return toggledFacets.includes(facet.id) ? values : values.slice(0, FACETS_PREVIEW_LIMIT);
     };
 
     return (
@@ -87,30 +78,29 @@ export default function FacetsList({ projectId, renderValueLabel }: FacetsListPr
                     </TitleSubsection>
                     <Spacing size="tiny" />
                     <ul>
-                        {visibleFacetsKeywords[facet.id] &&
-                            visibleFacetsKeywords[facet.id].map((val) => {
-                                const key = `${val.id}-${facet.id}`;
-                                const translationKey = `widget.FacetsList.facet.${facet.id}.valueLabels.${val.id}`;
-                                return (
-                                    <li key={key}>
-                                        <FacetItem
-                                            data-test-id={"facet-items"}
-                                            isChecked={isChecked(facet.id, val.id)}
-                                            value={val.id}
-                                            onSelectFacet={(valueId) => handleSetFacet(facet, valueId)}
-                                            label={
-                                                <>
-                                                    <span className={ClassNames.Typography.FORCELINEBREAK}>
-                                                        {renderValueLabel?.(facet.id, val) ??
-                                                            (i18n.exists(translationKey) ? t(translationKey) : val.label)}
-                                                    </span>
-                                                    <span> ({val.count})</span>
-                                                </>
-                                            }
-                                        />
-                                    </li>
-                                );
-                            })}
+                        {visibleValues(facet).map((val) => {
+                            const key = `${val.id}-${facet.id}`;
+                            const translationKey = `widget.FacetsList.facet.${facet.id}.valueLabels.${val.id}`;
+                            return (
+                                <li key={key}>
+                                    <FacetItem
+                                        data-test-id={"facet-items"}
+                                        isChecked={isChecked(facet.id, val.id)}
+                                        value={val.id}
+                                        onSelectFacet={(valueId) => handleSetFacet(facet, valueId)}
+                                        label={
+                                            <>
+                                                <span className={ClassNames.Typography.FORCELINEBREAK}>
+                                                    {renderValueLabel?.(facet.id, val) ??
+                                                        (i18n.exists(translationKey) ? t(translationKey) : val.label)}
+                                                </span>
+                                                <span> ({val.count})</span>
+                                            </>
+                                        }
+                                    />
+                                </li>
+                            );
+                        })}
                         {facet.values.length > FACETS_PREVIEW_LIMIT && (
                             <li>
                                 <Button

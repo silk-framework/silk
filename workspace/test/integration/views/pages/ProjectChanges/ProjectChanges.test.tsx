@@ -1,6 +1,6 @@
 import React from "react";
 import "@testing-library/jest-dom";
-import { fireEvent, RenderResult, waitFor } from "@testing-library/react";
+import { act, fireEvent, RenderResult, waitFor } from "@testing-library/react";
 import { createBrowserHistory } from "history";
 import mockAxios from "../../../../__mocks__/axios";
 import {
@@ -21,6 +21,9 @@ import ProjectChanges from "../../../../../src/app/views/pages/ProjectChanges";
 import ChangeList from "../../../../../src/app/views/pages/ProjectChanges/ChangeList";
 import { IChangeEntry } from "../../../../../src/app/views/pages/ProjectChanges/changesRequests";
 import { triggerHotkeyHandler } from "../../../../../src/app/views/shared/HotKeyHandler/HotKeyHandler";
+import { useDispatch } from "react-redux";
+import { workspaceOp } from "@ducks/workspace";
+import { AppDispatch } from "../../../../../src/app/store/configureStore";
 import {
     ChangeConversationsContext,
     ChangeConversationIdentity,
@@ -278,8 +281,7 @@ describe("Project changes", () => {
         changes.forEach((change) => {
             expect(wrapper.container.textContent).toContain(change.summary);
         });
-        // An agent change is marked by an icon carrying the origin
-        expect(findElement(wrapper, byTestId("change-agent-5")).getAttribute("title")).toContain("mcp:claude-code");
+        expect(findElement(wrapper, byTestId("change-agent-1"))).toHaveAccessibleName("AI-origin change");
         // The details of an update are listed under its summary, one per line, an empty value spelled out
         const detail = findElement(wrapper, byTestId("change-detail-3-0")).textContent ?? "";
         expect(detail).toContain("Output dataset");
@@ -300,7 +302,7 @@ describe("Project changes", () => {
         );
     });
 
-    it("should show the source beside the user and keep the agent indicator out of the user cell", async () => {
+    it("should show either the conversation or AI indicator in Source beside the user", async () => {
         const wrapper = await loadChangeList();
         expect(wrapper.getAllByRole("columnheader").map((header) => header.textContent)).toEqual([
             "#",
@@ -311,11 +313,18 @@ describe("Project changes", () => {
             "",
         ]);
         const agentCells = findElement(wrapper, byTestId("change-row-5")).querySelectorAll("td");
-        const agentIndicator = findElement(wrapper, byTestId("change-agent-5"));
+        const conversationBadge = findElement(wrapper, byTestId("change-conversation-5"));
         expect(agentCells[2]).toHaveTextContent("alice");
-        expect(agentCells[2]).not.toContainElement(agentIndicator);
-        expect(agentCells[3]).toContainElement(agentIndicator);
-        expect(agentIndicator).toHaveAttribute("title", expect.stringContaining("mcp:claude-code"));
+        expect(agentCells[2]).not.toContainElement(conversationBadge);
+        expect(agentCells[3]).toContainElement(conversationBadge);
+        expect(agentCells[3].querySelectorAll("svg")).toHaveLength(1);
+        expect(wrapper.container.querySelector(byTestId("change-agent-5"))).toBeNull();
+        const agentIndicator = findElement(wrapper, byTestId("change-agent-1"));
+        const standaloneAgentCells = findElement(wrapper, byTestId("change-row-1")).querySelectorAll("td");
+        expect(standaloneAgentCells[3]).toContainElement(agentIndicator);
+        expect(standaloneAgentCells[3].querySelectorAll("svg")).toHaveLength(1);
+        expect(agentIndicator).toHaveAccessibleName("AI-origin change");
+        expect(agentIndicator).not.toHaveAttribute("title");
         const userCells = findElement(wrapper, byTestId("change-row-4")).querySelectorAll("td");
         expect(userCells[2]).toHaveTextContent("alice");
         expect(userCells[3]).toBeEmptyDOMElement();
@@ -330,18 +339,13 @@ describe("Project changes", () => {
         expect(findElement(wrapper, byTestId("change-conversation-5"))).toHaveTextContent("C2");
         expect(wrapper.getByRole("checkbox", { name: /C2/ })).toHaveAttribute("value", "conversation-a");
         expect(findElement(wrapper, byTestId("change-conversation-3"))).toHaveTextContent("C7");
-        expect(findElement(wrapper, byTestId("change-agent-5"))).toHaveAttribute(
-            "title",
-            expect.stringContaining("Duplicate title"),
-        );
-        expect(findElement(wrapper, byTestId("change-agent-5"))).toHaveAttribute(
-            "title",
-            expect.stringContaining("conversation-a"),
-        );
+        const conversationBadge = findElement(wrapper, byTestId("change-conversation-5"));
+        expect(conversationBadge).toHaveAccessibleName("Filter by conversation C2");
+        expect(conversationBadge).toHaveAttribute("aria-describedby");
+        expect(wrapper.container.querySelector(byTestId("change-agent-5"))).toBeNull();
         expect(findElement(wrapper, byTestId("change-conversation-2"))).toHaveTextContent("?");
-        expect(findElement(wrapper, byTestId("change-agent-2"))).toHaveAttribute(
-            "title",
-            expect.stringContaining("Conversation unavailable"),
+        expect(findElement(wrapper, byTestId("change-conversation-2"))).toHaveAccessibleName(
+            "Filter by conversation ?",
         );
         expect(wrapper.container.querySelector(byTestId("change-conversation-1"))).toBeNull();
         clickFoundElement(wrapper, byTestId("change-conversation-5"));
@@ -807,6 +811,89 @@ describe("Project changes", () => {
         });
     });
 
+    it("highlights and prioritizes the linked conversation, preserves its URL context, and applies review links without remounting", async () => {
+        setUseParams(PROJECT_ID, "");
+        const history = createBrowserHistory();
+        const path = workspacePath(`/projects/${PROJECT_ID}/changes`);
+        const highlight = "conversation-8";
+        const stateFacet = { facetId: "changeState", type: "keyword", keywordIds: ["unreviewed"] };
+        const projectQuery = new URLSearchParams({
+            highlightConversation: highlight,
+            f_ids: "changeState",
+            types: "keyword",
+            f_keys: "unreviewed",
+        });
+        const conversationQuery = new URLSearchParams(projectQuery);
+        conversationQuery.set("f_ids", "changeState,changeConversation");
+        conversationQuery.set("types", "keyword,keyword");
+        conversationQuery.set("f_keys", `unreviewed,${highlight}`);
+        history.location.pathname = path;
+        history.location.search = `?${projectQuery.toString()}`;
+        const entries = Array.from({ length: 9 }, (_, i) => ({
+            ...mappingChange,
+            seq: i + 1,
+            conversationId: `conversation-${i}`,
+            revertible: false,
+        }));
+        const wrapper = renderWrapper(<ProjectChanges />, history);
+        await waitFor(() => checkRequestMade(searchUrl, "POST", { facets: [stateFacet] }, true));
+        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(entries) }));
+        await waitFor(() => expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(9));
+        const facetInputs = () =>
+            Array.from(
+                findElement(wrapper, byTestId("search-facets")).querySelectorAll<HTMLInputElement>(
+                    'input[type="checkbox"]',
+                ),
+            );
+        expect(facetInputs()[0].value).toBe(highlight);
+        expect(facetInputs()[0]).not.toBeChecked();
+        expect(facetInputs().find((input) => input.value === "unreviewed")).toBeChecked();
+        const badge = findElement(wrapper, byTestId("change-conversation-9"));
+        expect(badge).toHaveClass("diapp-changes__conversation--highlighted");
+        expect(badge).toHaveAttribute("aria-pressed", "false");
+        expect(findElement(wrapper, byTestId("change-conversation-1"))).not.toHaveClass(
+            "diapp-changes__conversation--highlighted",
+        );
+        expect(new URLSearchParams(history.location.search).get("highlightConversation")).toBe(highlight);
+
+        act(() => history.push(`${path}?${conversationQuery.toString()}`));
+        await waitFor(() =>
+            checkRequestMade(
+                searchUrl,
+                "POST",
+                { facets: [stateFacet, { facetId: "changeConversation", type: "keyword", keywordIds: [highlight] }] },
+                true,
+            ),
+        );
+        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([entries[8]], 0, 9) }));
+        await waitFor(() => expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(1));
+        expect(findElement(wrapper, byTestId("change-conversation-9"))).toHaveAttribute("aria-pressed", "true");
+        expect(findElement(wrapper, byTestId("changes-mark-reviewed-btn"))).toBeDisabled();
+
+        act(() => history.push(`${path}?${projectQuery.toString()}`));
+        await waitFor(() => checkRequestMade(searchUrl, "POST", { facets: [stateFacet] }, true));
+        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(entries) }));
+        await waitFor(() => expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(9));
+        expect(findElement(wrapper, byTestId("changes-mark-reviewed-btn"))).not.toBeDisabled();
+        clickFoundElement(wrapper, byTestId("change-conversation-1"));
+        await waitFor(() =>
+            checkRequestMade(
+                searchUrl,
+                "POST",
+                {
+                    facets: [
+                        stateFacet,
+                        { facetId: "changeConversation", type: "keyword", keywordIds: ["conversation-0"] },
+                    ],
+                },
+                true,
+            ),
+        );
+        expect(new URLSearchParams(history.location.search).get("highlightConversation")).toBe(highlight);
+        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([entries[0]], 0, 9) }));
+        await waitFor(() => expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(1));
+    });
+
     it("should reload the list on Enter in the search field, keeping the query and the facets", async () => {
         setUseParams(PROJECT_ID, "");
         const history = createBrowserHistory();
@@ -828,6 +915,34 @@ describe("Project changes", () => {
             textQuery: "persons",
             facets: [{ facetId: "changeState", type: "keyword", keywordIds: ["unreviewed"] }],
         });
+    });
+
+    it("preserves review context for journal pagination and stops preserving it after leaving the journal", async () => {
+        setUseParams(PROJECT_ID, "");
+        const history = createBrowserHistory();
+        history.location.pathname = workspacePath(`/projects/${PROJECT_ID}/changes`);
+        history.location.search = "?highlightConversation=conversation-a";
+        const NextPage = () => {
+            const dispatch = useDispatch<AppDispatch>();
+            return <button onClick={() => dispatch(workspaceOp.changePageOp(2))}>Next page</button>;
+        };
+        const wrapper = renderWrapper(
+            <>
+                <ProjectChanges />
+                <NextPage />
+            </>,
+            history,
+        );
+        await waitFor(() => checkRequestMade(searchUrl, "POST"));
+        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+        fireEvent.click(wrapper.getByRole("button", { name: "Next page" }));
+        await waitFor(() => checkRequestMade(searchUrl, "POST", { offset: 25 }, true));
+        expect(new URLSearchParams(history.location.search).get("highlightConversation")).toBe("conversation-a");
+        expect(mockAxios.getReqMatching({ url: searchUrl })?.data).not.toHaveProperty("preservedQueryKeys");
+        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+        wrapper.rerender(<NextPage />);
+        fireEvent.click(wrapper.getByRole("button", { name: "Next page" }));
+        expect(new URLSearchParams(history.location.search).has("highlightConversation")).toBe(false);
     });
 
     it("should link the breadcrumbs to the project list and to the project's default page", async () => {

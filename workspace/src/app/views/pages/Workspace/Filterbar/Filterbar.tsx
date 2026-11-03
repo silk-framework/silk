@@ -14,11 +14,18 @@ interface IFilterBarProps {
     /** Only the facets, for a search whose items have no item type, e.g. the changes of a project. */
     facetsOnly?: boolean;
     renderValueLabel?: FacetsListProps["renderValueLabel"];
+    prioritizedFacetValues?: FacetsListProps["prioritizedFacetValues"];
 }
 
 /** The filter menu that allows to filter the search results by selecting a specific item type and
  * filter by type specific facets. */
-export function Filterbar({ extraItemTypeModifiers = [], projectId, facetsOnly = false, renderValueLabel }: IFilterBarProps) {
+export function Filterbar({
+    extraItemTypeModifiers = [],
+    projectId,
+    facetsOnly = false,
+    renderValueLabel,
+    prioritizedFacetValues,
+}: IFilterBarProps) {
     const dispatch = useDispatch<AppDispatch>();
     const [t] = useTranslation();
 
@@ -39,7 +46,11 @@ export function Filterbar({ extraItemTypeModifiers = [], projectId, facetsOnly =
     if (facetsOnly) {
         return (
             <nav>
-                <FacetsList projectId={projectId} renderValueLabel={renderValueLabel} />
+                <FacetsList
+                    projectId={projectId}
+                    renderValueLabel={renderValueLabel}
+                    prioritizedFacetValues={prioritizedFacetValues}
+                />
             </nav>
         );
     }
@@ -83,7 +94,11 @@ export function Filterbar({ extraItemTypeModifiers = [], projectId, facetsOnly =
                             ))}
                     </ul>
                     <Spacing />
-                    <FacetsList projectId={projectId} renderValueLabel={renderValueLabel} />
+                    <FacetsList
+                        projectId={projectId}
+                        renderValueLabel={renderValueLabel}
+                        prioritizedFacetValues={prioritizedFacetValues}
+                    />
                 </>
             )}
         </nav>

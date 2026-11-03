@@ -4,7 +4,7 @@ import selectors from "./selectors";
 import { filtersSlice } from "./filtersSlice";
 import { previewSlice } from "./previewSlice";
 import { routerOp } from "@ducks/router";
-import { IFacetState } from "@ducks/workspace/typings";
+import { IFacetState, IFiltersState } from "@ducks/workspace/typings";
 import { workspaceSel } from "@ducks/workspace";
 import qs, { ParsedQs } from "qs";
 import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
@@ -38,6 +38,7 @@ const VALUE_DELIMITER = ",";
 const updateQueryString = () => {
     return (dispatch, getState) => {
         const state = getState();
+        const { preservedQueryKeys }: IFiltersState = state.workspace.filters;
 
         const appliedFilters = workspaceSel.appliedFiltersSelector(state);
         const appliedFacets = workspaceSel.appliedFacetsSelector(state);
@@ -50,7 +51,7 @@ const updateQueryString = () => {
             f_keys: appliedFacets.map((o) => o.keywordIds.join(ARRAY_DELIMITER)),
         };
 
-        dispatch(routerOp.setQueryString(queryParams));
+        dispatch(routerOp.setQueryString(queryParams, { preserveKeys: preservedQueryKeys }));
     };
 };
 
