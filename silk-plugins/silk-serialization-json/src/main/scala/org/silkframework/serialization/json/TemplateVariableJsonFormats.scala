@@ -31,7 +31,7 @@ case class TemplateVariableJson(@Schema(
                                 )
                                 description: Option[String],
                                 @Schema(
-                                  description = "True, if this is a sensitive variable that should not be exposed to the user. Its value is only available to templates of other sensitive variables of the same scope and to password parameters.",
+                                  description = "True, if this is a sensitive variable that should not be exposed to the user. Its value is only available to templates of other sensitive variables of the same scope, to password parameters and to plugin parameters that declare that they allow sensitive variables.",
                                   example = "false",
                                   requiredMode = RequiredMode.REQUIRED
                                 )
@@ -46,7 +46,8 @@ case class TemplateVariableJson(@Schema(
     if (value.isEmpty && template.isEmpty) {
       throw new BadUserInputException("Either the variable value or its template has to be defined.")
     }
-    TemplateVariable(name, value.getOrElse(""), template, description, isSensitive, VariableScope.parse(scope))
+    // A sensitive variable may be sent in its stored, encrypted form, e.g., from the task JSON
+    TemplateVariable.fromStorage(TemplateVariable(name, value.getOrElse(""), template, description, isSensitive, VariableScope.parse(scope)))
   }
 }
 

@@ -243,10 +243,11 @@ object ClassPluginDescription {
 
       val advanced = pluginParam exists (_.advanced())
       val visible = pluginParam forall (_.visibleInDialog())
+      val allowSensitiveVariables = pluginParam exists (_.allowSensitiveVariables())
       val dataType = ParameterType.forType(parType)
       val autoCompletion: Option[ParameterAutoCompletion] = pluginParam.flatMap(param => parameterAutoCompletion(parType, param))
 
-      ClassPluginParameter(parName, dataType, label, description, defaultValue, exampleValue, advanced, visible, autoCompletion)
+      ClassPluginParameter(parName, dataType, label, description, defaultValue, exampleValue, advanced, visible, autoCompletion, allowSensitiveVariables)
     }
   }
 
