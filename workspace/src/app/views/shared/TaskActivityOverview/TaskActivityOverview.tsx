@@ -380,6 +380,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                     translateUnits={translateUnits}
                     failureReportAction={{
                         title: "", // The title is already repeated in the markdown
+                        "aria-label": t("widget.TaskActivityOverview.errorReportLabel"),
                         allowDownload: true,
                         closeButtonValue: t("common.action.close"),
                         downloadButtonValue: t("common.action.download"),

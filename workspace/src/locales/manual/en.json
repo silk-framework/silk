@@ -90,7 +90,8 @@
             "actionBtn": "Clear dataset",
             "error": "Error while clearing dataset",
             "readOnly": "The dataset is set to read-only and cannot be cleared."
-        }
+        },
+        "dialogLabel": "Data preview"
     },
     "DataProfiling": {
         "attributes": {
@@ -522,7 +523,8 @@
             "unknown": "Unknown",
             "active": "active",
             "next": "Next",
-            "previous": "Previous"
+            "previous": "Previous",
+            "taskView": "Task view"
         },
         "tooltips": {
             "dataset": {
@@ -1297,7 +1299,8 @@
                 "fetchActivityInfo": "Fetching activities list has failed."
             },
             "reloadAllCaches": "Reload all caches",
-            "title": "Activity overview"
+            "title": "Activity overview",
+            "errorReportLabel": "Activity execution error report"
         },
         "VariableWidget": {
             "title": {
