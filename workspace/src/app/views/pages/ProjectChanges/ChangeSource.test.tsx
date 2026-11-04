@@ -187,3 +187,22 @@ it("uses the same tooltip for the facet and Source badge, preserving the full la
     expect(sourceTooltip.textContent).toBe(expected);
     expect(sourceTooltip).toHaveStyle({ whiteSpace: "pre-wrap" });
 });
+
+it("supports removing a numbered conversation tag while retaining its metadata tooltip", async () => {
+    const remove = jest.fn();
+    const view = render(
+        <ChangeConversationsContext.Provider value={new Map([["conversation-a", { number: 2, title: "Map movies" }]])}>
+            <ChangeConversationLabel conversationId="conversation-a" onRemove={remove} />
+        </ChangeConversationsContext.Provider>,
+    );
+    expect(view.getByText("C2")).toBeInTheDocument();
+    expect(view.container.querySelectorAll(".eccgui-tag__item")).toHaveLength(1);
+    const target = view.getByText("C2").closest<HTMLElement>('[tabindex="0"]');
+    if (!target) {
+        throw new Error("Expected the conversation tooltip target");
+    }
+    fireEvent.focus(target);
+    expect((await view.findByRole("tooltip")).textContent).toBe("Conversation label: Map movies\n\nID: conversation-a");
+    fireEvent.click(view.getByRole("button", { name: "Remove tag" }));
+    expect(remove).toHaveBeenCalledTimes(1);
+});

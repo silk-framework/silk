@@ -30,6 +30,7 @@ import NotFound from "../NotFound";
 import MarkdownModal from "../../shared/modals/MarkdownModal";
 import SearchBar from "../../shared/SearchBar";
 import Filterbar from "../Workspace/Filterbar";
+import AppliedFacets from "../Workspace/AppliedFacets";
 import ChangeList from "./ChangeList";
 import { changeJournalHelpMarkdown } from "./changeJournalHelp";
 import { ChangeConversationsProvider, RefreshChangeConversationsContext } from "./ChangeConversationsContext";
@@ -233,6 +234,18 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
                                 />
                             </GridColumn>
                             <GridColumn>
+                                {ready && (
+                                    <AppliedFacets
+                                        renderTag={(facetId, value, onRemove) =>
+                                            facetId === CONVERSATION_FACET ? (
+                                                <ChangeConversationLabel
+                                                    conversationId={value.id}
+                                                    onRemove={onRemove}
+                                                />
+                                            ) : undefined
+                                        }
+                                    />
+                                )}
                                 <ChangeList projectId={projectId} ready={ready} refreshKey={refreshKey} />
                             </GridColumn>
                         </GridRow>

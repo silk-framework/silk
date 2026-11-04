@@ -49,12 +49,18 @@ const useConversationLabel = (id: string) => {
 };
 
 /** Facet labels and row badges share the same temporary identity, but never use it as a filter value. */
-export const ChangeConversationLabel = ({ conversationId }: { conversationId: string }) => {
+export const ChangeConversationLabel = ({
+    conversationId,
+    onRemove,
+}: {
+    conversationId: string;
+    onRemove?: () => void;
+}) => {
     const { label, tooltip, highlightClass } = useConversationLabel(conversationId);
     return (
         <SourceTooltip content={tooltip}>
             <span tabIndex={0}>
-                <Tag className={highlightClass} aria-current={highlightClass ? true : undefined}>
+                <Tag className={highlightClass} aria-current={highlightClass ? true : undefined} onRemove={onRemove}>
                     {label}
                 </Tag>
             </span>

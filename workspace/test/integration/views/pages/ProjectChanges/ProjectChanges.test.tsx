@@ -1,6 +1,6 @@
 import React from "react";
 import "@testing-library/jest-dom";
-import { act, fireEvent, RenderResult, waitFor } from "@testing-library/react";
+import { act, fireEvent, RenderResult, waitFor, within } from "@testing-library/react";
 import { createBrowserHistory } from "history";
 import mockAxios from "../../../../__mocks__/axios";
 import {
@@ -809,6 +809,57 @@ describe("Project changes", () => {
         expect(mockAxios.getReqMatching({ url: searchUrl })?.data).toMatchObject({
             facets: [{ facetId: "changeState", type: "keyword", keywordIds: ["unreviewed"] }],
         });
+    });
+
+    it("shows removable active filters above empty results and preserves the remaining search and review context", async () => {
+        setUseParams(PROJECT_ID, "");
+        const history = createBrowserHistory();
+        history.location.pathname = workspacePath(`/projects/${PROJECT_ID}/changes`);
+        history.location.search = `?${new URLSearchParams({
+            textQuery: "movies",
+            page: "2",
+            highlightConversation: "conversation-a",
+            f_ids: "changeState,changeConversation",
+            types: "keyword,keyword",
+            f_keys: "unreviewed,conversation-a",
+        }).toString()}`;
+        const wrapper = renderWrapper(<ProjectChanges />, history);
+        await waitFor(() => checkRequestMade(searchUrl, "POST", { offset: 25 }, true));
+        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+
+        const emptyResults = await wrapper.findByText("No changes match the search.");
+        const state = findElement(wrapper, byTestId("applied-facet-changeState"));
+        const conversation = findElement(wrapper, byTestId("applied-facet-changeConversation"));
+        expect(state).toHaveTextContent("Unreviewed");
+        expect(conversation).toHaveTextContent("?");
+        expect(conversation).not.toHaveTextContent("conversation-a");
+        expect(conversation.querySelector(".diapp-changes__conversation--highlighted")).not.toBeNull();
+        expect(conversation.compareDocumentPosition(emptyResults) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+        fireEvent.click(within(conversation).getByRole("button", { name: "Remove tag" }));
+        await waitFor(() =>
+            checkRequestMade(
+                searchUrl,
+                "POST",
+                {
+                    textQuery: "movies",
+                    offset: 0,
+                    facets: [{ facetId: "changeState", type: "keyword", keywordIds: ["unreviewed"] }],
+                },
+                true,
+            ),
+        );
+        const query = new URLSearchParams(history.location.search);
+        expect(query.get("highlightConversation")).toBe("conversation-a");
+        expect(query.get("textQuery")).toBe("movies");
+        expect(query.get("page")).toBe("1");
+        expect(query.get("f_ids")).toBe("changeState");
+        expect(wrapper.container.querySelector(byTestId("applied-facet-changeConversation"))).toBeNull();
+        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+        fireEvent.click(within(state).getByRole("button", { name: "Remove tag" }));
+        await waitFor(() => checkRequestMade(searchUrl, "POST", { facets: [], textQuery: "movies" }, true));
+        expect(wrapper.container.querySelector(byTestId("applied-facet-changeState"))).toBeNull();
+        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
     });
 
     it("highlights and prioritizes the linked conversation, preserves its URL context, and applies review links without remounting", async () => {
