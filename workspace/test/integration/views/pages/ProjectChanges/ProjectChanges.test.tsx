@@ -245,6 +245,24 @@ describe("Project changes", () => {
         mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(unreviewedChanges) }));
     };
 
+    const answerReviewPreview = async (entries: IChangeEntry[] = unreviewedChanges) => {
+        await waitFor(() =>
+            checkRequestMade(
+                searchUrl,
+                "POST",
+                {
+                    limit: 0,
+                    facets: [{ facetId: "changeState", type: "keyword", keywordIds: ["unreviewed"] }],
+                },
+                true,
+            ),
+        );
+        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(entries) }));
+        await waitFor(() =>
+            expect(findElement(document.body, byTestId("changes-mark-reviewed-confirm-btn"))).toBeEnabled(),
+        );
+    };
+
     /** Answers the check the batch dialog makes when it opens, and waits until the dialog offers the revert. */
     const answerBatchCheck = async (head: number, conflicts: { seq: number; reason: string }[] = []) => {
         await waitFor(() => checkRequestMade(conflictsUrl([head]), "GET"));
@@ -528,6 +546,9 @@ describe("Project changes", () => {
         expect(document.body.textContent).toContain(mappingChange.description);
         expect(document.body.textContent).toContain(revertChange.description);
         expect(document.body.textContent).not.toContain("Skipped as not revertible");
+        expect(findElement(document.body, byTestId("changes-revert-batch-modal"))).toHaveTextContent(
+            "Changes to revert: 2.",
+        );
         // The dialog offers the revert once the server has said that the newest change of the batch can be reverted,
         // and can be closed meanwhile
         expect(findElement(document.body, byTestId("remove-item-button"))).toBeDisabled();
@@ -564,6 +585,13 @@ describe("Project changes", () => {
         await waitFor(() => {
             expect(findElement(document.body, byTestId("changes-mark-reviewed-confirm-btn"))).toBeInTheDocument();
         });
+        expect(findElement(document.body, byTestId("changes-mark-reviewed-confirm-btn"))).toBeDisabled();
+        await answerReviewPreview();
+        const dialog = findElement(document.body, byTestId("changes-mark-reviewed-modal"));
+        expect(dialog).toHaveTextContent("Changes to mark as reviewed: 2.");
+        expect(Array.from(dialog.querySelectorAll("li"), (item) => item.textContent)).toEqual(
+            unreviewedChanges.map((entry) => entry.description),
+        );
         clickFoundElement(document.body, byTestId("changes-mark-reviewed-confirm-btn"));
         await waitFor(() => {
             checkRequestMade(reviewedUrl, "PUT", { upTo: 5 });
@@ -584,10 +612,72 @@ describe("Project changes", () => {
         await waitFor(() => {
             expect(document.body.textContent).toContain("Mark change #2 and all older changes as reviewed?");
         });
+        await answerReviewPreview();
+        const dialog = findElement(document.body, byTestId("changes-mark-reviewed-modal"));
+        expect(dialog).toHaveTextContent("Changes to mark as reviewed: 1.");
+        expect(Array.from(dialog.querySelectorAll("li"), (item) => item.textContent)).toEqual([changes[3].description]);
         clickFoundElement(document.body, byTestId("changes-mark-reviewed-confirm-btn"));
         await waitFor(() => {
             checkRequestMade(reviewedUrl, "PUT", { upTo: 2 });
         });
+    });
+
+    it("previews unreviewed changes across all pages and excludes entries newer than the fetched review boundary", async () => {
+        const wrapper = renderWrapper(<ChangeList projectId={PROJECT_ID} />, createBrowserHistory(), {
+            workspace: { filters: { pagination: { current: 2, limit: 25, offset: 25 } } },
+        });
+        await waitFor(() => checkRequestMade(searchUrl, "POST", { offset: 25 }, true));
+        mockAxios.mockResponseFor(
+            { url: searchUrl },
+            mockedAxiosResponse({
+                data: {
+                    ...searchAnswer(unreviewedChanges),
+                    results: [changes[3]],
+                    total: 30,
+                },
+            }),
+        );
+        await waitFor(() => expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(1));
+        clickFoundElement(wrapper, byTestId("changes-mark-reviewed-btn"));
+        const newerChange = { ...mappingChange, seq: 6, description: "A change added after the page loaded" };
+        await answerReviewPreview([newerChange, ...unreviewedChanges]);
+        const dialog = findElement(document.body, byTestId("changes-mark-reviewed-modal"));
+        expect(dialog).toHaveTextContent("Changes to mark as reviewed: 2.");
+        expect(Array.from(dialog.querySelectorAll("li"), (item) => item.textContent)).toEqual(
+            unreviewedChanges.map((entry) => entry.description),
+        );
+        expect(dialog).not.toHaveTextContent(newerChange.description);
+        clickFoundElement(document.body, byTestId("changes-mark-reviewed-confirm-btn"));
+        await waitFor(() => checkRequestMade(reviewedUrl, "PUT", { upTo: 5 }));
+    });
+
+    it("keeps review confirmation disabled after a failed preview and supports retry", async () => {
+        const wrapper = await loadChangeList();
+        clickFoundElement(wrapper, byTestId("changes-mark-reviewed-btn"));
+        await waitFor(() => checkRequestMade(searchUrl, "POST", { limit: 0 }, true));
+        mockAxiosResponse(
+            { url: searchUrl },
+            mockedAxiosError(500, { title: "Server error", detail: "Preview failed." }),
+        );
+        const dialog = findElement(document.body, byTestId("changes-mark-reviewed-modal"));
+        const retry = await within(dialog).findByRole("button", { name: "Retry" });
+        expect(findElement(dialog, byTestId("changes-mark-reviewed-confirm-btn"))).toBeDisabled();
+        expect(mockAxios.getReqMatching({ url: reviewedUrl })).toBeUndefined();
+        fireEvent.click(retry);
+        await answerReviewPreview();
+        expect(dialog).toHaveTextContent("Changes to mark as reviewed: 2.");
+    });
+
+    it("does not offer review confirmation when no unreviewed changes remain", async () => {
+        const wrapper = await loadChangeList();
+        clickFoundElement(wrapper, byTestId("changes-mark-reviewed-btn"));
+        await waitFor(() => checkRequestMade(searchUrl, "POST", { limit: 0 }, true));
+        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+        const dialog = findElement(document.body, byTestId("changes-mark-reviewed-modal"));
+        await waitFor(() => expect(dialog).toHaveTextContent("Changes to mark as reviewed: 0."));
+        expect(findElement(dialog, byTestId("changes-mark-reviewed-confirm-btn"))).toBeDisabled();
+        expect(dialog).toHaveTextContent("No unreviewed changes remain in this selection.");
+        expect(mockAxios.getReqMatching({ url: reviewedUrl })).toBeUndefined();
     });
 
     it("should send the search to the server and not mark reviewed while it hides unreviewed changes", async () => {
@@ -656,6 +746,9 @@ describe("Project changes", () => {
         await waitFor(() => {
             expect(findElement(document.body, byTestId("changes-revert-batch-nothing"))).toBeInTheDocument();
         });
+        expect(findElement(document.body, byTestId("changes-revert-batch-modal"))).toHaveTextContent(
+            "Changes to revert: 0.",
+        );
         expect(findElement(document.body, byTestId("remove-item-button"))).toBeDisabled();
     });
 
@@ -666,6 +759,7 @@ describe("Project changes", () => {
         await waitFor(() => {
             expect(findElement(document.body, byTestId("changes-mark-reviewed-confirm-btn"))).toBeInTheDocument();
         });
+        await answerReviewPreview();
         clickFoundElement(document.body, byTestId("changes-mark-reviewed-confirm-btn"));
         await waitFor(() => {
             checkRequestMade(reviewedUrl, "PUT", { upTo: 5 });
@@ -715,6 +809,9 @@ describe("Project changes", () => {
         // The dialog lists what will be attempted and notes the non-revertible entry that will be skipped
         expect(document.body.textContent).toContain(mappingChange.description);
         expect(document.body.textContent).toContain("Skipped as not revertible: 1.");
+        expect(findElement(document.body, byTestId("changes-revert-batch-modal"))).toHaveTextContent(
+            "Changes to revert: 1.",
+        );
         await answerBatchCheck(5);
         // Enter confirms once the revert is offered
         triggerHotkeyHandler("enter");

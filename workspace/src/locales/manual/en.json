@@ -742,12 +742,17 @@
                 "hidden": "Unreviewed changes hidden by the current search: {{count}}. Clear it to mark changes as reviewed.",
                 "hidden_plural": "Unreviewed changes hidden by the current search: {{count}}. Clear it to mark changes as reviewed.",
                 "title": "Mark changes as reviewed",
+                "affectedCount": "Changes to mark as reviewed: {{count}}.",
+                "affectedCount_plural": "Changes to mark as reviewed: {{count}}.",
+                "nothing": "No unreviewed changes remain in this selection.",
                 "confirmText": "Mark all listed changes as reviewed?",
                 "confirmUpToText": "Mark change #{{seq}} and all older changes as reviewed?"
             },
             "revertAll": {
                 "button": "Revert unreviewed",
                 "title": "Revert unreviewed changes",
+                "affectedCount": "Changes to revert: {{count}}.",
+                "affectedCount_plural": "Changes to revert: {{count}}.",
                 "confirmText": "The following unreviewed changes will be reverted, newest first:",
                 "blocked": "Nothing can be reverted: the newest of these changes cannot be reverted now, and no newer change is left whose revert could clear that. {{reason}}",
                 "nothing": "None of these changes can be reverted.",

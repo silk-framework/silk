@@ -4,7 +4,6 @@ import { batch, useDispatch, useSelector } from "react-redux";
 import {
     Button,
     Notification,
-    SimpleDialog,
     Spacing,
     Table,
     TableBody,
@@ -39,6 +38,7 @@ import {
 import { entriesBackTo, hasInverse, relatedSeqs } from "./changeListUtils";
 import ChangeRow from "./ChangeRow";
 import BatchRevertModal from "./BatchRevertModal";
+import MarkReviewedModal from "./MarkReviewedModal";
 import { CONVERSATION_FACET } from "./ChangeSource";
 
 interface IProps {
@@ -334,7 +334,8 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
             onMarkReviewed={entry.unreviewed ? () => setMarkReviewedUpTo(entry.seq) : undefined}
             markReviewedBlocker={markReviewedBlocker}
             conversationSelected={appliedFacets.some(
-                (facet) => facet.facetId === CONVERSATION_FACET && facet.keywordIds.includes(entry.conversationId ?? ""),
+                (facet) =>
+                    facet.facetId === CONVERSATION_FACET && facet.keywordIds.includes(entry.conversationId ?? ""),
             )}
             onFilterConversation={(id) => {
                 const facet = facets.find((candidate) => candidate.id === CONVERSATION_FACET);
@@ -451,33 +452,15 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
                 />
             )}
             {markReviewedUpTo != null && (
-                <SimpleDialog
-                    data-test-id={"changes-mark-reviewed-modal"}
-                    size="small"
-                    title={t("pages.changes.markReviewed.title")}
-                    isOpen={true}
+                <MarkReviewedModal
+                    key={markReviewedUpTo}
+                    projectId={projectId}
+                    upTo={markReviewedUpTo}
+                    all={markReviewedUpTo === journal.latestSeq}
+                    loading={reviewLoading}
+                    onConfirm={markReviewed}
                     onClose={() => setMarkReviewedUpTo(undefined)}
-                    actions={[
-                        <Button
-                            key="confirm"
-                            affirmative
-                            loading={reviewLoading}
-                            onClick={markReviewed}
-                            data-test-id={"changes-mark-reviewed-confirm-btn"}
-                        >
-                            {t("common.action.confirm")}
-                        </Button>,
-                        <Button key="cancel" onClick={() => setMarkReviewedUpTo(undefined)} disabled={reviewLoading}>
-                            {t("common.action.cancel")}
-                        </Button>,
-                    ]}
-                >
-                    <p>
-                        {markReviewedUpTo === journal.latestSeq
-                            ? t("pages.changes.markReviewed.confirmText")
-                            : t("pages.changes.markReviewed.confirmUpToText", { seq: markReviewedUpTo })}
-                    </p>
-                </SimpleDialog>
+                />
             )}
         </>
     );
