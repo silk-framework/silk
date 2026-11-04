@@ -85,7 +85,6 @@ const ConversationSource = ({
                 data-test-id={`change-conversation-${entry.seq}`}
                 small
                 minimal
-                active={selected}
                 className={conversation.highlightClass}
                 aria-current={conversation.highlightClass ? true : undefined}
                 aria-pressed={selected ?? false}

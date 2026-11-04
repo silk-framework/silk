@@ -49,9 +49,4 @@
         box-shadow: none;
         font-weight: $eccgui-font-weight-bold;
     }
-
-    &.#{$ns}-active {
-        color: $eccgui-color-accent-contrast;
-        background-color: $eccgui-color-accent;
-    }
 }
