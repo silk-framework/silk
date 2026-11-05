@@ -1,5 +1,10 @@
 package controllers.workspaceApi
 
+import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.ws.{Message, WebSocketRequest}
+import akka.stream.scaladsl.{Keep, Sink, SinkQueueWithCancel, Source}
 import controllers.projectApi.ChangeJournalApi.{ChangeEntryJson, ChangeListJson, ChangeSummaryJson, RevertConflictJson, RevertConflictsJson, RevertResultsJson}
 import controllers.util.{ItemLink, ItemType}
 import controllers.workspaceApi.coreApi.routes.{VariableTemplateApi => TemplateApi}
@@ -9,6 +14,7 @@ import org.scalatest.matchers.must.Matchers
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.{DirectMapping, MappingRules, MappingTarget, RootMappingRule, TransformSpec}
 import org.silkframework.runtime.activity.{SimpleUserContext, UserContext, UserExecutionContext}
+import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.templating.{TemplateVariable, VariableScope}
 import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.serialization.json.TemplateVariableJson
@@ -17,6 +23,9 @@ import org.silkframework.workspace.changes.{AddMapping, ChangeJournal, ProposedW
 import org.silkframework.workspace.{ProjectConfig, WorkspaceFactory}
 import play.api.libs.json.Json
 import play.api.routing.Router
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with IntegrationTestTrait with ApiClient with Matchers {
 
@@ -47,6 +56,97 @@ class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with Integra
 
   private def changes(project: String = projectId): Seq[ChangeEntryJson] =
     checkResponse(client.url(changesUrl(project)).get()).json.as[ChangeListJson].changes
+
+  private def changeSocket(project: String, unreviewedOnly: Boolean,
+                           user: Option[String] = None): SinkQueueWithCancel[ChangeListJson] = {
+    implicit val actorSystem: ActorSystem = app.injector.instanceOf[ActorSystem]
+    val url = baseUrl.replaceFirst("http", "ws") +
+      s"/api/workspace/projects/$project/changes/updatesWebSocket?unreviewedOnly=$unreviewedOnly"
+    val headers = user.toSeq.map(akka.http.scaladsl.model.headers.RawHeader("X-Forwarded-User", _))
+    val (upgrade, queue) = Source.maybe[Message]
+      .viaMat(Http().webSocketClientFlow(WebSocketRequest(url, extraHeaders = headers)))(Keep.right)
+      .map(message => Json.parse(message.asTextMessage.getStrictText).as[ChangeListJson])
+      .toMat(Sink.queue[ChangeListJson]())(Keep.both).run()
+    Await.result(upgrade, 10.seconds).response.status mustBe StatusCodes.SwitchingProtocols
+    queue
+  }
+
+  it should "push full unreviewed entries from every conversation, with updates after writes, reverts and review" in {
+    val agent = UserContext.empty(UserExecutionContext(origin = Some("mcp:test"), conversationId = Some("conversation-1")))
+    val otherAgent = UserContext.empty(UserExecutionContext(origin = Some("mcp:test"), conversationId = Some("other")))
+    val unattributedAgent = UserContext.empty(UserExecutionContext(origin = Some("mcp:test")))
+    val project = WorkspaceFactory().workspace.createProject(ProjectConfig("projectPushedChanges"))
+    val spec = TransformSpec(mappingRule = RootMappingRule(MappingRules(propertyRules = Seq(rule("a")))))
+    project.addTask[TransformSpec]("human", spec)
+    project.addTask[TransformSpec]("reviewed", spec)(implicitly, agent)
+    project.changeJournal.markReviewed(project.changeJournal.all.last.seq)
+    project.addTask[TransformSpec]("first", spec)(implicitly, agent)
+    val queue = changeSocket(project.id.toString, unreviewedOnly = true)
+    def next(): ChangeListJson = Await.result(queue.pull(), 10.seconds).get
+    try {
+      val initial = next()
+      initial.reviewedUpTo mustBe 2
+      initial.changes.map(_.conversationId) mustBe Seq(Some("conversation-1"))
+      initial.changes.head.summary must include("first")
+      initial.changes.head.links must not be empty
+      initial.changes.head.unreviewed mustBe Some(true)
+      project.addTask[TransformSpec]("second", spec)(implicitly, otherAgent)
+      next().changes.map(_.conversationId) mustBe Seq(Some("other"), Some("conversation-1"))
+      project.addTask[TransformSpec]("third", spec)(implicitly, unattributedAgent)
+      next().changes.map(_.conversationId) mustBe Seq(None, Some("other"), Some("conversation-1"))
+      project.changeJournal.revert(project.changeJournal.all.last.seq)
+      next().changes.size mustBe 2
+      project.changeJournal.markReviewed(project.changeJournal.all.last.seq)
+      next().changes mustBe empty
+      // HTTP uses the same filter and payload; omitting the flag still returns the full journal.
+      val filteredUrl = changesUrl(project.id.toString) + "?unreviewedOnly=true"
+      checkResponse(client.url(filteredUrl).get()).json.as[ChangeListJson].changes mustBe empty
+      changes(project.id.toString).size mustBe 6
+    } finally {
+      queue.cancel()
+    }
+  }
+
+  it should "also support streaming the complete journal without the unreviewed filter" in {
+    val project = WorkspaceFactory().workspace.createProject(ProjectConfig("projectAllPushedChanges"))
+    val queue = changeSocket(project.id.toString, unreviewedOnly = false)
+    try {
+      Await.result(queue.pull(), 10.seconds).get.changes mustBe empty
+      project.addTask[TransformSpec]("human", TransformSpec())
+      Await.result(queue.pull(), 10.seconds).get.changes.map(_.unreviewed) mustBe Seq(None)
+    } finally {
+      queue.cancel()
+    }
+  }
+
+  it should "enforce project access for both the filtered list and the websocket" in {
+    import TestWebUserManager._
+    PluginRegistry.registerPlugin(classOf[TestWebUserManager])
+    ConfigTestTrait.withConfig("workspace.accessControl.enabled" -> Some("true"),
+      "user.manager.web.plugin" -> Some("testWebUserManager")) {
+      val agent = SimpleUserContext(Some(admin), UserExecutionContext(origin = Some("mcp:test"), conversationId = Some("conversation-1")))
+      val project = WorkspaceFactory().workspace.createProject(ProjectConfig("restrictedPushedChanges"))(agent)
+      project.accessControl.setGroups(Set(group1))
+      project.addTask[TransformSpec]("pending", TransformSpec())(implicitly, agent)
+      val url = changesUrl(project.id.toString) + "?unreviewedOnly=true"
+      checkResponse(client.url(url).addHttpHeaders("X-Forwarded-User" -> user1.uri).get()).json.as[ChangeListJson].changes.size mustBe 1
+      checkResponseExactStatusCode(client.url(url).addHttpHeaders("X-Forwarded-User" -> user2.uri).get(), FORBIDDEN)
+      val queue = changeSocket(project.id.toString, unreviewedOnly = true, user = Some(user1.uri))
+      try {
+        Await.result(queue.pull(), 10.seconds).get.changes.size mustBe 1
+      } finally {
+        queue.cancel()
+      }
+      implicit val actorSystem: ActorSystem = app.injector.instanceOf[ActorSystem]
+      val wsUrl = baseUrl.replaceFirst("http", "ws") +
+        s"/api/workspace/projects/${project.id}/changes/updatesWebSocket?unreviewedOnly=true"
+      val request = WebSocketRequest(wsUrl, extraHeaders = Seq(akka.http.scaladsl.model.headers.RawHeader("X-Forwarded-User", user2.uri)))
+      val (upgrade, done) = Source.empty[Message].viaMat(Http().webSocketClientFlow(request))(Keep.right)
+        .toMat(Sink.ignore)(Keep.both).run()
+      Await.result(upgrade, 10.seconds).response.status mustBe StatusCodes.Forbidden
+      scala.util.Try(Await.result(done, 10.seconds))
+    }
+  }
 
   it should "list the changes of a project, newest first, and revert one of them" in {
     val project = WorkspaceFactory().workspace.createProject(ProjectConfig(projectId))
