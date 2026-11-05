@@ -77,7 +77,7 @@ lazy val commonSettings = Seq(
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.20" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "6.0.0" % "test",
-  libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.5.37",
+  libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.6.6",
   libraryDependencies += "org.mockito" % "mockito-core" % "5.24.0" % Test,
   libraryDependencies += "com.google.inject" % "guice" % "6.0.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
@@ -424,7 +424,7 @@ lazy val singlemachine = (project in file("silk-tools/silk-singlemachine"))
   .settings(commonSettings *)
   .settings(
     name := "Silk SingleMachine",
-    libraryDependencies += "org.slf4j" % "slf4j-jdk14" % "2.0.18"
+    libraryDependencies += "org.slf4j" % "slf4j-jdk14" % "2.0.20"
   )
 
 //////////////////////////////////////////////////////////////////////////////
