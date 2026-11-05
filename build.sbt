@@ -33,7 +33,7 @@ val buildReactExternally = {
 }
 
 // Additional compiler (javac, scalac) parameters
-// Note: keep the bytecode target at 21, because Spark 3.5.x does not support Java 25
+// Note: keep the bytecode target at 21, the same as in the root build (needed for Spark)
 val compilerParams: (Seq[String], Seq[String]) =
   (Seq("--release", "21", "-Xlint"), Seq("-release", "21"))
 
