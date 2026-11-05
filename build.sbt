@@ -198,9 +198,9 @@ lazy val pluginsXml = (project in file("silk-plugins/silk-plugins-xml"))
   .settings(commonSettings *)
   .settings(
     name := "Silk Plugins XML",
-    libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "13.0",
+    libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "13.1",
     // Explicit StAX implementation, since XmlSourceStreaming turns parser positions into entity URIs
-    libraryDependencies += "com.fasterxml.woodstox" % "woodstox-core" % "7.1.1"
+    libraryDependencies += "com.fasterxml.woodstox" % "woodstox-core" % "7.3.0"
   )
 
 lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
