@@ -239,7 +239,7 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   .settings(
     name := "Silk Serialization JSON",
     libraryDependencies += "com.typesafe.play" %% "play-json" % "2.10.8",
-    libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.2.52"
+    libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.2.55"
   )
 
 lazy val persistentCaching = (project in file("silk-plugins/silk-persistent-caching"))
@@ -393,10 +393,15 @@ lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-open
   .settings(commonSettings *)
   .settings(
     name := "Silk Workbench OpenAPI",
-    libraryDependencies += "io.kinoplan" %% "swagger-play" % "0.0.7" exclude("org.scala-lang.modules", "scala-java8-compat_2.13") ,
-    libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.1.45",
-    libraryDependencies += "com.networknt" % "json-schema-validator" % "3.0.5",
-    libraryDependencies += "org.webjars" % "swagger-ui" % "5.32.8"
+    // swagger-play 0.0.7 is built for Play 3. Keep its Play 3 and Pekko dependencies off the Play 2.9 classpath
+    // and give it the routes compiler of our Play version instead.
+    libraryDependencies += ("io.kinoplan" %% "swagger-play" % "0.0.7")
+      .exclude("org.scala-lang.modules", "scala-java8-compat_2.13")
+      .excludeAll(ExclusionRule("org.playframework"), ExclusionRule("org.playframework.twirl"), ExclusionRule("org.apache.pekko")),
+    libraryDependencies += "com.typesafe.play" %% "play-routes-compiler" % play.core.PlayVersion.current,
+    libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.1.48",
+    libraryDependencies += "com.networknt" % "json-schema-validator" % "3.0.9",
+    libraryDependencies += "org.webjars" % "swagger-ui" % "5.34.1"
   )
 
 lazy val workbench = (project in file("silk-workbench"))
