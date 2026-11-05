@@ -81,6 +81,8 @@ lazy val commonSettings = Seq(
   libraryDependencies += "org.mockito" % "mockito-core" % "5.24.0" % Test,
   libraryDependencies += "com.google.inject" % "guice" % "6.0.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
+  // org.lz4:lz4-java is abandoned. silk-core brings the maintained fork at.yawk.lz4, which has the same classes.
+  excludeDependencies += "org.lz4" % "lz4-java",
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
   // We need to overwrite the versions of the Jackson modules.
@@ -125,7 +127,7 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "1.2.0",
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0",
     libraryDependencies += "commons-io" % "commons-io" % "2.22.0",
-    libraryDependencies += "org.lz4" % "lz4-java" % "1.8.1",
+    libraryDependencies += "at.yawk.lz4" % "lz4-java" % "1.13.0",
     libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1",
     libraryDependencies += "xalan" % "xalan" % "2.7.3",
     libraryDependencies += "xalan" % "serializer" % "2.7.3",
