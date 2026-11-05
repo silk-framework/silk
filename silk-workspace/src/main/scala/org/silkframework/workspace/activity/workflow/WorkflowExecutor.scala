@@ -7,7 +7,6 @@ import org.silkframework.execution._
 import org.silkframework.execution.local.LocalExecution
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.rule.execution.TransformReport
-import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
 import org.silkframework.runtime.templating.{ExecutionTemplateVariables, ExecutionVariablesHolder, GlobalTemplateVariables, VariableScope, TemplateVariables}
@@ -16,7 +15,6 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
 import org.silkframework.workspace.activity.workflow.ReconfigureTasks.ReconfigurableTask
 
-import scala.collection.mutable
 import scala.util.control.NonFatal
 
 trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecutionReport] {
@@ -88,12 +86,12 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
         }
       } catch {
         case NonFatal(ex) =>
-          workflowRunContext.activityContext.value.updateWith(_.addFailedNode(nodeId, ex))
+          workflowRunContext.updateReport(_.addFailedNode(nodeId, ex))
           throw ex
       }
     for(error <- taskContext.value.get.flatMap(_.error)) {
       val ex = WorkflowExecutionException(error)
-      workflowRunContext.activityContext.value.updateWith(_.addFailedNode(nodeId, ex))
+      workflowRunContext.updateReport(_.addFailedNode(nodeId, ex))
       throw ex
     }
     result
@@ -106,17 +104,21 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
                                                                   output: ExecutorOutput)
                                                                  (process: Option[ExecType#DataType] => ResultType)
                                                                  (implicit workflowRunContext: WorkflowRunContext, prefixes: Prefixes): ResultType = {
-    val result = execute(operation, nodeId, task, inputs, output)
-    try {
-      process(result)
-    } finally {
-      for(r <- result) {
-        r.close()
+    workflowRunContext.trackOperation(operationMessage(operation, task)) {
+      val result = execute(operation, nodeId, task, inputs, output)
+      try {
+        process(result)
+      } finally {
+        for(r <- result) {
+          r.close()
+        }
       }
     }
   }
 
   protected def createRunContext(implicit userContext: UserContext, context: ActivityContext[WorkflowExecutionReport]): WorkflowRunContext = {
+    ClearDatasetOrderingCheck.warnInReport(currentWorkflow, project, context)
+
     val workflowRunContext = WorkflowRunContext(
       activityContext = context,
       workflow = currentWorkflow,
@@ -125,8 +127,6 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
       workflowVariables = WorkflowExecutor.buildExecutionVariables(workflowTask.executionVariables, workflowVariables),
       parentExecutionVariablesHolder = parentExecutionVariablesHolder
     )
-
-    ClearDatasetOrderingCheck.warnInReport(currentWorkflow, project, context)
 
     for (node <- workflowNodes) {
       val taskOpt: Option[Task[_ <: TaskSpec]] = node match {
@@ -153,9 +153,13 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     * @param workflowRunContext Workflow Context
     */
   protected def updateProgress(operation: String, task: Task[_ >: TaskSpec])(implicit workflowRunContext: WorkflowRunContext): Unit = {
-    val taskLabel = task.fullLabel
     val progress = (workflowRunContext.alreadyExecuted.size.toDouble + 1) / (workflowNodes.size + 1)
-    workflowRunContext.activityContext.status.update(s"$operation '$taskLabel'", progress)
+    workflowRunContext.activityContext.status.update(operationMessage(operation, task), progress)
+  }
+
+  // The status message of an operation on a task, e.g. "Executing 'My task'"
+  private def operationMessage(operation: String, task: Task[_ >: TaskSpec]): String = {
+    s"$operation '${task.fullLabel}'"
   }
 
   /** Make sure that the workflow does not try to write into a read-only dataset. */
@@ -282,109 +286,6 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     val executionContext = userContext.executionContext
     val updatedUserContext = userContext.withExecutionContext(executionContext.copy(insideWorkflow = true))
     updatedUserContext
-  }
-}
-
-/**
- * A context for a single workflow execution.
- *
- * @param activityContext The activity context for the workflow execution.
- * @param workflow The workflow that is being be executed.
- * @param userContext The user that is executing the workflow.
- * @param alreadyExecuted The workflow nodes that have already been executed.
- * @param reconfiguredTasks The already tasks that have been reconfigured.
- * @param workflowVariables The execution variables for this run (defaults of the workflow, overridden by the variables provided at start).
- * @param taskExecutors The executors for each task by task id.
- * @param parentExecutionVariablesHolder The enclosing run's execution-variable holder, if this workflow runs as an operator inside another workflow.
- */
-case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecutionReport],
-                              workflow: Workflow,
-                              userContext: UserContext,
-                              alreadyExecuted: mutable.Set[WorkflowNode] = mutable.Set(),
-                              reconfiguredTasks: mutable.Map[WorkflowNode, Task[_ <: TaskSpec]] = mutable.Map(),
-                              workflowVariables: TemplateVariables = TemplateVariables.empty,
-                              taskExecutors: mutable.Map[Identifier, Executor[_, _]] = mutable.Map(),
-                              parentExecutionVariablesHolder: Option[ExecutionVariablesHolder] = None) {
-
-  /**
-    * Shared, thread-safe holder for execution-scope variables. Mutated by plugin code during execution.
-    * Seeded with the execution variables for this run: the workflow's execution variables as defaults,
-    * overridden by the variables provided when the run was started.
-    * Nested workflow runs share the enclosing run's holder.
-    */
-  val executionVariablesHolder: ExecutionVariablesHolder =
-    parentExecutionVariablesHolder.getOrElse(new ExecutionVariablesHolder(workflowVariables))
-
-  /**
-    * Listeners for updates to task reports.
-    * We need to hold them to prevent their garbage collection.
-    */
-  private val reportListeners: mutable.Buffer[TaskReportListener] = mutable.Buffer.empty
-
-  /**
-   * Listeners for updates to the workflow status.
-   * We need to hold them to prevent their garbage collection.
-   */
-  private val statusListeners: mutable.Buffer[WorkflowStatusListener] = mutable.Buffer.empty
-
-  /** Creates an activity context for a specific task that will be executed in the workflow.
-    * Also wires the task execution report to the workflow execution report. */
-  def taskContext(nodeId: Identifier, task: Task[_ <: TaskSpec])(implicit workflowRunContext: WorkflowRunContext): ActivityContext[ExecutionReport] = {
-    val projectAndTaskString = activityContext.status.projectAndTaskId.map(ids => ids.copy(ids.projectId, ids.taskId.map(_ + " -> " + task.id)))
-    val taskContext = new ActivityMonitor[ExecutionReport](task.id, Some(activityContext), projectAndTaskId = projectAndTaskString)
-    listenForTaskReports(nodeId, task, taskContext)
-    listenForWorkflowCancellation(taskContext, workflowRunContext.activityContext.status)
-    taskContext
-  }
-
-  // Creates a task report listener that will add that task report to the overall workflow report
-  private def listenForTaskReports(nodeId: Identifier,
-                                   task: Task[_ <: TaskSpec],
-                                   taskContext: ActivityMonitor[ExecutionReport]): Unit = {
-    val listener = activityContext.value.synchronized {
-      // Add initial task report
-      activityContext.value.updateWith(_.addReport(nodeId, SimpleExecutionReport.initial(task)))
-      new TaskReportListener(activityContext.value().taskReports.size - 1, nodeId)
-    }
-    // Listen for changes and update the task report for each change
-    taskContext.value.subscribe(listener)
-    reportListeners.append(listener)
-  }
-
-  // Listens for updates to the workflow status
-  private def listenForWorkflowCancellation(taskContext: ActivityMonitor[ExecutionReport], workflowStatus: Observable[Status]): Unit = {
-    val listener = new WorkflowStatusListener(taskContext.status)
-    workflowStatus.subscribe(listener)
-    statusListeners.append(listener)
-  }
-
-  /**
-    * Updates the workflow execution report on each update of a task report.
-    * A node may run multiple executions within one workflow run (e.g. a dataset node executes one
-    * write per input): each execution ends with a report marked as done, so an update arriving
-    * after that starts a new report entry instead of overwriting the finished one.
-    */
-  private class TaskReportListener(private var index: Int, nodeId: Identifier) extends (ExecutionReport => Unit) {
-    def apply(report: ExecutionReport): Unit = activityContext.value.synchronized {
-      if(activityContext.value().taskReports(index).report.isDone) {
-        activityContext.value.updateWith(_.addReport(nodeId, report))
-        index = activityContext.value().taskReports.size - 1
-      } else {
-        activityContext.value.updateWith(_.updateReport(index, nodeId, report))
-      }
-    }
-  }
-
-  private class WorkflowStatusListener(taskStatus: StatusHolder) extends (Status => Unit) {
-    override def apply(workflowStatus: Status): Unit = {
-      if(workflowStatus.isInstanceOf[Canceling]) {
-        taskStatus.synchronized {
-          if(taskStatus().isRunning) {
-            taskStatus.update(Canceling(None), logStatus = false)
-          }
-        }
-      }
-    }
   }
 }
 
