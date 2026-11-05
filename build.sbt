@@ -86,19 +86,18 @@ lazy val commonSettings = Seq(
   // We need to overwrite the versions of the Jackson modules.
   // Fixes GHSA-72hv-8253-57qq and CVE-2025-52999 (require 2.21.1+) and
   // CVE-2026-54512/54515/54516/54517, which still affect 2.22.0 (require 2.22.1).
-  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.22.1",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.1",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.1",
+  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.22.4",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.4",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.4",
 
-  // Fix CVE-2026-29062 and GHSA-72hv-8253-57qq in tools.jackson.core (Jackson 3.x, from Jena)
-  dependencyOverrides += "tools.jackson.core" % "jackson-core" % "3.2.0",
-  dependencyOverrides += "tools.jackson.core" % "jackson-databind" % "3.2.0",
+  // Jackson 3.x (json-schema-validator): CVE-2026-89425 and CVE-2026-91776/91777 require 3.2.3.
+  dependencyOverrides += "tools.jackson.core" % "jackson-core" % "3.2.4",
+  dependencyOverrides += "tools.jackson.core" % "jackson-databind" % "3.2.4",
 
-  // Fix CVE-2026-5598 in Bouncy Castle (private key leakage via non-constant time comparisons)
-  dependencyOverrides += "org.bouncycastle" % "bcprov-jdk18on" % "1.84",
+  // Fix CVE-2026-8763 and CVE-2026-13506 in Bouncy Castle (require 1.85); only on the pluginsRdf test classpath.
+  dependencyOverrides += "org.bouncycastle" % "bcprov-jdk18on" % "1.86",
 
-  // silk-core uses scala-parser-combinators 2.x (required by Spark 4 in the root build), Play 2.9 still ships 1.1.2
-  dependencyOverrides += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0",
+  // silk-core uses scala-parser-combinators 2.x (required by Spark 4 in the root build); it evicts the 1.1.2 of Play 2.9.
   libraryDependencySchemes += "org.scala-lang.modules" %% "scala-parser-combinators" % VersionScheme.Always,
 
   scalacOptions ++= compilerParams._2,
