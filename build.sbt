@@ -78,7 +78,7 @@ lazy val commonSettings = Seq(
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.20" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "6.0.0" % "test",
   libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.5.37",
-  libraryDependencies += "org.mockito" % "mockito-core" % "5.23.0" % Test,
+  libraryDependencies += "org.mockito" % "mockito-core" % "5.24.0" % Test,
   libraryDependencies += "com.google.inject" % "guice" % "6.0.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
@@ -130,8 +130,8 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1",
     libraryDependencies += "xalan" % "xalan" % "2.7.3",
     libraryDependencies += "xalan" % "serializer" % "2.7.3",
-    libraryDependencies += "org.snakeyaml" % "snakeyaml-engine" % "3.0.1",
-    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.17.0"
+    libraryDependencies += "org.snakeyaml" % "snakeyaml-engine" % "3.2",
+    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.17.2"
   )
 
 lazy val rules = (project in file("silk-rules"))
@@ -162,7 +162,7 @@ lazy val pluginsTemplatingJinja = (project in file("silk-plugins/silk-plugins-te
   .settings(commonSettings *)
   .settings(
     name := "Silk Plugins Templating Jinja",
-    libraryDependencies += "com.hubspot.jinjava" % "jinjava" % "2.8.3"
+    libraryDependencies += "com.hubspot.jinjava" % "jinjava" % "2.8.5"
   )
 
 lazy val pluginsTemplatingVelocity = (project in file("silk-plugins/silk-plugins-templating-velocity"))
@@ -189,7 +189,7 @@ lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
   .settings(
     name := "Silk Plugins CSV",
     libraryDependencies += "com.univocity" % "univocity-parsers" % "2.9.1",
-    libraryDependencies += "com.github.albfernandez" % "juniversalchardet" % "2.5.0"
+    libraryDependencies += "com.github.albfernandez" % "juniversalchardet" % "2.5.2"
   )
 
 lazy val pluginsXml = (project in file("silk-plugins/silk-plugins-xml"))
@@ -355,7 +355,7 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
     // Play filters (CORS filter etc.)
     libraryDependencies += filters,
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "6.0.2" % "test",
-    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.17.0"
+    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.17.2"
   )
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
