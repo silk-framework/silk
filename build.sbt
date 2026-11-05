@@ -122,10 +122,10 @@ lazy val core = (project in file("silk-core"))
     name := "Silk Core",
     libraryDependencies += "com.typesafe" % "config" % "1.4.9",
     // Additional scala standard libraries
-    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "2.4.0",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "2.5.0",
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-    libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "1.2.0",
-    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "1.3.0",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.5.0",
     libraryDependencies += "commons-io" % "commons-io" % "2.22.0",
     libraryDependencies += "at.yawk.lz4" % "lz4-java" % "1.13.0",
     libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1",
