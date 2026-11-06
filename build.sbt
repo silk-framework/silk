@@ -92,10 +92,6 @@ lazy val commonSettings = Seq(
   dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.4",
   dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.4",
 
-  // Jackson 3.x (json-schema-validator): CVE-2026-89425 and CVE-2026-91776/91777 require 3.2.3.
-  dependencyOverrides += "tools.jackson.core" % "jackson-core" % "3.2.4",
-  dependencyOverrides += "tools.jackson.core" % "jackson-databind" % "3.2.4",
-
   // Fix CVE-2026-8763 and CVE-2026-13506 in Bouncy Castle (require 1.85); only on the pluginsRdf test classpath.
   dependencyOverrides += "org.bouncycastle" % "bcprov-jdk18on" % "1.86",
 
