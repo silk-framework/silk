@@ -684,7 +684,12 @@
             "title": "Changes",
             "loading": "Loading changes.",
             "noChanges": "No changes have been recorded for this project.",
+            "noMatch": "No changes match the search.",
             "reload": "Reload changes",
+            "help": {
+                "open": "About the change journal",
+                "title": "The change journal"
+            },
             "originTooltip": "The client the change came from",
             "emptyValue": "empty",
             "emptyValueTooltip": "The value is empty",
@@ -721,14 +726,19 @@
             },
             "markReviewed": {
                 "button": "Mark all as reviewed",
+                "action": "Mark as reviewed up to here",
+                "hidden": "Unreviewed changes hidden by the current search: {{count}}. Clear it to mark changes as reviewed.",
+                "hidden_plural": "Unreviewed changes hidden by the current search: {{count}}. Clear it to mark changes as reviewed.",
                 "title": "Mark changes as reviewed",
-                "confirmText": "Mark all listed changes as reviewed?"
+                "confirmText": "Mark all listed changes as reviewed?",
+                "confirmUpToText": "Mark change #{{seq}} and all older changes as reviewed?"
             },
             "revertAll": {
                 "button": "Revert unreviewed",
                 "title": "Revert unreviewed changes",
                 "confirmText": "The following unreviewed changes will be reverted, newest first:",
                 "blocked": "Nothing can be reverted: the newest of these changes cannot be reverted now, and no newer change is left whose revert could clear that. {{reason}}",
+                "nothing": "None of these changes can be reverted.",
                 "skippedNote": "Skipped as not revertible: {{count}}.",
                 "skippedNote_plural": "Skipped as not revertible: {{count}}.",
                 "resultReverted": "Reverted changes: {{count}}.",
@@ -1099,9 +1109,15 @@
             "view": "View project activities"
         },
         "ChangesWidget": {
-            "titleWithUnreviewed": "Changes ({{count}} unreviewed)",
-            "titleWithUnreviewed_plural": "Changes ({{count}} unreviewed)",
+            "allReviewed": "Recorded changes: {{count}}. Nothing awaits your review.",
+            "allReviewed_plural": "Recorded changes: {{count}}. Nothing awaits your review.",
+            "dropped": "Changes made by an agent that the journal dropped before your review: {{count}}",
+            "dropped_plural": "Changes made by an agent that the journal dropped before your review: {{count}}",
+            "noChanges": "No changes recorded yet.",
+            "review": "Review changes",
             "title": "Changes",
+            "unreviewed": "Changes made by an agent awaiting your review: {{count}}",
+            "unreviewed_plural": "Changes made by an agent awaiting your review: {{count}}",
             "view": "View project changes"
         },
         "ConfigWidget": {
@@ -1125,6 +1141,42 @@
         },
         "FacetsList": {
             "facet": {
+                "changeKind": {
+                    "description": "What the change did: added, updated, removed or run.",
+                    "label": "Kind",
+                    "valueLabels": {
+                        "added": "Added",
+                        "updated": "Updated",
+                        "removed": "Removed",
+                        "run": "Run"
+                    }
+                },
+                "changeOrigin": {
+                    "description": "A person, or the client an agent change came from.",
+                    "label": "Origin",
+                    "valueLabels": {
+                        "person": "Person"
+                    }
+                },
+                "changeState": {
+                    "description": "Whether the change awaits review, has been reverted, reverts another change, or proposes a run.",
+                    "label": "State",
+                    "valueLabels": {
+                        "unreviewed": "Unreviewed",
+                        "reverted": "Reverted",
+                        "revert": "Reverts a change",
+                        "proposal": "Proposed run",
+                        "fulfilled": "Run as proposed"
+                    }
+                },
+                "changeTask": {
+                    "description": "The task the change concerns.",
+                    "label": "Task"
+                },
+                "changeUser": {
+                    "description": "The user who made the change.",
+                    "label": "User"
+                },
                 "createdBy": {
                     "description": "The user who created the item.",
                     "label": "Created by",
