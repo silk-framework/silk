@@ -120,13 +120,18 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
         { intent: "success" | "warning"; text: string } | undefined
     >(undefined);
     const displayRevertError = useModalError({ setError: setRevertError });
+    const searchRequest = React.useRef<AbortController>();
+
+    React.useEffect(() => () => searchRequest.current?.abort(), []);
 
     /** Answers the store's search with the journal's page, keeping the numbers that come with it. */
     const fetcher = React.useCallback(
-        async (payload: ISearchListRequest): Promise<FetchResponse<ISearchListResponse>> => {
+        async (payload: ISearchListRequest, signal: AbortSignal): Promise<FetchResponse<ISearchListResponse>> => {
             try {
                 const response = await searchChanges(projectId, payload);
-                setJournal({ latestSeq: response.data.latestSeq, unreviewed: response.data.unreviewed });
+                if (!signal.aborted) {
+                    setJournal({ latestSeq: response.data.latestSeq, unreviewed: response.data.unreviewed });
+                }
                 // The entries take the place of the search items in the store
                 return response as unknown as FetchResponse<ISearchListResponse>;
             } catch (ex) {
@@ -137,7 +142,20 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
         [projectId],
     );
 
-    const loadChanges = () => dispatch(workspaceOp.fetchListAsync({ sortBy, sortOrder, pageSize }, fetcher));
+    const loadChanges = () => {
+        // The shared search store outlives this page; superseded and unmounted requests must not update it.
+        searchRequest.current?.abort();
+        const controller = new AbortController();
+        searchRequest.current = controller;
+        return dispatch(
+            workspaceOp.fetchListAsync(
+                { sortBy, sortOrder, pageSize },
+                (payload) => fetcher(payload, controller.signal),
+                undefined,
+                controller.signal,
+            ),
+        );
+    };
 
     // Fetched again whenever the query, a facet, the sort or the page changes
     React.useEffect(() => {

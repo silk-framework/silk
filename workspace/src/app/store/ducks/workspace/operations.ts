@@ -144,8 +144,12 @@ const fetchListAsync = (
     tableSettings: GlobalTableBaseConfig | undefined = undefined,
     fetcher: ((payload: ISearchListRequest) => Promise<FetchResponse<ISearchListResponse>>) | undefined = undefined,
     customDefaultLimit: number | undefined = undefined,
+    signal?: AbortSignal,
 ) => {
     return async (dispatch, getState) => {
+        if (signal?.aborted) {
+            return;
+        }
         dispatch(fetchList());
 
         batch(() => {
@@ -195,6 +199,9 @@ const fetchListAsync = (
             const { total, facets, results, sortByProperties } = fetcher
                 ? (await fetcher(body))?.data
                 : await requestSearchList(body);
+            if (signal?.aborted) {
+                return;
+            }
             batch(() => {
                 // Apply results
                 dispatch(fetchListSuccess(results));
@@ -207,11 +214,13 @@ const fetchListAsync = (
                 dispatch(updateSorters(sortByProperties));
             });
         } catch (e) {
-            batch(() => {
+            if (!signal?.aborted) {
                 dispatch(setError(e));
-            });
+            }
         } finally {
-            dispatch(setLoading(false));
+            if (!signal?.aborted) {
+                dispatch(setLoading(false));
+            }
         }
     };
 };
