@@ -86,7 +86,7 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
     val written = Journal(olderSegments :+ appended)
     // Cached before the cap runs: a cap that fails leaves the entry in place, and the next append tries the cap again
     journals.put(project, written)
-    journals.put(project, capped(written))
+    cap(project, written)
   }
 
   override def headers(project: Identifier): Seq[ChangeHeader] = monitor(project).synchronized {
@@ -268,14 +268,14 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
     }
   }
 
-  // While over the cap and more than one segment exists, the oldest segment goes; the newest always stays
-  private def capped(journal: Journal): Journal = {
+  // While over the cap and more than one segment exists, the oldest segment goes and the cache follows; the newest always stays
+  private def cap(project: Identifier, journal: Journal): Unit = {
     var segments = journal.segments
     while(segments.size > 1 && segments.map(_.size).sum > capBytes) {
       Files.deleteIfExists(segments.head.file)
       segments = segments.tail
+      journals.put(project, Journal(segments))
     }
-    if(segments.size == journal.segments.size) journal else Journal(segments)
   }
 
   private def projectDir(project: Identifier): Path = root.resolve(project.toString)
