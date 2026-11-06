@@ -112,8 +112,15 @@ it.each([
     ["Customer dataset", "Customer dataset"],
 ])("names a fullscreen view without a selected tab using %p", async (title, expectedName) => {
     jest.mocked(pluginRegistry.taskViews).mockReturnValue([]);
-    renderTabs({ title, srcLinks: [], handlerRemoveModal: jest.fn() });
-    expect(await screen.findByRole("dialog", { name: expectedName })).toHaveAttribute("aria-modal", "true");
+    jest.mocked(requestItemLinks).mockResolvedValue({
+        data: [],
+        axiosResponse: { data: [], status: 200, statusText: "OK", headers: {}, config: {} },
+    });
+    renderTabs({ title, handlerRemoveModal: jest.fn() });
+    // wait until the links are loaded and no tab could be selected
+    expect(await screen.findByText("No tab available/selected.")).toBeInTheDocument();
+    expect(requestItemLinks).toHaveBeenCalled();
+    expect(screen.getByRole("dialog", { name: expectedName })).toHaveAttribute("aria-modal", "true");
 });
 
 it("keeps the fullscreen dialog named when the selected view crashes", async () => {
