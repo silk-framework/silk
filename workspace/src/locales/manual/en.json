@@ -386,6 +386,8 @@
             "import": "Import",
             "loadExampleProject": "Add \"movies\" example project",
             "logout": "Logout",
+            "fullscreenExit": "Exit full screen",
+            "fullscreenView": "Show in full screen",
             "maximize": "Maximize",
             "minimize": "Minimize",
             "remove": "Remove",

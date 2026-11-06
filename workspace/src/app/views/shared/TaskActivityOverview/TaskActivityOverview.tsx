@@ -387,6 +387,10 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                         renderMarkdown: true,
                         renderReport: (markdown) => <Markdown children={markdown as string} />,
                         fetchErrorReport: fetchErrorReportFactory(activity),
+                        fullScreenTogglerTexts: {
+                            maximize: t("common.action.fullscreenView"),
+                            minimize: t("common.action.fullscreenExit"),
+                        },
                     }}
                     showReloadAction={activity.activityCharacteristics.isCacheActivity}
                     showStartAction={!activity.activityCharacteristics.isCacheActivity}
