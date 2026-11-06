@@ -19,6 +19,7 @@ jest.mock("react-redux", () => ({
 }));
 jest.mock("../../plugins/PluginRegistry", () => ({ pluginRegistry: { taskViews: jest.fn() } }));
 jest.mock("@ducks/shared/requests", () => ({ requestItemLinks: jest.fn() }));
+jest.mock("../../../services/errorLogger", () => ({ logError: jest.fn() }));
 
 const i18n = createInstance();
 const views: IProjectTaskView[] = [
@@ -113,6 +114,30 @@ it.each([
     jest.mocked(pluginRegistry.taskViews).mockReturnValue([]);
     renderTabs({ title, srcLinks: [], handlerRemoveModal: jest.fn() });
     expect(await screen.findByRole("dialog", { name: expectedName })).toHaveAttribute("aria-modal", "true");
+});
+
+it("keeps the fullscreen dialog named when the selected view crashes", async () => {
+    const consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
+    const consoleLog = jest.spyOn(console, "log").mockImplementation(() => {});
+    const consoleWarn = jest.spyOn(console, "warn").mockImplementation(() => {});
+    const CrashingView = () => {
+        throw new Error("View crashed");
+    };
+    jest.mocked(pluginRegistry.taskViews).mockReturnValue([
+        { id: "editor", label: "Workflow editor", render: () => <CrashingView /> },
+    ]);
+    try {
+        renderTabs({ handlerRemoveModal: jest.fn() });
+        const dialog = await screen.findByRole("dialog");
+        await waitFor(() => expect(requestItemLinks).toHaveBeenCalled());
+        // The error boundary replaced the card including the heading referenced by aria-labelledby
+        await waitFor(() => expect(screen.queryByRole("heading", { name: /Workflow editor/ })).not.toBeInTheDocument());
+        expect(dialog).toHaveAccessibleName("Task view");
+    } finally {
+        consoleError.mockRestore();
+        consoleLog.mockRestore();
+        consoleWarn.mockRestore();
+    }
 });
 
 it("exposes selected tabs and their labelled panels, keeping external links outside the tablist", async () => {
