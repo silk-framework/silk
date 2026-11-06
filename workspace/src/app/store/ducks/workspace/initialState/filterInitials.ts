@@ -19,6 +19,7 @@ export function initialPaginationState(props: Partial<IPaginationState> = {}): I
 
 export function initialFiltersState(props: Partial<IFiltersState> = {}): IFiltersState {
     return {
+        preservedQueryKeys: [],
         facets: [],
         appliedFilters: initialAppliedFiltersState(),
         appliedFacets: [],

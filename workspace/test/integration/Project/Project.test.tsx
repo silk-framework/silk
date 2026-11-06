@@ -1,5 +1,5 @@
 import React from "react";
-import { act, RenderResult, waitFor } from "@testing-library/react";
+import { act, fireEvent, RenderResult, waitFor } from "@testing-library/react";
 import mockAxios from "../../__mocks__/axios";
 import {
     apiUrl,
@@ -17,6 +17,7 @@ import {
 } from "../TestHelper";
 import { createBrowserHistory, History, LocationState } from "history";
 import Project from "../../../src/app/views/pages/Project";
+import { APP_VIEWHEADER_ID } from "../../../src/app/views/shared/PageHeader/PageHeader";
 import qs from "qs";
 import { GlobalTableContext } from "../../../src/app/GlobalContextsWrapper";
 import {
@@ -133,6 +134,7 @@ describe("Project page", () => {
         projectPageWrapper = null;
         history = null;
         mockAxios.reset();
+        document.getElementById(APP_VIEWHEADER_ID)?.remove();
     });
 
     it("should get common data types or for specific project", async () => {
@@ -163,6 +165,22 @@ describe("Project page", () => {
         await waitFor(() => {
             checkRequestMade(apiUrl("/workspace/searchItems"), "POST", { project: otherProject }, true);
         });
+    });
+
+    it("should open the changes page from the project menu", async () => {
+        // The page header with the menu renders into the application's header slot
+        const headerRoot = document.body.appendChild(document.createElement("div"));
+        headerRoot.id = APP_VIEWHEADER_ID;
+        renderProjectPage();
+        await waitFor(() => {
+            expect(document.body.querySelector(byTestId("header-context-menu-btn"))).toBeTruthy();
+        });
+        fireEvent.click(document.body.querySelector(byTestId("header-context-menu-btn")) as Element);
+        await waitFor(() => {
+            expect(document.body.querySelector(byTestId("header-item-changes-button"))).toBeTruthy();
+        });
+        fireEvent.click(document.body.querySelector(byTestId("header-item-changes-button")) as Element);
+        expect(history?.location.pathname).toBe(workspacePath(`/projects/${testProjectId}/changes`));
     });
 
     it("should filter items, by given criteria from URL search params", async () => {

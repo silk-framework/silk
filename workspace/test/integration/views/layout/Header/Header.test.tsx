@@ -18,10 +18,7 @@ import { APP_VIEWHEADER_ID, PageHeader } from "../../../../../src/app/views/shar
 import { fireEvent, RenderResult, waitFor } from "@testing-library/react";
 import { Helmet } from "react-helmet";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../../src/app/views/plugins/PluginRegistry";
-import {
-    BrandingProps,
-    CompanionToolbarProps,
-} from "../../../../../src/app/views/plugins/plugin.types";
+import { BrandingProps, CompanionToolbarProps } from "../../../../../src/app/views/plugins/plugin.types";
 
 jest.mock("../../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal", () => ({
     CreateArtefactModal: () => null,
@@ -44,12 +41,12 @@ describe("Header", () => {
         applicationName: "some app",
         applicationSuiteName: "some suite",
     });
+    const panelContainer = document.createElement("div");
+    panelContainer.id = "panel-container";
     pluginRegistry.registerReactPluginComponent<CompanionToolbarProps>({
         id: SUPPORTED_PLUGINS.DI_COMPANION,
         label: "Companion test plugin",
-        Component: ({ companionConfig }) => (
-            <div data-test-id="companion-plugin">{companionConfig.apiBasePath}</div>
-        ),
+        Component: ({ panelContainer }) => <div data-test-id="companion-plugin">{panelContainer?.id}</div>,
     });
 
     beforeEach(() => {
@@ -62,7 +59,11 @@ describe("Header", () => {
         setUseParams("SomeProjectId", "SomeTaskId");
 
         wrapper = renderWrapper(
-            <Header onClickApplicationSidebarExpand={() => {}} isApplicationSidebarExpanded={false} />,
+            <Header
+                onClickApplicationSidebarExpand={() => {}}
+                isApplicationSidebarExpanded={false}
+                panelContainer={panelContainer}
+            />,
             history,
             {
                 common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
@@ -98,28 +99,9 @@ describe("Header", () => {
         expect(helmet.title).toBe("My Page Title (artefacttype) at Workbench / My Project — some corp some suite");
     });
 
-    it("should only mount the companion plugin when enabled for the current user", () => {
-        expect(wrapper.container.querySelector(byTestId("companion-plugin"))).not.toBeInTheDocument();
-
-        wrapper.unmount();
-        wrapper = renderWrapper(
-            <Header onClickApplicationSidebarExpand={() => {}} isApplicationSidebarExpanded={false} />,
-            history,
-            {
-                common: {
-                    initialSettings: {
-                        companion: {
-                            enabled: true,
-                            apiBasePath: "/explore/api/companion",
-                            streamPath: "/explore/companion-websocket",
-                        },
-                    },
-                },
-            },
-        );
-
+    it("should hand the panel container to the companion plugin", () => {
         expect(wrapper.container.querySelector(byTestId("companion-plugin"))).toHaveTextContent(
-            "/explore/api/companion",
+            "panel-container",
         );
     });
 

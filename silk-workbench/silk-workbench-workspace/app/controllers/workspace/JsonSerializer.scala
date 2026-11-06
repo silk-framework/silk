@@ -13,7 +13,6 @@ import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, WorkspaceFactory}
 import play.api.libs.json._
 
-import java.util.logging.LogRecord
 import scala.reflect.ClassTag
 
 /**
@@ -65,19 +64,6 @@ object JsonSerializer {
   def activityStatus(activity: WorkspaceActivity[_ <: HasValue]): JsValue = {
     implicit val writeContext = WriteContext.empty[JsValue]
     new ExtendedStatusJsonFormat(activity).write(activity.status())
-  }
-
-  def logRecords(records: Seq[LogRecord]): JsArray = {
-    JsArray(records.map(logRecord))
-  }
-
-  def logRecord(record: LogRecord): JsObject = {
-    JsObject(
-      ("activity" -> JsString(record.getLoggerName.substring(record.getLoggerName.lastIndexOf('.') + 1))) ::
-      ("level" -> JsString(record.getLevel.getName)) ::
-      ("message" -> JsString(record.getMessage)) ::
-      ("timestamp" -> JsNumber(record.getMillis)) :: Nil
-    )
   }
 
   def marshaller(marshaller: ProjectMarshallingTrait): JsObject = {

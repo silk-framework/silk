@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { IAppliedSorterState, SortModifierType } from "./typings";
 import { initialPaginationState } from "../../typings";
 import { initialAppliedFiltersState, initialFiltersState, initialSortersState } from "./initialState";
@@ -13,6 +13,10 @@ export const filtersSlice = createSlice({
     name: "filters",
     initialState: initialFiltersState(),
     reducers: {
+        setPreservedQueryKeys(state, action: PayloadAction<readonly string[]>) {
+            state.preservedQueryKeys = [...action.payload];
+        },
+
         applyFilters(state, action) {
             const { ...filters } = action.payload;
             Object.keys(filters).forEach((field) => {

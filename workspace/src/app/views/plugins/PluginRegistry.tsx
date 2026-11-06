@@ -159,6 +159,7 @@ export const SUPPORTED_PLUGINS = {
     DI_PROJECT_ACL: "di:projectAcl",
     DI_PROJECT_ACL_MANAGEMENT: "di:projectAclManagement",
     DI_COMPANION: "di:companion",
+    DI_CHANGE_CONVERSATIONS: "di:changeConversations",
 };
 
 registerCorePlugins();

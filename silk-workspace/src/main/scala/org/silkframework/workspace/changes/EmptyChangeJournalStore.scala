@@ -1,5 +1,6 @@
 package org.silkframework.workspace.changes
 
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.util.Identifier
 
@@ -12,9 +13,13 @@ case class EmptyChangeJournalStore() extends ChangeJournalStore {
 
   override def keepsEntries: Boolean = false
 
-  override def append(project: Identifier, entry: ChangeEntry): Unit = { }
+  override def append(project: Identifier, entry: ChangeEntry)(implicit context: PluginContext): Unit = { }
 
-  override def entries(project: Identifier): Seq[ChangeEntry] = Seq.empty
+  override def headers(project: Identifier): Seq[ChangeHeader] = Seq.empty
+
+  override def entry(project: Identifier, seq: Int)(implicit context: PluginContext): Option[ChangeEntry] = None
+
+  override def latestSeq(project: Identifier): Int = 0
 
   override def reviewedUpTo(project: Identifier): Int = 0
 

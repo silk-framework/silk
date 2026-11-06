@@ -349,7 +349,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
               uriRule = None,
               typeRules = Seq(TypeMapping(typeUri = "Person", metaData = MetaData(Some("type")))),
               propertyRules = Seq(
-                DirectMapping("name", sourcePath = UntypedPath("name"), mappingTarget = MappingTarget("name"), MetaData(Some("name")), Some("name")),
+                DirectMapping("name", sourcePath = UntypedPath("name"), mappingTarget = MappingTarget("name"), MetaData(Some("name"))),
                 ObjectMapping(
                   sourcePath = UntypedPath.empty,
                   target = Some(MappingTarget("address")),
@@ -357,7 +357,8 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
                     uriRule = Some(PatternUriMapping(pattern = s"https://silkframework.org/ex/Address_{city}_{country}", metaData = MetaData(Some("uri")))),
                     typeRules = Seq.empty,
                     propertyRules = Seq(
-                      DirectMapping("city", sourcePath = UntypedPath("city"), mappingTarget = MappingTarget("city"), MetaData(Some("city")), Some("city")),
+                      DirectMapping("city", sourcePath = UntypedPath("city"), mappingTarget = MappingTarget("city"), MetaData(Some("city"))),
+                      // An input id that differs from the rule id is kept
                       DirectMapping("country", sourcePath = UntypedPath("country"), mappingTarget = MappingTarget("country"), MetaData(Some("country")), Some("city"))
                     )
                   ),

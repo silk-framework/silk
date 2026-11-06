@@ -331,7 +331,7 @@ export interface ICompanionFrontendConfig {
     /** Whether the installation and current user's actions allow the companion. */
     enabled: boolean;
 
-    /** Same-origin base path of the Explore companion HTTP API. */
+    /** Same-origin base path of the Explore Companion V2 HTTP API. */
     apiBasePath: string;
 
     /** Same-origin path of the Explore companion event stream. */
