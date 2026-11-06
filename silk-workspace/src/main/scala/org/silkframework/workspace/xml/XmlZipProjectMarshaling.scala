@@ -140,7 +140,9 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
     provider.resources.child(project).child("resources")
   }
 
-  /** The journal is user data, who changed what and when, so it travels with the user data only, and only when asked for. */
+  /** The journal is user data, who changed what and when, so it travels with the user data only, and only when asked for.
+    * It is written after the project, as the export takes no snapshot: a change made while it runs can then be listed
+    * without being in the archive, where a revert of it is refused as a conflict, rather than be in the archive unlisted. */
   private def exportJournal(project: Project, zipResourceManager: ResourceManager, exportJournal: Boolean): Unit = {
     if(exportJournal) {
       ChangeJournalStore().exportJournal(project.id, zipResourceManager.child(project.id).child(JOURNAL_FOLDER))
