@@ -99,6 +99,9 @@ lazy val commonSettings = Seq(
   // Fix CVE-2026-8763 and CVE-2026-13506 in Bouncy Castle (require 1.85); only on the pluginsRdf test classpath.
   dependencyOverrides += "org.bouncycastle" % "bcprov-jdk18on" % "1.86",
 
+  // Fix CVE-2026-102554 in Guava (requires 33.7.2).
+  dependencyOverrides += "com.google.guava" % "guava" % "33.8.0-jre",
+
   // silk-core uses scala-parser-combinators 2.x (required by Spark 4 in the root build); it evicts the 1.1.2 of Play 2.9.
   libraryDependencySchemes += "org.scala-lang.modules" %% "scala-parser-combinators" % VersionScheme.Always,
 
