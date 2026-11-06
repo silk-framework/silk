@@ -34,7 +34,7 @@ export function initialCommonState(): ICommonState {
             assistantSupported: false,
             companion: {
                 enabled: false,
-                apiBasePath: "/dataplatform/api/companion2",
+                apiBasePath: "/dataplatform/api/companion/interactive",
                 streamPath: "/dataplatform/companion-websocket",
             },
             mappingCreatorEnabled: false,

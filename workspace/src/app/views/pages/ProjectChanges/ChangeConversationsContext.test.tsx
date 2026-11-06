@@ -13,7 +13,7 @@ let mockEnabled = true;
 jest.mock("@ducks/common", () => ({ commonSel: { initialSettingsSelector: jest.fn() } }));
 jest.mock("react-redux", () => ({
     useSelector: () => ({
-        companion: { enabled: mockEnabled, apiBasePath: "/custom/dp/api/companion2" },
+        companion: { enabled: mockEnabled, apiBasePath: "/custom/dp/api/companion/interactive" },
     }),
 }));
 jest.mock("../../plugins/PluginRegistry", () => ({
@@ -65,7 +65,7 @@ it("loads independently of child renders, refreshes on focus and clears titles w
     await waitFor(() => expect(view.container).toHaveTextContent("a:1:Private title"));
     expect(mockLoadConversations).toHaveBeenCalledWith(
         expect.any(AbortSignal),
-        "/custom/dp/api/companion2",
+        "/custom/dp/api/companion/interactive",
     );
     view.rerender(
         <ChangeConversationsProvider>

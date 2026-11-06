@@ -45,12 +45,12 @@ class InitApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers wi
   it should "enable the companion only for users with the companion action" in {
     companionConfig(companionUser) mustBe Json.obj(
       "enabled" -> true,
-      "apiBasePath" -> "/custom/explore/api/companion2",
+      "apiBasePath" -> "/custom/explore/api/companion/interactive",
       "streamPath" -> "/dataplatform/companion-websocket"
     )
     companionConfig(userWithoutCompanionAction) mustBe Json.obj(
       "enabled" -> false,
-      "apiBasePath" -> "/custom/explore/api/companion2",
+      "apiBasePath" -> "/custom/explore/api/companion/interactive",
       "streamPath" -> "/dataplatform/companion-websocket"
     )
   }
@@ -62,7 +62,7 @@ class InitApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers wi
   it should "default the reusable API base to Companion V2 and retain the shared stream endpoint" in {
     val config = ConfigFactory.parseString("com.eccenca.di.assistant.CompanionConfig.enabled = true")
     val settings = CompanionFrontendConfig.fromConfig(config, UserActions.all).toOption.get
-    settings.apiBasePath mustBe "/dataplatform/api/companion2"
+    settings.apiBasePath mustBe "/dataplatform/api/companion/interactive"
     settings.streamPath mustBe "/dataplatform/companion-websocket"
     (Json.toJson(settings) \ "conversationsPath").toOption mustBe None
   }
@@ -87,7 +87,7 @@ class InitApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers wi
       """
         |com.eccenca.di.assistant.CompanionConfig {
         |  enabled = true
-        |  apiBasePath = "https://explore.example/api/companion2"
+        |  apiBasePath = "https://explore.example/api/companion/interactive"
         |  streamPath = "//explore.example/companion-websocket"
         |}
         |""".stripMargin
@@ -110,7 +110,7 @@ class InitApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers wi
       "eccencaDataManager.baseUrl" -> Some(exampleUrl),
       "frontend.hotkeys.quickSearch" -> Some("/"),
       "com.eccenca.di.assistant.CompanionConfig.enabled" -> Some("true"),
-      "com.eccenca.di.assistant.CompanionConfig.apiBasePath" -> Some("/custom/explore/api/companion2"),
+      "com.eccenca.di.assistant.CompanionConfig.apiBasePath" -> Some("/custom/explore/api/companion/interactive"),
       "com.eccenca.di.assistant.CompanionConfig.streamPath" -> Some("/dataplatform/companion-websocket"),
       "user.manager.web.plugin" -> Some("initApiTestUserManager")
     )
