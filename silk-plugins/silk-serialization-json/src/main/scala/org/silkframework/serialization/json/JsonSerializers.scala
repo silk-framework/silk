@@ -1377,7 +1377,7 @@ object JsonSerializers {
         id = task.id.toString,
         project = writeContext.projectId.map(_.toString),
         metadata = if(options.includeMetaData.getOrElse(true)) Some(MetaDataPlain.fromMetaData(task.metaData)) else None,
-        executionVariables = if(task.executionVariables.variables.nonEmpty) Some(task.executionVariables.variables.map(TemplateVariableJson(_))) else None,
+        executionVariables = if(task.executionVariables.variables.nonEmpty) Some(task.executionVariables.variables.map(v => TemplateVariableJson(v.forStorage))) else None,
         // The task type is always added at the top level, regardless of whether the task data is included
         taskType = (taskDataJson \ TASKTYPE).asOpt[String],
         data = if(options.includeTaskData.getOrElse(true)) Some(TaskDataDto.fromDataJson(taskDataJson)) else None,

@@ -25,7 +25,8 @@ export interface ValidateTemplateResponse extends CodeAutocompleteFieldValidatio
 }
 
 /** Validates a variable template. If the validation was successful, the evaluated string is returned.
- * If a task is given, the template is validated in the context of that task. */
+ * If a task is given, the template is validated in the context of that task.
+ * If the template belongs to a sensitive variable, the evaluated string is masked. */
 export const requestValidateTemplateString = async (
     templateString: string,
     project?: string,
@@ -33,6 +34,7 @@ export const requestValidateTemplateString = async (
     includeSensitiveVariables?: boolean,
     ignoreUnboundVariables?: boolean,
     task?: string,
+    variableIsSensitive?: boolean,
 ): Promise<FetchResponse<ValidateTemplateResponse>> => {
     return fetch({
         url: coreApi("/variableTemplate/validation"),
@@ -44,6 +46,7 @@ export const requestValidateTemplateString = async (
             variableName,
             includeSensitiveVariables,
             ignoreUnboundVariables,
+            variableIsSensitive,
         },
     });
 };
@@ -56,6 +59,7 @@ export const requestValidateTemplateString = async (
  * @param variableName optional parameter to make correct suggestions for when an existing variable is edited
  * @param includeSensitiveVariables include sensitive variables in the autocompletion.
  * @param task optional task ID; if given, suggestions are made in the context of that task
+ * @param variableIsSensitive true if the template belongs to a sensitive variable, which may reference sensitive siblings
  * @returns
  */
 export const requestAutoCompleteTemplateString = async (
@@ -65,6 +69,7 @@ export const requestAutoCompleteTemplateString = async (
     variableName?: string,
     includeSensitiveVariables?: boolean,
     task?: string,
+    variableIsSensitive?: boolean,
 ): Promise<FetchResponse<CodeAutocompleteFieldPartialAutoCompleteResult>> => {
     return fetch({
         url: coreApi("/variableTemplate/completion"),
@@ -76,6 +81,7 @@ export const requestAutoCompleteTemplateString = async (
             task,
             variableName,
             includeSensitiveVariables,
+            variableIsSensitive,
         },
     });
 };
