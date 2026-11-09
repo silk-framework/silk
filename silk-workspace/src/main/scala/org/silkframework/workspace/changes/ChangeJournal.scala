@@ -93,8 +93,15 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
 
   /** The headers and the reviewed watermark, read in one step, so that both describe the same journal state. */
   def snapshot: (Seq[ChangeHeader], Int) = {
+    val (headers, reviewedUpTo, _) = snapshotWithLatestSeq
+    (headers, reviewedUpTo)
+  }
+
+  /** The snapshot with the store's latest seq (see `latestSeq`), for a client that marks reviewed up to what it was shown. */
+  def snapshotWithLatestSeq: (Seq[ChangeHeader], Int, Int) = {
     val currentStore = store
-    currentStore.monitor(project.id).synchronized((currentStore.headers(project.id), currentStore.reviewedUpTo(project.id)))
+    currentStore.monitor(project.id).synchronized(
+      (currentStore.headers(project.id), currentStore.reviewedUpTo(project.id), currentStore.latestSeq(project.id)))
   }
 
   /** The entries awaiting review, oldest first: the agent entries after the reviewed watermark.

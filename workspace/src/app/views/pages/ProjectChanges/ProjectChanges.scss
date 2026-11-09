@@ -15,3 +15,25 @@
             )};
     }
 }
+
+// The entries related to the hovered one, a revert and what it reverted, a proposal and its run: tinted like selected
+// rows, so that they are told apart from the row under the pointer, which keeps the hover shade
+.#{$prefix}--data-table:not(.#{$eccgui}-simpletable--colorless) > tbody > tr.diapp-changes__row--related {
+    & > td {
+        --#{$eccgui}-color-cell: #{$eccgui-color-tablerow-selected};
+    }
+
+    &.diapp-changes__row--unreviewed > td {
+        --#{$eccgui}-color-cell: #{eccgui-color-mix(
+                eccgui-color-var("semantic", "warning", "100"),
+                $eccgui-color-tablerow-selected
+            )};
+    }
+}
+
+// The links and the menu of an entry, right-aligned so that the menu stays in one place however many links precede it
+.diapp-changes__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}

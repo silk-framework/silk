@@ -1,8 +1,11 @@
 package controllers.projectApi
 
 import controllers.core.UserContextActions
+import controllers.core.util.ControllerUtilsTrait
 import controllers.projectApi.ChangeJournalApi.{ChangeDetailJson, ChangeEntryJson, ChangeListJson, ChangeSummaryJson, MarkReviewedJson, ReviewedJson, RevertConflictJson, RevertConflictsJson, RevertOutcomeJson, RevertRequestJson, RevertResultsJson}
 import controllers.util.ItemLink
+import controllers.workspaceApi.search.changes.ChangeSearchRequest
+import controllers.workspaceApi.search.changes.ChangeSearchRequest.ChangeSearchResult
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
@@ -20,14 +23,15 @@ import javax.inject.Inject
 
 /** The change journal of a project: what has been changed, and reverting single changes. */
 @Tag(name = "Project changes", description = "The changes made to a project, and reverting them.")
-class ChangeJournalApi @Inject()() extends InjectedController with UserContextActions {
+class ChangeJournalApi @Inject()() extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   @Operation(
     summary = "List changes",
-    description = "The changes made to the project, as far as the configured store keeps them, newest first. A change can be reverted while " +
-      "'revertible' is true and 'revertedBy' does not name the change that reverted it already; whether its inverse applies " +
-      "as the project is now is asked per change (see the conflicts operation), the listing itself checks nothing. " +
-      "'reverts' names the change a revert undid.",
+    description = "The changes made to the project, newest first, as far as the configured store keeps them. " +
+      "With 'fromSeq' only the changes from that seq upwards are listed, e.g. to revert back to before a change. " +
+      "A change can be reverted if 'revertible' is true and 'revertedBy' is absent, i.e. it has not been reverted yet. " +
+      "Whether its inverse still applies to the project as it is now is not checked by this listing but per change " +
+      "by the conflicts operation. 'reverts' names the change that a revert undid.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -47,7 +51,15 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
                 in = ParameterIn.PATH,
                 schema = new Schema(implementation = classOf[String])
               )
-              projectId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+              projectId: String,
+              @Parameter(
+                name = "fromSeq",
+                description = "Only the changes from this seq upwards, e.g. for reverting back to before a change; the flags are still those of the whole journal.",
+                required = false,
+                in = ParameterIn.QUERY,
+                schema = new Schema(implementation = classOf[Int])
+              )
+              fromSeq: Option[Int]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectId)
     val journal = project.changeJournal
     // Derived from one snapshot, so that a write landing meanwhile cannot skew the flags against the entries.
@@ -56,7 +68,7 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
     val fulfilledBy = journal.fulfilledBy(entries)
     val unreviewed = journal.unreviewed(entries, reviewedUpTo).map(_.seq).toSet
     Ok(Json.toJson(ChangeListJson(reviewedUpTo,
-      entries.reverse.map { entry =>
+      entries.reverse.filter(entry => fromSeq.forall(entry.seq >= _)).map { entry =>
         ChangeEntryJson.of(project, entry, revertedBy.get(entry.seq), fulfilledBy.get(entry.seq), unreviewed.contains(entry.seq))
       })))
   }
@@ -142,8 +154,8 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
               )
               projectId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val journal = WorkspaceFactory().workspace.project(projectId).changeJournal
-    val (entries, reviewedUpTo) = journal.snapshot
-    Ok(Json.toJson(ChangeSummaryJson(reviewedUpTo, journal.latestSeq,
+    val (entries, reviewedUpTo, latestSeq) = journal.snapshotWithLatestSeq
+    Ok(Json.toJson(ChangeSummaryJson(reviewedUpTo, latestSeq,
       journal.unreviewed(entries, reviewedUpTo).size, journal.droppedUnreviewed(entries, reviewedUpTo))))
   }
 
@@ -262,6 +274,45 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
     val outcomes = project.changeJournal.revertAll(request.body.as[RevertRequestJson].seqs)
     Ok(Json.toJson(RevertResultsJson(outcomes.map(RevertOutcomeJson.of(project, _)))))
   }
+
+  @Operation(
+    summary = "Search changes",
+    description = "The changes of the project that match a text query and facets, sorted and paged, with the facets of what " +
+      "matches and the journal's numbers: the reviewed watermark, the latest change and how many changes are unreviewed in " +
+      "the whole journal. An entry is served as the listing serves it. Without a sort property the changes come newest first.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(implementation = classOf[ChangeSearchResult])
+        ))
+      ),
+      new ApiResponse(responseCode = "400", description = "An invalid request, e.g. an unknown facet or sort property."),
+      new ApiResponse(responseCode = "404", description = "The project does not exist.")
+    ))
+  @RequestBody(
+    description = "The search request.",
+    required = true,
+    content = Array(new Content(
+      mediaType = "application/json",
+      schema = new Schema(implementation = classOf[ChangeSearchRequest]),
+      examples = Array(new ExampleObject("""{"textQuery": "persons", "facets": [{"type": "keyword", "facetId": "changeState", "keywordIds": ["unreviewed"]}], "sortBy": "time", "sortOrder": "ASC", "offset": 0, "limit": 25}"""))
+    )))
+  def search(@Parameter(
+               name = "projectId",
+               description = "The project identifier",
+               required = true,
+               in = ParameterIn.PATH,
+               schema = new Schema(implementation = classOf[String])
+             )
+             projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectId)
+    validateJson[ChangeSearchRequest] { search =>
+      Ok(Json.toJson(search(project)))
+    }
+  }
 }
 
 object ChangeJournalApi {
@@ -277,6 +328,8 @@ object ChangeJournalApi {
                              origin: Option[String],
                              @Schema(description = "The kind of change, e.g. 'AddMapping', 'ReplaceTask' or 'SetVariable'.")
                              `type`: String,
+                             @Schema(description = "The kind of change, as the changes page tags it: added, updated, removed or run.")
+                             kind: String,
                              @Schema(description = "What has been changed, in one line: the summary with the details.")
                              description: String,
                              @Schema(description = "What has been changed, without the details.")
@@ -309,7 +362,7 @@ object ChangeJournalApi {
     /** The JSON of an entry from its header; a freshly recorded entry is neither reverted nor fulfilled yet. */
     def of(project: Project, header: ChangeHeader, revertedBy: Option[Int], fulfilledBy: Option[Int] = None, unreviewed: Boolean = false)
           (implicit userContext: UserContext): ChangeEntryJson = {
-      ChangeEntryJson(header.seq, header.timestamp.toString, header.user, header.origin, header.changeType,
+      ChangeEntryJson(header.seq, header.timestamp.toString, header.user, header.origin, header.changeType, header.kind,
         header.describe, header.summary, header.details.map(ChangeDetailJson.of), ChangeLinks.of(project, header),
         header.revertible && fulfilledBy.isEmpty, header.reverts, revertedBy, fulfilledBy,
         unreviewed = if(unreviewed) Some(true) else None)
@@ -454,6 +507,7 @@ object ChangeJournalApi {
           "user": "urn:user:alice",
           "origin": "mcp:claude-code",
           "type": "WorkflowExecuted",
+          "kind": "run",
           "description": "Executed workflow 'workflow'",
           "summary": "Executed workflow 'workflow'",
           "details": [],
@@ -469,6 +523,7 @@ object ChangeJournalApi {
           "timestamp": "2026-08-26T09:51:02.417Z",
           "user": "urn:user:alice",
           "type": "RemoveMapping",
+          "kind": "removed",
           "description": "Removed mapping rule 'name' from transform 'persons'",
           "summary": "Removed mapping rule 'name' from transform 'persons'",
           "details": [],
@@ -482,6 +537,7 @@ object ChangeJournalApi {
           "user": "urn:user:alice",
           "origin": "mcp:claude-code",
           "type": "AddMapping",
+          "kind": "added",
           "description": "Added value mapping 'name' (name → http://xmlns.com/foaf/0.1/name) under 'root' in transform 'persons'",
           "summary": "Added value mapping 'name' (name → http://xmlns.com/foaf/0.1/name) under 'root' in transform 'persons'",
           "details": [],
@@ -516,6 +572,7 @@ object ChangeJournalApi {
         "timestamp": "2026-08-26T09:51:02.417Z",
         "user": "urn:user:alice",
         "type": "RemoveMapping",
+        "kind": "removed",
         "description": "Removed mapping rule 'name' from transform 'persons'",
           "summary": "Removed mapping rule 'name' from transform 'persons'",
           "details": [],
@@ -537,6 +594,7 @@ object ChangeJournalApi {
             "timestamp": "2026-08-26T09:51:02.417Z",
             "user": "urn:user:alice",
             "type": "RemoveMapping",
+            "kind": "removed",
             "description": "Removed mapping rule 'name' from transform 'persons'",
           "summary": "Removed mapping rule 'name' from transform 'persons'",
           "details": [],
