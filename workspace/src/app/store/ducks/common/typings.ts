@@ -333,9 +333,6 @@ export interface ICompanionFrontendConfig {
 
     /** Same-origin base path of the Explore Companion V2 HTTP API. */
     apiBasePath: string;
-
-    /** Same-origin path of the Explore companion event stream. */
-    streamPath: string;
 }
 
 type HotKeyIds = "quickSearch" | "overview";

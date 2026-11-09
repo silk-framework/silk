@@ -12,8 +12,7 @@ object InitApiDoc {
         "templatingEnabled": true,
         "companion": {
           "enabled": true,
-          "apiBasePath": "/dataplatform/api/companion/interactive",
-          "streamPath": "/dataplatform/companion-websocket"
+          "apiBasePath": "/dataplatform/api/companion/interactive"
         },
         "version": "v21.11",
         "dmModuleLinks": [

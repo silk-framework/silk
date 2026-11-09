@@ -45,13 +45,11 @@ class InitApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers wi
   it should "enable the companion only for users with the companion action" in {
     companionConfig(companionUser) mustBe Json.obj(
       "enabled" -> true,
-      "apiBasePath" -> "/custom/explore/api/companion/interactive",
-      "streamPath" -> "/dataplatform/companion-websocket"
+      "apiBasePath" -> "/custom/explore/api/companion/interactive"
     )
     companionConfig(userWithoutCompanionAction) mustBe Json.obj(
       "enabled" -> false,
-      "apiBasePath" -> "/custom/explore/api/companion/interactive",
-      "streamPath" -> "/dataplatform/companion-websocket"
+      "apiBasePath" -> "/custom/explore/api/companion/interactive"
     )
   }
 
@@ -59,11 +57,11 @@ class InitApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers wi
     (companionConfig(adminUser) \ "enabled").as[Boolean] mustBe true
   }
 
-  it should "default the reusable API base to Companion V2 and retain the shared stream endpoint" in {
+  it should "default the reusable API base to Companion V2 without exposing a legacy stream endpoint" in {
     val config = ConfigFactory.parseString("com.eccenca.di.assistant.CompanionConfig.enabled = true")
     val settings = CompanionFrontendConfig.fromConfig(config, UserActions.all).toOption.get
     settings.apiBasePath mustBe "/dataplatform/api/companion/interactive"
-    settings.streamPath mustBe "/dataplatform/companion-websocket"
+    (Json.toJson(settings) \ "streamPath").toOption mustBe None
     (Json.toJson(settings) \ "conversationsPath").toOption mustBe None
   }
 
@@ -88,7 +86,6 @@ class InitApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers wi
         |com.eccenca.di.assistant.CompanionConfig {
         |  enabled = true
         |  apiBasePath = "https://explore.example/api/companion/interactive"
-        |  streamPath = "//explore.example/companion-websocket"
         |}
         |""".stripMargin
     )
@@ -111,7 +108,6 @@ class InitApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers wi
       "frontend.hotkeys.quickSearch" -> Some("/"),
       "com.eccenca.di.assistant.CompanionConfig.enabled" -> Some("true"),
       "com.eccenca.di.assistant.CompanionConfig.apiBasePath" -> Some("/custom/explore/api/companion/interactive"),
-      "com.eccenca.di.assistant.CompanionConfig.streamPath" -> Some("/dataplatform/companion-websocket"),
       "user.manager.web.plugin" -> Some("initApiTestUserManager")
     )
   }

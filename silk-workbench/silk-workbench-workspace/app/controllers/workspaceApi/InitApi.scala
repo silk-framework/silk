@@ -172,18 +172,16 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
 }
 
 /** Browser-facing companion configuration. URLs are constrained to same-origin paths. */
-case class CompanionFrontendConfig(enabled: Boolean, apiBasePath: String, streamPath: String)
+case class CompanionFrontendConfig(enabled: Boolean, apiBasePath: String)
 
 object CompanionFrontendConfig {
   private val configPath = "com.eccenca.di.assistant.CompanionConfig"
   private val companionAction = "https://vocab.eccenca.com/auth/Action/Explore-Companion-Use"
   private val defaultApiBasePath = "/dataplatform/api/companion/interactive"
-  private val defaultStreamPath = "/dataplatform/companion-websocket"
 
   val disabled: CompanionFrontendConfig = CompanionFrontendConfig(
     enabled = false,
-    apiBasePath = defaultApiBasePath,
-    streamPath = defaultStreamPath
+    apiBasePath = defaultApiBasePath
   )
 
   implicit val companionFrontendConfigFormat: OFormat[CompanionFrontendConfig] = Json.format[CompanionFrontendConfig]
@@ -195,16 +193,13 @@ object CompanionFrontendConfig {
       Try {
         val companionConfig = config.getConfig(configPath)
         val apiBasePath = configuredPath(companionConfig, "apiBasePath", defaultApiBasePath)
-        val streamPath = configuredPath(companionConfig, "streamPath", defaultStreamPath)
-        val invalidPaths = Seq(apiBasePath, streamPath).filterNot(isSameOriginAbsolutePath)
-        if(invalidPaths.nonEmpty) {
-          Left(s"Companion URLs must be same-origin absolute paths: ${invalidPaths.mkString(", ")}")
+        if(!isSameOriginAbsolutePath(apiBasePath)) {
+          Left(s"Companion API base path must be a same-origin absolute path: $apiBasePath")
         } else {
           val installationEnabled = companionConfig.hasPath("enabled") && companionConfig.getBoolean("enabled")
           Right(CompanionFrontendConfig(
             enabled = installationEnabled && userActions.contains(companionAction),
-            apiBasePath = apiBasePath,
-            streamPath = streamPath
+            apiBasePath = apiBasePath
           ))
         }
       }.toEither.left.map(_.getMessage).flatMap(identity)
