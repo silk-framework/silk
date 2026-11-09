@@ -1,4 +1,4 @@
-package org.silkframework.runtime.templating.operations
+package org.silkframework.workspace.variables
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
@@ -7,7 +7,7 @@ import org.silkframework.runtime.templating.exceptions._
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, InMemoryTemplateVariablesReader, TemplateVariableName, VariableScope, TemplateVariables, TemplateVariablesManager}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.{Project, ProjectTask}
+import org.silkframework.workspace.{Project, ProjectTask, TaskExecutionVariablesManager}
 
 import java.util.logging.Logger
 import scala.collection.mutable
@@ -65,23 +65,35 @@ abstract class Modification {
     */
   def execute()(implicit user: UserContext): Unit = {
     val manager = variablesManager()
-    val currentVariables = manager.all
-    val newVariables = updateVariables(currentVariables, manager.parentVariables.withoutSensitiveVariables())
-    taskId match {
-      case Some(id) =>
-        updateExecutionVariablesAndTask(project.anyTask(id), currentVariables, newVariables)
-        log.info(s"$operation.")
-      case None =>
-        val updatedTaskIds = updateTasks(newVariables)
-        manager.put(newVariables)
-        // Execution-variable templates are resolved at save time, so re-resolve them against the updated variables.
-        val refreshedTaskIds = refreshTaskExecutionVariables()
-        val allUpdatedIds = (updatedTaskIds ++ refreshedTaskIds).toSeq.distinct
-        if(allUpdatedIds.nonEmpty) {
-          log.info(s"$operation. The following tasks have been updated: " + allUpdatedIds)
-        } else {
-          log.info(s"$operation. No tasks have been updated.")
+    // The project monitor is taken first, as the task updates below take it and callers that copy tasks put variables under it.
+    project.synchronized {
+      // Read and write are one step under the monitor that `put` takes, so concurrent modifications do not overwrite each other.
+      manager.synchronized {
+        val currentVariables = manager.all
+        val newVariables = updateVariables(currentVariables, manager.parentVariables.withoutSensitiveVariables())
+        val turnedSensitive = newVariables.variables.filter(v => v.isSensitive && currentVariables.map.get(v.name).exists(!_.isSensitive)).map(_.name).toSet
+        taskId match {
+          case Some(id) =>
+            updateExecutionVariablesAndTask(project.anyTask(id), currentVariables, newVariables, validateTemplates = turnedSensitive.nonEmpty)
+            log.info(s"$operation.")
+          case None =>
+            // The scope check is the one expected failure of the put, so it precedes the task updates.
+            manager.validateScope(newVariables)
+            // Where sensitive variables are not allowed, a variable that is turned sensitive is as good as removed.
+            checkRemovedVariableDependencies(newVariables, turnedSensitive)
+            // The task updates follow the variables and are restored by reverting the variable change, so they are not journaled.
+            val updatedTaskIds = project.changeJournal.derived(updateTasks(newVariables, validateTemplates = turnedSensitive.nonEmpty))
+            manager.put(newVariables)
+            // Execution-variable templates are resolved at save time, so re-resolve them against the updated variables.
+            val refreshedTaskIds = project.changeJournal.derived(refreshTaskExecutionVariables())
+            val allUpdatedIds = (updatedTaskIds ++ refreshedTaskIds).toSeq.distinct
+            if(allUpdatedIds.nonEmpty) {
+              log.info(s"$operation. The following tasks have been updated: " + allUpdatedIds)
+            } else {
+              log.info(s"$operation. No tasks have been updated.")
+            }
         }
+      }
     }
   }
 
@@ -89,19 +101,26 @@ abstract class Modification {
     * Updates the execution variables of a task.
     * If any of the task's parameter templates resolves to a different value under the new variables,
     * the task itself is re-instantiated and persisted together with the variables.
+    *
+    * @param validateTemplates If true, a task with parameter templates is instantiated in any case, e.g., because
+    *                          variables are turned sensitive, which not all parameters may use.
     */
   private def updateExecutionVariablesAndTask(projectTask: ProjectTask[_ <: TaskSpec],
                                               currentVariables: TemplateVariables,
-                                              newVariables: TemplateVariables)(implicit user: UserContext): Unit = {
+                                              newVariables: TemplateVariables,
+                                              validateTemplates: Boolean = false)(implicit user: UserContext): Unit = {
     val baseVariables = project.combinedTemplateVariables.all
     val currentContext = PluginContext.fromTask(projectTask, project)
     val updatedData =
       try {
         val parameters = projectTask.parameters(currentContext)
+        val newContext = currentContext.copy(templateVariables = currentContext.templateVariables.withExecutionDefaults(newVariables))
         if (hasUpdatedTemplateValues(parameters, baseVariables merge currentVariables, baseVariables merge newVariables)) {
-          val newContext = currentContext.copy(templateVariables = currentContext.templateVariables.withExecutionDefaults(newVariables))
           Some(projectTask.withParameters(parameters, dropExistingValues = true)(newContext))
         } else {
+          if (validateTemplates && parameters.hasTemplates) {
+            projectTask.withParameters(parameters, dropExistingValues = true)(newContext)
+          }
           None
         }
       } catch {
@@ -130,7 +149,11 @@ abstract class Modification {
     }
   }
 
-  private def updateTasks(newVariables: TemplateVariables)(implicit user: UserContext): Iterable[Identifier] = {
+  /**
+    * @param validateTemplates If true, every task with parameter templates is instantiated, but only persisted if its
+    *                          values change, e.g., because variables are turned sensitive, which not all parameters may use.
+    */
+  private def updateTasks(newVariables: TemplateVariables, validateTemplates: Boolean)(implicit user: UserContext): Iterable[Identifier] = {
     val allCurrentVariables = project.combinedTemplateVariables.all
     val allNewVariables = GlobalTemplateVariables.all merge newVariables
 
@@ -147,9 +170,11 @@ abstract class Modification {
     val updatedTasks = mutable.Buffer[(Identifier, TaskSpec)]()
     for (task <- project.allTasks) {
       try {
+        val taskNewContext = newContext.copy(templateVariables = newContext.templateVariables.withExecutionDefaults(task.executionVariables))
         if (hasUpdatedTemplateValues(task, currentContext, allCurrentVariables, allNewVariables)) {
-          val taskNewContext = newContext.copy(templateVariables = newContext.templateVariables.withExecutionDefaults(task.executionVariables))
           updatedTasks.append((task.id, task.withParameters(task.parameters(currentContext), dropExistingValues = true)(taskNewContext)))
+        } else if (validateTemplates && task.parameters(currentContext).hasTemplates) {
+          task.withParameters(task.parameters(currentContext), dropExistingValues = true)(taskNewContext)
         }
       } catch {
         case NonFatal(ex) =>
@@ -176,7 +201,7 @@ abstract class Modification {
         throw generateException(task, cause)
       }
       for (task <- project.allTasks) {
-        val referenced = referencedRemovedVariables(task, removedVariableNames)
+        val referenced = referencedRemovedVariables(task.data.referencedVariables, removedVariableNames)
         if (referenced.nonEmpty) {
           throw generateException(task, new ValidationException(
             s"The task references the variable(s) ${referenced.map(_.scopedName).mkString("'", "', '", "'")} from a template, e.g., in an 'Evaluate template' operator."))
@@ -185,10 +210,10 @@ abstract class Modification {
     }
   }
 
-  /** The removed project variables that the task data reports as referenced, e.g., from an 'Evaluate template' operator. */
-  protected def referencedRemovedVariables(task: ProjectTask[_ <: TaskSpec],
+  /** The removed project variables among those a task reports as referenced, e.g., from an 'Evaluate template' operator. */
+  protected def referencedRemovedVariables(referencedVariables: Seq[TemplateVariableName],
                                            removedVariableNames: Set[String]): Seq[TemplateVariableName] = {
-    task.data.referencedVariables.filter(v => v.scope == VariableScope.project && removedVariableNames.contains(v.name)).distinct
+    referencedVariables.filter(v => v.scope == VariableScope.project && removedVariableNames.contains(v.name)).distinct
   }
 
   /**
@@ -197,8 +222,7 @@ abstract class Modification {
   protected def tasksWithDependentExecutionVariables(newProjectVariables: TemplateVariables,
                                                      removedVariableNames: Set[String])
                                                     (implicit user: UserContext): Seq[(ProjectTask[_ <: TaskSpec], TemplateVariablesEvaluationException)] = {
-    // Match the resolution at save time (parent scopes without sensitive variables).
-    val parentVariables = (GlobalTemplateVariables.all merge newProjectVariables).withoutSensitiveVariables()
+    val parentVariables = TaskExecutionVariablesManager.templateParentVariables(newProjectVariables)
     for (task <- project.allTasks.toSeq;
          issues = dependentExecutionVariableIssues(task, parentVariables, removedVariableNames) if issues.nonEmpty) yield {
       (task, TemplateVariablesEvaluationException(issues))

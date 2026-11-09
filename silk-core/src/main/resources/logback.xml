@@ -36,11 +36,8 @@
     <appender-ref ref="FILE"/>
   </root>
 
-  <!-- OAuth specific log messages  -->
-  <logger name="oauth" level="info" additivity="false">
-    <appender-ref ref="STDOUT"/>
-    <appender-ref ref="FILE"/>
-  </logger>
+  <!-- OAuth specific log messages. Additive, so they reach the root appenders and the log buffer once. -->
+  <logger name="oauth" level="info"/>
 
 
   <logger name="category.DataNucleus" level="info" additivity="false">

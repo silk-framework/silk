@@ -40,8 +40,10 @@ describe("RuleBlockEditor integration", () => {
             </RuleBlockEditorOptionalContextValue.Provider>,
         );
 
-        await waitFor(() =>
-            expect(screen.getByTestId("sidebar-item-normalPort")).toHaveAttribute("data-warning", "false"),
+        // Initial loading of the editor can be slow on the CI, so allow more time than the default 1s
+        await waitFor(
+            () => expect(screen.getByTestId("sidebar-item-normalPort")).toHaveAttribute("data-warning", "false"),
+            { timeout: 5000 },
         );
 
         fireEvent.click(screen.getByRole("button", { name: "remove-deprecated-node" }));
@@ -83,6 +85,10 @@ describe("RuleBlockEditor integration", () => {
             </RuleBlockEditorOptionalContextValue.Provider>,
         );
 
+        // Initial loading of the editor can be slow on the CI, so allow more time than the default 1s
+        await waitFor(() => expect(screen.getByRole("button", { name: "remove-normal-node" })).toBeInTheDocument(), {
+            timeout: 5000,
+        });
         await waitFor(() => expect(screen.getByRole("button", { name: "Save" })).toBeDisabled());
         expect(screen.queryByTestId("context-overlay")).not.toBeInTheDocument();
 

@@ -24,11 +24,11 @@ import org.silkframework.rule.execution.rdb.RDBEntityIndex
 import org.silkframework.rule.{LinkSpec, LinkageRuleExecution, LinkingExecutionBackend, RuntimeLinkingConfig, TaskContext}
 import org.silkframework.runtime.activity._
 import org.silkframework.util.FileUtils._
-import org.silkframework.util.{CollectLogs, DPair}
+import org.silkframework.util.DPair
 
 import java.io.File
 import java.util.UUID
-import java.util.logging.{LogRecord, Logger}
+import java.util.logging.Logger
 import scala.util.Try
 
 /**
@@ -48,9 +48,6 @@ class GenerateLinks(task: Task[LinkSpec],
 
   private val linkSpec = task.data.copy(rule = rule.operator)
 
-  /** The warnings which occurred during execution */
-  @volatile private var warningLog: Seq[LogRecord] = Seq.empty
-
   private var children: List[ActivityControl[_]] = Nil
 
   private val comparisonToRestrictionConverter = new ComparisonToRestrictionConverter()
@@ -58,23 +55,16 @@ class GenerateLinks(task: Task[LinkSpec],
   /** The entity descriptions which define which entities are retrieved by this task */
   def entityDescs: DPair[EntitySchema] = linkSpec.entityDescriptions
 
-  /**
-   * All warnings which have been generated during executing.
-   */
-  def warnings: Seq[LogRecord] = warningLog
-
   override def initialValue: Option[Linking] = Some(Linking(task, rule.operator))
 
   override def run(context: ActivityContext[Linking])
                   (implicit userContext: UserContext): Unit = {
     context.value.update(Linking(task, rule.operator))
 
-    warningLog = CollectLogs() {
-      if(RDBEntityIndex.configured() && runtimeConfig.executionBackend == LinkingExecutionBackend.rdb && false) { //FIXME CMEM-1408: Remove false to enable RDB feature
-        runRdbLinking(context)
-      } else {
-        runNativeLinking(context)
-      }
+    if(RDBEntityIndex.configured() && runtimeConfig.executionBackend == LinkingExecutionBackend.rdb && false) { //FIXME CMEM-1408: Remove false to enable RDB feature
+      runRdbLinking(context)
+    } else {
+      runNativeLinking(context)
     }
   }
 

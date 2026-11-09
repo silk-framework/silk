@@ -30,6 +30,10 @@ export const SampleErrorModal = ({ sampleError, onClose }: SampleErrorModalProps
             size={"large"}
             onClose={onClose}
             showFullScreenToggler={true}
+            fullScreenTogglerTexts={{
+                maximize: t("common.action.fullscreenView"),
+                minimize: t("common.action.fullscreenExit"),
+            }}
             actions={[
                 <Button
                     data-test-id={"sample-error-report-download-btn"}
@@ -68,7 +72,7 @@ ${sampleError.entity ? "* Input entity URI: `" + sampleError.entity + "`" : ""}
 ${
     sampleError.values?.length
         ? `* Input values: ${sampleError.values.map(
-              (vals, idx) => `\n  ${idx + 1}. ${vals.map((v) => `\`${v}\``).join(", ")}`
+              (vals, idx) => `\n  ${idx + 1}. ${vals.map((v) => `\`${v}\``).join(", ")}`,
           )}`
         : ""
 }

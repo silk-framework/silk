@@ -21,8 +21,9 @@ trait UserContext {
 /** Holds information about the (current) execution context. This might get adapted via the withExecutionContext if from there on
   * specific execution parameters are known and can be set.
   * @param insideWorkflow After entering a workflow execution this flag is set to true.
+  * @param origin The client the request came from, e.g. "mcp:<client name>", to attribute changes to it. None if unknown.
   */
-case class UserExecutionContext(insideWorkflow: Boolean = false)
+case class UserExecutionContext(insideWorkflow: Boolean = false, origin: Option[String] = None)
 
 object UserContext {
   val Empty: UserContext = empty(UserExecutionContext())

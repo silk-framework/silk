@@ -50,7 +50,7 @@ trait EntityHolder extends Closeable {
     * Convenience method to get either the task label if it exists or the task ID.
     * @return
     */
-  def taskLabel: String = task.metaData.formattedLabel(task.id.toString)
+  def taskLabel: String = task.labelOrId
 
   /**
     * Get the first entity, or None if this table is empty.

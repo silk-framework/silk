@@ -86,12 +86,13 @@ object TaskDto {
   /**
     * Strict reads of the canonical task JSON envelope. Response-only fields ('project',
     * top-level 'taskType', 'properties', 'relations', 'schemata') and unknown fields are
-    * ignored. An absent or empty id is represented as an empty string; the caller generates
-    * the id from the label in that case.
+    * ignored, but not inside 'metadata', where an unknown field is rejected. An absent or
+    * empty id is represented as an empty string; the caller generates the id from the label
+    * in that case.
     */
   implicit val taskDtoReads: Reads[TaskDto] = (
     (__ \ JsonSerializers.ID).readNullable[String] and
-    (__ \ JsonSerializers.METADATA).readNullable[MetaDataPlain] and
+    (__ \ JsonSerializers.METADATA).readNullable[MetaDataPlain](MetaDataSerializers.strictMetaDataReads) and
     (__ \ JsonSerializers.TaskJsonFormat.EXECUTION_VARIABLES).readNullable[Seq[TemplateVariableJson]] and
     (__ \ JsonSerializers.DATA).read[TaskDataDto]
   ) { (id, metadata, executionVariables, data) =>

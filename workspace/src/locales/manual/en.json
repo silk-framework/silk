@@ -90,7 +90,8 @@
             "actionBtn": "Clear dataset",
             "error": "Error while clearing dataset",
             "readOnly": "The dataset is set to read-only and cannot be cleared."
-        }
+        },
+        "dialogLabel": "Data preview"
     },
     "DataProfiling": {
         "attributes": {
@@ -385,6 +386,8 @@
             "import": "Import",
             "loadExampleProject": "Add \"movies\" example project",
             "logout": "Logout",
+            "fullscreenExit": "Exit full screen",
+            "fullscreenView": "Show in full screen",
             "maximize": "Maximize",
             "minimize": "Minimize",
             "remove": "Remove",
@@ -522,7 +525,8 @@
             "unknown": "Unknown",
             "active": "active",
             "next": "Next",
-            "previous": "Previous"
+            "previous": "Previous",
+            "taskView": "Task view"
         },
         "tooltips": {
             "dataset": {
@@ -679,6 +683,88 @@
         "activities": {
             "title": "Activities",
             "noActivities": "No activities found"
+        },
+        "changes": {
+            "title": "Changes",
+            "loading": "Loading changes.",
+            "noChanges": "No changes have been recorded for this project.",
+            "noMatch": "No changes match the search.",
+            "reload": "Reload changes",
+            "help": {
+                "open": "About the change journal",
+                "title": "The change journal"
+            },
+            "originTooltip": "The client the change came from",
+            "emptyValue": "empty",
+            "emptyValueTooltip": "The value is empty",
+            "detailAdded": "added",
+            "detailRemoved": "removed",
+            "kind": {
+                "added": "Added",
+                "updated": "Updated",
+                "removed": "Removed",
+                "run": "Run"
+            },
+            "revertsTag": "Reverts #{{seq}}",
+            "revertedByTag": "Reverted by #{{seq}}",
+            "fulfilledTag": "Run as #{{seq}}",
+            "unreviewed": "Unreviewed",
+            "unreviewedTooltip": "An agent change that has not been reviewed yet",
+            "unreviewedInfo": "Unreviewed changes: {{count}}",
+            "unreviewedInfo_plural": "Unreviewed changes: {{count}}",
+            "column": {
+                "seq": "#",
+                "date": "Date",
+                "user": "User",
+                "change": "Change"
+            },
+            "revert": {
+                "action": "Revert this change",
+                "title": "Revert change",
+                "alreadyReverted": "Already reverted by change #{{seq}}",
+                "fulfilled": "Already run as change #{{seq}}",
+                "notRevertible": "This change cannot be reverted",
+                "conflict": "Cannot be reverted now: {{reason}}",
+                "confirmText": "Do you really want to revert the change '{{description}}'?",
+                "note": "The revert is recorded as a new change; reverting that one redoes this change."
+            },
+            "markReviewed": {
+                "button": "Mark all as reviewed",
+                "action": "Mark as reviewed up to here",
+                "hidden": "Unreviewed changes hidden by the current search: {{count}}. Clear it to mark changes as reviewed.",
+                "hidden_plural": "Unreviewed changes hidden by the current search: {{count}}. Clear it to mark changes as reviewed.",
+                "title": "Mark changes as reviewed",
+                "confirmText": "Mark all listed changes as reviewed?",
+                "confirmUpToText": "Mark change #{{seq}} and all older changes as reviewed?"
+            },
+            "revertAll": {
+                "button": "Revert unreviewed",
+                "title": "Revert unreviewed changes",
+                "confirmText": "The following unreviewed changes will be reverted, newest first:",
+                "blocked": "Nothing can be reverted: the newest of these changes cannot be reverted now, and no newer change is left whose revert could clear that. {{reason}}",
+                "nothing": "None of these changes can be reverted.",
+                "skippedNote": "Skipped as not revertible: {{count}}.",
+                "skippedNote_plural": "Skipped as not revertible: {{count}}.",
+                "resultReverted": "Reverted changes: {{count}}.",
+                "resultReverted_plural": "Reverted changes: {{count}}.",
+                "resultSkipped": "Skipped: {{count}}.",
+                "resultSkipped_plural": "Skipped: {{count}}.",
+                "resultUnchanged": "Change #{{seq}} was not reverted: {{message}}",
+                "resultConflict": "Stopped at change #{{seq}}: {{message}}"
+            },
+            "revertBack": {
+                "action": "Revert this and all newer changes",
+                "title": "Revert changes back to before #{{seq}}",
+                "confirmText": "The following changes will be reverted, newest first:"
+            },
+            "errors": {
+                "fetchChanges": "Loading the change list failed",
+                "fetchConflicts": "Checking which changes can be reverted now failed",
+                "fetchProject": "Loading the project failed",
+                "revertChange": "The change could not be reverted",
+                "markReviewed": "Marking the changes as reviewed failed",
+                "revertAll": "Reverting the changes failed"
+            }
         },
         "deprecatedPlugins": {
             "title": "Deprecated plugins usage",
@@ -1026,6 +1112,18 @@
             "title": "Activities",
             "view": "View project activities"
         },
+        "ChangesWidget": {
+            "allReviewed": "Recorded changes: {{count}}. Nothing awaits your review.",
+            "allReviewed_plural": "Recorded changes: {{count}}. Nothing awaits your review.",
+            "dropped": "Changes made by an agent that the journal dropped before your review: {{count}}",
+            "dropped_plural": "Changes made by an agent that the journal dropped before your review: {{count}}",
+            "noChanges": "No changes recorded yet.",
+            "review": "Review changes",
+            "title": "Changes",
+            "unreviewed": "Changes made by an agent awaiting your review: {{count}}",
+            "unreviewed_plural": "Changes made by an agent awaiting your review: {{count}}",
+            "view": "View project changes"
+        },
         "ConfigWidget": {
             "loading": "Loading configuration list.",
             "loadingPrefix": "Loading prefix configuration.",
@@ -1047,6 +1145,42 @@
         },
         "FacetsList": {
             "facet": {
+                "changeKind": {
+                    "description": "What the change did: added, updated, removed or run.",
+                    "label": "Kind",
+                    "valueLabels": {
+                        "added": "Added",
+                        "updated": "Updated",
+                        "removed": "Removed",
+                        "run": "Run"
+                    }
+                },
+                "changeOrigin": {
+                    "description": "A person, or the client an agent change came from.",
+                    "label": "Origin",
+                    "valueLabels": {
+                        "person": "Person"
+                    }
+                },
+                "changeState": {
+                    "description": "Whether the change awaits review, has been reverted, reverts another change, or proposes a run.",
+                    "label": "State",
+                    "valueLabels": {
+                        "unreviewed": "Unreviewed",
+                        "reverted": "Reverted",
+                        "revert": "Reverts a change",
+                        "proposal": "Proposed run",
+                        "fulfilled": "Run as proposed"
+                    }
+                },
+                "changeTask": {
+                    "description": "The task the change concerns.",
+                    "label": "Task"
+                },
+                "changeUser": {
+                    "description": "The user who made the change.",
+                    "label": "User"
+                },
                 "createdBy": {
                     "description": "The user who created the item.",
                     "label": "Created by",
@@ -1219,7 +1353,8 @@
                 "fetchActivityInfo": "Fetching activities list has failed."
             },
             "reloadAllCaches": "Reload all caches",
-            "title": "Activity overview"
+            "title": "Activity overview",
+            "errorReportLabel": "Activity execution error report"
         },
         "VariableWidget": {
             "title": {
@@ -1227,10 +1362,14 @@
                 "execution": "Execution variables"
             },
             "noVariables": "No variables set.",
+            "sensitiveValue": "The value of a sensitive variable is not shown.",
             "form": {
                 "name": "Name",
                 "value": "Value",
                 "description": "Description",
+                "sensitive": "Sensitive",
+                "sensitiveDescription": "The value is not displayed. It can only be used by password parameters, by parameters that allow sensitive variables and by other sensitive variables of the same scope.",
+                "keepSensitiveValue": "Leave empty to keep the current value or template.",
                 "infoBoxTitle": "Project variables",
                 "infoBoxDescription": "User-defined project variables. They can be used in dataset and task parameters and in the template transform operator. Variables may use templates that access other preceding project variables or globally configured variables."
             },

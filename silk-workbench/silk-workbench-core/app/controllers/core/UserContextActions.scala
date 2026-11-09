@@ -2,10 +2,12 @@ package controllers.core
 
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.users.WebUserManager
+import org.silkframework.workspace.changes.ChangeJournal
 import play.api.mvc._
 
 /**
-  * Helper method to create actions with user context provided
+  * Helper method to create actions with user context provided.
+  * The action runs on behalf of the user, so that writes without a user context (files) are attributed to them.
   */
 trait UserContextActions {
   this: BaseController =>
@@ -13,7 +15,7 @@ trait UserContextActions {
   def UserContextAction(block: (UserContext) => Result): Action[AnyContent] = {
     Action { request =>
       val userContext: UserContext = WebUserManager().userContext(request)
-      block(userContext)
+      ChangeJournal.onBehalfOf(userContext)(block(userContext))
     }
   }
 
@@ -21,14 +23,14 @@ trait UserContextActions {
               (block: (UserContext) => Result): Action[A] = {
     Action(bodyParser) { request =>
       val userContext: UserContext = WebUserManager().userContext(request)
-      block(userContext)
+      ChangeJournal.onBehalfOf(userContext)(block(userContext))
     }
   }
 
   def RequestUserContextAction(block: Request[AnyContent] => UserContext => Result): Action[AnyContent] = {
     this.Action { request =>
       val userContext: UserContext = WebUserManager().userContext(request)
-      block(request)(userContext)
+      ChangeJournal.onBehalfOf(userContext)(block(request)(userContext))
     }
   }
 
@@ -36,7 +38,7 @@ trait UserContextActions {
               (block: Request[A] => UserContext => Result): Action[A] = {
     this.Action(bodyParser) { request =>
       val userContext: UserContext = WebUserManager().userContext(request)
-      block(request)(userContext)
+      ChangeJournal.onBehalfOf(userContext)(block(request)(userContext))
     }
   }
 }

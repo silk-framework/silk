@@ -12,6 +12,7 @@ const TaskPage = lazy(() => import("./views/pages/Task"));
 const TaskPluginView = lazy(() => import("./views/pages/TaskPluginView/TaskPluginView"));
 const NotFoundPage = lazy(() => import("./views/pages/NotFound"));
 const Activities = lazy(() => import("./views/pages/Activities"));
+const ProjectChanges = lazy(() => import("./views/pages/ProjectChanges"));
 const DeprecatedPlugins = lazy(() => import("./views/pages/DeprecatedPlugins"));
 
 export interface IRouteProps extends RouteProps {
@@ -65,6 +66,11 @@ const appRoutes: IRouteProps[] = [
     {
         path: "/projects/:projectId/activities",
         component: Activities,
+        exact: true,
+    },
+    {
+        path: "/projects/:projectId/changes",
+        component: ProjectChanges,
         exact: true,
     },
     {

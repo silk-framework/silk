@@ -56,9 +56,14 @@ case class RuleBlockSpec(@Param(label = "Rule block model",
     operator.foreach(updateResourceOfOperator(_, resource))
   }
 
-  override def referencedVariables: Seq[TemplateVariableName] = {
+  override def referencedVariables: Seq[TemplateVariableName] = collectFromTransformers(_.referencedVariables)
+
+  override def modifiedVariables: Seq[TemplateVariableName] = collectFromTransformers(_.modifiedVariables)
+
+  /** Collects variables from all transformers in the operator tree. */
+  private def collectFromTransformers(f: Transformer => Seq[TemplateVariableName]): Seq[TemplateVariableName] = {
     val variables = mutable.Buffer[TemplateVariableName]()
-    operator.foreach(iterateAllTransformersFromOperator(_, _.referencedVariables.foreach(variables.append)))
+    operator.foreach(iterateAllTransformersFromOperator(_, transformer => variables ++= f(transformer)))
     variables.toSeq
   }
 

@@ -1,0 +1,275 @@
+package controllers.workspaceApi
+
+import controllers.projectApi.ChangeJournalApi.{ChangeEntryJson, ChangeListJson, ChangeSummaryJson, RevertConflictJson, RevertConflictsJson, RevertResultsJson}
+import controllers.util.{ItemLink, ItemType}
+import controllers.workspaceApi.search.KeywordFacetValue
+import controllers.workspaceApi.search.changes.ChangeSearchRequest.ChangeSearchResult
+import controllers.workspaceApi.coreApi.routes.{VariableTemplateApi => TemplateApi}
+import helper.{ApiClient, IntegrationTestTrait}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.rule.{DirectMapping, MappingRules, MappingTarget, RootMappingRule, TransformSpec}
+import org.silkframework.runtime.activity.{SimpleUserContext, UserContext, UserExecutionContext}
+import org.silkframework.runtime.templating.{TemplateVariable, VariableScope}
+import org.silkframework.runtime.users.DefaultUserManager
+import org.silkframework.serialization.json.TemplateVariableJson
+import org.silkframework.util.ConfigTestTrait
+import org.silkframework.util.FileUtils._
+import org.silkframework.workspace.changes.{AddMapping, ChangeJournal, ProposedWorkflowRun, TestJournalAccess, WorkflowExecuted}
+import org.silkframework.workspace.{ProjectConfig, WorkspaceFactory}
+import play.api.libs.json.{JsObject, Json}
+import play.api.routing.Router
+
+import java.nio.charset.StandardCharsets.UTF_8
+import java.nio.file.Files
+
+class ChangeJournalApiTest extends AnyFlatSpec with ConfigTestTrait with IntegrationTestTrait with ApiClient with Matchers {
+
+  behavior of "Change journal API"
+
+  override def workspaceProviderId: String = "inMemoryWorkspaceProvider"
+
+  // No store is configured by default, which records nothing.
+  private val journalDirectory = Files.createTempDirectory("changeJournal")
+
+  // The file store on a temporary directory; without a configured store nothing is recorded
+  override def propertyMap: Map[String, Option[String]] = Map(
+    "workspace.changes.plugin" -> Some("fileChangeJournal"),
+    "workspace.changes.fileChangeJournal.dir" -> Some(journalDirectory.toString))
+
+  override protected def afterAll(): Unit = {
+    try {
+      super.afterAll()
+    } finally {
+      journalDirectory.toFile.deleteRecursive()
+    }
+  }
+
+  override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
+
+  private val projectId = "changeJournalProject"
+
+  private def changesUrl(project: String, fromSeq: Option[Int] = None): String =
+    baseUrl + controllers.projectApi.routes.ChangeJournalApi.changes(project, fromSeq).url
+
+  private def revertUrl(seq: Int, project: String = projectId): String =
+    baseUrl + controllers.projectApi.routes.ChangeJournalApi.revert(project, seq).url
+
+  private def conflictsUrl(seqs: Seq[Int], project: String = projectId): String =
+    baseUrl + controllers.projectApi.routes.ChangeJournalApi.conflicts(project, seqs).url
+
+  private def conflicts(seqs: Seq[Int]): Seq[RevertConflictJson] =
+    checkResponse(client.url(conflictsUrl(seqs)).get()).json.as[RevertConflictsJson].conflicts
+
+  private def rule(name: String): DirectMapping =
+    DirectMapping(id = name, sourcePath = UntypedPath(name), mappingTarget = MappingTarget("http://example.org/" + name))
+
+  private def changes(project: String = projectId): Seq[ChangeEntryJson] =
+    checkResponse(client.url(changesUrl(project)).get()).json.as[ChangeListJson].changes
+
+  it should "list the changes of a project, newest first, and revert one of them" in {
+    val project = WorkspaceFactory().workspace.createProject(ProjectConfig(projectId))
+    val task = project.addTask[TransformSpec]("transform", TransformSpec(mappingRule = RootMappingRule(MappingRules(propertyRules = Seq(rule("a"))))))
+    task.applyChange(AddMapping(task.id, task.data.mappingRule.id, rule("b")))
+
+    val listed = changes()
+    listed.map(_.`type`) mustBe Seq("AddMapping", "AddTask")
+    // From a seq upwards, for reverting back to before a change
+    checkResponse(client.url(changesUrl(projectId, fromSeq = Some(listed.head.seq))).get()).json.as[ChangeListJson].changes.map(_.seq) mustBe Seq(listed.head.seq)
+    listed.head.description mustBe
+      s"Added value mapping 'b' (b → http://example.org/b) under '${task.data.mappingRule.id}' in transform 'transform'"
+    listed.head.revertedBy mustBe None
+    listed.head.revertible mustBe true
+    listed.head.summary mustBe listed.head.description
+    listed.head.details mustBe empty
+    // The task addition cannot be reverted while the mapping change since stands, which is told for the asked changes before a revert is tried
+    conflicts(listed.map(_.seq)) mustBe Seq(RevertConflictJson(listed(1).seq, s"Task 'transform' in project '$projectId' has been changed since."))
+    // At least one and at most 100 changes are checked per request; a change named twice counts once
+    checkResponseExactStatusCode(client.url(conflictsUrl(Seq.empty)).get(), BAD_REQUEST)
+    checkResponseExactStatusCode(client.url(conflictsUrl(1 to 101)).get(), BAD_REQUEST)
+    conflicts(Seq.fill(101)(listed.head.seq)) mustBe empty
+    // A task change links the task page, a mapping change the rule it added, as handed out by the server
+    val taskLink = ItemType.itemDetailsPage(ItemType.transform, projectId, "transform")
+    def ruleLink(ruleId: String) = ItemLink("rule", s"Mapping rule '$ruleId'", s"${taskLink.path}?ruleId=$ruleId")
+    listed.map(_.links) mustBe Seq(Seq(ruleLink("b")), Seq(taskLink))
+    val seq = listed.head.seq
+
+    val revert = checkResponse(client.url(revertUrl(seq)).post("")).json.as[ChangeEntryJson]
+    revert.`type` mustBe "RemoveMapping"
+    revert.reverts mustBe Some(seq)
+    task.data.mappingRule.rules.propertyRules.map(_.id.toString) mustBe Seq("a")
+    changes().find(_.seq == seq).get.revertedBy mustBe Some(revert.seq)
+    // The task is as added again, so its addition can be reverted; a reverted entry is not checked
+    conflicts(changes().map(_.seq)) mustBe empty
+    // The removal links the parent it happened in; the addition falls back to the task page, as its rule is gone
+    revert.links mustBe Seq(ruleLink(task.data.mappingRule.id))
+    changes().find(_.seq == seq).get.links mustBe Seq(taskLink)
+
+    // A change is reverted at most once; an unknown change is not found.
+    checkResponseExactStatusCode(client.url(revertUrl(seq)).post(""), CONFLICT)
+    checkResponseExactStatusCode(client.url(revertUrl(999)).post(""), NOT_FOUND)
+
+    // A recorded workflow run links its persisted execution report; the workflow itself does not exist here, so no task page
+    val proposal = project.changeJournal.propose(ProposedWorkflowRun("wf"))
+    TestJournalAccess.record(project.changeJournal, WorkflowExecuted("wf", Some("2026-08-26T09:52:08.126Z"), failed = false))
+    val run = changes().head
+    run.`type` mustBe "WorkflowExecuted"
+    val reportUrl = controllers.workspaceApi.routes.ReportsApi.retrieveReport(projectId, "wf", "2026-08-26T09:52:08.126Z").url
+    run.links mustBe Seq(ItemLink("report", "Execution report", reportUrl, openInNewTab = true))
+    run.revertible mustBe false
+
+    // The run fulfilled the open proposal, which is final from then on
+    val proposed = changes().find(_.seq == proposal.seq).get
+    proposed.fulfilledBy mustBe Some(run.seq)
+    proposed.revertible mustBe false
+    checkResponseExactStatusCode(client.url(revertUrl(proposal.seq)).post(""), CONFLICT)
+  }
+
+  it should "track the reviewed watermark and revert batches" in {
+    val watermarkProjectId = "changeJournalWatermarkProject"
+    val project = WorkspaceFactory().workspace.createProject(ProjectConfig(watermarkProjectId))
+    val agent = SimpleUserContext(Some(DefaultUserManager.get("urn:agent")), UserExecutionContext(origin = Some("mcp:test")))
+    def transform(ruleName: String): TransformSpec =
+      TransformSpec(mappingRule = RootMappingRule(MappingRules(propertyRules = Seq(rule(ruleName)))))
+    project.addTask[TransformSpec]("first", transform("a"))(implicitly, agent)
+    project.addTask[TransformSpec]("second", transform("b"))(implicitly, agent)
+
+    // Both agent entries are unreviewed until the watermark passes them; the summary counts them without listing
+    val summaryUrl = baseUrl + controllers.projectApi.routes.ChangeJournalApi.summary(watermarkProjectId).url
+    def summary(): ChangeSummaryJson = checkResponse(client.url(summaryUrl).get()).json.as[ChangeSummaryJson]
+    val listed = checkResponse(client.url(changesUrl(watermarkProjectId)).get()).json.as[ChangeListJson]
+    listed.reviewedUpTo mustBe 0
+    listed.changes.map(_.unreviewed) mustBe Seq(Some(true), Some(true))
+    summary() mustBe ChangeSummaryJson(reviewedUpTo = 0, latestSeq = 2, unreviewed = 2, droppedUnreviewed = 0)
+
+    val reviewedUrl = baseUrl + controllers.projectApi.routes.ChangeJournalApi.markReviewed(watermarkProjectId).url
+    checkResponse(client.url(reviewedUrl).put(Json.obj("upTo" -> 1))).json mustBe Json.obj("reviewedUpTo" -> 1)
+    val reviewed = checkResponse(client.url(changesUrl(watermarkProjectId)).get()).json.as[ChangeListJson]
+    reviewed.reviewedUpTo mustBe 1
+    reviewed.changes.map(_.unreviewed) mustBe Seq(Some(true), None)
+    summary() mustBe ChangeSummaryJson(reviewedUpTo = 1, latestSeq = 2, unreviewed = 1, droppedUnreviewed = 0)
+    // A review beyond the latest change is refused
+    checkResponseExactStatusCode(client.url(reviewedUrl).put(Json.obj("upTo" -> 99)), CONFLICT)
+
+    // The batch reverts newest-first and skips an unknown entry
+    val revertAllUrl = baseUrl + controllers.projectApi.routes.ChangeJournalApi.revertAll(watermarkProjectId).url
+    val results = checkResponse(client.url(revertAllUrl).post(Json.obj("seqs" -> Seq(1, 2, 99)))).json.as[RevertResultsJson].results
+    results.map(_.seq) mustBe Seq(99, 2, 1)
+    results.map(_.outcome) mustBe Seq("skipped", "reverted", "reverted")
+    results.last.entry.get.`type` mustBe "RemoveTask"
+    project.anyTaskOption("first") mustBe None
+    project.anyTaskOption("second") mustBe None
+    // A removed task has no page to link, on the removal and on the entries before it
+    results.last.entry.get.links mustBe empty
+    changes(watermarkProjectId).flatMap(_.links) mustBe empty
+
+    // The reverted entries need no review anymore, and the watermark moved on with the reverts since nothing waits
+    val afterRevert = checkResponse(client.url(changesUrl(watermarkProjectId)).get()).json.as[ChangeListJson]
+    afterRevert.reviewedUpTo mustBe 4
+    afterRevert.changes.flatMap(_.unreviewed) mustBe empty
+    summary() mustBe ChangeSummaryJson(reviewedUpTo = 4, latestSeq = 4, unreviewed = 0, droppedUnreviewed = 0)
+  }
+
+  it should "report the latest seq from the store, which counts a stored line that cannot be read" in {
+    val damagedProjectId = "changeJournalDamagedProject"
+    WorkspaceFactory().workspace.createProject(ProjectConfig(damagedProjectId))
+    // The store loads the project's files on first access: one unreadable line is seq 1 without an entry
+    val segment = journalDirectory.resolve(damagedProjectId).resolve("000000001.jsonl")
+    Files.createDirectories(segment.getParent)
+    Files.write(segment, "{not json\n".getBytes(UTF_8))
+    val summaryUrl = baseUrl + controllers.projectApi.routes.ChangeJournalApi.summary(damagedProjectId).url
+    checkResponse(client.url(summaryUrl).get()).json.as[ChangeSummaryJson] mustBe
+      ChangeSummaryJson(reviewedUpTo = 0, latestSeq = 1, unreviewed = 0, droppedUnreviewed = 0)
+    // The search reports the same seq, so that a page marks reviewed up to it
+    val searchUrl = baseUrl + controllers.projectApi.routes.ChangeJournalApi.search(damagedProjectId).url
+    val searched = checkResponse(client.url(searchUrl).post(Json.obj())).json.as[ChangeSearchResult]
+    (searched.results, searched.latestSeq) mustBe ((Seq.empty, 1))
+    // A review up to the reported seq is accepted
+    val reviewedUrl = baseUrl + controllers.projectApi.routes.ChangeJournalApi.markReviewed(damagedProjectId).url
+    checkResponse(client.url(reviewedUrl).put(Json.obj("upTo" -> 1))).json mustBe Json.obj("reviewedUpTo" -> 1)
+  }
+
+  it should "journal a variable written through the variables API and revert it" in {
+    val variablesProjectId = "changeJournalVariablesProject"
+    val project = WorkspaceFactory().workspace.createProject(ProjectConfig(variablesProjectId))
+    val variable = TemplateVariable("base", "urn:a", scope = VariableScope.project)
+    checkResponse(createRequest(TemplateApi.putVariable(variablesProjectId, "base", None)).put(Json.toJson(TemplateVariableJson(variable))))
+
+    val listed = changes(variablesProjectId)
+    listed.map(_.`type`) mustBe Seq("SetVariable")
+    listed.head.description mustBe "Added variable 'base' = 'urn:a'"
+    // The project page holds the variables widget
+    listed.head.links mustBe Seq(ItemType.itemDetailsPage(ItemType.project, variablesProjectId, variablesProjectId))
+
+    val revert = checkResponse(client.url(revertUrl(listed.head.seq, variablesProjectId)).post("")).json.as[ChangeEntryJson]
+    revert.`type` mustBe "RemoveVariable"
+    revert.reverts mustBe Some(listed.head.seq)
+    project.templateVariables.all.map.contains("base") mustBe false
+  }
+
+  it should "link a file change to the project page and, while the file exists, to its download" in {
+    val filesProjectId = "changeJournalFilesProject"
+    val project = WorkspaceFactory().workspace.createProject(ProjectConfig(filesProjectId))
+    val file = project.resources.get("data.txt")
+    ChangeJournal.onBehalfOf(implicitly[UserContext]) {
+      file.writeString("content")
+    }
+
+    val created = changes(filesProjectId).head
+    created.`type` mustBe "ResourceCreated"
+    val projectPage = ItemType.itemDetailsPage(ItemType.project, filesProjectId, filesProjectId)
+    val downloadUrl = controllers.workspace.routes.ResourceApi.getFileForDownload(filesProjectId, "data.txt").url
+    created.links mustBe Seq(projectPage, ItemLink("download", "Download file", downloadUrl, openInNewTab = true))
+
+    // Deleted outside of a request, so not recorded: the entry stays, its download is gone
+    file.delete()
+    changes(filesProjectId).head.links mustBe Seq(projectPage)
+
+    // A recorded deletion links the project page only, even once a file stands at its path again
+    ChangeJournal.onBehalfOf(implicitly[UserContext]) {
+      file.writeString("again")
+      file.delete()
+      file.writeString("replaced")
+    }
+    val Seq(replaced, deleted) = changes(filesProjectId).take(2)
+    deleted.`type` mustBe "ResourceDeleted"
+    deleted.links mustBe Seq(projectPage)
+    replaced.links mustBe Seq(projectPage, ItemLink("download", "Download file", downloadUrl, openInNewTab = true))
+  }
+  it should "search the changes with a text query, facets, a sort property and a page window" in {
+    val searchProjectId = "changeJournalSearchProject"
+    val project = WorkspaceFactory().workspace.createProject(ProjectConfig(searchProjectId))
+    val agent = SimpleUserContext(Some(DefaultUserManager.get("urn:agent")), UserExecutionContext(origin = Some("mcp:test/1.0 (cli)")))
+    def transform(ruleName: String): TransformSpec =
+      TransformSpec(mappingRule = RootMappingRule(MappingRules(propertyRules = Seq(rule(ruleName)))))
+    project.addTask[TransformSpec]("persons", transform("a"))
+    project.addTask[TransformSpec]("places", transform("b"))(implicitly, agent)
+    TestJournalAccess.record(project.changeJournal, WorkflowExecuted("persons", None, failed = false))(agent)
+    val searchUrl = baseUrl + controllers.projectApi.routes.ChangeJournalApi.search(searchProjectId).url
+    def search(body: JsObject): ChangeSearchResult = checkResponse(client.url(searchUrl).post(body)).json.as[ChangeSearchResult]
+    def seqs(body: JsObject): Seq[Int] = search(body).results.map(_.seq)
+    // Everything, newest first, with the journal's numbers and the facet counts of what matches
+    val all = search(Json.obj())
+    all.total mustBe 3
+    all.results.map(_.seq) mustBe Seq(3, 2, 1)
+    (all.reviewedUpTo, all.latestSeq, all.unreviewed) mustBe ((1, 3, 2))
+    val kinds = all.facets.find(_.id == "changeKind").get.values.collect { case KeywordFacetValue(id, _, count) => id -> count }
+    kinds mustBe Seq("added" -> Some(2), "run" -> Some(1))
+    // The agent client without its version, and the person
+    val origins = all.facets.find(_.id == "changeOrigin").get.values.collect { case KeywordFacetValue(id, _, count) => id -> count }
+    origins mustBe Seq("mcp:test" -> Some(2), "person" -> Some(1))
+    // The text query matches the description and the task name; a facet narrows the result and the numbers stay the journal's
+    seqs(Json.obj("textQuery" -> "places")) mustBe Seq(2)
+    val unreviewed = search(Json.obj("facets" -> Json.arr(Json.obj("type" -> "keyword", "facetId" -> "changeState", "keywordIds" -> Json.arr("unreviewed")))))
+    unreviewed.results.map(_.seq) mustBe Seq(3, 2)
+    unreviewed.unreviewed mustBe 2
+    // By time ascending, oldest first; a page window keeps the total
+    seqs(Json.obj("sortBy" -> "time")) mustBe Seq(1, 2, 3)
+    val page = search(Json.obj("offset" -> 1, "limit" -> 1))
+    (page.total, page.results.map(_.seq)) mustBe ((3, Seq(2)))
+    // A facet of another search is refused rather than ignored
+    val foreignFacet = Json.obj("type" -> "keyword", "facetId" -> "createdBy", "keywordIds" -> Json.arr("urn:user:x"))
+    checkResponseExactStatusCode(client.url(searchUrl).post(Json.obj("facets" -> Json.arr(foreignFacet))), BAD_REQUEST)
+  }
+}

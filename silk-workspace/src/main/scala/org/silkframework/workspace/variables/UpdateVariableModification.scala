@@ -1,4 +1,4 @@
-package org.silkframework.runtime.templating.operations
+package org.silkframework.workspace.variables
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
@@ -8,7 +8,8 @@ import org.silkframework.workspace.Project
 
 case class UpdateVariableModification(project: Project, variable: TemplateVariable, taskId: Option[String] = None) extends Modification {
 
-  override def operation: String = s"Updated variable $variable"
+  // The value may be sensitive, so only the name is logged.
+  override def operation: String = s"Updated variable '${variable.name}'"
 
   override protected def updateVariables(currentVariables: TemplateVariables, parentVariables: TemplateVariables)
                                         (implicit user: UserContext): TemplateVariables = {

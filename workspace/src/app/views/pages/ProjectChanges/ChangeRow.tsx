@@ -1,0 +1,271 @@
+import React from "react";
+import { useTranslation } from "react-i18next";
+import {
+    ContentBlobToggler,
+    ContextMenu,
+    ElapsedDateTimeDisplay,
+    ElapsedDateTimeDisplayUnits,
+    Highlighter,
+    Icon,
+    IconButton,
+    MenuItem,
+    NotAvailable,
+    Spacing,
+    TableCell,
+    TableRow,
+    Tag,
+    TagList,
+} from "@eccenca/gui-elements";
+import { getDateData } from "../../shared/Metadata/Metadata";
+import { IChangeDetail, IChangeEntry } from "./changesRequests";
+import { hasInverse, kindIntent, linkIcon, userDisplayName } from "./changeListUtils";
+
+interface IProps {
+    entry: IChangeEntry;
+    /** Why the entry cannot be reverted as the project is now, if the server said so. */
+    conflict?: string;
+    /** The text query the entry matched, to highlight it. */
+    searchValue?: string;
+    /** Whether the entry is related to the hovered one: a revert and what it reverted, a proposal and its run. */
+    related?: boolean;
+    /** Tells when the pointer enters or leaves the row. */
+    onHover?: (hovered: boolean) => void;
+    /** Asks to revert the entry alone. */
+    onRevert: () => void;
+    /** Asks to revert back to before the entry; left out for the latest entry, which has nothing newer. */
+    onRevertBack?: () => void;
+    /** Asks to mark the entry and all older ones as reviewed; only for an unreviewed entry. */
+    onMarkReviewed?: () => void;
+    /** Why marking reviewed is disabled, if it is: the filter hides unreviewed entries that it would approve unseen. */
+    markReviewedBlocker?: string;
+}
+
+/** How many detail lines an entry shows before the rest is behind a 'more' link, as the tag list does it. */
+const DETAILS_PREVIEW_LIMIT = 6;
+
+/** A change as a row of the change list: when and by whom, what changed, its links and its revert actions. */
+const ChangeRow = ({
+    entry,
+    conflict,
+    searchValue,
+    related,
+    onHover,
+    onRevert,
+    onRevertBack,
+    onMarkReviewed,
+    markReviewedBlocker,
+}: IProps) => {
+    const [t] = useTranslation();
+
+    /** A value of a detail: the previous one marked as gone, the new one as current; an empty value spelled out. */
+    const detailValue = (text: string, intent: "danger" | "success"): React.ReactNode =>
+        text === "" ? (
+            <NotAvailable label={t("pages.changes.emptyValue")} tooltip={t("pages.changes.emptyValueTooltip")} />
+        ) : (
+            <Tag small emphasis="weak" intent={intent}>
+                {text}
+            </Tag>
+        );
+
+    /** A detail as one line: the label, then before and after, one of them for an addition or removal, nothing when the label says it all. */
+    const detailLine = (detail: IChangeDetail): React.ReactNode => {
+        if (detail.before != null && detail.after != null) {
+            return (
+                <>
+                    {detail.label}: {detailValue(detail.before, "danger")} → {detailValue(detail.after, "success")}
+                </>
+            );
+        } else if (detail.after != null) {
+            return (
+                <>
+                    {detail.label}: {detailValue(detail.after, "success")} {t("pages.changes.detailAdded")}
+                </>
+            );
+        } else if (detail.before != null) {
+            return (
+                <>
+                    {detail.label}: {detailValue(detail.before, "danger")} {t("pages.changes.detailRemoved")}
+                </>
+            );
+        } else {
+            return detail.label;
+        }
+    };
+
+    /** The details of the entry, one per line, cut to the first `limit` when given. */
+    const detailLines = (limit: number = entry.details.length): React.ReactNode =>
+        entry.details.slice(0, limit).map((detail, index) => (
+            <div key={index} data-test-id={`change-detail-${entry.seq}-${index}`}>
+                <small>{detailLine(detail)}</small>
+            </div>
+        ));
+
+    const translateUnits = (unit: ElapsedDateTimeDisplayUnits) => t("common.units." + unit, unit);
+
+    /** Relative within the last week, the date beyond, as the metadata panel shows it; the exact time on hover. */
+    const timestamp = (isoDate: string): React.ReactNode => {
+        const days = (Date.now() - new Date(isoDate).getTime()) / 1000 / 60 / 60 / 24;
+        return days < 7 ? (
+            <ElapsedDateTimeDisplay
+                dateTime={isoDate}
+                prefix={t("Metadata.prefixAgo")}
+                suffix={t("Metadata.suffixAgo")}
+                translateUnits={translateUnits}
+            />
+        ) : (
+            <span title={new Date(isoDate).toLocaleString()}>{t("Metadata.dateFormat", getDateData(isoDate))}</span>
+        );
+    };
+
+    /** Why the entry cannot be reverted, if it cannot. */
+    const revertBlocker = (): string | undefined => {
+        if (entry.revertedBy != null) {
+            return t("pages.changes.revert.alreadyReverted", { seq: entry.revertedBy });
+        } else if (entry.fulfilledBy != null) {
+            return t("pages.changes.revert.fulfilled", { seq: entry.fulfilledBy });
+        } else if (!entry.revertible) {
+            return t("pages.changes.revert.notRevertible");
+        } else if (conflict != null) {
+            return t("pages.changes.revert.conflict", { reason: conflict });
+        } else {
+            return undefined;
+        }
+    };
+
+    /** The actions of the entry behind a menu, so that none is hit by accident: mark reviewed up to it, revert it alone, or back to before it. */
+    const actionsMenu = (): React.ReactNode => {
+        const items = [
+            <MenuItem
+                key="revert"
+                data-test-id={`change-revert-btn-${entry.seq}`}
+                icon="operation-undo"
+                intent="danger"
+                text={t("pages.changes.revert.action")}
+                htmlTitle={revertBlocker()}
+                disabled={!hasInverse(entry) || conflict != null}
+                onClick={onRevert}
+            />,
+        ];
+        if (onRevertBack) {
+            items.push(
+                <MenuItem
+                    key="revertBack"
+                    data-test-id={`change-revert-back-btn-${entry.seq}`}
+                    icon="operation-undo"
+                    intent="danger"
+                    text={t("pages.changes.revertBack.action")}
+                    onClick={onRevertBack}
+                />,
+            );
+        }
+        if (onMarkReviewed) {
+            items.unshift(
+                <MenuItem
+                    key="markReviewed"
+                    data-test-id={`change-mark-reviewed-btn-${entry.seq}`}
+                    icon="state-checkedsimple"
+                    text={t("pages.changes.markReviewed.action")}
+                    htmlTitle={markReviewedBlocker}
+                    disabled={markReviewedBlocker != null}
+                    onClick={onMarkReviewed}
+                />,
+            );
+        }
+        return (
+            <ContextMenu
+                data-test-id={`change-menu-${entry.seq}`}
+                togglerText={t("common.action.moreOptions", "Show more options")}
+                togglerSize="small"
+            >
+                {items}
+            </ContextMenu>
+        );
+    };
+
+    return (
+        <TableRow
+            data-test-id={`change-row-${entry.seq}`}
+            className={
+                [entry.unreviewed ? "diapp-changes__row--unreviewed" : "", related ? "diapp-changes__row--related" : ""]
+                    .filter(Boolean)
+                    .join(" ") || undefined
+            }
+            onMouseEnter={() => onHover?.(true)}
+            onMouseLeave={() => onHover?.(false)}
+        >
+            <TableCell alignVertical="middle">{entry.seq}</TableCell>
+            <TableCell alignVertical="middle">{timestamp(entry.timestamp)}</TableCell>
+            <TableCell alignVertical="middle">
+                {entry.user && <span title={entry.user}>{userDisplayName(entry.user)}</span>}
+                {entry.origin && (
+                    <span
+                        data-test-id={`change-agent-${entry.seq}`}
+                        title={`${t("pages.changes.originTooltip")}: ${entry.origin}`}
+                    >
+                        {" "}
+                        <Icon name="operation-ai-generate" small />
+                    </span>
+                )}
+            </TableCell>
+            <TableCell alignVertical="middle">
+                <div title={entry.type}>
+                    <Highlighter label={entry.summary} searchValue={searchValue} />
+                </div>
+                {entry.details.length <= DETAILS_PREVIEW_LIMIT ? (
+                    detailLines()
+                ) : (
+                    <ContentBlobToggler
+                        data-test-id={`change-details-toggler-${entry.seq}`}
+                        previewContent={detailLines(DETAILS_PREVIEW_LIMIT)}
+                        fullviewContent={detailLines()}
+                        toggleExtendText={t("common.words.more", "more")}
+                        toggleReduceText={t("common.words.less", "less")}
+                    />
+                )}
+                <Spacing size="tiny" />
+                <div>
+                    <TagList>
+                        <Tag small intent={kindIntent[entry.kind]} htmlTitle={entry.type}>
+                            {t(`pages.changes.kind.${entry.kind}`)}
+                        </Tag>
+                        {entry.unreviewed && (
+                            <Tag small intent="warning" htmlTitle={t("pages.changes.unreviewedTooltip")}>
+                                {t("pages.changes.unreviewed")}
+                            </Tag>
+                        )}
+                        {entry.reverts != null && (
+                            <Tag small>{t("pages.changes.revertsTag", { seq: entry.reverts })}</Tag>
+                        )}
+                        {entry.revertedBy != null && (
+                            <Tag small>{t("pages.changes.revertedByTag", { seq: entry.revertedBy })}</Tag>
+                        )}
+                        {entry.fulfilledBy != null && (
+                            <Tag small>{t("pages.changes.fulfilledTag", { seq: entry.fulfilledBy })}</Tag>
+                        )}
+                    </TagList>
+                </div>
+            </TableCell>
+            <TableCell alignVertical="middle">
+                {/* Right-aligned, so that the menu sits in the same place whatever the number of links before it */}
+                <div className="diapp-changes__actions">
+                    {/* Every link opens in a new tab, so the review keeps its place */}
+                    {entry.links.map((link) => (
+                        <IconButton
+                            key={link.id}
+                            data-test-id={`change-link-${entry.seq}-${link.id}`}
+                            name={linkIcon(link.id)}
+                            small
+                            text={link.label}
+                            href={link.path}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        />
+                    ))}
+                    {actionsMenu()}
+                </div>
+            </TableCell>
+        </TableRow>
+    );
+};
+
+export default ChangeRow;

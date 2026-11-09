@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.ResourceBasedDataset
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.FileResource
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.WorkspaceFactory
@@ -123,14 +122,14 @@ class TaskDownloadApi @Inject() extends InjectedController with UserContextActio
       case Some(outputId) =>
         project.taskOption[GenericDatasetSpec](outputId).map(_.data.plugin) match {
           case Some(ds: ResourceBasedDataset) =>
-            ds.file match {
-              case FileResource(file) =>
+            ds.file.underlyingFile match {
+              case Some(file) =>
                 if(file.exists()) {
                   Right(file)
                 } else {
                   Left(s"Download not possible. File has not been written yet.")
                 }
-              case _ =>
+              case None =>
                 Left(s"Download not possible. The specified output dataset '$outputId' is not based on a file resource.")
             }
           case Some(_) =>

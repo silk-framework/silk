@@ -21,6 +21,8 @@ case class FileResource(file: File)
 
   val path: String = file.getCanonicalPath
 
+  override def underlyingFile: Option[File] = Some(file)
+
   def exists: Boolean = file.exists()
 
   def size: Option[Long] = Some(file.length)
