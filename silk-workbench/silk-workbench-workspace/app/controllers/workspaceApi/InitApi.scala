@@ -1,7 +1,8 @@
 package controllers.workspaceApi
 
 import java.util.logging.Logger
-import com.typesafe.config.ConfigValueType
+import java.net.URI
+import com.typesafe.config.{Config, ConfigValueType}
 import config.WorkbenchConfig
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
@@ -14,11 +15,13 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import javax.inject.Inject
 import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.templating.GlobalTemplateVariablesConfig
+import org.silkframework.runtime.users.UserActions
 import org.silkframework.workspace.access.AccessControlConfig
-import play.api.libs.json.{Format, JsArray, JsString, Json}
+import play.api.libs.json.{Format, JsArray, JsString, Json, OFormat}
 import play.api.mvc.{Action, AnyContent, InjectedController, Request}
 
 import scala.jdk.CollectionConverters.CollectionHasAsScala
+import scala.util.Try
 
 /**
   * API endpoints for initialization of the frontend application.
@@ -83,6 +86,7 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
       "maxFileUploadSize" -> maxUploadSize,
       "templatingEnabled" -> GlobalTemplateVariablesConfig.isEnabled,
       "assistantSupported" -> assistantSupported,
+      "companion" -> Json.toJson(companionConfig(userContext.user.map(_.actions).getOrElse(UserActions.empty))),
       "mappingCreatorEnabled" -> mappingCreatorEnabled,
       "aclEnabled" -> AccessControlConfig().enabled
     )
@@ -114,6 +118,16 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
     } else {
       None
     }
+  }
+
+  private def companionConfig(userActions: UserActions): CompanionFrontendConfig = {
+    CompanionFrontendConfig.fromConfig(cfg, userActions).fold(
+      error => {
+        log.warning(s"Invalid companion configuration: $error. The companion will be disabled.")
+        CompanionFrontendConfig.disabled
+      },
+      identity
+    )
   }
 
   private def hotkeys(): Map[String, String] = {
@@ -157,3 +171,59 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
   }
 }
 
+/** Browser-facing companion configuration. URLs are constrained to same-origin paths. */
+case class CompanionFrontendConfig(enabled: Boolean, apiBasePath: String, streamPath: String)
+
+object CompanionFrontendConfig {
+  private val configPath = "com.eccenca.di.assistant.CompanionConfig"
+  private val companionAction = "https://vocab.eccenca.com/auth/Action/Explore-Companion-Use"
+  private val defaultApiBasePath = "/dataplatform/api/companion"
+  private val defaultStreamPath = "/dataplatform/companion-websocket"
+
+  val disabled: CompanionFrontendConfig = CompanionFrontendConfig(
+    enabled = false,
+    apiBasePath = defaultApiBasePath,
+    streamPath = defaultStreamPath
+  )
+
+  implicit val companionFrontendConfigFormat: OFormat[CompanionFrontendConfig] = Json.format[CompanionFrontendConfig]
+
+  def fromConfig(config: Config, userActions: UserActions): Either[String, CompanionFrontendConfig] = {
+    if(!config.hasPath(configPath)) {
+      Right(disabled)
+    } else {
+      Try {
+        val companionConfig = config.getConfig(configPath)
+        val apiBasePath = configuredPath(companionConfig, "apiBasePath", defaultApiBasePath)
+        val streamPath = configuredPath(companionConfig, "streamPath", defaultStreamPath)
+        val invalidPaths = Seq(apiBasePath, streamPath).filterNot(isSameOriginAbsolutePath)
+        if(invalidPaths.nonEmpty) {
+          Left(s"Companion URLs must be same-origin absolute paths: ${invalidPaths.mkString(", ")}")
+        } else {
+          val installationEnabled = companionConfig.hasPath("enabled") && companionConfig.getBoolean("enabled")
+          Right(CompanionFrontendConfig(
+            enabled = installationEnabled && userActions.contains(companionAction),
+            apiBasePath = apiBasePath,
+            streamPath = streamPath
+          ))
+        }
+      }.toEither.left.map(_.getMessage).flatMap(identity)
+    }
+  }
+
+  private def configuredPath(config: Config, key: String, default: String): String = {
+    if(config.hasPath(key)) config.getString(key) else default
+  }
+
+  private def isSameOriginAbsolutePath(value: String): Boolean = {
+    Try(new URI(value)).toOption.exists { uri =>
+      value.startsWith("/") &&
+        !value.startsWith("//") &&
+        !value.contains('\\') &&
+        !uri.isAbsolute &&
+        uri.getRawAuthority == null &&
+        uri.getRawQuery == null &&
+        uri.getRawFragment == null
+    }
+  }
+}
