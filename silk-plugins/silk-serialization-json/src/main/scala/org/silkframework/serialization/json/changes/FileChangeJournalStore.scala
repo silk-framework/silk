@@ -86,27 +86,37 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
     val written = Journal(olderSegments :+ appended)
     // Cached before the cap runs: a cap that fails leaves the entry in place, and the next append tries the cap again
     journals.put(project, written)
-    journals.put(project, capped(written))
+    cap(project, written)
   }
 
   override def headers(project: Identifier): Seq[ChangeHeader] = monitor(project).synchronized {
     loaded(project).headers
   }
 
-  /**
-    * Reads the line of the entry from its segment: the seqs within a segment are contiguous, so its position is known.
-    * Only the read runs under the monitor, which the cap's deletes run under too; the parse of the change, the slow
-    * part for a whole-task save, does not hold up the project's writes.
-    */
   override def entry(project: Identifier, seq: Int)(implicit context: PluginContext): Option[ChangeEntry] = {
-    val line = monitor(project).synchronized {
-      for {
-        segment <- loaded(project).segments.find(segment => segment.firstSeq <= seq && seq <= segment.lastSeq)
-        if Files.exists(segment.file)
-        line <- completeLines(Files.readAllBytes(segment.file)).lift(seq - segment.firstSeq)
-      } yield line
+    entries(project, Seq(seq)).next()._2
+  }
+
+  /**
+    * Reads the line of each entry from its segment: the seqs within a segment are contiguous, so its position is known.
+    * Seqs of one segment that follow each other share the read of its file. Only the read runs under the monitor,
+    * which the cap's deletes run under too; the parse of the change, the slow part for a whole-task save, does not
+    * hold up the project's writes.
+    */
+  override def entries(project: Identifier, seqs: Seq[Int])(implicit context: PluginContext): Iterator[(Int, Option[ChangeEntry])] = {
+    // The segment read last with its lines; an append replaces the newest segment, so its lines are read again
+    var read = Option.empty[(Segment, Array[String])]
+    seqs.iterator.map { seq =>
+      val line = monitor(project).synchronized {
+        loaded(project).segments.find(segment => segment.firstSeq <= seq && seq <= segment.lastSeq).flatMap { segment =>
+          if(!read.exists(_._1 eq segment)) {
+            read = Some(segment -> (if(Files.exists(segment.file)) completeLines(Files.readAllBytes(segment.file)) else Array.empty[String]))
+          }
+          read.get._2.lift(seq - segment.firstSeq)
+        }
+      }
+      seq -> line.flatMap(readEntry(project, seq, _)(ReadContext.fromPluginContext()(context)))
     }
-    line.flatMap(readEntry(project, seq, _)(ReadContext.fromPluginContext()(context)))
   }
 
   /** Without a loaded journal, the name of the newest segment plus its number of lines; no line is parsed. */
@@ -258,14 +268,14 @@ case class FileChangeJournalStore(@Param("The directory that holds a folder per 
     }
   }
 
-  // While over the cap and more than one segment exists, the oldest segment goes; the newest always stays
-  private def capped(journal: Journal): Journal = {
+  // While over the cap and more than one segment exists, the oldest segment goes and the cache follows; the newest always stays
+  private def cap(project: Identifier, journal: Journal): Unit = {
     var segments = journal.segments
     while(segments.size > 1 && segments.map(_.size).sum > capBytes) {
       Files.deleteIfExists(segments.head.file)
       segments = segments.tail
+      journals.put(project, Journal(segments))
     }
-    if(segments.size == journal.segments.size) journal else Journal(segments)
   }
 
   private def projectDir(project: Identifier): Path = root.resolve(project.toString)

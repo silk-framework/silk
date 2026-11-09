@@ -65,6 +65,8 @@ export interface IArtefactItemProperty {
     advanced: boolean;
     parameterType: string;
     visibleInDialog: boolean;
+    // If templates of this parameter may use sensitive variables, like password parameters. Their values are masked in the preview.
+    allowSensitiveVariables?: boolean;
     autoCompletion?: IPropertyAutocomplete;
     // in case of type=="object" this will be defined
     pluginId?: string;

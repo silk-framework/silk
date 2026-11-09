@@ -35,6 +35,8 @@ import {
 } from "../../../../../src/app/views/pages/ProjectChanges/ChangeSource";
 import Filterbar from "../../../../../src/app/views/pages/Workspace/Filterbar";
 import { APP_VIEWHEADER_ID } from "../../../../../src/app/views/shared/PageHeader/PageHeader";
+import { useSelector } from "react-redux";
+import { workspaceSel } from "@ducks/workspace";
 
 describe("Project changes", () => {
     afterEach(() => {
@@ -1113,6 +1115,96 @@ describe("Project changes", () => {
                 expect.arrayContaining(["/workbench?itemType=project", `/workbench/projects/${PROJECT_ID}`]),
             );
         });
+    });
+
+    it.each([false, true])(
+        "keeps a newer search loading when an obsolete request settles (failure: %s)",
+        async (failure) => {
+            const LoadingState = () => <output>{String(useSelector(workspaceSel.isLoadingSelector))}</output>;
+            const view = (refreshKey: number) => (
+                <>
+                    <LoadingState />
+                    <ChangeList projectId={PROJECT_ID} refreshKey={refreshKey} />
+                </>
+            );
+            const wrapper = renderWrapper(view(0));
+            await waitFor(() => checkRequestMade(searchUrl, "POST"));
+            const older = mockAxios.getReqMatching({ url: searchUrl });
+            wrapper.rerender(view(1));
+            await waitFor(() =>
+                expect(mockAxios.queue().filter((request) => request.url === searchUrl)).toHaveLength(2),
+            );
+            await act(async () => {
+                if (failure) {
+                    mockAxios.mockError(
+                        mockedAxiosError(500, { title: "Server error", detail: "Obsolete search failed." }),
+                        older,
+                    );
+                } else {
+                    mockAxios.mockResponse(mockedAxiosResponse({ data: searchAnswer(changes) }), older);
+                }
+            });
+            expect(wrapper.container.querySelector("output")).toHaveTextContent("true");
+            expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(0);
+            await act(async () => {
+                mockAxios.mockResponseFor(
+                    { url: searchUrl },
+                    mockedAxiosResponse({ data: searchAnswer([mappingChange]) }),
+                );
+            });
+            expect(wrapper.container.querySelector("output")).toHaveTextContent("false");
+            expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(1);
+        },
+    );
+
+    it("keeps the newest search results and review boundary when an older refresh finishes last", async () => {
+        const wrapper = renderWrapper(<ChangeList projectId={PROJECT_ID} />);
+        await waitFor(() => checkRequestMade(searchUrl, "POST"));
+        const older = mockAxios.getReqMatching({ url: searchUrl });
+        wrapper.rerender(<ChangeList projectId={PROJECT_ID} refreshKey={1} />);
+        await waitFor(() => expect(mockAxios.queue().filter((request) => request.url === searchUrl)).toHaveLength(2));
+        const newer = mockAxios.queue().filter((request) => request.url === searchUrl)[1];
+        const newestChange = { ...mappingChange, seq: 50 };
+        await act(async () => {
+            mockAxios.mockResponse(mockedAxiosResponse({ data: searchAnswer([newestChange]) }), newer);
+        });
+        await act(async () => {
+            mockAxios.mockResponse(mockedAxiosResponse({ data: searchAnswer(changes) }), older);
+        });
+        expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(1);
+        clickFoundElement(wrapper, byTestId("changes-mark-reviewed-btn"));
+        clickFoundElement(document.body, byTestId("changes-mark-reviewed-confirm-btn"));
+        await waitFor(() => checkRequestMade(reviewedUrl, "PUT", { upTo: newestChange.seq }));
+    });
+
+    it.each([false, true])("ignores a previous project's late search response (failure: %s)", async (failure) => {
+        setUseParams(PROJECT_ID, "");
+        const wrapper = renderWrapper(<ProjectChanges />);
+        await waitFor(() => checkRequestMade(searchUrl, "POST"));
+
+        setUseParams("otherProject", "");
+        wrapper.rerender(<ProjectChanges />);
+        const otherSearchUrl = apiUrl("/workspace/projects/otherProject/changes/search");
+        await waitFor(() => checkRequestMade(otherSearchUrl, "POST"));
+        await act(async () => {
+            mockAxios.mockResponseFor(
+                { url: otherSearchUrl },
+                mockedAxiosResponse({ data: searchAnswer([mappingChange]) }),
+            );
+        });
+        expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(1);
+
+        await act(async () => {
+            if (failure) {
+                mockAxiosResponse(
+                    searchUrl,
+                    mockedAxiosError(500, { title: "Server error", detail: "Obsolete search failed." }),
+                );
+            } else {
+                mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(changes) }));
+            }
+        });
+        expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(1);
     });
 
     it("should keep nothing of the previous project when the project changes", async () => {

@@ -10,7 +10,7 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.changes.{ChangeEntry, FileState, ResourceDeleted, UnreadableChange}
 
 import java.nio.charset.StandardCharsets.UTF_8
-import java.nio.file.{Files, Path}
+import java.nio.file.{DirectoryNotEmptyException, Files, Path}
 import java.time.Instant
 import java.util.concurrent.CountDownLatch
 import scala.jdk.CollectionConverters._
@@ -74,7 +74,11 @@ class FileChangeJournalStoreTest extends AnyFlatSpec with Matchers with BeforeAn
     second.entry("p", 2) shouldBe Some(entry(2))
     second.entry("p", 4) shouldBe None
     second.entry("p", 0) shouldBe None
+    // An iteration reads an entry appended after it started: the lines of the newest segment are read again
+    val read = second.entries("p", Seq(2, 4))
+    read.next() shouldBe 2 -> Some(entry(2))
     second.append("p", entry(4))
+    read.next() shouldBe 4 -> Some(entry(4))
     seqs(second, "p") shouldBe Seq(1, 2, 3, 4)
     second.latestSeq("p") shouldBe 4
     second.entry("p", 4) shouldBe Some(entry(4))
@@ -93,6 +97,9 @@ class FileChangeJournalStoreTest extends AnyFlatSpec with Matchers with BeforeAn
     files("cap", "p") shouldBe Seq("000000001.jsonl", f"${perSegment + 1}%09d.jsonl")
     // An entry is read from the segment that holds it
     s.entry("p", perSegment + 1) shouldBe Some(entry(perSegment + 1, size = 30 * 1024))
+    // Several entries are read in one call across the segments and answered in the order asked
+    s.entries("p", Seq(perSegment + 1, 1, 2, 2 * perSegment + 1)).toSeq shouldBe
+      Seq(perSegment + 1, 1, 2).map(seq => seq -> Some(entry(seq, size = 30 * 1024))) :+ (2 * perSegment + 1 -> None)
 
     // Beyond the cap, whole segments go, oldest first, until the rest fits: the kept seqs stay contiguous and the
     // journal keeps at least nine tenths of the cap
@@ -119,6 +126,24 @@ class FileChangeJournalStoreTest extends AnyFlatSpec with Matchers with BeforeAn
     val perLargeSegment = math.ceil(segmentSize / lineSize.toDouble).toInt
     append(large, "p", 1 to 2 * perLargeSegment, size = 30 * 1024)
     files("largeCap", "p") shouldBe Seq("000000001.jsonl", f"${perLargeSegment + 1}%09d.jsonl")
+  }
+
+  it should "list what is left on disk when the cap fails after it deleted a segment" in {
+    val s = store("capFailure", maxSizeInMB = 1)
+    // Each of these entries fills a segment of this small cap
+    append(s, "p", 1 to 2, size = 110 * 1024)
+    files("capFailure", "p") shouldBe Seq("000000001.jsonl", "000000002.jsonl")
+    // The second segment cannot be deleted: a directory that is not empty
+    val blocked = projectDir("capFailure", "p").resolve("000000002.jsonl")
+    Files.delete(blocked)
+    Files.createFile(Files.createDirectory(blocked).resolve("blocker"))
+    // An entry beyond the cap makes both segments go: the first delete works, the second fails
+    a[DirectoryNotEmptyException] should be thrownBy s.append("p", entry(3, size = 2 * 1024 * 1024))
+    seqs(s, "p") shouldBe Seq(2, 3)
+    // Once the segment can be deleted, the next append finishes the cap
+    blocked.toFile.deleteRecursive()
+    s.append("p", entry(4))
+    seqs(s, "p") shouldBe Seq(4)
   }
 
   it should "cut an unfinished last line, skip lines it cannot read and keep the seqs after them" in {

@@ -99,6 +99,7 @@ object PluginDescriptionSerializers {
         value = defaultValue,
         advanced = param.advanced,
         visibleInDialog = param.visibleInDialog,
+        allowSensitiveVariables = param.allowSensitiveVariables,
         autoCompletion = param.autoCompletion.map(autoComplete => ParameterAutoCompletionJson(
           allowOnlyAutoCompletedValues = autoComplete.allowOnlyAutoCompletedValues,
           autoCompleteValueWithLabels = autoComplete.autoCompleteValueWithLabels,
@@ -199,6 +200,7 @@ object PluginDescriptionSerializers {
   * @param value           The value of the parameter.
   * @param advanced        If this parameter is marked as advanced and should be hidden behind an 'advanced' menu in the UI.
   * @param visibleInDialog If this parameter should be represented in a UI dialog. If set to false the parameter must not be shown in the dialog and no value must be set in any backend request.
+  * @param allowSensitiveVariables If templates of this parameter may resolve sensitive variables, like password parameters. The UI offers them in the completion; the preview masks their values.
   * @param autoCompletion  Optional auto-completion information.
   * @param properties      Optional properties if this is a nested object parameter that can be shown in the UI.
   * @param pluginId        Optional plugin ID, if this parameter is itself a plugin.
@@ -213,6 +215,7 @@ case class PluginParameterJson(name: String,
                                value: JsValue,
                                advanced: Boolean,
                                visibleInDialog: Boolean,
+                               allowSensitiveVariables: Boolean,
                                autoCompletion: Option[ParameterAutoCompletionJson],
                                properties: Option[JsObject],
                                pluginId: Option[String],

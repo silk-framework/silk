@@ -191,7 +191,8 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
             mappingTarget = transformTask.data.mappingRule.mappingTarget.copy(isAttribute = true),
             metaData = MetaData(Some("Root Rule New Label"), Some("Root Rule New Description"))
           ),
-       abortIfErrorsOccur = true
+       abortIfErrorsOccur = true,
+       inputLimit = Some(10)
       ),
       metaData = metaDataUpdated
     )

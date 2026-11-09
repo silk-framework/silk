@@ -90,7 +90,8 @@
             "actionBtn": "Clear dataset",
             "error": "Error while clearing dataset",
             "readOnly": "The dataset is set to read-only and cannot be cleared."
-        }
+        },
+        "dialogLabel": "Data preview"
     },
     "DataProfiling": {
         "attributes": {
@@ -385,6 +386,8 @@
             "import": "Import",
             "loadExampleProject": "Add \"movies\" example project",
             "logout": "Logout",
+            "fullscreenExit": "Exit full screen",
+            "fullscreenView": "Show in full screen",
             "maximize": "Maximize",
             "minimize": "Minimize",
             "remove": "Remove",
@@ -522,7 +525,8 @@
             "unknown": "Unknown",
             "active": "active",
             "next": "Next",
-            "previous": "Previous"
+            "previous": "Previous",
+            "taskView": "Task view"
         },
         "tooltips": {
             "dataset": {
@@ -1370,7 +1374,8 @@
                 "fetchActivityInfo": "Fetching activities list has failed."
             },
             "reloadAllCaches": "Reload all caches",
-            "title": "Activity overview"
+            "title": "Activity overview",
+            "errorReportLabel": "Activity execution error report"
         },
         "VariableWidget": {
             "title": {
@@ -1378,10 +1383,14 @@
                 "execution": "Execution variables"
             },
             "noVariables": "No variables set.",
+            "sensitiveValue": "The value of a sensitive variable is not shown.",
             "form": {
                 "name": "Name",
                 "value": "Value",
                 "description": "Description",
+                "sensitive": "Sensitive",
+                "sensitiveDescription": "The value is not displayed. It can only be used by password parameters, by parameters that allow sensitive variables and by other sensitive variables of the same scope.",
+                "keepSensitiveValue": "Leave empty to keep the current value or template.",
                 "infoBoxTitle": "Project variables",
                 "infoBoxDescription": "User-defined project variables. They can be used in dataset and task parameters and in the template transform operator. Variables may use templates that access other preceding project variables or globally configured variables."
             },

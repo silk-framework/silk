@@ -198,13 +198,15 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     // Update task JSON
     implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
     val currentJson = toJson[Task[TaskSpec]](currentTask).as[JsObject]
-    // Templates are only partially defined, so they must be replaced completely by the new value.
-    // Since template values have precedence over the parameter values, the parameter values can be deep merged without problems.
-    val currentJsonWithoutTemplates = currentJson ++ Json.obj(
-      "data" -> currentJson.value.get("data").map(data =>
-        data.as[JsObject] - "templates")
-    )
-    val updatedJson = currentJsonWithoutTemplates.deepMerge(request.body.as[JsObject])
+    // Templates in the patch replace the current ones, as they are only partially defined. Without them, the current templates are
+    // kept, since their parameter values may be masked, except for the parameters the patch sets, as templates have precedence.
+    val patchData = (request.body \ "data").asOpt[JsObject].getOrElse(Json.obj())
+    val currentData = (currentJson \ "data").as[JsObject]
+    val patchedParameters = (patchData \ "parameters").asOpt[JsObject].map(_.keys).getOrElse(Set.empty[String])
+    val keptTemplates =
+      if (patchData.keys.contains("templates")) Json.obj()
+      else patchedParameters.foldLeft((currentData \ "templates").asOpt[JsObject].getOrElse(Json.obj()))(_ - _)
+    val updatedJson = (currentJson + ("data" -> (currentData + ("templates" -> keptTemplates)))).deepMerge(request.body.as[JsObject])
 
     // Update task
     implicit val readContext: ReadContext = ReadContext.fromProject(project)

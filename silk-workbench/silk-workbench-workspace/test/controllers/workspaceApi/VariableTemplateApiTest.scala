@@ -15,7 +15,12 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.{CustomTask, InputPorts, Port}
+import org.silkframework.runtime.plugin.annotations.Param
+import org.silkframework.runtime.plugin.types.PasswordParameter
 import org.silkframework.runtime.plugin.{ClassPluginDescription, ParameterTemplateValue, ParameterValues, PluginContext, PluginRegistry}
+import org.silkframework.runtime.serialization.WriteContext
+import org.silkframework.serialization.json.TaskPropertyDto
+import controllers.workspaceApi.routes.{SearchApi => SearchApiRoutes}
 import org.silkframework.runtime.templating.exceptions.{CannotDeleteUsedVariableException, InvalidScopeException, TemplateVariablesEvaluationException}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.{ConfigTestTrait, Identifier}
@@ -306,6 +311,28 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     (json4 \ "taskId").as[String] shouldBe taskName
   }
 
+  it should "not allow turning a variable sensitive while a task uses it where sensitive variables are not allowed" in {
+    val projectName = "variables-test-turn-sensitive"
+    val taskName = "turnSensitiveTask"
+    val project = createProjectWithVariablesTask(projectName, taskName,
+      projectVariables = Seq(projectVariable("title", "T"), projectVariable("base", "2002"), projectVariable("ref", "r"), projectVariable("secret", "s")),
+      taskParameters = Map("title" -> "{{project.title}}", "year" -> "{{execution.derived}}", "variableReference" -> "project.ref",
+        "secretContent" -> "{{project.secret}}"),
+      taskExecutionVariables = TemplateVariables(Seq(
+        TemplateVariable("derived", "2002", Some("{{project.base}}"), None, isSensitive = false, VariableScope.execution))))
+
+    // Neither a normal parameter template, an execution-variable template nor a template in the task data may use a sensitive variable
+    for (name <- Seq("title", "base", "ref")) {
+      val ex = the[RequestFailedException] thrownBy putVariable(projectName, project.templateVariables.all.map(name).copy(isSensitive = true))
+      (ex.response.json \ "taskId").as[String] shouldBe taskName
+      project.templateVariables.all.map(name).isSensitive shouldBe false
+    }
+    // A parameter that allows sensitive variables may, and the task keeps its value
+    putVariable(projectName, project.templateVariables.all.map("secret").copy(isSensitive = true))
+    project.templateVariables.all.map("secret").isSensitive shouldBe true
+    project.anyTask(taskName).data.asInstanceOf[VariablesTestTask].secretContent shouldBe "s"
+  }
+
   it should "resolve execution variable templates referencing project variables and other execution variables" in {
     val projectName = "variables-test-task-2"
     val taskName = "testTask2"
@@ -359,6 +386,31 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
 
     // The dependency check must list the task for the referenced variable without errors
     variablesDependencies(projectName, "year").dependentTasks.map(_.id) shouldBe Seq(taskName)
+  }
+
+  it should "resolve sensitive variables in parameters that allow them, but mask them in previews, properties and the search" in {
+    val projectName = "variables-test-masked"
+    val secretValue = "very-secret-masked"
+    val taskName = "maskedTask"
+    val masked = "key=" + TemplateVariables.SensitiveValuePlaceholder
+    val project = createProjectWithVariablesTask(projectName, taskName,
+      projectVariables = Seq(projectVariable("password", secretValue, isSensitive = true)),
+      taskParameters = Map("title" -> "T", "year" -> "2002", "secretContent" -> "key={{project.password}}"))
+    // The plugin holds the value
+    project.task[VariablesTestTask](taskName).data.secretContent shouldBe "key=" + secretValue
+    // The preview of a parameter template that includes sensitive variables shows the placeholder
+    val preview = validateTemplate(ValidateVariableTemplateRequest("key={{project.password}}", Some(projectName), includeSensitiveVariables = Some(true)))
+    preview.valid shouldBe true
+    preview.evaluatedTemplate shouldBe Some(masked)
+    // The task property list and the task JSON show the placeholder and the search does not match the value
+    TaskPropertyDto.fromTask(project.task[VariablesTestTask](taskName))(WriteContext.fromProject(project)) should contain (TaskPropertyDto("secretContent", masked))
+    val taskResponse = checkResponse(createRequest(controllers.workspace.routes.TaskApi.getTask(projectName, taskName)).addHttpHeaders("Accept" -> "application/json").get())
+    (taskResponse.json \ "data" \ "parameters" \ "secretContent").as[String] shouldBe masked
+    val search = checkResponse(createRequest(SearchApiRoutes.search()).post(Json.obj("project" -> projectName, "searchTerm" -> secretValue)))
+    search.json.as[Seq[JsValue]] shouldBe empty
+    // A patch that leaves the templates out keeps them, instead of storing the placeholder as the value
+    checkResponse(createRequest(controllers.workspace.routes.TaskApi.patchTask(projectName, taskName)).patch(Json.obj("metadata" -> Json.obj("label" -> "Patched"))))
+    project.task[VariablesTestTask](taskName).data.secretContent shouldBe "key=" + secretValue
   }
 
   it should "not disclose sensitive parent variables when retrieving variables" in {
@@ -415,12 +467,16 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
       val parameterValidation = validateTemplate(ValidateVariableTemplateRequest("{{project.password}}", Some(projectName), ignoreUnboundVariables = lenient))
       parameterValidation.parseError.map(_.message) shouldBe Some("'project.password' is not defined.")
     }
-    // A sensitive variable may reference its sensitive siblings, so its live validation and completion see them like the save does
+    // A sensitive variable may reference its sensitive siblings, so its live validation and completion see them like the save does,
+    // and its preview is masked
     val token = TemplateVariable("token", "", Some("{{project.user}}:{{project.password}}"), None, isSensitive = true, VariableScope.project)
     putVariable(projectName, token)
     val sensitiveValidation = validateTemplate(ValidateVariableTemplateRequest(token.template.get, Some(projectName), variableName = Some(token.name)))
     sensitiveValidation.parseError shouldBe None
-    sensitiveValidation.evaluatedTemplate shouldBe Some(s"u:$secretValue")
+    sensitiveValidation.evaluatedTemplate shouldBe Some(TemplateVariables.SensitiveValuePlaceholder)
+    // Unless the editor switches it to non-sensitive
+    val switchedOff = validateTemplate(ValidateVariableTemplateRequest("{{project.password}}", Some(projectName), variableName = Some(token.name), variableIsSensitive = Some(false)))
+    switchedOff.parseError.map(_.message) shouldBe Some(sensitivityMessage)
     autoCompleteTemplate(projectName, variableName = Some(token.name)) should contain allOf("project.password", "project.user")
     autoCompleteTemplate(projectName, variableName = Some(derived.name)) should contain noneOf("project.password", "project.user")
     // A sensitive sibling defined after it is reported as such, not as withheld
@@ -435,11 +491,54 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     val executionDerived = TemplateVariable("dbUrl", "", Some("jdbc://u:{{execution.password}}@host"), None, isSensitive = false, VariableScope.execution)
     project.addTask("derivedTask", VariablesTestTask("T", 2002), executionVariables = TemplateVariables(Seq(executionPassword, executionDerived)))
     project.anyTask("derivedTask").executionVariables.map("dbUrl").value shouldBe ""
+    // The task JSON carries the sensitive value encrypted, and saving it back keeps the value
+    val taskResponse = checkResponse(createRequest(controllers.workspace.routes.TaskApi.getTask(projectName, "derivedTask")).addHttpHeaders("Accept" -> "application/json").get())
+    taskResponse.body should not include secretValue
+    checkResponse(createRequest(controllers.workspace.routes.TaskApi.putTask(projectName, "derivedTask")).put(taskResponse.json))
+    project.anyTask("derivedTask").executionVariables.map("password").value shouldBe secretValue
 
     // A sensitive variable may reference it and stays masked when retrieved
     putVariables(projectName, TemplateVariables(Seq(password, derived.copy(isSensitive = true))))
     val response = checkResponse(createRequest(TemplateApi.allVariables(None, None)).get())
     response.body should not include secretValue
+  }
+
+  it should "mask sensitive variables when they are retrieved and keep their stored value when they are updated without one" in {
+    val projectName = "variables-test-sensitive-widget"
+    val secretValue = "very-secret-kept"
+    val project = WorkspaceFactory().workspace.createProject(ProjectConfig(projectName))
+    putVariable(projectName, projectVariable("password", secretValue, isSensitive = true))
+
+    // Neither endpoint returns the value, the single one tells the sensitivity
+    val listResponse = checkResponse(createRequest(TemplateApi.getVariables(projectName, None, false)).get())
+    listResponse.body should not include secretValue
+    val singleResponse = checkResponse(createRequest(TemplateApi.getVariable(projectName, "password", None)).get())
+    singleResponse.body should not include secretValue
+    val single = Json.fromJson[TemplateVariableJson](singleResponse.json).get
+    (single.value, single.template, single.isSensitive) shouldBe ((None, None, true))
+
+    // An update without value and template, as the widget sends it, keeps the stored value and changes the rest
+    putVariableJson(projectName, TemplateVariableJson("password", None, None, Some("The DB password"), isSensitive = true, "project"))
+    val kept = project.templateVariables.all.map("password")
+    (kept.value, kept.description) shouldBe ((secretValue, Some("The DB password")))
+    // Making it non-sensitive would reveal the stored value, so that needs a new one
+    val revealing = the[RequestFailedException] thrownBy putVariableJson(projectName, TemplateVariableJson("password", None, None, None, isSensitive = false, "project"))
+    revealing.response.status shouldBe 400
+    project.templateVariables.all.map("password").isSensitive shouldBe true
+
+    // A new sensitive variable sees its sensitive siblings in the editor before it is saved, and its preview is masked
+    val validation = validateTemplate(ValidateVariableTemplateRequest("{{project.password}}", Some(projectName), variableIsSensitive = Some(true)))
+    validation.parseError shouldBe None
+    validation.evaluatedTemplate shouldBe Some(TemplateVariables.SensitiveValuePlaceholder)
+    autoCompleteTemplate(projectName, variableIsSensitive = Some(true)) should contain("project.password")
+
+    // A value sent in the encrypted form it is stored in is decrypted
+    putVariableJson(projectName, TemplateVariableJson("apiKey", Some(PasswordParameter.encrypt("k").toString), None, None, isSensitive = true, "project"))
+    project.templateVariables.all.map("apiKey").value shouldBe "k"
+    // A value that cannot be decrypted, e.g., after the key has been changed, is reported, so that it is entered again
+    project.templateVariables.put(TemplateVariables(Seq(TemplateVariable("rotated", "PASSWORD_PARAMETER:invalid", None, None, isSensitive = true, VariableScope.project))))
+    val errors = Json.fromJson[TemplateVariablesJson](checkResponse(createRequest(TemplateApi.getVariables(projectName, None, false)).get()).json).get.errors
+    errors.map(_.map(e => (e.variableName, e.message))) shouldBe Some(Seq(("rotated", ResolvedVariablesJson.undecryptableValueMessage)))
   }
 
   it should "withhold and reject a non-sensitive variable that was derived from a sensitive sibling before the rule existed" in {
@@ -461,11 +560,15 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     projectJson.variables.map(_.map(v => (v.name, v.value))) shouldBe
       Some(Seq(("password", None), ("dbUrl", None), ("year", Some("2002")), ("apiUrl", Some("2002/api")), ("api2", None)))
     projectJson.errors.map(_.map(_.variableName)) shouldBe Some(Seq("dbUrl", "api2"))
-    // Unmasked, the resolved values are reported too, the variable derived from the failed one keeps its stored value, both are errors
-    val unmasked = Json.fromJson[TemplateVariablesJson](checkResponse(createRequest(TemplateApi.getVariables(projectName, None, false)).get()).json).get
-    unmasked.variables.map(v => (v.name, v.value)).drop(2) shouldBe Seq(("year", Some("2002")), ("apiUrl", Some("2002/api")), ("api2", Some("")))
-    unmasked.errors.map(_.map(_.variableName)) shouldBe Some(Seq("dbUrl", "api2"))
+    // The single-scope endpoint masks the same way
+    val scopeResponse = checkResponse(createRequest(TemplateApi.getVariables(projectName, None, false)).get())
+    scopeResponse.body should not include secretValue
+    val scopeJson = Json.fromJson[TemplateVariablesJson](scopeResponse.json).get
+    scopeJson.variables.map(v => (v.name, v.value)) shouldBe projectJson.variables.get.map(v => (v.name, v.value))
+    scopeJson.errors.map(_.map(_.variableName)) shouldBe Some(Seq("dbUrl", "api2"))
     projectJson.errors.get.head.message should include("'project.password' is sensitive")
+    // And so does the endpoint for a single variable
+    checkResponse(createRequest(TemplateApi.getVariable(projectName, "dbUrl", None)).get()).body should not include secretValue
 
     // The error of a sensitive variable is not reported verbatim, since it may quote the template
     project.templateVariables.put(TemplateVariables(Seq(password, derived,
@@ -1035,10 +1138,11 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     Json.fromJson[AllVariablesJson](json).get
   }
 
+  /** The variables as the endpoint returns them. A masked value or template reads as empty. */
   def getVariables(projectId: String, task: Option[String] = None, transitive: Boolean = false): TemplateVariables = {
     val request = createRequest(TemplateApi.getVariables(projectId, task, transitive))
     val json = checkResponse(request.get()).json
-    Json.fromJson[TemplateVariablesJson](json).get.convert
+    TemplateVariables(Json.fromJson[TemplateVariablesJson](json).get.variables.map(fromJson))
   }
 
   def putVariables(projectId: String, variables: TemplateVariables, task: Option[String] = None): Unit = {
@@ -1049,12 +1153,20 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
   def getVariable(projectId: String, variableName: String, task: Option[String] = None): TemplateVariable = {
     val request = createRequest(TemplateApi.getVariable(projectId, variableName, task))
     val json = checkResponse(request.get()).json
-    Json.fromJson[TemplateVariableJson](json).get.convert
+    fromJson(Json.fromJson[TemplateVariableJson](json).get)
+  }
+
+  private def fromJson(variable: TemplateVariableJson): TemplateVariable = {
+    TemplateVariable(variable.name, variable.value.getOrElse(""), variable.template, variable.description, variable.isSensitive, VariableScope.parse(variable.scope))
   }
 
   def putVariable(projectId: String, variable: TemplateVariable, task: Option[String] = None): Unit = {
+    putVariableJson(projectId, TemplateVariableJson(variable), task)
+  }
+
+  def putVariableJson(projectId: String, variable: TemplateVariableJson, task: Option[String] = None): Unit = {
     val request = createRequest(TemplateApi.putVariable(projectId, variable.name, task))
-    checkResponse(request.put(Json.toJson(TemplateVariableJson(variable))))
+    checkResponse(request.put(Json.toJson(variable)))
   }
 
   def removeVariableError(projectId: String, variableName: String, task: Option[String] = None): Option[CannotDeleteUsedVariableException] = {
@@ -1099,16 +1211,18 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     Json.fromJson[VariableTemplateValidationResponse](json).get
   }
 
-  def autoCompleteTemplate(projectId: String, task: Option[String] = None, variableName: Option[String] = None): Seq[String] = {
+  def autoCompleteTemplate(projectId: String, task: Option[String] = None, variableName: Option[String] = None,
+                           variableIsSensitive: Option[Boolean] = None): Seq[String] = {
     val request = createRequest(TemplateApi.autoCompleteTemplate())
     val json = checkResponse(request.post(Json.toJson(AutoCompleteVariableTemplateRequest(
       inputString = "{{", cursorPosition = 2, maxSuggestions = None,
-      project = Some(projectId), variableName = variableName, task = task)))).json
+      project = Some(projectId), variableName = variableName, task = task, variableIsSensitive = variableIsSensitive)))).json
     Json.fromJson[AutoSuggestAutoCompletionResponse](json).get.replacementResults.flatMap(_.replacements.map(_.value))
   }
 }
 
-case class VariablesTestTask(title: String, year: Int, referenced: String = "", variableReference: String = "") extends CustomTask {
+case class VariablesTestTask(title: String, year: Int, referenced: String = "", variableReference: String = "",
+                             @Param(value = "May hold a secret.", allowSensitiveVariables = true) secretContent: String = "") extends CustomTask {
   require(year >= 0, "year cannot be negative")
 
   override def inputPorts: InputPorts = InputPorts.NoInputPorts

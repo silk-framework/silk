@@ -15,7 +15,7 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.templating.exceptions._
 import org.silkframework.workspace.variables.{DeleteVariableModification, UpdateVariableModification, UpdateVariablesModification}
 import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables, TemplateVariablesManager, VariableScope}
-import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
 import org.silkframework.serialization.json.{JsonHelpers, TemplateVariableJson, TemplateVariablesJson}
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.workflow.Workflow
@@ -32,7 +32,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
 
   @Operation(
     summary = "Retrieve variables",
-    description = "Retrieves all variables at a specific scope. If a template fails to evaluate, the variable keeps its last saved value, variables of the same scope derived from it fail as well, and the errors list them.",
+    description = "Retrieves all variables at a specific scope. Values and templates of sensitive variables are omitted. If a template fails to evaluate, the variable keeps its last saved value, which is omitted as well, variables of the same scope derived from it fail as well, and the errors list them.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -78,7 +78,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
     if (transitive && task.isEmpty) {
       throw new BadUserInputException("The 'transitive' parameter can only be used together with the 'task' parameter.")
     }
-    var (variables, errors) = ResolvedVariablesJson(project.variablesManager(task), masked = false)
+    var (variables, errors) = ResolvedVariablesJson(project.variablesManager(task), masked = true)
     if (transitive) {
       val subTasks = project.anyTask(task.get).data match {
         case workflow: Workflow => workflow.subTasksRecursive(project)
@@ -87,7 +87,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
       // A variable of the enclosing workflow shadows sub-task variables of the same name.
       val seenNames = mutable.Set.from(variables.map(_.name))
       for (subTask <- subTasks) {
-        val (subVariables, subErrors) = ResolvedVariablesJson(subTask.executionVariablesValueHolder, masked = false)
+        val (subVariables, subErrors) = ResolvedVariablesJson(subTask.executionVariablesValueHolder, masked = true)
         val newVariables = subVariables.filterNot(variable => seenNames.contains(variable.name))
         seenNames ++= newVariables.map(_.name)
         variables ++= newVariables
@@ -156,7 +156,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
 
   @Operation(
     summary = "Put variables",
-    description = "Updates all variables at a specific scope.",
+    description = "Updates all variables at a specific scope. Sensitive variables have to be sent with their value or template, since the GET endpoints omit them.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -201,7 +201,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
 
   @Operation(
     summary = "Get variable",
-    description = "Retrieves a single variable by name.",
+    description = "Retrieves a single variable by name. The value and template of a sensitive variable are omitted, as is the value of a variable whose template cannot be resolved.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -244,12 +244,13 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                   )
                   task: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
       val project = WorkspaceFactory().workspace.project(projectName)
-      Ok(Json.toJson(TemplateVariableJson(project.variablesManager(task).get(variableName))))
+      val (variables, _) = ResolvedVariablesJson(project.variablesManager(task), masked = true)
+      Ok(Json.toJson(variables.find(_.name == variableName).getOrElse(throw new NotFoundException(s"No variable '$variableName' has been found."))))
   }
 
   @Operation(
     summary = "Put variable",
-    description = "Adds or updates a single variable.",
+    description = "Adds or updates a single variable. An existing sensitive variable that is sent without value and template keeps its stored ones, since clients cannot read them back. Turning its sensitivity off requires a new value or template.",
     responses = Array(
       new ApiResponse(
         responseCode = "200"
@@ -294,12 +295,29 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                   )
                   task: Option[String]): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    val variable = JsonHelpers.fromJsonValidated[TemplateVariableJson](request.body).convert
-    if(variable.name != variableName) {
-      throw new BadUserInputException(s"Variable name provided in the URL ($variableName) does not match variable name in the request body (${variable.name})")
+    val variableJson = JsonHelpers.fromJsonValidated[TemplateVariableJson](request.body)
+    if(variableJson.name != variableName) {
+      throw new BadUserInputException(s"Variable name provided in the URL ($variableName) does not match variable name in the request body (${variableJson.name})")
     }
-    UpdateVariableModification(project, variable, task).execute()
+    UpdateVariableModification(project, keepingSensitiveValue(variableJson, project.variablesManager(task)), task).execute()
     Ok
+  }
+
+  /**
+    * Converts a variable update. An existing sensitive variable sent without value and template keeps the stored ones,
+    * since clients cannot read them back.
+    */
+  private def keepingSensitiveValue(variable: TemplateVariableJson, manager: TemplateVariablesManager): TemplateVariable = {
+    val stored =
+      if (variable.isSensitive && variable.value.isEmpty && variable.template.isEmpty) {
+        manager.all.map.get(variable.name).filter(_.isSensitive)
+      } else {
+        None
+      }
+    stored match {
+      case Some(existing) => variable.copy(value = Some(existing.value), template = existing.template).convert
+      case None => variable.convert
+    }
   }
 
   @Operation(

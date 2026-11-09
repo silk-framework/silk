@@ -254,18 +254,16 @@ class ChangeJournal(project: Project, loadingUser: UserContext) {
     */
   def revertConflicts(headers: Seq[ChangeHeader])(implicit userContext: UserContext): Map[Int, String] = {
     val context = new ConflictContext(project)
-    (for(header <- headers; conflict <- revertConflict(header, context)) yield header.seq -> conflict).toMap
+    // Asked for in one call, so that the store reads a file once for the entries it holds
+    val entries = store.entries(project.id, headers.filter(_.revertible).map(_.seq))
+    (for((seq, entry) <- entries; conflict <- revertConflict(seq, entry, context)) yield seq -> conflict).toMap
   }
 
-  private def revertConflict(header: ChangeHeader, context: ConflictContext)(implicit userContext: UserContext): Option[String] = {
-    if(!header.revertible) {
-      None
-    } else {
-      entry(header.seq).flatMap(_.change.inverse) match {
-        case Some(inverse) => inverse.conflict(context)
-        // The header says there is an inverse, but the stored line cannot be read, as a whole or as a change
-        case None => Some(s"Change ${header.seq} in project '${project.id}' cannot be reverted: its stored change cannot be read.")
-      }
+  private def revertConflict(seq: Int, entry: Option[ChangeEntry], context: ConflictContext)(implicit userContext: UserContext): Option[String] = {
+    entry.flatMap(_.change.inverse) match {
+      case Some(inverse) => inverse.conflict(context)
+      // The header says there is an inverse, but the stored line cannot be read, as a whole or as a change
+      case None => Some(s"Change $seq in project '${project.id}' cannot be reverted: its stored change cannot be read.")
     }
   }
 

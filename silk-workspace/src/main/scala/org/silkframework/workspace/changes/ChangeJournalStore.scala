@@ -36,6 +36,13 @@ trait ChangeJournalStore extends AnyPlugin {
     * project's, for a store that reads the change back. */
   def entry(project: Identifier, seq: Int)(implicit context: PluginContext): Option[ChangeEntry]
 
+  /** Several entries of a project in the order asked, each read when the iteration reaches it; None for a seq the
+    * journal holds no entry with. A store that reads entries from files shares the read of a file between seqs
+    * that follow each other, so ask in journal order. */
+  def entries(project: Identifier, seqs: Seq[Int])(implicit context: PluginContext): Iterator[(Int, Option[ChangeEntry])] = {
+    seqs.iterator.map(seq => seq -> entry(project, seq))
+  }
+
   /** The seq of a project's newest entry, 0 if it has none. Read on every write and needs no context. */
   def latestSeq(project: Identifier): Int
 
