@@ -90,7 +90,8 @@
             "actionBtn": "Clear dataset",
             "error": "Error while clearing dataset",
             "readOnly": "The dataset is set to read-only and cannot be cleared."
-        }
+        },
+        "dialogLabel": "Data preview"
     },
     "DataProfiling": {
         "attributes": {
@@ -385,6 +386,8 @@
             "import": "Import",
             "loadExampleProject": "Add \"movies\" example project",
             "logout": "Logout",
+            "fullscreenExit": "Exit full screen",
+            "fullscreenView": "Show in full screen",
             "maximize": "Maximize",
             "minimize": "Minimize",
             "remove": "Remove",
@@ -522,7 +525,8 @@
             "unknown": "Unknown",
             "active": "active",
             "next": "Next",
-            "previous": "Previous"
+            "previous": "Previous",
+            "taskView": "Task view"
         },
         "tooltips": {
             "dataset": {
@@ -1297,7 +1301,8 @@
                 "fetchActivityInfo": "Fetching activities list has failed."
             },
             "reloadAllCaches": "Reload all caches",
-            "title": "Activity overview"
+            "title": "Activity overview",
+            "errorReportLabel": "Activity execution error report"
         },
         "VariableWidget": {
             "title": {
