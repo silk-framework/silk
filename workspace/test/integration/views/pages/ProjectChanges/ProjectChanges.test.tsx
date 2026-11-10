@@ -1173,6 +1173,7 @@ describe("Project changes", () => {
         });
         expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(1);
         clickFoundElement(wrapper, byTestId("changes-mark-reviewed-btn"));
+        await answerReviewPreview([newestChange]);
         clickFoundElement(document.body, byTestId("changes-mark-reviewed-confirm-btn"));
         await waitFor(() => checkRequestMade(reviewedUrl, "PUT", { upTo: newestChange.seq }));
     });
