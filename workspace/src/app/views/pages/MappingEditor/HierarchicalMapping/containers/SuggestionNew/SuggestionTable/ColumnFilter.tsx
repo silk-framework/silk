@@ -42,6 +42,8 @@ export default function ColumnFilter({ filters, onApplyFilter, selectedFilter, f
             {selectableFilters.map((filter) => (
                 <MenuItem
                     key={filter.action}
+                    role="menuitemcheckbox"
+                    aria-checked={selectedFilter === filter.action}
                     text={filter.label}
                     onClick={() => handleApplyFilter(filter.action)}
                     active={selectedFilter === filter.action}

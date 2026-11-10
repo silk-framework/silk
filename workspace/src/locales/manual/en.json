@@ -487,7 +487,12 @@
             "deprecatedPluginBannerDeprecationMessage": "Deprecation Message"
         },
         "sorter": {
-            "recentlyViewed": "Recently viewed"
+            "recentlyViewed": "Recently viewed",
+            "ascending": "ascending",
+            "descending": "descending",
+            "optionsWithState": "Sort options. Currently sorted by {{field}}, {{direction}}.",
+            "currentAndAction": "Current sort: {{direction}}. Activate to sort {{nextDirection}}.",
+            "action": "Activate to sort by {{field}}, {{direction}}."
         },
         "units": {
             "second": "second",

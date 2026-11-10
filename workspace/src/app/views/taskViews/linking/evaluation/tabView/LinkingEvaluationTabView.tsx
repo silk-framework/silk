@@ -768,6 +768,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                     <ContextMenu togglerElement="operation-filter" data-test-id="link-state-filter-btn">
                                         <MenuItem
                                             text={t("ReferenceLinks.confirmed")}
+                                            role="menuitemcheckbox"
+                                            aria-checked={linkStateFilter === LinkEvaluationFilters.positiveLinks.key}
                                             active={linkStateFilter === LinkEvaluationFilters.positiveLinks.key}
                                             onClick={() => {
                                                 handleLinkFilterStateChange(LinkEvaluationFilters.positiveLinks.key);
@@ -776,6 +778,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                         />
                                         <MenuItem
                                             text={t("ReferenceLinks.uncertainOnly")}
+                                            role="menuitemcheckbox"
+                                            aria-checked={linkStateFilter === LinkEvaluationFilters.undecidedLinks.key}
                                             active={linkStateFilter === LinkEvaluationFilters.undecidedLinks.key}
                                             onClick={() => {
                                                 handleLinkFilterStateChange(LinkEvaluationFilters.undecidedLinks.key);
@@ -784,6 +788,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                         />
                                         <MenuItem
                                             text={t("ReferenceLinks.declined")}
+                                            role="menuitemcheckbox"
+                                            aria-checked={linkStateFilter === LinkEvaluationFilters.negativeLinks.key}
                                             active={linkStateFilter === LinkEvaluationFilters.negativeLinks.key}
                                             onClick={() => {
                                                 handleLinkFilterStateChange(LinkEvaluationFilters.negativeLinks.key);
