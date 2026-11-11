@@ -106,7 +106,7 @@ case class WorkflowExecutionReport(task: Task[TaskSpec],
 
   override def summary: Seq[(String, String)] = {
     authDiagnostics match {
-      case Some(str) => Seq("Authentification diagnostics" -> str)
+      case Some(str) => Seq("Authentication diagnostics" -> str)
       case _ => Seq.empty
     }
   }
