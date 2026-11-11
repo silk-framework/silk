@@ -59,16 +59,18 @@ export default class WorkflowExecutionReport extends React.Component {
                         </Section>
                         <Spacing />
                         <Section className="silk-report-sidebar-tasks">
-                            <SectionHeader className="silk-report-sidebar-tasks-title">
-                                <TitleSubsection>Tasks</TitleSubsection>
-                            </SectionHeader>
-                            <div className="silk-report-sidebar-tasks-content">
-                                <OverviewItemList hasSpacing>
-                                    {this.props.executionReport.taskReports.map((report, index) =>
-                                        this.renderTaskItem(report, index, report.warnings),
-                                    )}
-                                </OverviewItemList>
-                            </div>
+                            <nav>
+                                <SectionHeader className="silk-report-sidebar-tasks-title">
+                                    <TitleSubsection>Tasks</TitleSubsection>
+                                </SectionHeader>
+                                <div className="silk-report-sidebar-tasks-content">
+                                    <OverviewItemList hasSpacing>
+                                        {this.props.executionReport.taskReports.map((report, index) =>
+                                            this.renderTaskItem(report, index, report.warnings),
+                                        )}
+                                    </OverviewItemList>
+                                </div>
+                            </nav>
                         </Section>
                     </GridColumn>
                     <GridColumn style={{ overflow: "auto" }}>
@@ -92,6 +94,22 @@ export default class WorkflowExecutionReport extends React.Component {
                 key={"report-" + index}
                 className={classNames}
                 onClick={() => this.setState({ selectedIndex: index })}
+                onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                    }
+                    if (event.key === "Enter") {
+                        event.currentTarget.click();
+                    }
+                }}
+                onKeyUp={(event) => {
+                    if (event.key === " ") {
+                        event.currentTarget.click();
+                    }
+                }}
+                aria-current={index === this.state.selectedIndex ? true : undefined}
+                tabIndex={0}
+                role={"button"}
             >
                 <OverviewItem densityHigh hasSpacing>
                     {this.renderTaskIcon(warnings, report.error)}
