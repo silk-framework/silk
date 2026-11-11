@@ -38,7 +38,8 @@ object RdfLangAutocompletionProvider {
     RdfLang(RDFLanguages.NQUADS, writable = false),
     RdfLang(RDFLanguages.TURTLE, writable = false),
     RdfLang(RDFLanguages.RDFXML, writable = false),
-    RdfLang(RDFLanguages.RDFJSON, writable = false)
+    RdfLang(RDFLanguages.RDFJSON, writable = false),
+    RdfLang(RDFLanguages.JSONLD, writable = false)
   )
 
   case class RdfLang(lang: Lang, writable: Boolean) {

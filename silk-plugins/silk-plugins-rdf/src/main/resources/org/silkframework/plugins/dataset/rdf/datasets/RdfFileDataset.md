@@ -4,7 +4,7 @@ The **RDF file** dataset plugin reads RDF data from a local file (or ZIP archive
 
 Typical use cases:
 
-- Loading small to medium RDF files (e.g. `.ttl`, `.nt`, `.rdf`, `.nq`) into a project.
+- Loading small to medium RDF files (e.g. `.ttl`, `.nt`, `.rdf`, `.nq`, `.jsonld`) into a project.
 - Providing a local RDF snapshot for exploration, mapping, or linking.
 - Exporting RDF data from a workflow into a simple N-Triples file.
 
@@ -43,12 +43,13 @@ The detailed parameter list is generated in the UI. This section explains how to
 
 ### 3.2 Format
 
-- Optional parameter that specifies the RDF serialization format (e.g. `RDF/XML`, `N-Triples`, `N-Quads`, `Turtle`).
+- Optional parameter that specifies the RDF serialization format (e.g. `RDF/XML`, `N-Triples`, `N-Quads`, `Turtle`, `JSON-LD`).
 - If left empty:
     - the format is **auto-detected** from the file name/extension,
     - if no format can be detected, an error is raised and the dataset will not load.
 - Reading:
-    - Supported formats include at least `RDF/XML`, `N-Triples`, `N-Quads`, and `Turtle`.
+    - Supported formats include at least `RDF/XML`, `N-Triples`, `N-Quads`, `Turtle`, `RDF/JSON`, and `JSON-LD`.
+    - `JSON-LD` files (`.jsonld`) are read as JSON-LD 1.1. A context that the file references by URL instead of embedding it is fetched when the file is loaded, so that URL must be reachable from the server.
 - Writing:
     - **Only `N-Triples` is supported for writing.**
     - For other formats, the dataset is effectively read-only.
@@ -57,7 +58,7 @@ The detailed parameter list is generated in the UI. This section explains how to
 
 - Optional graph name (IRI) that tells the dataset which graph to expose.
 - Behaviour:
-    - For **graph-aware formats** (e.g. `N-Quads`):
+    - For **graph-aware formats** (e.g. `N-Quads`, or `JSON-LD` files that contain named graphs):
         - you must provide a graph name to select which graph is used.
     - For **graph-less formats** (e.g. `N-Triples`, `Turtle`):
         - the graph parameter is ignored and the data is treated as a single default graph.
