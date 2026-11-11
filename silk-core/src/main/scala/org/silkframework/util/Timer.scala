@@ -14,6 +14,7 @@
 
 package org.silkframework.util
 
+import java.util.Locale
 import java.util.logging.Logger
 
 /**
@@ -26,8 +27,22 @@ object Timer {
     val result = f
 
     val elapsedTime = (System.currentTimeMillis - startTime)
-    logger.info(description + " took " + elapsedTime + "ms")
+    logger.info(description + " took " + formatDuration(elapsedTime))
 
     result
+  }
+
+  /** Formats a duration in milliseconds for messages, e.g. "312ms", "4.567s", "29min 20s" or "2h 0min". */
+  def formatDuration(millis: Long): String = {
+    val seconds = millis / 1000
+    if (millis < 1000) {
+      s"${millis}ms"
+    } else if (seconds < 60) {
+      "%.3fs".formatLocal(Locale.ROOT, millis.toDouble / 1000)
+    } else if (seconds < 3600) {
+      s"${seconds / 60}min ${seconds % 60}s"
+    } else {
+      s"${seconds / 3600}h ${seconds % 3600 / 60}min"
+    }
   }
 }

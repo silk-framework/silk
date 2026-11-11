@@ -86,35 +86,53 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     )
   }
 
+  /**
+    * True, if this run or an enclosing workflow run has been cancelled. A nested run is not an activity of its own, so
+    * it learns about the cancellation only through the Canceling status of its context, which the enclosing run sets,
+    * or of an enclosing context, if the cancel arrived before its own context was running.
+    */
+  private def cancellationRequested(implicit workflowRunContext: WorkflowRunContext): Boolean = {
+    cancelled || isCanceling(workflowRunContext.activityContext)
+  }
+
+  private def isCanceling(context: ActivityContext[_]): Boolean = {
+    context.status.isCanceling || context.parent.exists(isCanceling)
+  }
+
   private def runWorkflow(implicit context: ActivityContext[WorkflowExecutionReport], userContext: UserContext): Unit = {
     implicit val workflowRunContext: WorkflowRunContext = createRunContext
 
 
     checkReadOnlyDatasets()
     checkVariableDatasets()
-    if(clearDatasets) {
-      clearOutputDatasets()
-    }
 
     val DAG = workflow.workflowDependencyGraph
     try {
+      if(clearDatasets) {
+        clearOutputDatasets()
+      }
       for (endNode <- DAG.endNodes) {
         executeWorkflowNode(endNode, ExecutorOutput.empty) { _ =>
           // result ignored
         }
       }
       if (workflowRunContext.alreadyExecuted.size != workflow.nodes.size) {
-        throw WorkflowExecutionException("Not all workflow nodes were executed! Executed " +
-            workflowRunContext.alreadyExecuted.size + " of " + workflow.nodes.size + " nodes.")
+        throw WorkflowExecutionException(s"Not all workflow nodes were executed! Executed ${workflowRunContext.alreadyExecuted.size} of ${workflow.nodes.size} nodes.")
       }
     } catch {
       case e: WorkflowExecutionException =>
-        if(!cancelled) {
-          context.value.updateWith(_.copy(error = Some(e.getMessage)))
+        if(!cancellationRequested) {
+          workflowRunContext.updateReport(_.copy(error = Some(e.getMessage)))
           throw e // Only rethrow exception if the activity was not cancelled, else the error could be due to the cancellation.
+        } else if(parentExecution.isDefined) {
+          // A nested run that is cut short by the cancellation fails, so that the enclosing report marks its node as failed.
+          val cancelledException = WorkflowExecutionException(s"The workflow has been cancelled. Executed ${workflowRunContext.alreadyExecuted.size} of ${workflow.nodes.size} nodes.", Some(e))
+          workflowRunContext.updateReport(_.copy(error = Some(cancelledException.getMessage)))
+          throw cancelledException
         }
     } finally {
-      context.value.updateWith(_.withAuthDiagnostics(userContext).asDone())
+      workflowRunContext.runFinished()
+      workflowRunContext.updateReport(_.withAuthDiagnostics(userContext).asDone())
       this.executionContext.executeShutdownHooks()
       workflowRunContext.taskExecutors.foreach { case (taskId, exec) =>
         try {
@@ -134,7 +152,14 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     for { currentWorkflow <- workflow +: workflow.subWorkflows(project).map(_.data)
           datasetTask <- currentWorkflow.outputDatasets(project)(workflowRunContext.userContext) } {
       val usedDatasetTask = resolveDataset(datasetTask, replaceSinks)
-      ExecutorRegistry.access(usedDatasetTask, executionContext).entitySink.clear()
+      workflowRunContext.trackOperation(s"Clearing '${usedDatasetTask.fullLabel}'") {
+        try {
+          ExecutorRegistry.access(usedDatasetTask, executionContext).entitySink.clear()
+        } catch {
+          case NonFatal(ex) =>
+            throw WorkflowExecutionException(s"Failed to clear dataset '${usedDatasetTask.label()}': " + ex.getMessage, Some(ex))
+        }
+      }
     }
   }
 
@@ -155,7 +180,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     // First execute all execution dependencies of this node
     node.dependencyInputNodes.foreach(executeAsDependency)
     // Execute this node
-    if (!cancelled) {
+    if (!cancellationRequested) {
       node.workflowNode match {
         case _: WorkflowDataset =>
           executeWorkflowDataset(node, output)(process)
@@ -201,7 +226,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       // Check if this is a nested workflow that has been executed already.
       val isExecutedWorkflow = operatorTask.data.isInstanceOf[Workflow] && workflowRunContext.alreadyExecuted.contains(operatorNode.workflowNode)
 
-      if (!cancelled && !isExecutedWorkflow) {
+      if (!cancellationRequested && !isExecutedWorkflow) {
         try {
           val registry = MeterRegistryProvider.meterRegistry
           val stopwatch: Timer.Sample = Timer.start()
