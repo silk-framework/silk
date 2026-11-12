@@ -57,7 +57,10 @@ trait ActivityControl[T] {
    * Cancels the currently running activity if necessary and starts it again. Does not wait for the cancelled run to
    * end: if it is still running, the new run follows it as a re-run (see [[startOrReRun]]).
    */
-  def restart()(implicit user: UserContext): Unit
+  def restart()(implicit user: UserContext): Unit = {
+    cancel()
+    startOrReRun()
+  }
 
   /**
    * Starts the activity if it is not currently running. If a run is in progress, guarantees exactly one additional

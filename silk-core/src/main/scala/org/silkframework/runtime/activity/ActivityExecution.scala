@@ -190,13 +190,6 @@ private class ActivityExecution[T](activity: Activity[T],
     }
   }
 
-  /** Restarts the activity. */
-  override def restart()(implicit userContext: UserContext): Unit = {
-    cancel()
-    // A cancelled run that has not ended yet is followed by a re-run on the same runner, so nothing waits for it
-    startOrReRun()
-  }
-
   def waitUntilFinished(): Unit = waitUntilFinished(forkJoinRunner)
 
   private def waitUntilFinished(runnerOpt: Option[ForkJoinRunner]): Unit = {
