@@ -662,7 +662,7 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     val slowControls = slowActivities.map(Activity(_))
     try {
       slowControls.foreach(_.start())
-      eventually { slowControls.foreach(_.status() mustBe a[Running]) }
+      eventually { slowCounters.foreach(_.get() mustBe 1) } // the run bodies have started
       slowControls.foreach(_.restart())
       // An unrelated activity must still be restarted
       val counter = new AtomicInteger(0)
