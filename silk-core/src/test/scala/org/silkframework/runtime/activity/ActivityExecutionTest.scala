@@ -655,6 +655,31 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     }
   }
 
+  it should "restart an activity while the restarts of other activities wait for their slow cancellations" in {
+    // Two runs that ignore their cancellation until released
+    val slowCounters = Seq.fill(2)(new AtomicInteger(0))
+    val slowActivities = slowCounters.map(new StubbornGatedActivity(_))
+    val slowControls = slowActivities.map(Activity(_))
+    try {
+      slowControls.foreach(_.start())
+      eventually { slowCounters.foreach(_.get() mustBe 1) } // the run bodies have started
+      slowControls.foreach(_.restart())
+      // An unrelated activity must still be restarted
+      val counter = new AtomicInteger(0)
+      val gated = new GatedActivity(counter)
+      gated.released = true
+      val activity = Activity(gated)
+      activity.startBlocking()
+      activity.restart()
+      eventually { counter.get() mustBe 2 }
+    } finally {
+      slowActivities.foreach(_.released = true)
+      slowControls.foreach(_.waitUntilFinished())
+    }
+    // The restarted activities run again once their cancelled runs have ended
+    slowCounters.map(_.get()) mustBe Seq(2, 2)
+  }
+
   private def userContextFor(userUri: String): UserContext = new UserContext {
     private val contextUser = new User {
       override def uri: String = userUri

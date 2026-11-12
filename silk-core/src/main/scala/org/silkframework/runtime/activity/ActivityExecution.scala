@@ -11,9 +11,7 @@ import java.time.Instant
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
-import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.jdk.CollectionConverters._
-import scala.util.Try
 import scala.util.control.NonFatal
 
 private class ActivityExecution[T](activity: Activity[T],
@@ -189,20 +187,6 @@ private class ActivityExecution[T](activity: Activity[T],
     }
     if (doStart) {
       runForkJoin()
-    }
-  }
-
-  /** Restarts the activity. */
-  override def restart()(implicit userContext: UserContext): Future[Unit] = {
-    import ActivityExecution.activityManagementExecutionContext
-    cancel()
-    Future {
-      Try(waitUntilFinished()) // Ignore if the previous execution failed
-      try {
-        start()
-      } catch {
-        case _: IllegalStateException => // ignore possible race condition that the activity was started since the check
-      }
     }
   }
 
@@ -468,20 +452,6 @@ private class ActivityExecution[T](activity: Activity[T],
 }
 
 object ActivityExecution {
-  // The number of threads that always exist
-  private final val CORE_POOL_SIZE = 2
-  // The max. number of threads in the pool
-  private final val MAX_POOL_SIZE = 32
-  // How long are extra threads kept alive, 1 second
-  private final val KEEP_ALIVE_MS = 1000L
-  // Thread pool used for managing activities asynchronously, e.g. restart.
-  implicit val activityManagementExecutionContext: ExecutionContextExecutor = ExecutionContext.fromExecutor(Execution.createFixedThreadPool(
-    "activity-management-thread",
-    CORE_POOL_SIZE,
-    maxPoolSize = Some(MAX_POOL_SIZE),
-    keepAliveInMs = KEEP_ALIVE_MS
-  ))
-
   /**
     * The size of the fork join thread pool
     */
