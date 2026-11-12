@@ -15,6 +15,7 @@ import {
     ToolbarSection,
 } from "@eccenca/gui-elements";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import { filtersSlice } from "@ducks/workspace/filtersSlice";
 import { ISearchListRequest, ISearchListResponse } from "@ducks/workspace/requests";
 import { AppDispatch } from "store/configureStore";
 import { GlobalTableContext } from "../../../GlobalContextsWrapper";
@@ -359,8 +360,8 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
                 const facet = facets.find((candidate) => candidate.id === CONVERSATION_FACET);
                 if (facet) {
                     batch(() => {
+                        dispatch(filtersSlice.actions.changePage(1));
                         dispatch(workspaceOp.toggleFacetOp(facet, id));
-                        dispatch(workspaceOp.changePageOp(1));
                     });
                 }
             }}

@@ -391,6 +391,35 @@ describe("Project changes", () => {
         await waitFor(() => checkRequestMade(searchUrl, "POST", { facets: [] }, true));
     });
 
+    it.each([1, 3])("filters a conversation from page %s with one history entry", async (page) => {
+        const history = createBrowserHistory();
+        const wrapper = renderWrapper(<ChangeList projectId={PROJECT_ID} />, history, {
+            workspace: { filters: { pagination: { current: page, limit: 25, offset: (page - 1) * 25, total: 100 } } },
+        });
+        await waitFor(() => checkRequestMade(searchUrl, "POST", { offset: (page - 1) * 25 }, true));
+        mockAxios.mockResponseFor(
+            { url: searchUrl },
+            mockedAxiosResponse({ data: { ...searchAnswer([{ ...mappingChange, revertible: false }]), total: 100 } }),
+        );
+        await waitFor(() => expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(1));
+        const navigations: string[] = [];
+        const stopListening = history.listen((location, action) => {
+            if (action === "PUSH") navigations.push(location.search);
+        });
+        try {
+            clickFoundElement(wrapper, byTestId(`change-conversation-${mappingChange.seq}`));
+            expect(navigations).toHaveLength(1);
+            const query = new URLSearchParams(navigations[0]);
+            expect(query.get("page")).toBe("1");
+            expect(query.get("f_ids")).toBe("changeConversation");
+            expect(query.get("f_keys")).toBe(mappingChange.conversationId);
+            await waitFor(() => checkRequestMade(searchUrl, "POST", { offset: 0 }, true));
+            mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+        } finally {
+            stopListening();
+        }
+    });
+
     it("should link to an available companion conversation while preserving journal filters and the hash", async () => {
         const conversationId = "chat 1&two/?#";
         const history = createBrowserHistory();
@@ -958,6 +987,44 @@ describe("Project changes", () => {
         fireEvent.click(within(state).getByRole("button", { name: "Remove tag" }));
         await waitFor(() => checkRequestMade(searchUrl, "POST", { facets: [], textQuery: "movies" }, true));
         expect(wrapper.container.querySelector(byTestId("applied-facet-changeState"))).toBeNull();
+        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+    });
+
+    it("resets pagination when navigation removes the page parameter", async () => {
+        setUseParams(PROJECT_ID, "");
+        const history = createBrowserHistory();
+        const path = workspacePath(`/projects/${PROJECT_ID}/changes`);
+        history.location.pathname = path;
+        history.location.search = "?highlightConversation=conversation-a";
+        const CurrentPage = () => (
+            <output data-testid="current-page">{useSelector(workspaceSel.paginationSelector).current}</output>
+        );
+        const wrapper = renderWrapper(
+            <>
+                <ProjectChanges />
+                <CurrentPage />
+            </>,
+            history,
+        );
+        await waitFor(() => checkRequestMade(searchUrl, "POST", { offset: 0 }, true));
+        mockAxios.mockResponseFor(
+            { url: searchUrl },
+            mockedAxiosResponse({ data: { ...searchAnswer([mappingChange]), total: 100 } }),
+        );
+        await waitFor(() => expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(1));
+
+        act(() => history.push(`${path}?highlightConversation=conversation-a&page=3`));
+        await waitFor(() => checkRequestMade(searchUrl, "POST", { offset: 50 }, true));
+        mockAxios.mockResponseFor(
+            { url: searchUrl },
+            mockedAxiosResponse({ data: { ...searchAnswer([mappingChange]), total: 100 } }),
+        );
+
+        await waitFor(() => expect(wrapper.getByTestId("current-page")).toHaveTextContent("3"));
+        act(() => history.push(`${path}?highlightConversation=conversation-a`));
+        await waitFor(() => expect(wrapper.getByTestId("current-page")).toHaveTextContent("1"));
+        await waitFor(() => checkRequestMade(searchUrl, "POST", { offset: 0 }, true));
+        expect(new URLSearchParams(history.location.search).get("highlightConversation")).toBe("conversation-a");
         mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
     });
 
