@@ -11,7 +11,7 @@ import org.silkframework.rule.vocab.TargetVocabularyParameterEnum
 import org.silkframework.runtime.plugin.StringParameterType.{EnumerationType, StringIterableParameterType}
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
+import org.silkframework.runtime.plugin.types.{IdentifierOptionParameter, IntOptionParameter}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
@@ -64,8 +64,17 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
                          targetVocabularies: TargetVocabularyParameter = TargetVocabularyCategory(TargetVocabularyParameterEnum.allInstalled),
                          @Param("If true, a validation error (such as a data type mismatch) will abort the execution. " +
                                 "If false, the execution will continue, adding a validation error to the execution report.")
-                         abortIfErrorsOccur: Boolean = false
+                         abortIfErrorsOccur: Boolean = false,
+                         @Param(label = "Input limit", value = "If set, only the first N input entities are transformed. " +
+                             "This also applies when other tasks, such as linking tasks, read this transformation. " +
+                             "For hierarchical mappings, the limit applies to each level separately, so a kept parent entity may reference child entities that were cut. " +
+                             "Writing to a JSON or XML dataset then fails because a referenced entity is missing; other datasets are written with references to the missing child entities.", advanced = true)
+                         inputLimit: IntOptionParameter = None
                         ) extends TaskSpec with AnyPlugin {
+
+  if(inputLimit.value.exists(_ < 0)) {
+    throw new InvalidPluginParameterValueException("The input limit must not be negative.")
+  }
 
   /** Retrieves the root rules of this transform spec. */
   def rules: MappingRules = mappingRule.rules
@@ -117,9 +126,14 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     updatedResourceOfRule(mappingRule, resource)
   }
 
-  override def referencedVariables: Seq[TemplateVariableName] = {
+  override def referencedVariables: Seq[TemplateVariableName] = collectFromTransformers(_.referencedVariables)
+
+  override def modifiedVariables: Seq[TemplateVariableName] = collectFromTransformers(_.modifiedVariables)
+
+  /** Collects variables from all transformers in the mapping rule tree. */
+  private def collectFromTransformers(f: Transformer => Seq[TemplateVariableName]): Seq[TemplateVariableName] = {
     val variables = mutable.Buffer[TemplateVariableName]()
-    iterateAllTransformersFromRule(mappingRule, _.referencedVariables.foreach(variables.append))
+    iterateAllTransformersFromRule(mappingRule, transformer => variables ++= f(transformer))
     variables.toSeq
   }
 
@@ -540,9 +554,10 @@ object TransformSpec {
       }
 
       val abortIfErrorsOccur = (node \ "@abortIfErrorsOccur").headOption.exists(_.text.toBoolean)
+      val inputLimit = (node \ "@inputLimit").headOption.map(_.text.toInt)
 
       // Create and return a TransformSpecification instance.
-      val transformSpec = TransformSpec(datasetSelection, rootMappingRule, sink, errorSink, targetVocabularyParameter, abortIfErrorsOccur)
+      val transformSpec = TransformSpec(datasetSelection, rootMappingRule, sink, errorSink, targetVocabularyParameter, abortIfErrorsOccur, inputLimit)
 
       // Apply templates
       TaskLoadingException.withTaskLoadingException(OriginalTaskData("transform", XmlSerialization.deserializeParameters(node))) { params =>
@@ -554,7 +569,7 @@ object TransformSpec {
       * Serialize a value to XML.
       */
     override def write(value: TransformSpec)(implicit writeContext: WriteContext[Node]): Node = {
-      <TransformSpec abortIfErrorsOccur={value.abortIfErrorsOccur.toString}>
+      <TransformSpec abortIfErrorsOccur={value.abortIfErrorsOccur.toString} inputLimit={value.inputLimit.value.map(_.toString).orNull}>
         {value.selection.toXML(asSource = true, writeContext.prefixes)}{toXml(value.mappingRule)}<Outputs>
         {value.output.value.toSeq.map(o => <Output id={o}></Output>)}
       </Outputs>{if (value.errorOutput.isEmpty) {

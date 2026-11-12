@@ -46,7 +46,7 @@ class SparqlJinjaTemplate(rawTemplate: String, defaultScope: VariableScope = Var
 
   override def validate(variables: TemplateVariablesReader, batchSize: Option[Int]): Unit = {
     val available = variables.all.variables.map(v => (v.name, v.scope)).toSet
-    for (variable <- referencedVariables.distinct) {
+    for (variable <- allVariables.distinct) {
       val effectiveScope = if (variable.scope.isEmpty) defaultScope else variable.scope
       validateReference(variable, effectiveScope, available)
     }
@@ -96,7 +96,7 @@ class SparqlJinjaTemplate(rawTemplate: String, defaultScope: VariableScope = Var
     * so the input task gets connected, hence it is not static.
     */
   private def referencesInputTask: Boolean = {
-    referencedVariables.exists { variable =>
+    allVariables.exists { variable =>
       val effectiveScope = if (variable.scope.isEmpty) defaultScope else variable.scope
       effectiveScope.path.headOption.contains(INPUT_SCOPE)
     }
@@ -122,15 +122,21 @@ class SparqlJinjaTemplate(rawTemplate: String, defaultScope: VariableScope = Var
     scoped ++ aliased
   }
 
-  private def referencedVariables: Seq[TemplateVariableName] = {
+  override def referencedVariables: Seq[TemplateVariableName] = {
+    val effective = allVariables.map(v => if (v.scope.isEmpty) new TemplateVariableName(v.name, defaultScope) else v)
+    effective.filter(v => VariableScope.all.contains(v.scope)).distinct
+  }
+
+  /** All references in the template, including the input and output task scopes. */
+  private def allVariables: Seq[TemplateVariableName] = {
     template.variables.getOrElse(Seq.empty)
   }
 
   private def entityPropertyNames: Seq[String] = {
-    val scoped = referencedVariables.filter(_.scope == INPUT_ENTITY_SCOPE).map(_.name)
+    val scoped = allVariables.filter(_.scope == INPUT_ENTITY_SCOPE).map(_.name)
     val aliased =
       if (defaultScope == INPUT_ENTITY_SCOPE) {
-        referencedVariables.filter(_.scope.isEmpty).map(_.name)
+        allVariables.filter(_.scope.isEmpty).map(_.name)
       } else {
         Seq.empty
       }

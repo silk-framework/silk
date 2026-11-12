@@ -24,6 +24,7 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.TaskCleanupPlugin.CleanUpAfterTaskDeletionFunction
 import org.silkframework.workspace.access.{AccessControlConfig, ProjectAccessDeniedException}
 import org.silkframework.workspace.activity.{GlobalWorkspaceActivity, GlobalWorkspaceActivityFactory}
+import org.silkframework.workspace.changes.ChangeJournalStore
 import org.silkframework.workspace.exceptions.{IdentifierAlreadyExistsException, ProjectNotFoundException}
 import org.silkframework.workspace.metrics.WorkspaceMetrics
 import org.silkframework.workspace.resources.ResourceRepository
@@ -196,6 +197,8 @@ class Workspace(val provider: WorkspaceProvider,
     if(cachedProjects.exists(_.id == creationConfig.id)) {
       throw IdentifierAlreadyExistsException("Project " + creationConfig.id + " does already exist!")
     }
+    // A journal left behind by an older data directory, e.g. a restored backup, is not the history of the new project
+    ChangeJournalStore().remove(creationConfig.id)
     provider.putProject(creationConfig)(readWriteUser)
     val newProject = new Project(creationConfig, provider, repository.get(creationConfig.id), readWriteUser)
     for(groups <- initialGroups) {
@@ -220,10 +223,10 @@ class Workspace(val provider: WorkspaceProvider,
     project(name).cancelActivities()
     project(name).awaitActivities()
     provider.deleteProject(name)(readWriteUser)
-    // A resource deletion failure is rethrown only after the remaining cleanup, so the removed project cannot stay half-registered
+    // A failure to delete the resources or the journal is rethrown only after the remaining cleanup, so the removed project cannot stay half-registered
     val resourceRemoval = Try(repository.removeProjectResources(name))
     provider.removeExternalTaskLoadingErrors(name)
-    project(name).changeJournal.clear()
+    val journalRemoval = Try(project(name).changeJournal.clear())
     removeProjectFromCache(name)
     for(task <- projectTasks) {
       cleanUpAfterTaskDeletion(name, task.id, task.data)
@@ -231,6 +234,9 @@ class Workspace(val provider: WorkspaceProvider,
     log.info(s"Removed project '$name'. " + userContext.logInfo)
     for(ex <- resourceRemoval.failed.toOption) {
       throw new RuntimeException(s"Project '$name' has been removed, but its resources could not be fully deleted: ${ex.getMessage}", ex)
+    }
+    for(ex <- journalRemoval.failed.toOption) {
+      throw new RuntimeException(s"Project '$name' has been removed, but its change journal could not be deleted: ${ex.getMessage}", ex)
     }
   }
 
@@ -247,23 +253,28 @@ class Workspace(val provider: WorkspaceProvider,
     * @return
     */
   def exportProject(name: Identifier, outputStream: OutputStream, marshaller: ProjectMarshallingTrait,
-                    exportGroups: Boolean = false, exportUserData: Boolean = true)
+                    exportGroups: Boolean = false, exportUserData: Boolean = true, exportChangeJournal: Boolean = true)
                    (implicit userContext: UserContext): String = {
     initProjects()
-    if (exportGroups && !AccessControlConfig().enabled) {
-      throw BadUserInputException("Cannot export groups because access control is not enabled.")
-    }
-    marshaller.marshalProject(project(name), outputStream, repository.get(name), exportGroups, exportUserData)
+    checkExportFlags(exportGroups, exportUserData, exportChangeJournal)
+    marshaller.marshalProject(project(name), outputStream, repository.get(name), exportGroups, exportUserData, exportChangeJournal)
   }
 
   def exportWorkspace(outputStream: OutputStream, marshaller: ProjectMarshallingTrait,
-                      exportGroups: Boolean = false, exportUserData: Boolean = true)
+                      exportGroups: Boolean = false, exportUserData: Boolean = true, exportChangeJournal: Boolean = true)
                      (implicit userContext: UserContext): String = {
     initProjects()
+    checkExportFlags(exportGroups, exportUserData, exportChangeJournal)
+    marshaller.marshalWorkspace(outputStream, userProjects, repository, exportGroups, exportUserData, exportChangeJournal)
+  }
+
+  private def checkExportFlags(exportGroups: Boolean, exportUserData: Boolean, exportChangeJournal: Boolean): Unit = {
     if (exportGroups && !AccessControlConfig().enabled) {
       throw BadUserInputException("Cannot export groups because access control is not enabled.")
     }
-    marshaller.marshalWorkspace(outputStream, userProjects, repository, exportGroups, exportUserData)
+    if (exportChangeJournal && !exportUserData) {
+      throw BadUserInputException("Cannot export the change journal without user data, as it records who changed what and when.")
+    }
   }
 
   def importWorkspace(file: File, marshaller: ProjectMarshallingTrait, importGroups: Boolean = false)
@@ -437,6 +448,9 @@ class Workspace(val provider: WorkspaceProvider,
     val deletionFailure = Try(provider.deleteProject(projectId)(readWriteUser)).failed.toOption
     for(resourceFailure <- Try(repository.removeProjectResources(projectId)).failed.toOption) {
       log.log(Level.WARNING, s"The resources of project '$projectId' could not be removed while rolling back its creation.", resourceFailure)
+    }
+    for(journalFailure <- Try(ChangeJournalStore().remove(projectId)).failed.toOption) {
+      log.log(Level.WARNING, s"The change journal of project '$projectId' could not be removed while rolling back its creation.", journalFailure)
     }
     provider.removeExternalTaskLoadingErrors(projectId)
     for(failure <- deletionFailure) {

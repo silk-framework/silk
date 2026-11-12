@@ -2,6 +2,7 @@ import { projectApi } from "../../../utils/getApiEndpoint";
 import fetch from "../../../services/fetch";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { IItemLink } from "@ducks/shared/typings";
+import { ISearchListRequest, ISearchListResponse } from "@ducks/workspace/requests";
 
 /** One thing a change changed: what, and the value before and after where there is one to show. */
 export interface IChangeDetail {
@@ -14,6 +15,8 @@ export interface IChangeDetail {
 }
 
 /** A recorded change of a project, see ChangeJournalApi. */
+export type ChangeKind = "added" | "updated" | "removed" | "run";
+
 export interface IChangeEntry {
     /** Sequence number of the change, ascending in the order the changes were made. */
     seq: number;
@@ -23,8 +26,10 @@ export interface IChangeEntry {
     user?: string;
     /** The client the change came from, e.g. 'mcp:<user agent>'. */
     origin?: string;
-    /** The kind of change, e.g. 'AddMapping' or 'ReplaceTask'. */
+    /** The type of change, e.g. 'AddMapping' or 'ReplaceTask'. */
     type: string;
+    /** The kind of change, as the page tags it. */
+    kind: ChangeKind;
     /** What has been changed, in one line: the summary with the details. */
     description: string;
     /** What has been changed, without the details. */
@@ -61,9 +66,9 @@ export interface IRevertOutcome {
     entry?: IChangeEntry;
 }
 
-/** The changes made to a project, newest first. */
-export const requestProjectChanges = (projectId: string): Promise<FetchResponse<IChangeList>> =>
-    fetch({ url: projectApi(`/${projectId}/changes`) });
+/** The changes made to a project, newest first; from a seq upwards if given, with the flags of the whole journal. */
+export const requestProjectChanges = (projectId: string, fromSeq?: number): Promise<FetchResponse<IChangeList>> =>
+    fetch({ url: projectApi(`/${projectId}/changes`), query: fromSeq != null ? { fromSeq } : undefined });
 
 /** Why a change cannot be reverted as the project is now, see ChangeJournalApi.conflicts. */
 export interface IRevertConflict {
@@ -118,8 +123,32 @@ export interface IChangeSummary {
     latestSeq: number;
     /** How many changes are unreviewed: made by an agent after the reviewed watermark and not reverted. */
     unreviewed: number;
+    /** How many unreviewed changes the journal's cap dropped before a review; until one, the watermark stays put. */
+    droppedUnreviewed: number;
 }
 
 /** The journal's numbers without the entries, for a client that only needs to know whether there is something to review. */
 export const requestChangeSummary = (projectId: string): Promise<FetchResponse<IChangeSummary>> =>
     fetch({ url: projectApi(`/${projectId}/changes/summary`) });
+
+/** The facet of the change search that holds the states, and its value for the changes awaiting review. */
+export const STATE_FACET = "changeState";
+export const UNREVIEWED_STATE = "unreviewed";
+
+/** A page of the change search: the entries that match, the facets of what matches, and the journal's numbers. */
+export interface IChangeSearchResult extends Omit<ISearchListResponse, "results"> {
+    results: IChangeEntry[];
+    /** The seq up to which no change waits for review. */
+    reviewedUpTo: number;
+    /** The seq of the latest recorded change; 0 if there is none. */
+    latestSeq: number;
+    /** How many changes are unreviewed in the whole journal, whatever the search matches. */
+    unreviewed: number;
+}
+
+/** Searches the changes of a project: text query, facets, sort and a page window, as the workspace search does it. */
+export const searchChanges = (
+    projectId: string,
+    payload: ISearchListRequest,
+): Promise<FetchResponse<IChangeSearchResult>> =>
+    fetch({ url: projectApi(`/${projectId}/changes/search`), method: "post", body: payload });

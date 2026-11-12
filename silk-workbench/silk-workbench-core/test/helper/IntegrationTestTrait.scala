@@ -12,6 +12,7 @@ import org.silkframework.workspace._
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.{Application, Configuration}
+import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
 import play.api.libs.ws.{WSRequest, WSResponse}
@@ -58,9 +59,9 @@ trait IntegrationTestTrait extends TaskApiClient
   override implicit lazy val app: Application = {
     var builder = GuiceApplicationBuilder()
     builder = builder.configure(playConfig)
+    // Eager singleton: an unscoped binding would create a new router (and controllers) per request
     for(routerClass <- routes) {
-      val routes = builder.injector().instanceOf(routerClass)
-      builder = builder.router(routes)
+      builder = builder.overrides(bind[Router].to(routerClass).eagerly())
     }
     builder.build()
   }
@@ -444,12 +445,6 @@ trait IntegrationTestTrait extends TaskApiClient
   def executeWorkflow(projectId: String, workflowId: String, sparkExecution: Boolean = false): Unit = {
     val executorName = if(sparkExecution) "ExecuteSparkWorkflow" else "ExecuteLocalWorkflow"
     runTaskActivity(projectId, workflowId, executorName)
-  }
-
-  def activitiesLog(): WSResponse = {
-    val request = client.url(s"$baseUrl/workspace/activities/log")
-    val response = request.get()
-    checkResponse(response)
   }
 
   /**

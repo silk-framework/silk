@@ -9,6 +9,7 @@ import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.LinkingSerializers.ReferenceLinksJsonFormat
 import org.silkframework.serialization.json.PluginDescriptionSerializers.PluginListJsonFormat
 import org.silkframework.serialization.json.WorkflowSerializers.{TaskIdentifierParameterFormat, WorkflowDatasetsParameterFormat, WorkflowJsonFormat, WorkflowOperatorsParameterFormat}
+import org.silkframework.serialization.json.changes.FileChangeJournalStore
 import org.silkframework.serialization.json.transformer.InputTaskAttributesTransformer
 
 class JsonPluginModule extends PluginModule {
@@ -64,5 +65,6 @@ class JsonPluginModule extends PluginModule {
       TaskIdentifierParameterFormat.getClass ::
       classOf[InputTaskAttributesTransformer] ::
       classOf[InputFileAttributesTransformer] ::
+      classOf[FileChangeJournalStore] ::
       Nil
 }

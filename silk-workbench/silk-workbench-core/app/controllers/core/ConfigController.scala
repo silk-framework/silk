@@ -11,7 +11,8 @@ import javax.inject.Inject
 class ConfigController @Inject()(implicit workspaceReact: WorkspaceReact) extends InjectedController {
 
   private val ignoredPaths = Set("awt", "file", "jline", "line", "path", "promise", "sbt", "play.http.secret.key",
-    "plugin.parameters.password.crypt.key", "oauth.clientSecret", "workbench.superuser", "play.server.https.keyStore.password")
+    "plugin.parameters.password.crypt.key", "oauth.clientSecret", "workbench.superuser", "play.server.https.keyStore.password",
+    "config.variables")
 
   private val CONFIG_VIEW_ENABLED = "workbench.configView.enabled"
 

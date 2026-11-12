@@ -2,6 +2,7 @@ package org.silkframework.runtime.templating
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.silkframework.runtime.plugin.types.PasswordParameter
 import org.silkframework.util.ConfigTestTrait
 
 class GlobalTemplateVariablesTest extends AnyFlatSpec with Matchers {
@@ -49,6 +50,24 @@ class GlobalTemplateVariablesTest extends AnyFlatSpec with Matchers {
         isSensitive = true,
         scope = VariableScope.global
       ))
+  }
+
+  it should "decrypt encrypted values of sensitive variables, keep them literally in other variables and leave out undecryptable ones" in {
+    val encrypted = PasswordParameter.encrypt("value 4").toString
+    ConfigTestTrait.withConfig(
+      "config.variables.global.encryptedVar.value" -> Some(encrypted),
+      "config.variables.global.encryptedVar.isSensitive" -> Some("true"),
+      "config.variables.global.plainVar.value" -> Some(encrypted),
+      "config.variables.global.plainVar.isSensitive" -> Some("false"),
+      "config.variables.global.brokenVar.value" -> Some(encrypted + "x"),
+      "config.variables.global.brokenVar.isSensitive" -> Some("true")
+    ) {
+      val variables = GlobalTemplateVariables.all
+
+      variables.map("encryptedVar").value shouldBe "value 4"
+      variables.map("plainVar").value shouldBe encrypted
+      variables.map.get("brokenVar") shouldBe None
+    }
   }
 
 }

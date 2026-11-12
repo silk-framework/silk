@@ -6,6 +6,7 @@ import {
     InitialRuleHighlighting,
     ITransformTaskParameters,
     NewTransformRule,
+    NewComplexMappingRule,
     RuleParameterType,
     RuleReference,
 } from "./transform.types";
@@ -79,13 +80,31 @@ export const TransformRuleEditor = ({
     const { registerError } = useErrorHandler();
     const mappingEditorContext = React.useContext(GlobalMappingEditorContext);
     const isReferencedRule = "ruleId" in ruleDefinition;
+    const locallySavedRule = React.useRef<{
+        projectId: string;
+        taskId: string;
+        ruleDefinition: RuleParameterType;
+        rule: NewComplexMappingRule;
+    }>();
     /** Fetches the parameters of the transform rule. */
     const fetchTransformRule = React.useCallback(
         async (projectId: string, taskId: string): Promise<IComplexMappingRule | undefined> => {
             try {
-                const taskData: NewTransformRule = isReferencedRule
-                    ? (await requestTransformRule(projectId, taskId, (ruleDefinition as RuleReference).ruleId)).data
-                    : (ruleDefinition as ActualRule).rule;
+                // Alternative saves may update a parent model without persisting the rule or replacing its initial props.
+                const savedRule = locallySavedRule.current;
+                let taskData: NewTransformRule;
+                if (
+                    ruleDefinition.alternativeSave &&
+                    savedRule?.ruleDefinition === ruleDefinition &&
+                    savedRule.projectId === projectId &&
+                    savedRule.taskId === taskId
+                ) {
+                    taskData = savedRule.rule;
+                } else {
+                    taskData = isReferencedRule
+                        ? (await requestTransformRule(projectId, taskId, (ruleDefinition as RuleReference).ruleId)).data
+                        : (ruleDefinition as ActualRule).rule;
+                }
                 if (taskData.type !== "complex") {
                     throw new Error("Edit of container/object rules is not supported!");
                 } else {
@@ -157,7 +176,10 @@ export const TransformRuleEditor = ({
                     },
                 };
                 if (ruleDefinition.alternativeSave) {
-                    await ruleDefinition.alternativeSave(rule);
+                    const result = await ruleDefinition.alternativeSave(rule);
+                    locallySavedRule.current = result?.ruleToCache
+                        ? { projectId, taskId: transformTaskId, ruleDefinition, rule: result.ruleToCache }
+                        : undefined;
                 } else if (isReferencedRule) {
                     await putTransformRule(projectId, transformTaskId, (ruleDefinition as RuleReference).ruleId, rule);
                 } else if ((ruleDefinition as ActualRule).rule?.id) {

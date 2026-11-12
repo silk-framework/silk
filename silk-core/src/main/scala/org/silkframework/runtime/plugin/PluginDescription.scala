@@ -3,6 +3,7 @@ package org.silkframework.runtime.plugin
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.runtime.plugin.StringParameterType.PasswordParameterType
+import org.silkframework.runtime.templating.exceptions.{TemplateSyntaxException, UnboundVariablesException}
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.Identifier
 
@@ -131,7 +132,7 @@ trait PluginDescription[+T] {
           try {
             parameter.parameterType match {
               case stringParam: StringParameterType[_] =>
-                parseStringParameter(stringParam, value)
+                parseStringParameter(parameter, stringParam, value)
               case objParam: PluginObjectParameterTypeTrait =>
                 parseObjectParameter(objParam, value, ignoreNonExistingParameters)
             }
@@ -159,7 +160,7 @@ trait PluginDescription[+T] {
     }
   }
 
-  private def parseStringParameter(stringParam: StringParameterType[_], value: ParameterValue)
+  private def parseStringParameter(parameter: PluginParameter, stringParam: StringParameterType[_], value: ParameterValue)
                                   (implicit context: PluginContext): AnyRef = {
     value match {
       case ParameterStringValue(strValue) =>
@@ -170,18 +171,36 @@ trait PluginDescription[+T] {
             throw new InvalidPluginParameterValueException(s"Got '$strValue', but ${expected(stringParam)}. Details: ${ex.getMessage}", ex)
         }
       case template: ParameterTemplateValue =>
-        // Only password parameters are allowed to resolve sensitive variables
+        // Password parameters and parameters that declare it are allowed to resolve sensitive variables
+        val resolvesSensitiveVariables = stringParam.name == PasswordParameterType.name || parameter.allowSensitiveVariables
         val templateVariables =
-          if(stringParam.name == PasswordParameterType.name) {
+          if(resolvesSensitiveVariables) {
             context.templateVariables.all
           } else {
             context.templateVariables.all.withoutSensitiveVariables()
           }
         // Evaluate template
-        val evaluatedValue = template.evaluate(templateVariables)
+        val evaluatedValue =
+          try {
+            template.evaluate(templateVariables)
+          } catch {
+            case ex @ (_: TemplateSyntaxException | _: UnboundVariablesException) =>
+              throw ex
+            case NonFatal(_) if resolvesSensitiveVariables =>
+              // Evaluation errors may quote a sensitive value, unlike syntax errors and unbound variables
+              throw new InvalidPluginParameterValueException(s"Template '${template.template}' could not be evaluated. " +
+                "The error is not shown, since it may contain the value of a sensitive variable.")
+          }
         try {
           stringParam.fromString(evaluatedValue).asInstanceOf[AnyRef]
         } catch {
+          case NonFatal(ex) if stringParam.name == PasswordParameterType.name =>
+            // The messages of password parameters never contain the value
+            throw new InvalidPluginParameterValueException(s"Template '${template.template}' did not evaluate to a valid value, " +
+              s"${expected(stringParam)}. Details: ${ex.getMessage}", ex)
+          case NonFatal(_) if resolvesSensitiveVariables =>
+            // The evaluated value may hold a sensitive value, so neither it nor the cause is reported
+            throw new InvalidPluginParameterValueException(s"Template '${template.template}' did not evaluate to a valid value, ${expected(stringParam)}.")
           case NonFatal(ex) =>
             throw new InvalidPluginParameterValueException(s"Got '$evaluatedValue' based on template '${template.template}', " +
               s"but ${expected(stringParam)}. Details: ${ex.getMessage}", ex)

@@ -187,6 +187,10 @@ export const ExampleValuesDialog = ({
             ]}
             hasBorder
             showFullScreenToggler
+            fullScreenTogglerTexts={{
+                maximize: t("common.action.fullscreenView"),
+                minimize: t("common.action.fullscreenExit"),
+            }}
             className="ecc-silk-rule-block-example-values-dialog"
         >
             <Grid verticalStretchable={true} useAbsoluteSpace={true}>

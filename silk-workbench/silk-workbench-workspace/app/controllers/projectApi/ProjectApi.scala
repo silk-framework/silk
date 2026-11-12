@@ -623,7 +623,8 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
                 )
                 projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[CreateTagsRequest] { request =>
-      val response = request.execute(getProject(projectId))
+      val project = getProject(projectId)
+      val response = project.synchronized(request.execute(project))
       Ok(Json.toJson(response))
     }
   }
@@ -658,7 +659,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
                 )
                 tag: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = getProject(projectId)
-    project.tagManager.deleteTag(tag)
+    project.synchronized(project.tagManager.deleteTag(tag))
     NoContent
   }
 
@@ -920,16 +921,7 @@ object ProjectApi {
     def execute(project: Project)
                (implicit userContext: UserContext): Iterable[FullTag] = {
       for (tag <- tags) yield {
-        val normalizedLabel = tag.label.trim.replaceAll("\\s+", " ")
-        val uri = tag.uri match {
-          case Some(userUri) =>
-            userUri
-          case None =>
-            project.tagManager.generateTagUri(normalizedLabel)
-        }
-        val newTag = Tag(uri, normalizedLabel)
-        project.tagManager.putTag(newTag)
-        FullTag.fromTag(newTag)
+        FullTag.fromTag(project.tagManager.createTag(tag.label, tag.uri))
       }
     }
   }

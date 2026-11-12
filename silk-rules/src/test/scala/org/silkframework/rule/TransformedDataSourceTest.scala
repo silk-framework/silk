@@ -22,15 +22,17 @@ class TransformedDataSourceTest extends AnyFlatSpec with Matchers with TestPlugi
     resource
   }
 
+  private val entitySchema = EntitySchema(Uri(""), typedPaths = IndexedSeq(UntypedPath("ID")).map(_.asStringTypedPath))
+
+  private val mappingRule = RootMappingRule(MappingRules(PatternUriMapping(pattern = "http://entity/{ID}"),
+    DirectMapping(sourcePath = UntypedPath("ID"), mappingTarget = MappingTarget("ID"))))
+
   it should "retrieve by URI on the transformed entities" in {
     val csvDataset = CsvDataset(inMemoryResource)
     val csvSource = ExecutorRegistry.access(csvDataset).source
-    val entitySchema = EntitySchema(Uri(""), typedPaths = IndexedSeq(UntypedPath("ID")).map(_.asStringTypedPath))
     val entities = csvSource.retrieve(entitySchema).entities
     val entityUris = entities.map(_.uri.toString).toSet
-    val mappingRule = RootMappingRule(MappingRules(PatternUriMapping(pattern = "http://entity/{ID}"),
-      DirectMapping(sourcePath = UntypedPath("ID"), mappingTarget = MappingTarget("ID"))))
-    val transformedDataSource = new TransformedDataSource(csvSource, entitySchema, mappingRule, PlainTask("dataset", null))
+    val transformedDataSource = new TransformedDataSource(csvSource, entitySchema, mappingRule, PlainTask("transform", TransformSpec(DatasetSelection.empty, mappingRule)))
     val transformedEntities = transformedDataSource.retrieve(entitySchema).entities
     val transformedUris = transformedEntities.map(_.uri.toString).toSet
     entityUris must have size 3
@@ -42,5 +44,12 @@ class TransformedDataSourceTest extends AnyFlatSpec with Matchers with TestPlugi
     transformedDataSource.retrieveByUri(entitySchema, entities = Seq(Uri(entityUris.head))).entities must have size 0
     // Transformed entities can be retrieved via transformed entity URIs
     transformedDataSource.retrieveByUri(entitySchema, entities = Seq(Uri(transformedUris.head))).entities must have size 1
+  }
+
+  it should "only transform the first N source entities if the transform task has an input limit" in {
+    val csvSource = ExecutorRegistry.access(CsvDataset(inMemoryResource)).source
+    val transformTask = PlainTask("transform", TransformSpec(DatasetSelection.empty, mappingRule, inputLimit = Some(2)))
+    val transformedDataSource = new TransformedDataSource(csvSource, entitySchema, mappingRule, transformTask)
+    transformedDataSource.retrieve(entitySchema).entities.map(_.uri.toString).toSeq mustBe Seq("http://entity/1", "http://entity/2")
   }
 }
