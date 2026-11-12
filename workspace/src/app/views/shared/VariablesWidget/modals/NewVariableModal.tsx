@@ -318,7 +318,9 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                     data-test-id={"project-variables-widget-documentation-modal"}
                     isOpen
                     canEscapeKeyClose={true}
-                    title={t("widget.VariableWidget.form.infoBoxTitle")}
+                    title={
+                        taskId ? t("widget.VariableWidget.title.execution") : t("widget.VariableWidget.title.project")
+                    }
                     actions={
                         <Button
                             text="Close"
@@ -330,7 +332,11 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                     size="small"
                 >
                     <HtmlContentBlock>
-                        <p>{t("widget.VariableWidget.form.infoBoxDescription")}</p>
+                        <p>
+                            {taskId
+                                ? t("widget.VariableWidget.form.infoBoxDescription.execution")
+                                : t("widget.VariableWidget.form.infoBoxDescription.project")}
+                        </p>
                     </HtmlContentBlock>
                 </SimpleDialog>
             )}

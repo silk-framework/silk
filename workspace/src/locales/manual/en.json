@@ -1370,8 +1370,10 @@
                 "sensitive": "Sensitive",
                 "sensitiveDescription": "The value is not displayed. It can only be used by password parameters, by parameters that allow sensitive variables and by other sensitive variables of the same scope.",
                 "keepSensitiveValue": "Leave empty to keep the current value or template.",
-                "infoBoxTitle": "Project variables",
-                "infoBoxDescription": "User-defined project variables. They can be used in dataset and task parameters and in the template transform operator. Variables may use templates that access other preceding project variables or globally configured variables."
+                "infoBoxDescription": {
+                    "project": "User-defined project variables. They can be used in dataset and task parameters and in the template transform operator. Variables may use templates that access other preceding project variables or globally configured variables.",
+                    "execution": "User-defined variables that are available while this task is executed. They are referenced with the prefix \"execution.\" in parameter templates and in the template operator. The values defined here are defaults: they can be overridden when the execution is started and changed by the \"Set execution variable\" operators during a workflow run. When a workflow is executed, its execution variables apply to all tasks in the workflow, and the execution variables of those tasks are not used. Variables may use templates that access global variables, project variables or preceding execution variables of this task."
+                }
             },
             "dependencyTypes": {
                 "tasks": "Dependent tasks",
