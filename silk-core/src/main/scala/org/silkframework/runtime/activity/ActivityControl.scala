@@ -2,8 +2,6 @@ package org.silkframework.runtime.activity
 
 import java.time.Instant
 
-import scala.concurrent.Future
-
 /**
  * Holds the current state of the activity.
  */
@@ -55,8 +53,11 @@ trait ActivityControl[T] {
    */
   def start()(implicit user: UserContext): Unit
 
-  /** Cancels the currently running activity if necessary and starts it again. */
-  def restart()(implicit user: UserContext): Future[Unit]
+  /**
+   * Cancels the currently running activity if necessary and starts it again. Does not wait for the cancelled run to
+   * end: if it is still running, the new run follows it as a re-run (see [[startOrReRun]]).
+   */
+  def restart()(implicit user: UserContext): Unit
 
   /**
    * Starts the activity if it is not currently running. If a run is in progress, guarantees exactly one additional
