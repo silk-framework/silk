@@ -1,6 +1,13 @@
 /* import type {Config} from "jest"; */
 
 module.exports = {
+    // Test values for the constant supplied by Webpack in application builds.
+    globals: {
+        __COMPANION_SHARED_VERSIONS__: {
+            "@eccenca/gui-elements": "26.0.0",
+            "@blueprintjs/core": "6.0.0",
+        },
+    },
     rootDir: "./../../",
     testEnvironment: "jest-fixed-jsdom",
     testEnvironmentOptions: {

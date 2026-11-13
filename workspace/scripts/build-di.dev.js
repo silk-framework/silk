@@ -100,15 +100,9 @@ async function handleCompilation(error, stats) {
 function run() {
     const compiler = webpack(config);
     if (isWatch) {
-        watcher = compiler.watch(
-            {
-                aggregateTimeout: 300,
-                ignored: /node_modules/,
-            },
-            (error, stats) => {
-                handleCompilation(error, stats).catch(reportCompilationFailure);
-            },
-        );
+        watcher = compiler.watch(config.watchOptions, (error, stats) => {
+            handleCompilation(error, stats).catch(reportCompilationFailure);
+        });
         installWatchSignalHandlers();
         return watcher;
     }
