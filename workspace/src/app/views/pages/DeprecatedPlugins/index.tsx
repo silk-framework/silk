@@ -43,6 +43,7 @@ export type PluginGroup = {
 export default function DeprecatedPlugins() {
     const [deprecatedPlugins, setDeprecatedPlugins] = useState<DeprecatedPluginsModel[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [hasLoaded, setHasLoaded] = useState(false);
     const { registerError } = useErrorHandler();
     const [t] = useTranslation();
     const history = useHistory();
@@ -83,6 +84,7 @@ export default function DeprecatedPlugins() {
         requestDeprecatedPlugins()
             .then((response) => {
                 setDeprecatedPlugins(response.data);
+                setHasLoaded(true);
             })
             .catch((error) => {
                 registerError(
@@ -140,22 +142,25 @@ export default function DeprecatedPlugins() {
         [sortedPlugins, selectedPluginKey],
     );
     const pageContextContribution = React.useMemo(
-        () => ({
-            kind: "deprecatedPlugins" as const,
-            scope: { view: "deprecatedPlugins" as const },
-            totalUsageCount: deprecatedPlugins.length,
-            ...(selectedPlugin
+        () =>
+            hasLoaded
                 ? {
-                      selectedPlugin: {
-                          deprecationMessage: selectedPlugin.deprecationMessage,
-                          id: selectedPlugin.pluginId,
-                          label: selectedPlugin.pluginLabel,
-                          usageCount: selectedPlugin.count,
-                      },
+                      kind: "deprecatedPlugins" as const,
+                      scope: { view: "deprecatedPlugins" as const },
+                      totalUsageCount: deprecatedPlugins.length,
+                      ...(selectedPlugin
+                          ? {
+                                selectedPlugin: {
+                                    deprecationMessage: selectedPlugin.deprecationMessage,
+                                    id: selectedPlugin.pluginId,
+                                    label: selectedPlugin.pluginLabel,
+                                    usageCount: selectedPlugin.count,
+                                },
+                            }
+                          : {}),
                   }
-                : {}),
-        }),
-        [deprecatedPlugins.length, selectedPlugin],
+                : undefined,
+        [deprecatedPlugins.length, selectedPlugin, hasLoaded],
     );
     usePageContextContribution(pageContextContribution);
 
