@@ -181,7 +181,9 @@ describe("Project changes", () => {
             .map((change) => change.seq);
         if (seqs.length > 0) {
             await waitFor(() => checkRequestMade(conflictsUrl(seqs), "GET"));
-            mockAxios.mockResponseFor({ url: conflictsUrl(seqs) }, mockedAxiosResponse({ data: { conflicts } }));
+            await act(async () => {
+                mockAxios.mockResponseFor({ url: conflictsUrl(seqs) }, mockedAxiosResponse({ data: { conflicts } }));
+            });
         }
         return wrapper;
     };
@@ -201,7 +203,9 @@ describe("Project changes", () => {
     /** Answers the check the batch dialog makes when it opens, and waits until the dialog offers the revert. */
     const answerBatchCheck = async (head: number, conflicts: { seq: number; reason: string }[] = []) => {
         await waitFor(() => checkRequestMade(conflictsUrl([head]), "GET"));
-        mockAxios.mockResponseFor({ url: conflictsUrl([head]) }, mockedAxiosResponse({ data: { conflicts } }));
+        await act(async () => {
+            mockAxios.mockResponseFor({ url: conflictsUrl([head]) }, mockedAxiosResponse({ data: { conflicts } }));
+        });
         await waitFor(() => {
             expect(findElement(document.body, byTestId("remove-item-button"))).toBeEnabled();
         });
@@ -523,7 +527,7 @@ describe("Project changes", () => {
         await waitFor(() => checkRequestMade(conflictsUrl([5]), "GET"));
         expect(findElement(document.body, byTestId("remove-item-button"))).toBeDisabled();
         // Enter does not do what the button refuses, neither while checking nor once blocked
-        triggerHotkeyHandler("enter");
+        await act(async () => triggerHotkeyHandler("enter"));
         expect(mockAxios.getReqMatching({ url: revertAllUrl })).toBeUndefined();
         mockAxios.mockResponseFor(
             { url: conflictsUrl([5]) },
@@ -534,7 +538,7 @@ describe("Project changes", () => {
         });
         expect(findElement(document.body, byTestId("changes-revert-batch-blocked")).textContent).toContain(reason);
         expect(findElement(document.body, byTestId("remove-item-button"))).toBeDisabled();
-        triggerHotkeyHandler("enter");
+        await act(async () => triggerHotkeyHandler("enter"));
         expect(mockAxios.getReqMatching({ url: revertAllUrl })).toBeUndefined();
     });
 
@@ -550,7 +554,7 @@ describe("Project changes", () => {
         expect(document.body.textContent).toContain("Skipped as not revertible: 1.");
         await answerBatchCheck(5);
         // Enter confirms once the revert is offered
-        triggerHotkeyHandler("enter");
+        await act(async () => triggerHotkeyHandler("enter"));
         await waitFor(() => {
             checkRequestMade(revertAllUrl, "POST", { seqs: [5, 2] });
         });

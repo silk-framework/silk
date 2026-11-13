@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import {
     MenuItem,
+    FieldItem,
     Select,
     Button,
     Highlighter,
@@ -10,15 +11,18 @@ import {
     OverviewItemLine,
     highlighterUtils,
 } from "@eccenca/gui-elements";
+import { useTranslation } from "react-i18next";
 import { ITargetWithSelected } from "../suggestion.typings";
 import { SuggestionListContext } from "../SuggestionContainer";
 
 interface IProps {
     targets: ITargetWithSelected[];
+    elementLabel: string;
 
     onChange(uri: ITargetWithSelected);
 }
-export default function TargetList({ targets, onChange }: IProps) {
+export default function TargetList({ targets, onChange, elementLabel }: IProps) {
+    const [t] = useTranslation();
     const context = useContext(SuggestionListContext);
 
     const [items, setItems] = useState<ITargetWithSelected[]>(targets);
@@ -67,6 +71,16 @@ export default function TargetList({ targets, onChange }: IProps) {
     }, [inputQuery]);
 
     const suggestVocabularyProperties = context.isFromDataset;
+    const selectionLabel = context.isFromDataset
+        ? t("MappingSuggestion.selection.targetPropertyFor", { element: elementLabel })
+        : t("MappingSuggestion.selection.sourcePathFor", { element: elementLabel });
+    const searchLabel = context.isFromDataset
+        ? t("MappingSuggestion.selection.searchTargetProperties")
+        : t("MappingSuggestion.selection.searchSourcePaths");
+    const selectedValueLabel = t("MappingSuggestion.selection.selectedFieldValue", {
+        field: selectionLabel,
+        value: selected.label || selected.uri,
+    });
 
     const areTargetsEqual = (targetA: ITargetWithSelected, targetB: ITargetWithSelected) => {
         // Compare only the titles (ignoring case) just for simplicity.
@@ -129,32 +143,40 @@ export default function TargetList({ targets, onChange }: IProps) {
     };
 
     return (
-        <Select<ITargetWithSelected>
-            className={"ecc-silk-mapping__suggestionlist__target-select"}
-            filterable={suggestVocabularyProperties || targets.length > 1}
-            onItemSelect={handleSelectTarget}
-            items={items}
-            itemRenderer={itemRenderer}
-            itemsEqual={areTargetsEqual}
-            resetOnSelect={true}
-            resetOnClose={true}
-            inputProps={{
-                placeholder: context.isFromDataset
-                    ? "Enter text to search in all target properties..."
-                    : "Filter candidates...",
-                className: "ecc-silk-mapping__suggestionlist__target-property-search",
-                fill: true,
+        <FieldItem
+            labelProps={{
+                text: selectedValueLabel,
+                hidden: true,
             }}
-            contextOverlayProps={{
-                popoverClassName: "ecc-silk-mapping__suggestionlist__target-dropdown",
-                portalContainer: context.portalContainer,
-                matchTargetWidth: false,
-            }}
-            onQueryChange={handleQueryChange}
-            query={inputQuery}
-            fill
         >
-            <Button fill outlined rightIcon="toggler-caretdown" text={itemLabel(selected, context.search)} />
-        </Select>
+            <Select<ITargetWithSelected>
+                className={"ecc-silk-mapping__suggestionlist__target-select"}
+                filterable={suggestVocabularyProperties || targets.length > 1}
+                onItemSelect={handleSelectTarget}
+                items={items}
+                itemRenderer={itemRenderer}
+                itemsEqual={areTargetsEqual}
+                resetOnSelect={true}
+                resetOnClose={true}
+                inputProps={{
+                    "aria-label": searchLabel,
+                    placeholder: context.isFromDataset
+                        ? "Enter text to search in all target properties..."
+                        : "Filter candidates...",
+                    className: "ecc-silk-mapping__suggestionlist__target-property-search",
+                    fill: true,
+                }}
+                contextOverlayProps={{
+                    popoverClassName: "ecc-silk-mapping__suggestionlist__target-dropdown",
+                    portalContainer: context.portalContainer,
+                    matchTargetWidth: false,
+                }}
+                onQueryChange={handleQueryChange}
+                query={inputQuery}
+                fill
+            >
+                <Button fill outlined rightIcon="toggler-caretdown" text={itemLabel(selected, context.search)} />
+            </Select>
+        </FieldItem>
     );
 }

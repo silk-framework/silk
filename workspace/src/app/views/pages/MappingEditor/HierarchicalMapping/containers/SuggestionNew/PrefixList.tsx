@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button, FieldItem, Highlighter, MenuItem, Select } from "@eccenca/gui-elements";
+import { useTranslation } from "react-i18next";
 import { IPrefix } from "./suggestion.typings";
 
 interface IProps {
@@ -14,6 +15,7 @@ interface IProps {
 
 /** The selection of URI prefixes used for auto-generated properties */
 export default function PrefixList({ prefixes, selectedPrefix, onChange, disabled }: IProps) {
+    const [t] = useTranslation();
     const [items, setItems] = useState<IPrefix[]>([]);
 
     const [inputQuery, setInputQuery] = useState<string>("");
@@ -69,7 +71,7 @@ export default function PrefixList({ prefixes, selectedPrefix, onChange, disable
     const renderCreatePrefixOptionRenderer = (
         query: string,
         active: boolean,
-        handleClick: React.MouseEventHandler<HTMLElement>
+        handleClick: React.MouseEventHandler<HTMLElement>,
     ) => (
         <MenuItem
             icon="item-add-artefact"
@@ -81,8 +83,9 @@ export default function PrefixList({ prefixes, selectedPrefix, onChange, disable
     );
 
     return (
-        <FieldItem labelProps={{ text: "Use known prefix" }}>
+        <FieldItem labelProps={{ text: t("MappingSuggestion.selection.knownPrefix") }}>
             <Select<IPrefix>
+                inputProps={{ "aria-label": t("MappingSuggestion.selection.searchPrefixes") }}
                 filterable={true}
                 onItemSelect={(t) => handleSelectTarget(t.uri)}
                 items={items}

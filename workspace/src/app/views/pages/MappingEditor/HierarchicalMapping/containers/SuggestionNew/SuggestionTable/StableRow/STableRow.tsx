@@ -112,7 +112,11 @@ export default function STableRow({ row, onRowSelect, selected, onModifyTarget }
                     style={{ flexWrap: "nowrap", justifyContent: "start", alignItems: "center" }}
                 >
                     <FlexibleLayoutItem>
-                        <TargetList targets={candidates} onChange={handleModifyTarget} />
+                        <TargetList
+                            targets={candidates}
+                            onChange={handleModifyTarget}
+                            elementLabel={row.label || row.uri}
+                        />
                     </FlexibleLayoutItem>
                     <FlexibleLayoutItem growFactor={0} shrinkFactor={0}>
                         <Spacing vertical={true} size="tiny" />
@@ -125,7 +129,11 @@ export default function STableRow({ row, onRowSelect, selected, onModifyTarget }
                 </FlexibleLayoutContainer>
             </TableCell>
             <TableCell alignVertical={"middle"}>
-                <TypesList onChange={(type) => handleModifyTarget(selectedTarget, type)} selected={selectedType} />
+                <TypesList
+                    onChange={(type) => handleModifyTarget(selectedTarget, type)}
+                    selected={selectedType}
+                    elementLabel={row.label || row.uri}
+                />
             </TableCell>
         </TableRow>
     );
