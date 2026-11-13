@@ -13,6 +13,9 @@ interface IProps {
     pluginId?: string;
     projectId?: string;
     taskId?: string;
+    taskType?: string;
+    taskLabel?: string;
+    projectLabel?: string;
     /** Fetches the current view task context information. */
     fetchTaskContext?: () => ViewActionsTaskContext | undefined;
     /** Called when the task tab view is closed. Only valid when this is an modal version of the task tabs. */
@@ -27,6 +30,9 @@ export const useProjectTaskTabsView = ({
     startLink,
     pluginId,
     taskId,
+    taskType,
+    taskLabel,
+    projectLabel,
     projectId,
     onCloseModal,
     fetchTaskContext,
@@ -51,7 +57,9 @@ export const useProjectTaskTabsView = ({
     const changeTab = (linkItem?: IItemLink | string) => {
         setActiveTab(linkItem);
     };
-    const taskViewConfig = pluginId ? { pluginId, taskId, projectId } : undefined;
+    const taskViewConfig = pluginId
+        ? { pluginId, taskId, projectId, taskType, taskLabel, projectLabel }
+        : undefined;
     const taskContext = fetchTaskContext?.();
     const returnElement: React.JSX.Element | null = activeTab ? (
         <ProjectTaskTabView

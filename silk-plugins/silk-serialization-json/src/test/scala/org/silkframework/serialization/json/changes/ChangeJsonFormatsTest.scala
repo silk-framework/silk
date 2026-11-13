@@ -46,6 +46,16 @@ class ChangeJsonFormatsTest extends AnyFlatSpec with Matchers {
     }
   }
 
+  it should "preserve conversation attribution in entries and headers while accepting older entries without it" in {
+    val attributed = ChangeEntry(1, now, proposal.user, proposal.origin, proposal.change,
+      conversationId = Some("conversation-1"))
+    val json = ChangeEntryJsonFormat.write(attributed).as[JsObject]
+    (json \ "conversationId").as[String] shouldBe "conversation-1"
+    ChangeEntryJsonFormat.read(json) shouldBe attributed
+    ChangeHeaderJsonFormat.readLine(Json.stringify(json)).conversationId shouldBe Some("conversation-1")
+    ChangeEntryJsonFormat.read(json - "conversationId") shouldBe proposal
+  }
+
   it should "read the header of a line without its change" in {
     for(entry <- recorded) {
       val line = Json.stringify(ChangeEntryJsonFormat.write(entry))

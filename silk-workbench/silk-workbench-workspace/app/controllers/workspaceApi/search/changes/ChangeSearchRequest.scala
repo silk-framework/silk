@@ -179,7 +179,8 @@ case class ChangeFacetCollector() extends ItemTypeFacetCollector[ChangeItem] {
     ChangeStateCollector(),
     ChangeOriginCollector(),
     ChangeUserCollector(),
-    ChangeTaskCollector()
+    ChangeTaskCollector(),
+    ChangeConversationCollector()
   )
 }
 
@@ -241,5 +242,14 @@ case class ChangeTaskCollector() extends IdAndLabelKeywordFacetCollector[ChangeI
 
   override protected def extractIdAndLabel(item: ChangeItem)(implicit user: UserContext): Set[(String, String)] = {
     (for(id <- item.header.taskId; label <- item.taskLabel) yield (id.toString, label)).toSet
+  }
+}
+
+/** The opaque conversation ID is the filter value; the frontend resolves labels visible to the current user. */
+case class ChangeConversationCollector() extends IdAndLabelKeywordFacetCollector[ChangeItem] {
+  override def appliesForFacet: Facet = Facets.changeConversation
+
+  override protected def extractIdAndLabel(item: ChangeItem)(implicit user: UserContext): Set[(String, String)] = {
+    item.header.conversationId.map(id => (id, id)).toSet
   }
 }

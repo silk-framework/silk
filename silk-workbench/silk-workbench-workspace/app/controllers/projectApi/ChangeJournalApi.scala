@@ -1,9 +1,11 @@
 package controllers.projectApi
 
+import akka.actor.ActorSystem
+import akka.stream.Materializer
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.projectApi.ChangeJournalApi.{ChangeDetailJson, ChangeEntryJson, ChangeListJson, ChangeSummaryJson, MarkReviewedJson, ReviewedJson, RevertConflictJson, RevertConflictsJson, RevertOutcomeJson, RevertRequestJson, RevertResultsJson}
-import controllers.util.ItemLink
+import controllers.util.{AkkaUtils, ItemLink}
 import controllers.workspaceApi.search.changes.ChangeSearchRequest
 import controllers.workspaceApi.search.changes.ChangeSearchRequest.ChangeSearchResult
 import io.swagger.v3.oas.annotations.enums.ParameterIn
@@ -14,16 +16,16 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.workspace.changes.{ChangeDetail, ChangeHeader, RevertOutcome}
+import org.silkframework.workspace.changes.{ChangeDetail, ChangeHeader, ChangeJournal, RevertOutcome}
 import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json.{Format, JsValue, Json}
-import play.api.mvc.{Action, AnyContent, InjectedController}
+import play.api.mvc.{Action, AnyContent, InjectedController, WebSocket}
 
 import javax.inject.Inject
 
 /** The change journal of a project: what has been changed, and reverting single changes. */
 @Tag(name = "Project changes", description = "The changes made to a project, and reverting them.")
-class ChangeJournalApi @Inject()() extends InjectedController with UserContextActions with ControllerUtilsTrait {
+class ChangeJournalApi @Inject()(implicit system: ActorSystem, mat: Materializer) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   @Operation(
     summary = "List changes",
@@ -59,7 +61,48 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
                 in = ParameterIn.QUERY,
                 schema = new Schema(implementation = classOf[Int])
               )
-              fromSeq: Option[Int]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+              fromSeq: Option[Int],
+              @Parameter(name = "unreviewedOnly", description = "Only return agent changes still awaiting review.", in = ParameterIn.QUERY)
+              unreviewedOnly: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    Ok(Json.toJson(changeList(projectId, unreviewedOnly, fromSeq)))
+  }
+
+  @Operation(summary = "Change updates (websocket)",
+    description = "Sends the project's complete change list on connection and when it changes, optionally restricted to " +
+      "unreviewed entries. Each message replaces the previous list, including an empty list after all entries are reviewed " +
+      "or reverted. Project access is checked on connection and on each update.")
+  def updates(@Parameter(
+                name = "projectId",
+                description = "The project identifier",
+                required = true,
+                in = ParameterIn.PATH,
+                schema = new Schema(implementation = classOf[String])
+              )
+              projectId: String,
+              @Parameter(
+                name = "unreviewedOnly",
+                description = "Only return agent changes still awaiting review.",
+                required = false,
+                in = ParameterIn.QUERY,
+                schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+              )
+              unreviewedOnly: Boolean): WebSocket = AkkaUtils.createWebSocket { implicit userContext =>
+    WorkspaceFactory().workspace.project(projectId)
+    AkkaUtils.createSource(ChangeJournal.updates).map(_ => changeList(projectId, unreviewedOnly))
+      .statefulMapConcat { () =>
+        var previous = Option.empty[ChangeListJson]
+        changes => {
+          if(previous.contains(changes)) {
+            Nil
+          } else {
+            previous = Some(changes)
+            List(Json.toJson(changes))
+          }
+        }
+      }
+  }
+
+  private def changeList(projectId: String, unreviewedOnly: Boolean, fromSeq: Option[Int] = None)(implicit userContext: UserContext): ChangeListJson = {
     val project = WorkspaceFactory().workspace.project(projectId)
     val journal = project.changeJournal
     // Derived from one snapshot, so that a write landing meanwhile cannot skew the flags against the entries.
@@ -67,10 +110,10 @@ class ChangeJournalApi @Inject()() extends InjectedController with UserContextAc
     val revertedBy = journal.revertedBy(entries)
     val fulfilledBy = journal.fulfilledBy(entries)
     val unreviewed = journal.unreviewed(entries, reviewedUpTo).map(_.seq).toSet
-    Ok(Json.toJson(ChangeListJson(reviewedUpTo,
-      entries.reverse.filter(entry => fromSeq.forall(entry.seq >= _)).map { entry =>
+    ChangeListJson(reviewedUpTo,
+      entries.reverse.filter(entry => fromSeq.forall(entry.seq >= _) && (!unreviewedOnly || unreviewed.contains(entry.seq))).map { entry =>
         ChangeEntryJson.of(project, entry, revertedBy.get(entry.seq), fulfilledBy.get(entry.seq), unreviewed.contains(entry.seq))
-      })))
+      })
   }
 
   @Operation(
@@ -353,7 +396,9 @@ object ChangeJournalApi {
                              @Schema(description = "For a proposed workflow run, the run that fulfilled it. Present only once the proposal has been run; it cannot be reverted from then on.")
                              fulfilledBy: Option[Int],
                              @Schema(description = "True for an agent change after the reviewed watermark that has not been reverted. Absent otherwise.")
-                             unreviewed: Option[Boolean])
+                             unreviewed: Option[Boolean],
+                             @Schema(description = "The companion conversation responsible for this change, if known.")
+                             conversationId: Option[String] = None)
 
   object ChangeEntryJson {
 
@@ -365,7 +410,7 @@ object ChangeJournalApi {
       ChangeEntryJson(header.seq, header.timestamp.toString, header.user, header.origin, header.changeType, header.kind,
         header.describe, header.summary, header.details.map(ChangeDetailJson.of), ChangeLinks.of(project, header),
         header.revertible && fulfilledBy.isEmpty, header.reverts, revertedBy, fulfilledBy,
-        unreviewed = if(unreviewed) Some(true) else None)
+        unreviewed = if(unreviewed) Some(true) else None, conversationId = header.conversationId)
     }
   }
 

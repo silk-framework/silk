@@ -37,7 +37,7 @@ class ProjectAccessControlIntegrationTest extends AnyFlatSpec with IntegrationTe
   override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
 
   override def propertyMap: Map[String, Some[String]] = {
-    PluginRegistry.registerPlugin(classOf[TestWebUserManager])
+    TestWebUserManager.register()
     Map(
       "user.manager.web.plugin" -> Some("testWebUserManager"),
       "workspace.accessControl.enabled" -> Some("true"),
@@ -377,4 +377,10 @@ object TestWebUserManager {
 
   val users: Seq[WebUser] = Seq(user1, user2, admin)
   val usersByUri: Map[String, WebUser] = users.map(u => u.uri -> u).toMap
+
+  def register(): Unit = synchronized {
+    if(PluginRegistry.pluginByIdOpt[WebUserManager]("testWebUserManager").isEmpty) {
+      PluginRegistry.registerPlugin(classOf[TestWebUserManager])
+    }
+  }
 }

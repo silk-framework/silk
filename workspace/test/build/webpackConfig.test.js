@@ -31,6 +31,14 @@ describe("Workspace webpack configuration invariants", () => {
         expect(oneShotConfig.output.publicPath).toBe(paths.appDIAssetsUrl);
     });
 
+    it("watches dependency metadata while ignoring installed library source", () => {
+        const { ignored } = watchConfig.watchOptions;
+        expect(ignored.test("/app/node_modules/@blueprintjs/core/package.json")).toBe(false);
+        expect(ignored.test("C:\\app\\node_modules\\@blueprintjs\\core\\package.json")).toBe(false);
+        expect(ignored.test("/app/node_modules/@blueprintjs/core/lib/esm/index.js")).toBe(true);
+        expect(ignored.test("/app/libs/gui-elements/package.json")).toBe(false);
+    });
+
     it("excludes Internet Explorer from production and development browser targets", () => {
         ["production", "development"].forEach((environment) => {
             const configuredBrowsers = browserslist(undefined, { path: paths.appPath, env: environment });

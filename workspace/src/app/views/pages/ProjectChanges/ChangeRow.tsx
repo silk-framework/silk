@@ -6,7 +6,6 @@ import {
     ElapsedDateTimeDisplay,
     ElapsedDateTimeDisplayUnits,
     Highlighter,
-    Icon,
     IconButton,
     MenuItem,
     NotAvailable,
@@ -19,6 +18,8 @@ import {
 import { getDateData } from "../../shared/Metadata/Metadata";
 import { IChangeDetail, IChangeEntry } from "./changesRequests";
 import { hasInverse, kindIntent, linkIcon, userDisplayName } from "./changeListUtils";
+import { ChangeSource } from "./ChangeSource";
+import { ChangeConversationAction } from "./ChangeConversationAction";
 
 interface IProps {
     entry: IChangeEntry;
@@ -38,6 +39,8 @@ interface IProps {
     onMarkReviewed?: () => void;
     /** Why marking reviewed is disabled, if it is: the filter hides unreviewed entries that it would approve unseen. */
     markReviewedBlocker?: string;
+    onFilterConversation?: (id: string) => void;
+    conversationSelected?: boolean;
 }
 
 /** How many detail lines an entry shows before the rest is behind a 'more' link, as the tag list does it. */
@@ -54,6 +57,8 @@ const ChangeRow = ({
     onRevertBack,
     onMarkReviewed,
     markReviewedBlocker,
+    onFilterConversation,
+    conversationSelected,
 }: IProps) => {
     const [t] = useTranslation();
 
@@ -197,15 +202,9 @@ const ChangeRow = ({
             <TableCell alignVertical="middle">{timestamp(entry.timestamp)}</TableCell>
             <TableCell alignVertical="middle">
                 {entry.user && <span title={entry.user}>{userDisplayName(entry.user)}</span>}
-                {entry.origin && (
-                    <span
-                        data-test-id={`change-agent-${entry.seq}`}
-                        title={`${t("pages.changes.originTooltip")}: ${entry.origin}`}
-                    >
-                        {" "}
-                        <Icon name="operation-ai-generate" small />
-                    </span>
-                )}
+            </TableCell>
+            <TableCell alignVertical="middle">
+                <ChangeSource entry={entry} selected={conversationSelected} onSelect={onFilterConversation} />
             </TableCell>
             <TableCell alignVertical="middle">
                 <div title={entry.type}>
@@ -248,7 +247,8 @@ const ChangeRow = ({
             <TableCell alignVertical="middle">
                 {/* Right-aligned, so that the menu sits in the same place whatever the number of links before it */}
                 <div className="diapp-changes__actions">
-                    {/* Every link opens in a new tab, so the review keeps its place */}
+                    <ChangeConversationAction entry={entry} />
+                    {/* Artifact links open in a new tab, so the review keeps its place */}
                     {entry.links.map((link) => (
                         <IconButton
                             key={link.id}

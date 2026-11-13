@@ -3,6 +3,16 @@ import { IViewActions } from "../../views/plugins/PluginRegistry";
 import { LabelProps, TestableComponent } from "@eccenca/gui-elements";
 import { AccessControlConfig } from "@ducks/workspace/requests";
 
+/** Host integration parameters for a feature rendered in the global application toolbar. */
+export interface CompanionToolbarProps {
+    /** Closes mutually exclusive panels before this one is opened. */
+    closeOtherToolbarPanels: () => void;
+    /** Signals that another global toolbar panel currently owns the panel area. */
+    isAnotherToolbarPanelOpen: boolean;
+    /** Element beside the content a toolbar panel can dock into, s. AppLayout. */
+    panelContainer: HTMLElement | null;
+}
+
 export type IPreview = IDatasetConfigPreview | IResourcePreview | IDatasetPreview | FixedPreview;
 
 interface IValidation {
