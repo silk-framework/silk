@@ -34,6 +34,11 @@ import { atomicParamDescription, mockAutoCompleteResponse, objectParamDescriptio
 import { INPUT_TYPES } from "../../../../src/app/constants";
 import { TaskTypes } from "../../../../src/app/store/ducks/shared/typings";
 import { MemoryHistory } from "history/createMemoryHistory";
+import {
+    ApplicationContextRegistryProvider,
+    useApplicationContextRegistry,
+} from "../../../../src/app/contexts/ApplicationContextRegistry";
+
 import { bluePrintClassPrefix } from "../../../HierarchicalMapping/utils/TestHelpers";
 
 jest.mock("@eccenca/gui-elements", () => {
@@ -750,6 +755,52 @@ describe("Task creation widget", () => {
         currentParameterValues: expectedParams,
         currentTemplateValues: {},
     };
+
+    it("does not republish task context on unrelated update-modal renders", async () => {
+        const contextUpdates = jest.fn();
+        const ObserveContext = () => {
+            const { foregroundViews } = useApplicationContextRegistry();
+            React.useEffect(() => {
+                contextUpdates(foregroundViews);
+            }, [foregroundViews]);
+            return null;
+        };
+        const ModalParent = () => {
+            const [revision, setRevision] = React.useState(0);
+            return (
+                <>
+                    <button onClick={() => setRevision((value) => value + 1)}>Rerender {revision}</button>
+                    <CreateArtefactModal />
+                </>
+            );
+        };
+        const view = renderWrapper(
+            <ApplicationContextRegistryProvider>
+                <ModalParent />
+                <ObserveContext />
+            </ApplicationContextRegistryProvider>,
+            createMemoryHistory(),
+            {
+                common: {
+                    initialSettings: { emptyWorkspace: false, templatingEnabled: true },
+                    artefactModal: { isOpen: true, updateExistingTask: existingTask },
+                },
+            },
+        );
+        mockAxios.mockResponseFor(
+            { url: apiUrl("core/taskPlugins?addMarkdownDocumentation=true") },
+            mockedAxiosResponse({ data: mockArtefactListResponse }),
+        );
+        await waitFor(() =>
+            expect(contextUpdates).toHaveBeenLastCalledWith([
+                expect.objectContaining({ kind: "artefactForm", taskId: TASK_ID, operation: "update" }),
+            ]),
+        );
+        contextUpdates.mockClear();
+        await act(async () => fireEvent.click(view.getByRole("button", { name: "Rerender 0" })));
+        expect(view.getByRole("button", { name: "Rerender 1" })).toBeInTheDocument();
+        expect(contextUpdates).not.toHaveBeenCalled();
+    });
 
     // Updates a task via update button and returns the request data
     const updateTask = async (wrapper) => {

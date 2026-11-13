@@ -131,9 +131,11 @@ export function CreateArtefactModal() {
     const [autoConfigPending, setAutoConfigPending] = useState(false);
     const DOUBLE_CLICK_LIMIT_MS = 500;
 
-    const updateTaskPluginDetails: IPluginOverview | undefined = updateExistingTask
-        ? { ...updateExistingTask.taskPluginDetails, key: updateExistingTask.taskPluginDetails.pluginId }
-        : undefined;
+    const taskPluginDetails = updateExistingTask?.taskPluginDetails;
+    const updateTaskPluginDetails = React.useMemo<IPluginOverview | undefined>(
+        () => taskPluginDetails ? { ...taskPluginDetails, key: taskPluginDetails.pluginId } : undefined,
+        [taskPluginDetails],
+    );
     const selectedArtefact: IPluginOverview | undefined = updateTaskPluginDetails ?? selectedArtefactFromStore;
     const selectedArtefactKey = React.useRef<string | undefined>();
     selectedArtefactKey.current = selectedArtefactFromStore?.key;
