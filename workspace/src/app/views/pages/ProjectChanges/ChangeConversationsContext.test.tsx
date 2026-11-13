@@ -50,8 +50,18 @@ it("keeps numbers across reordered lists, deletions and duplicate titles; new ID
 
 const Consumer = () => (
     <ChangeConversationsContext.Consumer>
-        {(values) => <div>{Array.from(values, ([id, value]) => `${id}:${value.number}:${value.title}`).join("|")}</div>}
+        {(values) => (
+            <div data-testid="metadata">
+                {Array.from(values, ([id, value]) => `${id}:${value.number}:${value.title}`).join("|")}
+            </div>
+        )}
     </ChangeConversationsContext.Consumer>
+);
+
+const Reload = () => (
+    <RefreshChangeConversationsContext.Consumer>
+        {(refresh) => <button onClick={refresh}>Reload</button>}
+    </RefreshChangeConversationsContext.Consumer>
 );
 
 beforeEach(() => {
@@ -61,11 +71,28 @@ beforeEach(() => {
     mockLoadConversations.mockReset();
 });
 
-it("loads independently of child renders, refreshes on focus and clears titles when access fails", async () => {
+it("keeps cached metadata without requesting it again when the window gains focus", async () => {
+    mockLoadConversations.mockResolvedValue([{ id: "a", label: "Known" }]);
+    const view = render(
+        <ChangeConversationsProvider>
+            <Consumer />
+        </ChangeConversationsProvider>,
+    );
+    await waitFor(() => expect(view.container).toHaveTextContent("a:1:Known"));
+    await act(async () => {
+        window.dispatchEvent(new Event("focus"));
+        window.dispatchEvent(new Event("focus"));
+    });
+    expect(mockLoadConversations).toHaveBeenCalledTimes(1);
+    expect(view.container).toHaveTextContent("a:1:Known");
+});
+
+it("loads independently of child renders and clears titles when a manual refresh loses access", async () => {
     mockLoadConversations.mockResolvedValueOnce([{ id: "a", label: "Private title" }]);
     const view = render(
         <ChangeConversationsProvider>
             <Consumer />
+            <Reload />
         </ChangeConversationsProvider>,
     );
     await waitFor(() => expect(view.container).toHaveTextContent("a:1:Private title"));
@@ -73,12 +100,13 @@ it("loads independently of child renders, refreshes on focus and clears titles w
     view.rerender(
         <ChangeConversationsProvider>
             <Consumer />
+            <Reload />
         </ChangeConversationsProvider>,
     );
     expect(mockLoadConversations).toHaveBeenCalledTimes(1);
     mockLoadConversations.mockRejectedValueOnce(new ChangeConversationAccessError("Forbidden"));
-    act(() => window.dispatchEvent(new Event("focus")));
-    await waitFor(() => expect(view.container.textContent).toBe(""));
+    act(() => view.getByRole("button", { name: "Reload" }).click());
+    await waitFor(() => expect(view.getByTestId("metadata").textContent).toBe(""));
     view.unmount();
     expect(mockLoadConversations.mock.calls[0][0].aborted).toBe(true);
     expect(mockLoadConversations.mock.calls[1][0].aborted).toBe(true);
@@ -123,10 +151,11 @@ it("ignores an earlier lookup that finishes after a newer one", async () => {
     const view = render(
         <ChangeConversationsProvider>
             <Consumer />
+            <Reload />
         </ChangeConversationsProvider>,
     );
     mockLoadConversations.mockResolvedValueOnce([{ id: "new", label: "Current" }]);
-    act(() => window.dispatchEvent(new Event("focus")));
+    act(() => view.getByRole("button", { name: "Reload" }).click());
     await waitFor(() => expect(view.container).toHaveTextContent("new:1:Current"));
     await act(async () => {
         finishFirst?.([{ id: "old", label: "Stale" }]);
@@ -135,24 +164,22 @@ it("ignores an earlier lookup that finishes after a newer one", async () => {
     expect(view.container).toHaveTextContent("new:1:Current");
 });
 
-it("retains known metadata after failed focus and manual refreshes, then applies a successful empty result", async () => {
+it("retains known metadata after failed manual refreshes, then applies a successful empty result", async () => {
     mockLoadConversations.mockResolvedValueOnce([{ id: "a", label: "Known" }]);
     const view = render(
         <ChangeConversationsProvider>
             <Consumer />
-            <RefreshChangeConversationsContext.Consumer>
-                {(refresh) => <button onClick={refresh}>Reload</button>}
-            </RefreshChangeConversationsContext.Consumer>
+            <Reload />
         </ChangeConversationsProvider>,
     );
     await waitFor(() => expect(view.container).toHaveTextContent("a:1:Known"));
     mockLoadConversations.mockRejectedValue(new Error("Temporary server failure"));
-    await act(async () => window.dispatchEvent(new Event("focus")));
+    await act(async () => view.getByRole("button", { name: "Reload" }).click());
     expect(view.container).toHaveTextContent("a:1:Known");
     await act(async () => view.getByRole("button", { name: "Reload" }).click());
     expect(view.container).toHaveTextContent("a:1:Known");
     mockLoadConversations.mockResolvedValueOnce([]);
-    await act(async () => window.dispatchEvent(new Event("focus")));
+    await act(async () => view.getByRole("button", { name: "Reload" }).click());
     expect(view.container).not.toHaveTextContent("Known");
 });
 

@@ -71,31 +71,23 @@ export const ChangeConversationsProvider = ({ children }: { children: React.Reac
             setConversations(new Map());
             return;
         }
-        let controller: AbortController | undefined;
+        const controller = new AbortController();
         const load = async () => {
-            controller?.abort();
-            const current = new AbortController();
-            controller = current;
             try {
-                const summaries = await source.loadConversations(current.signal, companion.apiBasePath);
-                if (!current.signal.aborted) {
+                const summaries = await source.loadConversations(controller.signal, companion.apiBasePath);
+                if (!controller.signal.aborted) {
                     setConversations(identifyChangeConversations(summaries, numbers.current));
                 }
             } catch (error: unknown) {
                 // A failed refresh does not invalidate the last successful lookup.
-                if (!current.signal.aborted && error instanceof ChangeConversationAccessError) {
+                if (!controller.signal.aborted && error instanceof ChangeConversationAccessError) {
                     setConversations(new Map());
                 }
             }
         };
-        const onFocus = () => {
-            void load();
-        };
         void load();
-        window.addEventListener("focus", onFocus);
         return () => {
-            controller?.abort();
-            window.removeEventListener("focus", onFocus);
+            controller.abort();
         };
     }, [source, companion?.enabled, companion?.apiBasePath, userUri, revision]);
 
