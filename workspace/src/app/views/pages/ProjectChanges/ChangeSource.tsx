@@ -107,9 +107,6 @@ export const ChangeSource = ({
     onSelect?: (id: string) => void;
 }) => {
     const [t] = useTranslation();
-    if (!entry.origin) {
-        return null;
-    }
     if (entry.conversationId) {
         return (
             <ConversationSource
@@ -118,6 +115,9 @@ export const ChangeSource = ({
                 onSelect={onSelect}
             />
         );
+    }
+    if (!entry.origin) {
+        return null;
     }
     return (
         <SourceTooltip content={`${t("pages.changes.originTooltip")}: ${entry.origin}`}>

@@ -129,6 +129,24 @@ it("keeps unavailable conversations filterable and exposes their ID on hover", a
     expect(select).toHaveBeenCalledWith("conversation-a");
 });
 
+it.each([true, false])(
+    "shows a filterable conversation badge without origin (metadata available: %s)",
+    async (available) => {
+        const select = jest.fn();
+        const metadata = new Map(available ? [["conversation-a", { number: 2, title: "Map movies" }]] : []);
+        const view = render(
+            <ChangeConversationsContext.Provider value={metadata}>
+                <ChangeSource entry={{ ...entry, origin: undefined }} onSelect={select} />
+            </ChangeConversationsContext.Provider>,
+        );
+        const badge = view.getByRole("button", { name: `Filter by conversation ${available ? "C2" : "?"}` });
+        fireEvent.click(badge);
+        expect(select).toHaveBeenCalledWith("conversation-a");
+        fireEvent.focus(badge);
+        expect(await view.findByRole("tooltip")).toHaveTextContent("ID: conversation-a");
+    },
+);
+
 it("leaves normal user changes without an origin empty", () => {
     const view = render(<ChangeSource entry={{ ...entry, origin: undefined, conversationId: undefined }} />);
     expect(view.container).toBeEmptyDOMElement();
