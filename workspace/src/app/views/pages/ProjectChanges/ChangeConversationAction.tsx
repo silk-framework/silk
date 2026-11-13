@@ -2,6 +2,7 @@ import React from "react";
 import { IconButton } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
+import { CONVERSATION_PARAM } from "../../../constants/queryParams";
 import { ChangeConversationsContext, OpenChangeConversationContext } from "./ChangeConversationsContext";
 import { IChangeEntry } from "./changesRequests";
 
@@ -21,7 +22,7 @@ export const openSelectedConversation = (
         if (openConversation) {
             event.preventDefault();
             openConversation(conversationId);
-        } else if (new URLSearchParams(location.search).get("conversationId") === conversationId) {
+        } else if (new URLSearchParams(location.search).get(CONVERSATION_PARAM) === conversationId) {
             event.preventDefault();
             location.reload();
         }
@@ -39,7 +40,7 @@ export const ChangeConversationAction = ({ entry }: { entry: IChangeEntry }) => 
         return null;
     }
     const params = new URLSearchParams(location.search);
-    params.set("conversationId", conversationId);
+    params.set(CONVERSATION_PARAM, conversationId);
     return (
         <IconButton
             data-test-id={`change-open-conversation-${entry.seq}`}
