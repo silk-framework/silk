@@ -1,4 +1,5 @@
 import React from "react";
+import { ChangeConversationAccessError } from "./ChangeConversationAccessError";
 import { act, render, waitFor } from "@testing-library/react";
 import {
     ChangeConversationsContext,
@@ -10,10 +11,13 @@ import {
 const mockLoadConversations = jest.fn();
 const mockSource = { loadConversations: mockLoadConversations };
 let mockEnabled = true;
+let mockUserUri = "first";
+let mockApiBasePath = "/custom/dp/api/companion/interactive";
 jest.mock("@ducks/common", () => ({ commonSel: { initialSettingsSelector: jest.fn() } }));
 jest.mock("react-redux", () => ({
     useSelector: () => ({
-        companion: { enabled: mockEnabled, apiBasePath: "/custom/dp/api/companion/interactive" },
+        companion: { enabled: mockEnabled, apiBasePath: mockApiBasePath },
+        userUri: mockUserUri,
     }),
 }));
 jest.mock("../../plugins/PluginRegistry", () => ({
@@ -52,6 +56,8 @@ const Consumer = () => (
 
 beforeEach(() => {
     mockEnabled = true;
+    mockUserUri = "first";
+    mockApiBasePath = "/custom/dp/api/companion/interactive";
     mockLoadConversations.mockReset();
 });
 
@@ -63,17 +69,14 @@ it("loads independently of child renders, refreshes on focus and clears titles w
         </ChangeConversationsProvider>,
     );
     await waitFor(() => expect(view.container).toHaveTextContent("a:1:Private title"));
-    expect(mockLoadConversations).toHaveBeenCalledWith(
-        expect.any(AbortSignal),
-        "/custom/dp/api/companion/interactive",
-    );
+    expect(mockLoadConversations).toHaveBeenCalledWith(expect.any(AbortSignal), "/custom/dp/api/companion/interactive");
     view.rerender(
         <ChangeConversationsProvider>
             <Consumer />
         </ChangeConversationsProvider>,
     );
     expect(mockLoadConversations).toHaveBeenCalledTimes(1);
-    mockLoadConversations.mockRejectedValueOnce(new Error("Forbidden"));
+    mockLoadConversations.mockRejectedValueOnce(new ChangeConversationAccessError("Forbidden"));
     act(() => window.dispatchEvent(new Event("focus")));
     await waitFor(() => expect(view.container.textContent).toBe(""));
     view.unmount();
@@ -131,3 +134,48 @@ it("ignores an earlier lookup that finishes after a newer one", async () => {
     expect(view.container).not.toHaveTextContent("Stale");
     expect(view.container).toHaveTextContent("new:1:Current");
 });
+
+it("retains known metadata after failed focus and manual refreshes, then applies a successful empty result", async () => {
+    mockLoadConversations.mockResolvedValueOnce([{ id: "a", label: "Known" }]);
+    const view = render(
+        <ChangeConversationsProvider>
+            <Consumer />
+            <RefreshChangeConversationsContext.Consumer>
+                {(refresh) => <button onClick={refresh}>Reload</button>}
+            </RefreshChangeConversationsContext.Consumer>
+        </ChangeConversationsProvider>,
+    );
+    await waitFor(() => expect(view.container).toHaveTextContent("a:1:Known"));
+    mockLoadConversations.mockRejectedValue(new Error("Temporary server failure"));
+    await act(async () => window.dispatchEvent(new Event("focus")));
+    expect(view.container).toHaveTextContent("a:1:Known");
+    await act(async () => view.getByRole("button", { name: "Reload" }).click());
+    expect(view.container).toHaveTextContent("a:1:Known");
+    mockLoadConversations.mockResolvedValueOnce([]);
+    await act(async () => window.dispatchEvent(new Event("focus")));
+    expect(view.container).not.toHaveTextContent("Known");
+});
+
+it.each(["user", "api", "disabled"])(
+    "clears cached metadata when %s changes even if the next lookup fails",
+    async (change) => {
+        mockLoadConversations.mockResolvedValueOnce([{ id: "a", label: "Private" }]);
+        const tree = (
+            <ChangeConversationsProvider>
+                <Consumer />
+            </ChangeConversationsProvider>
+        );
+        const view = render(tree);
+        await waitFor(() => expect(view.container).toHaveTextContent("Private"));
+        mockLoadConversations.mockRejectedValue(new Error("Unavailable"));
+        if (change === "user") mockUserUri = "second";
+        if (change === "api") mockApiBasePath = "/other/api";
+        if (change === "disabled") mockEnabled = false;
+        view.rerender(
+            <ChangeConversationsProvider>
+                <Consumer />
+            </ChangeConversationsProvider>,
+        );
+        await waitFor(() => expect(view.container.textContent).toBe(""));
+    },
+);

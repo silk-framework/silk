@@ -199,13 +199,14 @@ describe("ApplicationContextRegistry", () => {
 });
 
 describe("createSearchContext", () => {
-    it("keeps only selected facets known by the current search response", () => {
+    it("keeps every selected facet and value, falling back to IDs when metadata is missing", () => {
         expect(
             createSearchContext(
                 { itemType: "dataset", textQuery: " people " },
                 [
                     { facetId: "tags", keywordIds: ["customer", "unknown"] },
                     { facetId: "unknownFacet", keywordIds: ["value"] },
+                    { facetId: "emptyFacet", keywordIds: [] },
                 ],
                 [
                     {
@@ -219,7 +220,17 @@ describe("createSearchContext", () => {
                 ],
             ),
         ).toEqual({
-            facets: [{ id: "tags", label: "Tags", values: [{ id: "customer", label: "Customer" }] }],
+            facets: [
+                {
+                    id: "tags",
+                    label: "Tags",
+                    values: [
+                        { id: "customer", label: "Customer" },
+                        { id: "unknown", label: "unknown" },
+                    ],
+                },
+                { id: "unknownFacet", label: "unknownFacet", values: [{ id: "value", label: "value" }] },
+            ],
             itemType: "dataset",
             text: "people",
         });

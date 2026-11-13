@@ -39,14 +39,13 @@ export const createSearchContext = (
 ): SearchContext => {
     const facets = appliedFacets.flatMap((appliedFacet) => {
         const availableFacet = availableFacets.find((facet) => facet.id === appliedFacet.facetId);
-        if (!availableFacet) {
-            return [];
-        }
-        const values = appliedFacet.keywordIds.flatMap((keywordId) => {
-            const value = availableFacet.values.find((candidate) => candidate.id === keywordId);
-            return value ? [{ id: value.id, label: value.label }] : [];
+        const values = appliedFacet.keywordIds.map((keywordId) => {
+            const value = availableFacet?.values.find((candidate) => candidate.id === keywordId);
+            return { id: keywordId, label: value?.label ?? keywordId };
         });
-        return values.length ? [{ id: availableFacet.id, label: availableFacet.label, values }] : [];
+        return values.length
+            ? [{ id: appliedFacet.facetId, label: availableFacet?.label ?? appliedFacet.facetId, values }]
+            : [];
     });
     const text = filters.textQuery.trim();
     return {

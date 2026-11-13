@@ -2,6 +2,7 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
+import { ChangeConversationAccessError } from "./ChangeConversationAccessError";
 
 export interface ChangeConversationSummary {
     id: string;
@@ -51,7 +52,7 @@ export function identifyChangeConversations(
 
 /** Mounted for one journal page, independently of its search, filters and pagination. */
 export const ChangeConversationsProvider = ({ children }: { children: React.ReactNode }) => {
-    const { companion } = useSelector(commonSel.initialSettingsSelector);
+    const { companion, userUri } = useSelector(commonSel.initialSettingsSelector);
     const source = pluginRegistry.pluginComponent<ChangeConversationSource>(SUPPORTED_PLUGINS.DI_CHANGE_CONVERSATIONS);
     const numbers = React.useRef(new Map<string, number>());
     const [revision, setRevision] = React.useState(0);
@@ -59,6 +60,11 @@ export const ChangeConversationsProvider = ({ children }: { children: React.Reac
     const [conversations, setConversations] = React.useState<ReadonlyMap<string, ChangeConversationIdentity>>(
         new Map(),
     );
+
+    React.useLayoutEffect(() => {
+        numbers.current.clear();
+        setConversations(new Map());
+    }, [source, companion?.enabled, companion?.apiBasePath, userUri]);
 
     React.useEffect(() => {
         if (!source || !companion?.enabled) {
@@ -75,9 +81,9 @@ export const ChangeConversationsProvider = ({ children }: { children: React.Reac
                 if (!current.signal.aborted) {
                     setConversations(identifyChangeConversations(summaries, numbers.current));
                 }
-            } catch {
-                if (!current.signal.aborted) {
-                    // Missing permissions, a deleted conversation or a failed lookup all use the unavailable badge.
+            } catch (error: unknown) {
+                // A failed refresh does not invalidate the last successful lookup.
+                if (!current.signal.aborted && error instanceof ChangeConversationAccessError) {
                     setConversations(new Map());
                 }
             }
@@ -91,7 +97,7 @@ export const ChangeConversationsProvider = ({ children }: { children: React.Reac
             controller?.abort();
             window.removeEventListener("focus", onFocus);
         };
-    }, [source, companion?.enabled, companion?.apiBasePath, revision]);
+    }, [source, companion?.enabled, companion?.apiBasePath, userUri, revision]);
 
     return (
         <OpenChangeConversationContext.Provider value={companion?.enabled ? source?.openConversation : undefined}>
