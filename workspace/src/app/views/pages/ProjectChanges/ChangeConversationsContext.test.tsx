@@ -3,13 +3,15 @@ import { ChangeConversationAccessError } from "./ChangeConversationAccessError";
 import { act, render, waitFor } from "@testing-library/react";
 import {
     ChangeConversationsContext,
+    RequestChangeConversationsContext,
     ChangeConversationsProvider,
     identifyChangeConversations,
     RefreshChangeConversationsContext,
 } from "./ChangeConversationsContext";
 
 const mockLoadConversations = jest.fn();
-const mockSource = { loadConversations: mockLoadConversations };
+const mockLoadConversation = jest.fn();
+const mockSource = { loadConversations: mockLoadConversations, loadConversation: mockLoadConversation };
 let mockEnabled = true;
 let mockUserUri = "first";
 let mockApiBasePath = "/custom/dp/api/companion/interactive";
@@ -69,6 +71,7 @@ beforeEach(() => {
     mockUserUri = "first";
     mockApiBasePath = "/custom/dp/api/companion/interactive";
     mockLoadConversations.mockReset();
+    mockLoadConversation.mockReset();
 });
 
 it("keeps cached metadata without requesting it again when the window gains focus", async () => {
@@ -138,7 +141,7 @@ it("refreshes metadata on journal reload without reassigning existing numbers", 
         { id: "a", label: "Renamed" },
     ]);
     act(() => view.getByRole("button", { name: "Reload" }).click());
-    await waitFor(() => expect(view.container).toHaveTextContent("b:2:New|a:1:Renamed"));
+    await waitFor(() => expect(view.container).toHaveTextContent("a:1:Renamed|b:2:New"));
 });
 
 it("ignores an earlier lookup that finishes after a newer one", async () => {
@@ -164,7 +167,7 @@ it("ignores an earlier lookup that finishes after a newer one", async () => {
     expect(view.container).toHaveTextContent("new:1:Current");
 });
 
-it("retains known metadata after failed manual refreshes, then applies a successful empty result", async () => {
+it("retains known metadata after failed refreshes and absence from the recent list", async () => {
     mockLoadConversations.mockResolvedValueOnce([{ id: "a", label: "Known" }]);
     const view = render(
         <ChangeConversationsProvider>
@@ -180,7 +183,7 @@ it("retains known metadata after failed manual refreshes, then applies a success
     expect(view.container).toHaveTextContent("a:1:Known");
     mockLoadConversations.mockResolvedValueOnce([]);
     await act(async () => view.getByRole("button", { name: "Reload" }).click());
-    expect(view.container).not.toHaveTextContent("Known");
+    expect(view.container).toHaveTextContent("a:1:Known");
 });
 
 it.each(["user", "api", "disabled"])(
@@ -206,3 +209,114 @@ it.each(["user", "api", "disabled"])(
         await waitFor(() => expect(view.container.textContent).toBe(""));
     },
 );
+
+const RequestMetadata = ({ ids }: { ids: string[] }) => {
+    const request = React.useContext(RequestChangeConversationsContext);
+    React.useEffect(() => request(ids), [request, ids]);
+    return null;
+};
+const cachedTree = (ids: string[]) => (
+    <ChangeConversationsProvider>
+        <RequestMetadata ids={ids} />
+        <Consumer />
+        <Reload />
+    </ChangeConversationsProvider>
+);
+
+it("resolves missing referenced IDs once and retains them across pages and reloads", async () => {
+    mockLoadConversations.mockResolvedValue([{ id: "recent", label: "Recent" }]);
+    mockLoadConversation.mockResolvedValue({ id: "old", label: "Older" });
+    const view = render(cachedTree(["recent", "old", "old"]));
+    await waitFor(() => expect(view.container).toHaveTextContent("old:2:Older"));
+    expect(mockLoadConversation).toHaveBeenCalledTimes(1);
+    expect(mockLoadConversation).toHaveBeenCalledWith("old", expect.any(AbortSignal), mockApiBasePath);
+    view.rerender(cachedTree(["recent"]));
+    view.rerender(cachedTree(["old"]));
+    await act(async () => view.getByRole("button", { name: "Reload" }).click());
+    expect(view.container).toHaveTextContent("old:2:Older");
+    expect(mockLoadConversation).toHaveBeenCalledTimes(1);
+    mockLoadConversations.mockResolvedValueOnce([{ id: "old", label: "Now recent" }]);
+    await act(async () => view.getByRole("button", { name: "Reload" }).click());
+    expect(view.container).toHaveTextContent("old:2:Now recent");
+    expect(view.container).toHaveTextContent("recent:1:Recent");
+    expect(mockLoadConversation).toHaveBeenCalledTimes(1);
+});
+
+it("does not repeat failed or unavailable lookups until an explicit reload", async () => {
+    mockLoadConversations.mockResolvedValue([]);
+    mockLoadConversation.mockRejectedValueOnce(new Error("Temporary"));
+    const view = render(cachedTree(["old"]));
+    await waitFor(() => expect(mockLoadConversation).toHaveBeenCalledTimes(1));
+    await act(async () => view.rerender(cachedTree(["old"])));
+    expect(mockLoadConversation).toHaveBeenCalledTimes(1);
+    mockLoadConversation.mockResolvedValueOnce(null);
+    await act(async () => view.getByRole("button", { name: "Reload" }).click());
+    expect(mockLoadConversation).toHaveBeenCalledTimes(2);
+    mockLoadConversation.mockResolvedValueOnce({ id: "old", label: "Recovered" });
+    await act(async () => view.getByRole("button", { name: "Reload" }).click());
+    expect(view.container).toHaveTextContent("old:1:Recovered");
+});
+
+it.each(["user", "api", "disabled"])("ignores fallback responses after a %s change", async (change) => {
+    let finish: ((value: { id: string; label: string }) => void) | undefined;
+    mockLoadConversations.mockResolvedValue([]);
+    mockLoadConversation.mockReturnValueOnce(
+        new Promise((resolve) => {
+            finish = resolve;
+        }),
+    );
+    const view = render(cachedTree(["old"]));
+    await waitFor(() => expect(mockLoadConversation).toHaveBeenCalledTimes(1));
+    const oldSignal = mockLoadConversation.mock.calls[0][1];
+    if (change === "user") mockUserUri = "second";
+    if (change === "api") mockApiBasePath = "/other/api";
+    if (change === "disabled") mockEnabled = false;
+    mockLoadConversation.mockResolvedValueOnce(null);
+    view.rerender(cachedTree(["old"]));
+    await act(async () => finish?.({ id: "old", label: "Private" }));
+    expect(oldSignal.aborted).toBe(true);
+    expect(view.container).not.toHaveTextContent("Private");
+});
+
+it("does not overwrite fresh recent metadata with a superseded fallback", async () => {
+    let finish: ((value: { id: string; label: string }) => void) | undefined;
+    mockLoadConversations.mockResolvedValueOnce([]);
+    mockLoadConversation.mockReturnValueOnce(
+        new Promise((resolve) => {
+            finish = resolve;
+        }),
+    );
+    const view = render(cachedTree(["old"]));
+    await waitFor(() => expect(mockLoadConversation).toHaveBeenCalledTimes(1));
+    mockLoadConversations.mockResolvedValueOnce([{ id: "old", label: "Fresh" }]);
+    await act(async () => view.getByRole("button", { name: "Reload" }).click());
+    await act(async () => finish?.({ id: "old", label: "Stale" }));
+    expect(view.container).toHaveTextContent("old:1:Fresh");
+    expect(view.container).not.toHaveTextContent("Stale");
+});
+
+it("clears metadata and stops pending fallbacks when the session is lost", async () => {
+    mockLoadConversations.mockResolvedValue([{ id: "recent", label: "Private" }]);
+    let finish: ((value: { id: string; label: string }) => void) | undefined;
+    mockLoadConversation.mockImplementation((id: string) =>
+        id === "lost"
+            ? Promise.reject(new ChangeConversationAccessError("Unauthorized"))
+            : new Promise((resolve) => {
+                  finish = resolve;
+              }),
+    );
+    const view = render(cachedTree(["lost", "pending"]));
+    await waitFor(() => expect(mockLoadConversation).toHaveBeenCalledTimes(2));
+    await act(async () => finish?.({ id: "pending", label: "Private fallback" }));
+    expect(view.getByTestId("metadata").textContent).toBe("");
+    expect(mockLoadConversation.mock.calls[1][1].aborted).toBe(true);
+});
+
+it("keeps accessible metadata when a specific conversation is unavailable", async () => {
+    mockLoadConversations.mockResolvedValue([{ id: "recent", label: "Accessible" }]);
+    mockLoadConversation.mockResolvedValue(null);
+    const view = render(cachedTree(["missing"]));
+    await waitFor(() => expect(mockLoadConversation).toHaveBeenCalledTimes(1));
+    expect(view.container).toHaveTextContent("recent:1:Accessible");
+    expect(view.container).not.toHaveTextContent("missing:");
+});

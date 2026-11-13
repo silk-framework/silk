@@ -33,9 +33,13 @@ import Filterbar from "../Workspace/Filterbar";
 import AppliedFacets from "../Workspace/AppliedFacets";
 import ChangeList from "./ChangeList";
 import { changeJournalHelpMarkdown } from "./changeJournalHelp";
-import { ChangeConversationsProvider, RefreshChangeConversationsContext } from "./ChangeConversationsContext";
+import {
+    ChangeConversationsProvider,
+    RefreshChangeConversationsContext,
+    RequestChangeConversationsContext,
+} from "./ChangeConversationsContext";
 import { ChangeConversationLabel, CONVERSATION_FACET } from "./ChangeSource";
-import { HIGHLIGHT_CONVERSATION_PARAM } from "../../../constants/queryParams";
+import { CONVERSATION_PARAM, HIGHLIGHT_CONVERSATION_PARAM } from "../../../constants/queryParams";
 import { changeSearchMatches } from "./changeSearchQuery";
 
 const PAGE_SIZE = 25;
@@ -66,6 +70,19 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
     const [helpOpen, setHelpOpen] = React.useState(false);
     // The search store is shared with the workspace search and the activities page: the list waits until it is this page's
     const [ready, setReady] = React.useState(false);
+    const requestConversationMetadata = React.useContext(RequestChangeConversationsContext);
+    React.useEffect(() => {
+        if (!ready) return;
+        const linkedId = new URLSearchParams(qs).get(CONVERSATION_PARAM);
+        const filteredIds = appliedFacets
+            .filter((facet) => facet.facetId === CONVERSATION_FACET)
+            .flatMap((facet) => facet.keywordIds);
+        requestConversationMetadata([
+            ...filteredIds,
+            ...(highlightConversation ? [highlightConversation] : []),
+            ...(linkedId ? [linkedId] : []),
+        ]);
+    }, [ready, qs, highlightConversation, appliedFacets, requestConversationMetadata]);
 
     const breadcrumbs = [
         {

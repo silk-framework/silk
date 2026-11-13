@@ -37,6 +37,7 @@ import {
     UNREVIEWED_STATE,
 } from "./changesRequests";
 import { entriesBackTo, hasInverse, relatedSeqs } from "./changeListUtils";
+import { RequestChangeConversationsContext } from "./ChangeConversationsContext";
 import ChangeRow from "./ChangeRow";
 import BatchRevertModal from "./BatchRevertModal";
 import MarkReviewedModal from "./MarkReviewedModal";
@@ -92,6 +93,10 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
         }
     }, [isLoading, entries]);
     const shown = isLoading ? lastEntries.current : entries;
+    const requestConversationMetadata = React.useContext(RequestChangeConversationsContext);
+    React.useEffect(() => {
+        requestConversationMetadata(shown.flatMap((entry) => (entry.conversationId ? [entry.conversationId] : [])));
+    }, [shown, requestConversationMetadata]);
     const error = useSelector(workspaceSel.errorSelector);
     const pagination = useSelector(workspaceSel.paginationSelector);
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);

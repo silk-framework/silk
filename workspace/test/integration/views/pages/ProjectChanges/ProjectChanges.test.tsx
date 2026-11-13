@@ -28,6 +28,7 @@ import {
     ChangeConversationsContext,
     ChangeConversationIdentity,
     OpenChangeConversationContext,
+    RequestChangeConversationsContext,
 } from "../../../../../src/app/views/pages/ProjectChanges/ChangeConversationsContext";
 import {
     ChangeConversationLabel,
@@ -199,8 +200,15 @@ describe("Project changes", () => {
         identities?: ReadonlyMap<string, ChangeConversationIdentity>,
         history = createBrowserHistory(),
         onOpenConversation?: (id: string) => void,
+        onRequestMetadata?: (ids: readonly string[]) => void,
     ): Promise<RenderResult> => {
-        const listElement = <ChangeList projectId={PROJECT_ID} />;
+        const listElement = onRequestMetadata ? (
+            <RequestChangeConversationsContext.Provider value={onRequestMetadata}>
+                <ChangeList projectId={PROJECT_ID} />
+            </RequestChangeConversationsContext.Provider>
+        ) : (
+            <ChangeList projectId={PROJECT_ID} />
+        );
         const wrapper = renderWrapper(
             identities ? (
                 <OpenChangeConversationContext.Provider value={onOpenConversation}>
@@ -319,6 +327,14 @@ describe("Project changes", () => {
                 const element = findElement(wrapper, byTestId(`change-link-${change.seq}-${link.id}`));
                 expect(element.getAttribute("href")).toBe(link.path);
             }),
+        );
+    });
+
+    it("requests conversation metadata for the displayed journal entries", async () => {
+        const request = jest.fn();
+        await loadChangeList(changes, defaultConflicts, undefined, createBrowserHistory(), undefined, request);
+        expect(request).toHaveBeenLastCalledWith(
+            expect.arrayContaining(["conversation-a", "conversation-b", "unavailable"]),
         );
     });
 
