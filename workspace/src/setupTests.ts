@@ -2,6 +2,15 @@ import "regenerator-runtime/runtime";
 import "@testing-library/jest-dom";
 import { TextEncoder, TextDecoder } from "util";
 
+// Suppress only i18next's promotional notice, including instances created by individual tests.
+const originalInfo = console.info;
+console.info = (...args: unknown[]) => {
+    if (typeof args[0] === "string" && args[0].startsWith("🌐 i18next is made possible by our own product, Locize")) {
+        return;
+    }
+    originalInfo(...args);
+};
+
 jest.setTimeout(30000);
 
 if (window.document) {
