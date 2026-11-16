@@ -18,6 +18,7 @@ import org.silkframework.workspace.activity.workflow.ReconfigureTasks.Reconfigur
 import org.silkframework.workspace.resources.CacheUpdaterHelper
 
 import java.util.logging.{Level, Logger}
+import scala.util.Try
 import scala.util.control.NonFatal
 
 /**
@@ -131,16 +132,23 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
           throw cancelledException
         }
     } finally {
-      workflowRunContext.runFinished()
-      workflowRunContext.updateReport(_.withAuthDiagnostics(userContext).asDone())
-      this.executionContext.executeShutdownHooks()
-      workflowRunContext.taskExecutors.foreach { case (taskId, exec) =>
-        try {
-          exec.close()
-        } catch {
-          case NonFatal(ex) =>
-            log.log(Level.WARNING, s"Exception while closing executor for task '$taskId'.", ex)
+      try {
+        this.executionContext.executeShutdownHooks()
+        workflowRunContext.taskExecutors.foreach { case (taskId, exec) =>
+          val taskLabel = Try(project.anyTaskOption(taskId).map(_.fullLabel)).toOption.flatten.getOrElse(taskId.toString)
+          try {
+            workflowRunContext.trackOperation(taskId, s"Closing '$taskLabel'") {
+              exec.close()
+            }
+          } catch {
+            case NonFatal(ex) =>
+              log.log(Level.WARNING, s"Exception while closing executor for task '$taskId'.", ex)
+          }
         }
+      } finally {
+        // The report is finalized after the cleanup: an enclosing run adds a new entry for every update of a report that is done.
+        workflowRunContext.runFinished()
+        workflowRunContext.updateReport(_.withAuthDiagnostics(userContext).asDone())
       }
     }
   }

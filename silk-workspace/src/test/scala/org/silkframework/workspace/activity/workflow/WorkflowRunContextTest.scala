@@ -62,14 +62,14 @@ class WorkflowRunContextTest extends AnyFlatSpec with Matchers {
     }
 
     monitor.value().workflowWarnings shouldBe Seq("The workflow was cancelled while the following tasks were still running: " +
-      "Executing 'plugin', Executing 'plugin', Writing 'output'. The workflow stops once they have finished.")
+      "Executing 'plugin', Executing 'plugin', Writing 'output'. The workflow has not stopped yet.")
     monitor.value().version shouldBe 1 // Report consumers rely on a version bump for every change
 
-    runContext.runFinished() // The tasks have finished, so the warning gets its final wording
+    runContext.runFinished() // The run has ended, so the warning gets its final wording
 
     monitor.value().workflowWarnings should have size 1
     monitor.value().workflowWarnings.head should fullyMatch regex ("The workflow was cancelled while the following tasks were still running: " +
-      "Executing 'plugin', Executing 'plugin', Writing 'output'\\. They finished after (\\d+ms|\\d+\\.\\d+s)\\.")
+      "Executing 'plugin', Executing 'plugin', Writing 'output'\\. The workflow stopped (\\d+ms|\\d+\\.\\d+s) later\\.")
     monitor.value().version shouldBe 2
   }
 

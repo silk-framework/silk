@@ -52,14 +52,14 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
   private val statusListeners: mutable.Buffer[WorkflowStatusListener] = mutable.Buffer.empty
 
   /**
-    * The operations in progress, innermost first, each with the id of its workflow node, e.g. "Executing 'My task'".
+    * The operations in progress, innermost first, each with the id of its workflow node or task, e.g. "Executing 'My task'".
     * An operation is in progress until the result of its task has been consumed, so a task whose entities are still
     * being pulled by a later task counts as well.
     */
   @volatile
   private var runningOperations: List[(Identifier, String)] = Nil
 
-  /** Runs an operation on a workflow node, e.g. "Executing 'My task'", and tracks it as in progress until it returns. */
+  /** Runs an operation on a workflow node or task, e.g. "Executing 'My task'", and tracks it as in progress until it returns. */
   def trackOperation[T](nodeId: Identifier, operation: String)(body: => T): T = {
     runningOperations = (nodeId, operation) :: runningOperations
     try {
@@ -81,7 +81,7 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
   // Guarded by the lock of the report value, so that the cancelling thread and the workflow thread see the same state.
   private var cancelledWhileRunning: Option[(String, Long)] = None
 
-  private val stopsOnceFinished = "The workflow stops once they have finished."
+  private val notStoppedYet = "The workflow has not stopped yet."
 
   private def runningTasksWarning(tasks: String, outcome: String): String = {
     s"The workflow was cancelled while the following tasks were still running: $tasks. $outcome"
@@ -95,7 +95,7 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
         if(running.nonEmpty) {
           val tasks = running.mkString(", ")
           cancelledWhileRunning = Some((tasks, System.nanoTime()))
-          updateReport(_.addWarning(runningTasksWarning(tasks, stopsOnceFinished)))
+          updateReport(_.addWarning(runningTasksWarning(tasks, notStoppedYet)))
         }
       }
     }
@@ -103,13 +103,13 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
   activityContext.status.subscribe(cancellationListener)
 
   /**
-    * Marks the end of the run. If the workflow was cancelled while tasks were still running, the warning is updated
-    * with the time these tasks took to finish, which tells a blocking task apart from a cancel that went through at once.
+    * Marks the end of the run, after its cleanup. If the workflow was cancelled while tasks were still running, the warning is updated
+    * with the time the workflow took to stop, which tells a blocking task apart from a cancel that went through at once.
     */
   def runFinished(): Unit = activityContext.value.synchronized {
     for((tasks, cancelledAt) <- cancelledWhileRunning) {
-      val finishedAfter = s"They finished after ${Timer.formatDuration((System.nanoTime() - cancelledAt) / 1000000)}."
-      updateReport(_.replaceWarning(runningTasksWarning(tasks, stopsOnceFinished), runningTasksWarning(tasks, finishedAfter)))
+      val stoppedAfter = s"The workflow stopped ${Timer.formatDuration((System.nanoTime() - cancelledAt) / 1000000)} later."
+      updateReport(_.replaceWarning(runningTasksWarning(tasks, notStoppedYet), runningTasksWarning(tasks, stoppedAfter)))
       cancelledWhileRunning = None
     }
   }
