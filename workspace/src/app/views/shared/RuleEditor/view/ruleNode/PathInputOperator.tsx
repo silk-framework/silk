@@ -1,3 +1,4 @@
+import { selectOptionProps } from "../../../../../utils/selectOptionProps";
 import { ParameterAutoCompletionProps } from "../../../modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
 import React from "react";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
@@ -334,14 +335,9 @@ export const LanguageSwitcher = ({ onLanguageChange, initialLanguage }: Language
                     if (languageTagRegex.test(query)) {
                         return (
                             <MenuItem
-                                roleStructure="none"
-                                role="option"
-                                id={`${languageFilterId}-create-item`}
-                                aria-selected={active}
-                                tabIndex={-1}
+                                {...selectOptionProps({ id: `${languageFilterId}-create-item`, modifiers: { active } })}
                                 data-test-id={"language-filter-custom"}
                                 icon={"item-add-artefact"}
-                                active={active}
                                 key={query}
                                 onClick={handleClick}
                                 text={query}
@@ -350,19 +346,13 @@ export const LanguageSwitcher = ({ onLanguageChange, initialLanguage }: Language
                     }
                     return undefined;
                 }}
-                itemRenderer={(lang, { handleClick, handleFocus, id, modifiers }) => {
+                itemRenderer={(lang, { handleClick, ...optionState }) => {
                     return lang === NO_LANG ? (
                         currentLanguageFilter.current ? (
                             <MenuItem
+                                {...selectOptionProps(optionState)}
                                 key={lang}
-                                roleStructure="none"
-                                role="option"
-                                id={id}
-                                aria-selected={modifiers.active}
-                                tabIndex={-1}
-                                onFocus={handleFocus}
                                 data-test-id={"language-filter-remove"}
-                                active={modifiers.active}
                                 icon={"operation-filterremove"}
                                 text={t("PathInputOperator.noFilter")}
                                 onClick={handleClick}
@@ -370,15 +360,9 @@ export const LanguageSwitcher = ({ onLanguageChange, initialLanguage }: Language
                         ) : null
                     ) : (
                         <MenuItem
+                            {...selectOptionProps(optionState)}
                             key={lang}
-                            roleStructure="none"
-                            role="option"
-                            id={id}
-                            aria-selected={modifiers.active}
-                            tabIndex={-1}
-                            onFocus={handleFocus}
                             data-test-id={`language-filter-${lang}`}
-                            active={modifiers.active}
                             icon={"operation-filter"}
                             text={lang}
                             onClick={handleClick}

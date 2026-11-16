@@ -1,3 +1,4 @@
+import { selectOptionProps } from "../../../../../../../utils/selectOptionProps";
 import React from "react";
 import { FieldItem, MenuItem, Select } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
@@ -33,19 +34,8 @@ export default function TypesList({ onChange, selected, elementLabel }: IProps) 
                 filterable={false}
                 onItemSelect={onChange}
                 items={TYPES}
-                itemRenderer={(type, { handleClick, handleFocus, id, modifiers }) => (
-                    <MenuItem
-                        text={type}
-                        key={type}
-                        id={id}
-                        onClick={handleClick}
-                        onFocus={handleFocus}
-                        roleStructure="none"
-                        role="option"
-                        aria-selected={modifiers.active}
-                        tabIndex={-1}
-                        active={modifiers.active}
-                    />
+                itemRenderer={(type, { handleClick, ...optionState }) => (
+                    <MenuItem {...selectOptionProps(optionState)} text={type} key={type} onClick={handleClick} />
                 )}
                 itemsEqual={areTypesEqual}
                 fill

@@ -1,3 +1,4 @@
+import { selectOptionProps } from "../../../../../../utils/selectOptionProps";
 import { LinkTypeMapping, ReferenceLinkType } from "../typings";
 import React, { useState } from "react";
 import {
@@ -115,19 +116,13 @@ export const AddReferenceLinkModal = ({ projectId, linkingTaskId, onClose }: Pro
                 <Select<ReferenceLinkType>
                     items={LINK_TYPES}
                     onItemSelect={setNewLinkType}
-                    itemRenderer={(item, { handleClick, handleFocus, id, modifiers }) => {
+                    itemRenderer={(item, { handleClick, ...optionState }) => {
                         return (
                             <MenuItem
+                                {...selectOptionProps(optionState)}
                                 key={item}
                                 data-test-id={`add-reference-${item}`}
                                 text={t(`ReferenceLinks.${LinkTypeMapping[item]}`, LinkTypeMapping[item])}
-                                id={id}
-                                roleStructure="none"
-                                role="option"
-                                aria-selected={modifiers.active}
-                                tabIndex={-1}
-                                active={modifiers.active}
-                                onFocus={handleFocus}
                                 onClick={handleClick}
                             />
                         );

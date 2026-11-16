@@ -1,8 +1,10 @@
+import { selectOptionProps } from "../../../../../../../utils/selectOptionProps";
 import React, { useContext, useEffect, useState } from "react";
 import {
     MenuItem,
     FieldItem,
     Select,
+    SelectProps,
     Button,
     Highlighter,
     OverflowText,
@@ -119,9 +121,13 @@ export default function TargetList({ targets, onChange, elementLabel }: IProps) 
         </OverviewItem>
     );
 
-    const itemRenderer = (target: ITargetWithSelected, { handleClick }) => {
+    const itemRenderer: SelectProps<ITargetWithSelected>["itemRenderer"] = (
+        target: ITargetWithSelected,
+        { handleClick, ...optionState },
+    ) => {
         return (
             <MenuItem
+                {...selectOptionProps(optionState)}
                 text={
                     <div style={{ minWidth: "100%", width: "40rem", maxWidth: "90vw" }}>
                         {itemLabel(target, inputQuery)}
@@ -129,7 +135,6 @@ export default function TargetList({ targets, onChange, elementLabel }: IProps) 
                 }
                 key={target.uri}
                 onClick={handleClick}
-                active={target.uri === selected.uri}
             />
         );
     };

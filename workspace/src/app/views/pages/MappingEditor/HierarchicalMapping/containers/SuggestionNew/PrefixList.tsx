@@ -1,5 +1,6 @@
+import { selectOptionProps } from "../../../../../../utils/selectOptionProps";
 import React, { useEffect, useState } from "react";
-import { Button, FieldItem, Highlighter, MenuItem, Select } from "@eccenca/gui-elements";
+import { Button, FieldItem, Highlighter, MenuItem, Select, SelectProps } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { IPrefix } from "./suggestion.typings";
 
@@ -16,6 +17,8 @@ interface IProps {
 /** The selection of URI prefixes used for auto-generated properties */
 export default function PrefixList({ prefixes, selectedPrefix, onChange, disabled }: IProps) {
     const [t] = useTranslation();
+    const createOptionId = `${React.useId()}-create-prefix`;
+    const [createOptionActive, setCreateOptionActive] = useState(false);
     const [items, setItems] = useState<IPrefix[]>([]);
 
     const [inputQuery, setInputQuery] = useState<string>("");
@@ -46,8 +49,15 @@ export default function PrefixList({ prefixes, selectedPrefix, onChange, disable
         </>
     );
 
-    const itemRenderer = (prefix: IPrefix, { handleClick }) => {
-        return <MenuItem text={itemLabel(prefix, inputQuery)} key={prefix.uri} onClick={handleClick} />;
+    const itemRenderer: SelectProps<IPrefix>["itemRenderer"] = (prefix: IPrefix, { handleClick, ...optionState }) => {
+        return (
+            <MenuItem
+                {...selectOptionProps(optionState)}
+                text={itemLabel(prefix, inputQuery)}
+                key={prefix.uri}
+                onClick={handleClick}
+            />
+        );
     };
 
     const handleQueryChange = (value) => {
@@ -74,9 +84,9 @@ export default function PrefixList({ prefixes, selectedPrefix, onChange, disable
         handleClick: React.MouseEventHandler<HTMLElement>,
     ) => (
         <MenuItem
+            {...selectOptionProps({ id: createOptionId, modifiers: { active } })}
             icon="item-add-artefact"
             text={`Create "${query}"`}
-            active={active}
             onClick={handleClick}
             shouldDismissPopover={false}
         />
@@ -85,7 +95,12 @@ export default function PrefixList({ prefixes, selectedPrefix, onChange, disable
     return (
         <FieldItem labelProps={{ text: t("MappingSuggestion.selection.knownPrefix") }}>
             <Select<IPrefix>
-                inputProps={{ "aria-label": t("MappingSuggestion.selection.searchPrefixes") }}
+                inputProps={{
+                    "aria-label": t("MappingSuggestion.selection.searchPrefixes"),
+                    ...(createOptionActive ? { "aria-activedescendant": createOptionId } : {}),
+                }}
+                onActiveItemChange={(_item, isCreateNewItem) => setCreateOptionActive(isCreateNewItem)}
+                contextOverlayProps={{ onClosing: () => setCreateOptionActive(false) }}
                 filterable={true}
                 onItemSelect={(t) => handleSelectTarget(t.uri)}
                 items={items}

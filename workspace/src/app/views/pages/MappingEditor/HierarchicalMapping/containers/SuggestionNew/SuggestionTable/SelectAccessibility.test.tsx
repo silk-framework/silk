@@ -121,3 +121,66 @@ it("names the prefix selector and its search input", async () => {
     await act(async () => fireEvent.click(selectButton));
     expect(screen.getByRole("combobox", { name: "Search prefixes" })).toBeInTheDocument();
 });
+
+it.each(["target", "prefix", "single source"])("connects the active %s to a real option", async (kind) => {
+    const user = userEvent.setup();
+    const target = { uri: "urn:target", label: "Target A", type: "value" as const, confidence: 1, _selected: true };
+    renderWithTranslations(
+        kind === "prefix" ? (
+            <PrefixList
+                prefixes={[
+                    { key: "ex", uri: "urn:example" },
+                    { key: "other", uri: "urn:other" },
+                ]}
+                selectedPrefix="urn:example"
+                onChange={jest.fn()}
+            />
+        ) : (
+            <SuggestionListContext.Provider
+                value={{
+                    portalContainer: undefined,
+                    exampleValues: {},
+                    search: "",
+                    isFromDataset: kind !== "single source",
+                    vocabulariesAvailable: true,
+                }}
+            >
+                <TargetList
+                    targets={
+                        kind === "single source"
+                            ? [target]
+                            : [target, { ...target, uri: "urn:other", label: "Other", _selected: false }]
+                    }
+                    onChange={jest.fn()}
+                    elementLabel="Source A"
+                />
+            </SuggestionListContext.Provider>
+        ),
+    );
+    await act(async () => user.tab());
+    await act(async () => user.keyboard("{Enter}"));
+    const combobox = screen.getByRole("combobox");
+    const option = document.getElementById(combobox.getAttribute("aria-activedescendant")!);
+    expect(option).not.toBeNull();
+    expect(option).toHaveAttribute("role", "option");
+    expect(screen.getAllByRole("option")).toContain(option);
+    if (kind !== "single source") {
+        await act(async () => user.keyboard("{ArrowDown}"));
+        const nextOption = document.getElementById(combobox.getAttribute("aria-activedescendant")!);
+        expect(nextOption).not.toBe(option);
+        expect(nextOption).toHaveAttribute("role", "option");
+        expect(nextOption).toHaveAttribute("aria-selected", "true");
+    }
+});
+
+it("connects a custom prefix to the search combobox", async () => {
+    const user = userEvent.setup();
+    renderWithTranslations(<PrefixList prefixes={[]} selectedPrefix="" onChange={jest.fn()} />);
+    await act(async () => user.tab());
+    await act(async () => user.keyboard("{Enter}"));
+    const input = screen.getByRole("combobox", { name: "Search prefixes" });
+    await act(async () => user.type(input, "urn:custom"));
+    await act(async () => user.keyboard("{ArrowDown}"));
+    const option = screen.getByRole("option", { name: 'Create "urn:custom"' });
+    expect(document.getElementById(input.getAttribute("aria-activedescendant")!)).toBe(option);
+});
