@@ -77,3 +77,45 @@ it("announces the language filter when tabbing to it without a selected language
         "Set a language filter. Only values for the chosen language will be fetched.",
     );
 });
+
+it.each(["{ArrowDown}", "{ArrowUp}"])(
+    "does not activate or create an invalid language tag with %s",
+    async (arrowKey) => {
+        const user = userEvent.setup();
+        const onLanguageChange = jest.fn();
+        render(
+            <I18nextProvider i18n={i18n}>
+                <LanguageSwitcherContext.Provider value={{ showLanguageFilterButton: true }}>
+                    <LanguageSwitcher initialLanguage="en" onLanguageChange={onLanguageChange} />
+                </LanguageSwitcherContext.Provider>
+            </I18nextProvider>,
+        );
+        await act(async () => user.click(screen.getByRole("button", { name: "Filter by language, English selected" })));
+        const input = screen.getByRole("combobox", { name: "Search languages" });
+        await waitFor(() => expect(input).toHaveFocus());
+        await act(async () => user.type(input, "xyz1"));
+        expect(screen.queryAllByRole("option")).toHaveLength(0);
+        await act(async () => user.keyboard("{Enter}"));
+        expect(onLanguageChange).not.toHaveBeenCalled();
+        await act(async () => user.keyboard(arrowKey));
+        expect(input).not.toHaveAttribute("aria-activedescendant");
+        await act(async () => user.keyboard("{Enter}"));
+        expect(onLanguageChange).not.toHaveBeenCalled();
+        expect(screen.getByRole("button", { name: "Filter by language, English selected" })).toBeInTheDocument();
+        await act(async () => user.clear(input));
+        await act(async () => user.type(input, "es-MX"));
+        await act(async () => user.keyboard("{ArrowDown}"));
+        expect(document.getElementById(input.getAttribute("aria-activedescendant")!)).toBe(
+            screen.getByRole("option", { name: "es-MX" }),
+        );
+        fireEvent.change(input, { target: { value: "xyz1" } });
+        await act(async () => user.keyboard(arrowKey));
+        expect(input).not.toHaveAttribute("aria-activedescendant");
+        await act(async () => user.keyboard("{Enter}"));
+        expect(onLanguageChange).not.toHaveBeenCalled();
+        fireEvent.change(input, { target: { value: "es-MX" } });
+        await act(async () => user.keyboard("{ArrowDown}"));
+        await act(async () => user.keyboard("{Enter}"));
+        expect(onLanguageChange).toHaveBeenCalledWith("es-MX");
+    },
+);

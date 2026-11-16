@@ -282,6 +282,8 @@ export const LanguageSwitcher = ({ onLanguageChange, initialLanguage }: Language
     const [t, i18n] = useTranslation();
     const languageFilterId = React.useId();
     const [languageFilter, setLanguageFilter] = React.useState<string | undefined>(initialLanguage);
+    const [languageQuery, setLanguageQuery] = React.useState("");
+    const canCreateLanguage = languageTagRegex.test(languageQuery);
     // Blueprint supplies IDs for existing options, but its create-new option needs its own active descendant ID.
     const [customLanguageActive, setCustomLanguageActive] = React.useState(false);
     const currentLanguageFilter = React.useRef<string | undefined>(undefined);
@@ -316,7 +318,9 @@ export const LanguageSwitcher = ({ onLanguageChange, initialLanguage }: Language
                     id: `${languageFilterId}-input`,
                     className: "nodrag",
                     "aria-label": t("PathInputOperator.searchLanguages"),
-                    ...(customLanguageActive ? { "aria-activedescendant": `${languageFilterId}-create-item` } : {}),
+                    ...(customLanguageActive
+                        ? { "aria-activedescendant": canCreateLanguage ? `${languageFilterId}-create-item` : undefined }
+                        : {}),
                 }}
                 menuProps={{
                     className: "nodrag",
@@ -324,9 +328,12 @@ export const LanguageSwitcher = ({ onLanguageChange, initialLanguage }: Language
                 items={languageFilterItems}
                 filterable={true}
                 itemPredicate={languageItemPredicate}
-                createNewItemFromQuery={(query) => {
-                    return query;
-                }}
+                query={languageQuery}
+                onQueryChange={setLanguageQuery}
+                // Blueprint considers creation available even if its renderer returns no element.
+                createNewItemFromQuery={
+                    canCreateLanguage ? (query) => (languageTagRegex.test(query) ? query : []) : undefined
+                }
                 createNewItemRenderer={(
                     query: string,
                     active: boolean,
