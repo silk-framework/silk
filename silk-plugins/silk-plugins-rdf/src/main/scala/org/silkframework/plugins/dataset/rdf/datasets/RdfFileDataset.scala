@@ -72,7 +72,7 @@ case class RdfFileDataset(
       guessedLang
     } else {
       val explicitLang = RDFLanguages.nameToLang(format)
-      require(explicitLang != null, s"Invalid format '$format'. Supported formats are: 'RDF/XML', 'N-Triples', 'N-Quads', 'Turtle'")
+      require(explicitLang != null, s"Invalid format '$format'. Supported formats are: ${RdfLangAutocompletionProvider.supportedLanguages.map(l => s"'${l.value}'").mkString(", ")}")
       explicitLang
     }
   }

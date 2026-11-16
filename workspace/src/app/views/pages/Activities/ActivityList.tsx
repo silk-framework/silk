@@ -180,9 +180,11 @@ const ActivityList = () => {
                 {activity.parentType && (
                     <Tag>
                         <Highlighter
-                            label={i18n.exists(parentTypeKey)
-                                ? t(parentTypeKey)
-                                : activity.parentType[0].toUpperCase() + activity.parentType.substr(1)}
+                            label={
+                                i18n.exists(parentTypeKey)
+                                    ? t(parentTypeKey)
+                                    : activity.parentType[0].toUpperCase() + activity.parentType.substr(1)
+                            }
                             searchValue={textQuery}
                         />
                     </Tag>
@@ -277,6 +279,10 @@ const ActivityList = () => {
                                     renderMarkdown: true,
                                     renderReport: (markdown) => <Markdown children={markdown as string} />,
                                     fetchErrorReport: fetchErrorReportFactory(activity),
+                                    fullScreenTogglerTexts: {
+                                        maximize: t("common.action.fullscreenView"),
+                                        minimize: t("common.action.fullscreenExit"),
+                                    },
                                 }}
                                 viewValueAction={
                                     activity.isCacheActivity

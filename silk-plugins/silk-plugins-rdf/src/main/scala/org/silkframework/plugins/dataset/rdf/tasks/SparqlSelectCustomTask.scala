@@ -9,7 +9,7 @@ import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlTemplate
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.plugin.annotations.{Action, Param, Plugin, PluginReference}
 import org.silkframework.runtime.plugin.types.SparqlCodeParameter
-import org.silkframework.runtime.templating.{TemplateEngineAutocompletionProvider, VariableScope}
+import org.silkframework.runtime.templating.{TemplateEngineAutocompletionProvider, TemplateVariableName, VariableScope}
 
 import scala.util.Try
 
@@ -116,6 +116,8 @@ case class SparqlSelectCustomTask(
   }
 
   val outputSchema: EntitySchema = queryTemplate.outputSchema
+
+  override def referencedVariables: Seq[TemplateVariableName] = queryTemplate.referencedVariables
 
   @Action(
     label = "Show prefixes",

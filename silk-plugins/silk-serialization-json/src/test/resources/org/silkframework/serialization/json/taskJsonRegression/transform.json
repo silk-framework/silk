@@ -11,6 +11,7 @@
     "taskType" : "Transform",
     "type" : "transform",
     "parameters" : {
+      "inputLimit" : "",
       "mappingRule" : {
         "type" : "root",
         "id" : "root",

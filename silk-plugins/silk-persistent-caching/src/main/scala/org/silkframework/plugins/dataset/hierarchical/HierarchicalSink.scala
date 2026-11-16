@@ -5,7 +5,6 @@ import org.silkframework.dataset.{EntitySink, TypedProperty}
 import org.silkframework.entity.ValueType
 import org.silkframework.plugins.dataset.hierarchical.HierarchicalSink.DEFAULT_MAX_SIZE
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
 import scala.collection.mutable
@@ -113,14 +112,15 @@ abstract class HierarchicalSink extends EntitySink {
 
   /**
     * Outputs a single entity and its referenced entities to the HierarchicalEntityWriter.
-    * The entity is loaded from the cache by its URI.
+    * The entity is loaded from the cache by its URI. Fails if no entity with that URI has been written.
     */
-  private def outputEntityByUri(uri: String, writer: HierarchicalEntityWriter, depth: Int): Unit = {
+  private def outputEntityByUri(uri: String, referencingEntity: CachedEntity, property: TypedProperty,
+                                writer: HierarchicalEntityWriter, depth: Int): Unit = {
     cache.getEntity(uri) match {
       case Some(entity) =>
         outputEntity(entity, writer, depth)
       case None =>
-        throw new ValidationException("Could not find entity with URI: " + uri)
+        throw new MissingReferencedEntityException(referencingEntity.uri, uri, property.propertyUri)
     }
   }
 
@@ -142,7 +142,7 @@ abstract class HierarchicalSink extends EntitySink {
       writer.startProperty(property, values.size)
       if(property.valueType == ValueType.URI && !property.isTypeProperty) {
         for(v <- values) {
-          outputEntityByUri(v, writer, depth + 1)
+          outputEntityByUri(v, entity, property, writer, depth + 1)
         }
       } else {
         writer.writeValue(values, property)

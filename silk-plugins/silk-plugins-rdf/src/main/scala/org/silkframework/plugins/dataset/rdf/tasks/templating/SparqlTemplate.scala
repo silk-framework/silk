@@ -4,7 +4,7 @@ import org.apache.jena.update.UpdateFactory
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.templating.{TemplateEngines, TemplateVariableValue, TemplateVariablesReader, VariableScope}
+import org.silkframework.runtime.templating.{TemplateEngines, TemplateVariableName, TemplateVariableValue, TemplateVariablesReader, VariableScope}
 import org.silkframework.runtime.validation.ValidationException
 
 import scala.util.Try
@@ -46,6 +46,9 @@ trait SparqlTemplate {
   /** True if the template references the connected input task (its entity values or its parameters)
     * and thus needs an input port. False for static templates that need no input. */
   def requiresInput: Boolean
+
+  /** The global, project and execution variables that the template references. */
+  def referencedVariables: Seq[TemplateVariableName]
 }
 
 object SparqlTemplate {

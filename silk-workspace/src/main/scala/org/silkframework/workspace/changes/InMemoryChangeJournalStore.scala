@@ -1,5 +1,6 @@
 package org.silkframework.workspace.changes
 
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.util.Identifier
 
@@ -15,12 +16,20 @@ case class InMemoryChangeJournalStore(@Param("The number of entries kept per pro
 
   private var reviewed = Map.empty[Identifier, Int]
 
-  override def append(project: Identifier, entry: ChangeEntry): Unit = synchronized {
+  override def append(project: Identifier, entry: ChangeEntry)(implicit context: PluginContext): Unit = synchronized {
     journals += project -> (journals.getOrElse(project, Vector.empty) :+ entry).takeRight(maxEntries)
   }
 
-  override def entries(project: Identifier): Seq[ChangeEntry] = synchronized {
-    journals.getOrElse(project, Vector.empty)
+  override def headers(project: Identifier): Seq[ChangeHeader] = synchronized {
+    journals.getOrElse(project, Vector.empty).map(_.header)
+  }
+
+  override def entry(project: Identifier, seq: Int)(implicit context: PluginContext): Option[ChangeEntry] = synchronized {
+    journals.getOrElse(project, Vector.empty).find(_.seq == seq)
+  }
+
+  override def latestSeq(project: Identifier): Int = synchronized {
+    journals.get(project).flatMap(_.lastOption).map(_.seq).getOrElse(0)
   }
 
   override def reviewedUpTo(project: Identifier): Int = synchronized {

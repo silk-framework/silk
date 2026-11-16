@@ -45,4 +45,11 @@ class RdfFileDatasetTest extends AnyFlatSpec with Matchers {
     val rdfDataset = RdfFileDataset(resource, "N-Triples", graph = "urn:graph:some")
     ExecutorRegistry.access(rdfDataset).source.retrievePaths("") must have size 2
   }
+
+  it should "read JSON-LD" in {
+    val resource = InMemoryResourceManager().get("temp")
+    resource.writeString("""{ "@context": { "p": { "@id": "urn:prop:a", "@type": "@id" } }, "@id": "urn:subj:a", "p": "urn:obj:c" }""")
+    val rdfDataset = RdfFileDataset(resource, "JSON-LD")
+    ExecutorRegistry.access(rdfDataset).source.retrievePaths("") must have size 2
+  }
 }

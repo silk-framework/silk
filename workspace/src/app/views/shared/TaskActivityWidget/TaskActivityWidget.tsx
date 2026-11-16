@@ -80,7 +80,7 @@ export const useTaskActivityWidget = ({
         registerError(
             `taskActivityWidget-${projectId}-${taskId}-${activityName}-${action}`,
             t("widget.TaskActivityOverview.errorMessages.actions." + action, { activityName: activityName }),
-            error
+            error,
         );
     };
 
@@ -95,7 +95,7 @@ export const useTaskActivityWidget = ({
         return connectWebSocket(
             legacyApiEndpoint(`/activities/updatesWebSocket${query}`),
             legacyApiEndpoint(`/activities/updates${query}`),
-            updateActivityStatus
+            updateActivityStatus,
         );
     };
     useEffect(() => {
@@ -106,7 +106,7 @@ export const useTaskActivityWidget = ({
         registerError(
             `taskActivityOverview-fetchErrorReport`,
             t("widget.TaskActivityOverview.errorMessages.errorReport.fetchReport"),
-            ex
+            ex,
         );
     });
 
@@ -125,7 +125,7 @@ export const useTaskActivityWidget = ({
             registerError(
                 `TaskActivityWidget.${projectId}-${taskId}-${activityName}.startPrioritized`,
                 `Activity action 'Run prioritized' against activity '${activityName}' has failed, see details.`,
-                error
+                error,
             );
         };
         await activityStartPrioritized(activityName, projectId, taskId, registerActivityError);
@@ -144,12 +144,17 @@ export const useTaskActivityWidget = ({
         translate,
         failureReportAction: {
             title: "", // The title is already repeated in the markdown
+            "aria-label": t("widget.TaskActivityOverview.errorReportLabel"),
             allowDownload: true,
             closeButtonValue: t("common.action.close"),
             downloadButtonValue: t("common.action.download"),
             renderMarkdown: true,
             renderReport: (markdown) => <Markdown children={markdown as string} />,
             fetchErrorReport: activityErrorReport,
+            fullScreenTogglerTexts: {
+                maximize: t("common.action.fullscreenView"),
+                minimize: t("common.action.fullscreenExit"),
+            },
         },
         showStartAction: !isCacheActivity,
         showStopAction: true,

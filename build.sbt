@@ -33,7 +33,7 @@ val buildReactExternally = {
 }
 
 // Additional compiler (javac, scalac) parameters
-// Note: keep the bytecode target at 21, because Spark 3.5.x does not support Java 25
+// Note: keep the bytecode target at 21, the same as in the root build (needed for Spark)
 val compilerParams: (Seq[String], Seq[String]) =
   (Seq("--release", "21", "-Xlint"), Seq("-release", "21"))
 
@@ -77,28 +77,28 @@ lazy val commonSettings = Seq(
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.20" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "6.0.0" % "test",
-  libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.5.37",
-  libraryDependencies += "org.mockito" % "mockito-core" % "5.23.0" % Test,
+  libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.6.6",
+  libraryDependencies += "org.mockito" % "mockito-core" % "5.24.0" % Test,
   libraryDependencies += "com.google.inject" % "guice" % "6.0.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
+  // org.lz4:lz4-java is abandoned. silk-core brings the maintained fork at.yawk.lz4, which has the same classes.
+  excludeDependencies += "org.lz4" % "lz4-java",
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
   // We need to overwrite the versions of the Jackson modules.
   // Fixes GHSA-72hv-8253-57qq and CVE-2025-52999 (require 2.21.1+) and
   // CVE-2026-54512/54515/54516/54517, which still affect 2.22.0 (require 2.22.1).
-  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.22.1",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.1",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.1",
+  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.22.4",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.4",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.4",
 
-  // Fix CVE-2026-29062 and GHSA-72hv-8253-57qq in tools.jackson.core (Jackson 3.x, from Jena)
-  dependencyOverrides += "tools.jackson.core" % "jackson-core" % "3.2.0",
-  dependencyOverrides += "tools.jackson.core" % "jackson-databind" % "3.2.0",
+  // Fix CVE-2026-8763 and CVE-2026-13506 in Bouncy Castle (require 1.85); only on the pluginsRdf test classpath.
+  dependencyOverrides += "org.bouncycastle" % "bcprov-jdk18on" % "1.86",
 
-  // Fix CVE-2026-5598 in Bouncy Castle (private key leakage via non-constant time comparisons)
-  dependencyOverrides += "org.bouncycastle" % "bcprov-jdk18on" % "1.84",
+  // Fix CVE-2026-102554 in Guava (requires 33.7.2).
+  dependencyOverrides += "com.google.guava" % "guava" % "33.8.0-jre",
 
-  // silk-core uses scala-parser-combinators 2.x (required by Spark 4 in the root build), Play 2.9 still ships 1.1.2
-  dependencyOverrides += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0",
+  // silk-core uses scala-parser-combinators 2.x (required by Spark 4 in the root build); it evicts the 1.1.2 of Play 2.9.
   libraryDependencySchemes += "org.scala-lang.modules" %% "scala-parser-combinators" % VersionScheme.Always,
 
   scalacOptions ++= compilerParams._2,
@@ -121,17 +121,17 @@ lazy val core = (project in file("silk-core"))
     name := "Silk Core",
     libraryDependencies += "com.typesafe" % "config" % "1.4.9",
     // Additional scala standard libraries
-    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "2.4.0",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "2.5.0",
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-    libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "1.2.0",
-    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "1.3.0",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.5.0",
     libraryDependencies += "commons-io" % "commons-io" % "2.22.0",
-    libraryDependencies += "org.lz4" % "lz4-java" % "1.8.1",
+    libraryDependencies += "at.yawk.lz4" % "lz4-java" % "1.13.0",
     libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1",
     libraryDependencies += "xalan" % "xalan" % "2.7.3",
     libraryDependencies += "xalan" % "serializer" % "2.7.3",
-    libraryDependencies += "org.snakeyaml" % "snakeyaml-engine" % "3.0.1",
-    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.17.0"
+    libraryDependencies += "org.snakeyaml" % "snakeyaml-engine" % "3.2",
+    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.17.2"
   )
 
 lazy val rules = (project in file("silk-rules"))
@@ -139,7 +139,7 @@ lazy val rules = (project in file("silk-rules"))
   .settings(commonSettings *)
   .settings(
     name := "Silk Rules",
-    libraryDependencies += "org.postgresql" % "postgresql" % "42.7.12",
+    libraryDependencies += "org.postgresql" % "postgresql" % "42.7.14",
     libraryDependencies += "org.apache.jena" % "jena-core" % jenaVersion exclude("org.slf4j", "slf4j-log4j12"),
     libraryDependencies += "org.apache.jena" % "jena-arq" % jenaVersion exclude("org.slf4j", "slf4j-log4j12")
   )
@@ -162,7 +162,7 @@ lazy val pluginsTemplatingJinja = (project in file("silk-plugins/silk-plugins-te
   .settings(commonSettings *)
   .settings(
     name := "Silk Plugins Templating Jinja",
-    libraryDependencies += "com.hubspot.jinjava" % "jinjava" % "2.8.3"
+    libraryDependencies += "com.hubspot.jinjava" % "jinjava" % "2.8.5"
   )
 
 lazy val pluginsTemplatingVelocity = (project in file("silk-plugins/silk-plugins-templating-velocity"))
@@ -189,7 +189,7 @@ lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
   .settings(
     name := "Silk Plugins CSV",
     libraryDependencies += "com.univocity" % "univocity-parsers" % "2.9.1",
-    libraryDependencies += "com.github.albfernandez" % "juniversalchardet" % "2.5.0"
+    libraryDependencies += "com.github.albfernandez" % "juniversalchardet" % "2.5.2"
   )
 
 lazy val pluginsXml = (project in file("silk-plugins/silk-plugins-xml"))
@@ -197,9 +197,9 @@ lazy val pluginsXml = (project in file("silk-plugins/silk-plugins-xml"))
   .settings(commonSettings *)
   .settings(
     name := "Silk Plugins XML",
-    libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "13.0",
+    libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "13.1",
     // Explicit StAX implementation, since XmlSourceStreaming turns parser positions into entity URIs
-    libraryDependencies += "com.fasterxml.woodstox" % "woodstox-core" % "7.1.1"
+    libraryDependencies += "com.fasterxml.woodstox" % "woodstox-core" % "7.3.0"
   )
 
 lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
@@ -238,7 +238,7 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   .settings(
     name := "Silk Serialization JSON",
     libraryDependencies += "com.typesafe.play" %% "play-json" % "2.10.8",
-    libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.2.52"
+    libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.2.55"
   )
 
 lazy val persistentCaching = (project in file("silk-plugins/silk-persistent-caching"))
@@ -355,7 +355,7 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
     // Play filters (CORS filter etc.)
     libraryDependencies += filters,
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "6.0.2" % "test",
-    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.17.0"
+    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.17.2"
   )
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
@@ -392,10 +392,15 @@ lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-open
   .settings(commonSettings *)
   .settings(
     name := "Silk Workbench OpenAPI",
-    libraryDependencies += "io.kinoplan" %% "swagger-play" % "0.0.7" exclude("org.scala-lang.modules", "scala-java8-compat_2.13") ,
-    libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.1.45",
-    libraryDependencies += "com.networknt" % "json-schema-validator" % "3.0.5",
-    libraryDependencies += "org.webjars" % "swagger-ui" % "5.32.8"
+    // swagger-play 0.0.7 is built for Play 3. Keep its Play 3 and Pekko dependencies off the Play 2.9 classpath
+    // and give it the routes compiler of our Play version instead.
+    libraryDependencies += ("io.kinoplan" %% "swagger-play" % "0.0.7")
+      .exclude("org.scala-lang.modules", "scala-java8-compat_2.13")
+      .excludeAll(ExclusionRule("org.playframework"), ExclusionRule("org.playframework.twirl"), ExclusionRule("org.apache.pekko")),
+    libraryDependencies += "com.typesafe.play" %% "play-routes-compiler" % play.core.PlayVersion.current,
+    libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.1.48",
+    libraryDependencies += "com.networknt" % "json-schema-validator" % "3.0.9",
+    libraryDependencies += "org.webjars" % "swagger-ui" % "5.34.1"
   )
 
 lazy val workbench = (project in file("silk-workbench"))
@@ -424,7 +429,7 @@ lazy val singlemachine = (project in file("silk-tools/silk-singlemachine"))
   .settings(commonSettings *)
   .settings(
     name := "Silk SingleMachine",
-    libraryDependencies += "org.slf4j" % "slf4j-jdk14" % "2.0.18"
+    libraryDependencies += "org.slf4j" % "slf4j-jdk14" % "2.0.20"
   )
 
 //////////////////////////////////////////////////////////////////////////////

@@ -11,12 +11,9 @@ import appRoutes, { IRouteProps } from "./app/appRoutes";
 import { createPlugin } from "./app/services/pluginApi";
 import configureStore from "./app/store/configureStore";
 
-import mappingEditor from "./app/views/pages/MappingEditor/index";
+// Register the message-bus handlers used by the mapping editor.
+import "./app/views/pages/MappingEditor/SilkStore/silkStore";
 import "./language";
-
-if (typeof mappingEditor.hierarchicalMapping !== "function") {
-    console.error("Mapping editor factory methods no registered.");
-}
 
 Object.freeze(Object.prototype);
 

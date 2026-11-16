@@ -274,8 +274,12 @@ private class ActivityExecution[T](activity: Activity[T],
         startTimestamp = Some(Instant.now)
         // Skip the body if cancelled before this run started (even if the cancellation's side effects are still
         // being delivered and the cancel flag is not set yet), but still finish via finishOrRequestReRun().
-        if (cancelTimestamp.isEmpty && !activity.wasCancelled() && !parent.exists(_.status().isInstanceOf[Canceling])) {
-          activity.run(this)
+        if (cancelTimestamp.isEmpty && !activity.wasCancelled()) {
+          if (parent.exists(_.status().isInstanceOf[Canceling])) {
+            recordParentCancellation()
+          } else {
+            activity.run(this)
+          }
         }
         finishOrRequestReRun()
       } catch {
@@ -283,6 +287,15 @@ private class ActivityExecution[T](activity: Activity[T],
           reRunAfterFailure(ex, runner, isInitialRun)
       }
       isInitialRun = false
+    }
+  }
+
+  /* Records the parent's cancellation on this run, whose body is skipped because the parent is being cancelled. The
+     parent's cancel() may reach this child only after the run has finished, or not at all if it was started later. */
+  private def recordParentCancellation(): Unit = StatusLock.synchronized {
+    if (cancelTimestamp.isEmpty) {
+      cancelledByUser = parent.collect { case p: ActivityExecution[_] => p.cancelledByUser }.getOrElse(UserContext.Empty)
+      cancelTimestamp = Some(Instant.now)
     }
   }
 

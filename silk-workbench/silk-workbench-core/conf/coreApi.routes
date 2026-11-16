@@ -10,6 +10,7 @@ GET        /datasets/resourceBased        controllers.workspaceApi.coreApi.Plugi
 
 # Template variables
 GET        /variableTemplate/variables        controllers.workspaceApi.coreApi.VariableTemplateApi.getVariables(project: String, task: Option[String] ?= None, transitive: Boolean ?= false)
+GET        /variableTemplate/allVariables     controllers.workspaceApi.coreApi.VariableTemplateApi.allVariables(scope: Option[String] ?= None, project: Option[String] ?= None)
 POST       /variableTemplate/variables        controllers.workspaceApi.coreApi.VariableTemplateApi.putVariables(project: String, task: Option[String] ?= None)
 GET        /variableTemplate/variables/:name  controllers.workspaceApi.coreApi.VariableTemplateApi.getVariable(project: String, name: String, task: Option[String] ?= None)
 PUT        /variableTemplate/variables/:name  controllers.workspaceApi.coreApi.VariableTemplateApi.putVariable(project: String, name: String, task: Option[String] ?= None)
@@ -21,6 +22,8 @@ POST       /variableTemplate/completion       controllers.workspaceApi.coreApi.V
 
 # System
 GET        /system/threadDump            controllers.workspaceApi.coreApi.SystemApi.threadDump()
+GET        /system/logs                  controllers.workspaceApi.coreApi.LogApi.logTail(since: Option[Long] ?= None, limit: Option[Int] ?= None, level: Option[String] ?= None, logger: List[String] ?= List[String](), contains: List[String] ?= List[String]())
+GET        /system/logs/status           controllers.workspaceApi.coreApi.LogApi.logBufferStatus()
 
 # Access Control
 GET        /accessControl               controllers.workspaceApi.coreApi.AccessControlApi.accessControl()

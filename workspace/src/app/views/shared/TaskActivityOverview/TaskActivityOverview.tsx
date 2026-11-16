@@ -380,12 +380,17 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                     translateUnits={translateUnits}
                     failureReportAction={{
                         title: "", // The title is already repeated in the markdown
+                        "aria-label": t("widget.TaskActivityOverview.errorReportLabel"),
                         allowDownload: true,
                         closeButtonValue: t("common.action.close"),
                         downloadButtonValue: t("common.action.download"),
                         renderMarkdown: true,
                         renderReport: (markdown) => <Markdown children={markdown as string} />,
                         fetchErrorReport: fetchErrorReportFactory(activity),
+                        fullScreenTogglerTexts: {
+                            maximize: t("common.action.fullscreenView"),
+                            minimize: t("common.action.fullscreenExit"),
+                        },
                     }}
                     showReloadAction={activity.activityCharacteristics.isCacheActivity}
                     showStartAction={!activity.activityCharacteristics.isCacheActivity}

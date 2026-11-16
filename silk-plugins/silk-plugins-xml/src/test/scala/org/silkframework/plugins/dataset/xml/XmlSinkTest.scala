@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.config.Prefixes
+import org.silkframework.dataset.DirtyTrackingFileDataSink
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, _}
 import org.silkframework.runtime.activity.UserContext
@@ -345,6 +346,33 @@ class XmlSinkTest extends AnyFlatSpec with Matchers {
         </Root>,
       compareRawText = true
     )
+  }
+
+  it should "only delete the file on clear if forced" in {
+    implicit val userContext: UserContext = UserContext.Empty
+    val resource = InMemoryResourceManager().get("test.xml")
+    resource.writeString("<Root/>")
+    val sink = new XmlSink(resource, XmlOutputTemplate.parse("<Root><?Element?></Root>"))
+
+    sink.clear()
+    resource.exists shouldBe true
+
+    sink.clear(force = true)
+    resource.exists shouldBe false
+  }
+
+  it should "only mark the file as updated on clear if forced" in {
+    implicit val userContext: UserContext = UserContext.Empty
+    val resource = InMemoryResourceManager().get("dirtyTrackingOnClear.xml")
+    resource.writeString("<Root/>")
+    val sink = new XmlSink(resource, XmlOutputTemplate.parse("<Root><?Element?></Root>"))
+    def fetchUpdatedFiles(): Set[String] = DirtyTrackingFileDataSink.fetchAndClearUpdatedFiles(Seq(resource))
+
+    sink.clear()
+    fetchUpdatedFiles() shouldBe empty
+
+    sink.clear(force = true)
+    fetchUpdatedFiles() shouldBe Set(resource.name)
   }
 
   private def test(template: String, entityTables: Seq[Seq[Entity]], expected: Node, compareRawText: Boolean = false): Unit = {

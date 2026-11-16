@@ -41,6 +41,13 @@ public @interface Param {
   boolean visibleInDialog() default true;
 
   /**
+   * True, if templates of this parameter may resolve sensitive variables, like password parameters do.
+   * Only for parameters whose value is sent to an external system without being displayed, since the plugin holds
+   * the evaluated value in clear text.
+   */
+  boolean allowSensitiveVariables() default false;
+
+  /**
    * Auto-complete service provider, that returns valid values for a plugin parameter.
    */
   Class<? extends PluginParameterAutoCompletionProvider> autoCompletionProvider() default NopPluginParameterAutoCompletionProvider.class;

@@ -120,8 +120,9 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
     }
   }
 
-  def exportProject(projectName: String, exportGroups: Boolean = false, exportUserData: Boolean = true): Action[AnyContent] = {
-    exportProjectViaPlugin(projectName, XmlZipWithResourcesProjectMarshaling.marshallerId, exportGroups, exportUserData)
+  def exportProject(projectName: String, exportGroups: Boolean = false, exportUserData: Boolean = true,
+                    exportChangeJournal: Option[Boolean] = None): Action[AnyContent] = {
+    exportProjectViaPlugin(projectName, XmlZipWithResourcesProjectMarshaling.marshallerId, exportGroups, exportUserData, exportChangeJournal)
   }
 
   @Operation(
@@ -165,11 +166,19 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
                                in = ParameterIn.QUERY,
                                schema = new Schema(implementation = classOf[Boolean])
                              )
-                             exportUserData: Boolean = true): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                             exportUserData: Boolean = true,
+                             @Parameter(
+                               name = "exportChangeJournal",
+                               description = "If false, the change journal of the project is left out of the exported archive. If omitted, the journal is exported together with the user data. It records who changed what and when, so it cannot be exported without the user data.",
+                               required = false,
+                               in = ParameterIn.QUERY,
+                               schema = new Schema(implementation = classOf[Boolean])
+                             )
+                             exportChangeJournal: Option[Boolean] = None): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     withMarshaller(marshallerPluginId) { marshaller =>
       val fileName = s"${LocalDate.now()}-${request.domain}-$projectName${qualifier(marshaller)}.project.${marshaller.fileExtension}"
       sendFile(fileName) { outputStream =>
-        WorkspaceFactory().workspace.exportProject(projectName, outputStream, marshaller, exportGroups, exportUserData)
+        WorkspaceFactory().workspace.exportProject(projectName, outputStream, marshaller, exportGroups, exportUserData, exportChangeJournal.getOrElse(exportUserData))
       }
     }
   }
@@ -253,11 +262,19 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
                                  in = ParameterIn.QUERY,
                                  schema = new Schema(implementation = classOf[Boolean])
                                )
-                               exportUserData: Boolean = true): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                               exportUserData: Boolean = true,
+                               @Parameter(
+                                 name = "exportChangeJournal",
+                                 description = "If false, the change journals of the projects are left out of the exported archive. If omitted, the journals are exported together with the user data. They record who changed what and when, so they cannot be exported without the user data.",
+                                 required = false,
+                                 in = ParameterIn.QUERY,
+                                 schema = new Schema(implementation = classOf[Boolean])
+                               )
+                               exportChangeJournal: Option[Boolean] = None): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     withMarshaller(marshallerPluginId) { marshaller =>
       val fileName = s"${LocalDate.now()}-${request.domain}${qualifier(marshaller)}.workspace.${marshaller.fileExtension}"
       sendFile(fileName) { outputStream =>
-        WorkspaceFactory().workspace.exportWorkspace(outputStream, marshaller, exportGroups, exportUserData)
+        WorkspaceFactory().workspace.exportWorkspace(outputStream, marshaller, exportGroups, exportUserData, exportChangeJournal.getOrElse(exportUserData))
       }
     }
   }

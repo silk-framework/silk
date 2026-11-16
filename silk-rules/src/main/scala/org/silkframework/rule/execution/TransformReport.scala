@@ -33,7 +33,7 @@ case class TransformReport(task: Task[TransformSpec],
     Seq(
       "Number of entities" -> entityCount.toString,
       "Entities with issues" -> entityErrorCount.toString
-    )
+    ) ++ task.data.inputLimit.value.map(limit => "Input limit" -> limit.toString)
   }
 
   lazy val warnings: Seq[String] = {

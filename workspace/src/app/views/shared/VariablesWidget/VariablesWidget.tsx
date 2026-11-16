@@ -45,6 +45,9 @@ import { contextualPath } from "../../../constants/path";
 import { useModalError } from "../../../hooks/useModalError";
 import dndkitUtils from "../../../utils/dndkitUtils";
 
+/** Shown instead of the value of a sensitive variable, which the backend does not return. Same placeholder as the backend uses. */
+const sensitiveValuePlaceholder = "••••••";
+
 const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) => {
     const { registerError } = useErrorHandler();
     const [loadingVariables, setLoadingVariables] = React.useState<boolean>(false);
@@ -369,9 +372,15 @@ const SortableVariableItem: React.FC<SortableVariableItemProps> = ({
                             />
                         </PropertyName>
                         <PropertyValue>
-                            <Tooltip content={<code>{variable.value}</code>}>
-                                <code className={"nodrag"}>{variable.value}</code>
-                            </Tooltip>
+                            {variable.isSensitive ? (
+                                <Tooltip content={t("widget.VariableWidget.sensitiveValue")}>
+                                    <code className={"nodrag"}>{sensitiveValuePlaceholder}</code>
+                                </Tooltip>
+                            ) : (
+                                <Tooltip content={<code>{variable.value}</code>}>
+                                    <code className={"nodrag"}>{variable.value}</code>
+                                </Tooltip>
+                            )}
                         </PropertyValue>
                     </PropertyValuePair>
                 </ToolbarSection>

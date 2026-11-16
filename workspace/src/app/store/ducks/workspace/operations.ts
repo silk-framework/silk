@@ -4,7 +4,7 @@ import selectors from "./selectors";
 import { filtersSlice } from "./filtersSlice";
 import { previewSlice } from "./previewSlice";
 import { routerOp } from "@ducks/router";
-import { IFacetState } from "@ducks/workspace/typings";
+import { IFacetState, IFiltersState } from "@ducks/workspace/typings";
 import { workspaceSel } from "@ducks/workspace";
 import qs, { ParsedQs } from "qs";
 import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
@@ -38,6 +38,7 @@ const VALUE_DELIMITER = ",";
 const updateQueryString = () => {
     return (dispatch, getState) => {
         const state = getState();
+        const { preservedQueryKeys }: IFiltersState = state.workspace.filters;
 
         const appliedFilters = workspaceSel.appliedFiltersSelector(state);
         const appliedFacets = workspaceSel.appliedFacetsSelector(state);
@@ -50,7 +51,7 @@ const updateQueryString = () => {
             f_keys: appliedFacets.map((o) => o.keywordIds.join(ARRAY_DELIMITER)),
         };
 
-        dispatch(routerOp.setQueryString(queryParams));
+        dispatch(routerOp.setQueryString(queryParams, { preserveKeys: preservedQueryKeys }));
     };
 };
 
@@ -144,8 +145,12 @@ const fetchListAsync = (
     tableSettings: GlobalTableBaseConfig | undefined = undefined,
     fetcher: ((payload: ISearchListRequest) => Promise<FetchResponse<ISearchListResponse>>) | undefined = undefined,
     customDefaultLimit: number | undefined = undefined,
+    signal?: AbortSignal,
 ) => {
     return async (dispatch, getState) => {
+        if (signal?.aborted) {
+            return;
+        }
         dispatch(fetchList());
 
         batch(() => {
@@ -195,6 +200,9 @@ const fetchListAsync = (
             const { total, facets, results, sortByProperties } = fetcher
                 ? (await fetcher(body))?.data
                 : await requestSearchList(body);
+            if (signal?.aborted) {
+                return;
+            }
             batch(() => {
                 // Apply results
                 dispatch(fetchListSuccess(results));
@@ -207,11 +215,13 @@ const fetchListAsync = (
                 dispatch(updateSorters(sortByProperties));
             });
         } catch (e) {
-            batch(() => {
+            if (!signal?.aborted) {
                 dispatch(setError(e));
-            });
+            }
         } finally {
-            dispatch(setLoading(false));
+            if (!signal?.aborted) {
+                dispatch(setLoading(false));
+            }
         }
     };
 };

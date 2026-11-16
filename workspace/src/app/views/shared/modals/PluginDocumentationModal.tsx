@@ -131,6 +131,10 @@ export const PluginDocumentationModal = ({
             data-test-id={testId}
             isOpen
             showFullScreenToggler={true}
+            fullScreenTogglerTexts={{
+                maximize: t("common.action.fullscreenView"),
+                minimize: t("common.action.fullscreenExit"),
+            }}
             enforceFocus={true}
             onClose={onClose}
             title={documentationToShow.title ?? "Documentation"}

@@ -89,6 +89,21 @@ sealed trait TransformRule extends Operator with HasMetaData {
     collectPaths(operator).distinct
   }
 
+  /**
+   * True if this rule's operator tree contains the empty/self path, with or without any other
+   * path. Does not account for other input kinds, such as an unbound rule-block port — a
+   * formula combining the empty path with one still evaluates this to true.
+   */
+  def readsEntityUri: Boolean = {
+    def hasEmptyPathInput(param: Input): Boolean = param match {
+      case p: PathInput => p.path.operators.isEmpty
+      case p: TransformInput => p.inputs.exists(hasEmptyPathInput)
+      case rb: RuleBlockInput => rb.bindings.exists(binding => hasEmptyPathInput(binding.input))
+      case _: InputPortInput => false
+    }
+    hasEmptyPathInput(operator)
+  }
+
   /** Throws ValidationException if this transform rule is not valid. */
   protected def validate(): Unit = {
     validateTargetUri()
@@ -649,7 +664,7 @@ object TransformRule {
   def simplify(complexMapping: ComplexMapping)(implicit prefixes: Prefixes): TransformRule = complexMapping match {
     // Direct Mapping
     case ComplexMapping(id, PathInput(pathId, path), Some(target), metaData, _, uiAnnotations) if uiAnnotations.stickyNotes.isEmpty =>
-      DirectMapping(id, path.asUntypedPath, target, metaData, Some(pathId))
+      DirectMapping(id, path.asUntypedPath, target, metaData, Some(pathId).filter(_ != id))
     // Rule with annotations or layout info is always treated as complex (URI) mapping rule
     case ComplexMapping(id, operator, targetOpt, metaData, layout, uiAnnotations) if layout.nodePositions.nonEmpty || uiAnnotations.stickyNotes.nonEmpty =>
       if(targetOpt.isEmpty) {

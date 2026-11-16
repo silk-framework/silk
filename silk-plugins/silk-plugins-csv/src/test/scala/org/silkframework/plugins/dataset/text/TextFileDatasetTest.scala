@@ -41,4 +41,28 @@ class TextFileDatasetTest extends AnyFlatSpec with Matchers with TestPluginConte
     entities.head.values shouldBe Seq(Seq(testValue))
   }
 
+  it should "only empty the file on clear if forced" in {
+    resource.writeString(testValue)
+    val sink = ExecutorRegistry.access(dataset).entitySink
+
+    sink.clear()
+    resource.loadAsString() shouldBe testValue
+
+    sink.clear(force = true)
+    resource.loadAsString() shouldBe ""
+  }
+
+  it should "replace the existing content of the file when writing after an unforced clear" in {
+    resource.writeString("old content that is considerably longer than the content written afterwards")
+    val sink = ExecutorRegistry.access(dataset).entitySink
+
+    sink.clear()
+    sink.openTable(dataset.typeName, Seq(TypedProperty(dataset.property, ValueType.STRING, isBackwardProperty = false)), singleEntity = false)
+    sink.writeEntity("dummySubject", IndexedSeq(Seq(testValue)))
+    sink.closeTable()
+    sink.close()
+
+    resource.loadAsString().trim shouldBe testValue
+  }
+
 }

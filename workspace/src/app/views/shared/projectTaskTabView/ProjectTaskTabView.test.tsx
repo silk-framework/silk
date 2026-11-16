@@ -10,6 +10,7 @@ import { IProjectTaskView, pluginRegistry } from "../../plugins/PluginRegistry";
 import { requestItemLinks } from "@ducks/shared/requests";
 import { IItemLink } from "@ducks/shared/typings";
 import translations from "../../../../locales/manual/en.json";
+import { ModalContext, useModalContext } from "@eccenca/gui-elements";
 
 jest.mock("react-redux", () => ({
     ...jest.requireActual("react-redux"),
@@ -18,6 +19,7 @@ jest.mock("react-redux", () => ({
 }));
 jest.mock("../../plugins/PluginRegistry", () => ({ pluginRegistry: { taskViews: jest.fn() } }));
 jest.mock("@ducks/shared/requests", () => ({ requestItemLinks: jest.fn() }));
+jest.mock("../../../services/errorLogger", () => ({ logError: jest.fn() }));
 
 const i18n = createInstance();
 const views: IProjectTaskView[] = [
@@ -75,6 +77,75 @@ const renderTabs = (props: Partial<React.ComponentProps<typeof ProjectTaskTabVie
     );
     return { ...result, history };
 };
+
+it("names the fullscreen dialog and transfers modality to its discard confirmation", async () => {
+    const history = createBrowserHistory();
+    const TrackedTabs = () => {
+        const modalContext = useModalContext();
+        return (
+            <ModalContext.Provider value={modalContext}>
+                <I18nextProvider i18n={i18n}>
+                    <Router history={history}>
+                        <ProjectTaskTabView
+                            taskViewConfig={{ projectId: "project", taskId: "task", pluginId: "workflow" }}
+                            handlerRemoveModal={jest.fn()}
+                        />
+                    </Router>
+                </I18nextProvider>
+            </ModalContext.Provider>
+        );
+    };
+    render(<TrackedTabs />);
+    const dialog = await screen.findByRole("dialog", { name: "Workflow editor" });
+    expect(dialog).toHaveAttribute("aria-modal", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Make changes" }));
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    const confirmation = await screen.findByRole("alertdialog", { name: "Warning" });
+    expect(confirmation).toHaveAttribute("aria-modal", "true");
+    expect(dialog).toHaveAttribute("aria-modal", "false");
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(dialog).toHaveAttribute("aria-modal", "true"));
+});
+
+it.each([
+    [undefined, "Task view"],
+    ["Customer dataset", "Customer dataset"],
+])("names a fullscreen view without a selected tab using %p", async (title, expectedName) => {
+    jest.mocked(pluginRegistry.taskViews).mockReturnValue([]);
+    jest.mocked(requestItemLinks).mockResolvedValue({
+        data: [],
+        axiosResponse: { data: [], status: 200, statusText: "OK", headers: {}, config: {} },
+    });
+    renderTabs({ title, handlerRemoveModal: jest.fn() });
+    // wait until the links are loaded and no tab could be selected
+    expect(await screen.findByText("No tab available/selected.")).toBeInTheDocument();
+    expect(requestItemLinks).toHaveBeenCalled();
+    expect(screen.getByRole("dialog", { name: expectedName })).toHaveAttribute("aria-modal", "true");
+});
+
+it("keeps the fullscreen dialog named when the selected view crashes", async () => {
+    const consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
+    const consoleLog = jest.spyOn(console, "log").mockImplementation(() => {});
+    const consoleWarn = jest.spyOn(console, "warn").mockImplementation(() => {});
+    const CrashingView = () => {
+        throw new Error("View crashed");
+    };
+    jest.mocked(pluginRegistry.taskViews).mockReturnValue([
+        { id: "editor", label: "Workflow editor", render: () => <CrashingView /> },
+    ]);
+    try {
+        renderTabs({ handlerRemoveModal: jest.fn() });
+        const dialog = await screen.findByRole("dialog");
+        await waitFor(() => expect(requestItemLinks).toHaveBeenCalled());
+        // The error boundary replaced the card including the heading referenced by aria-labelledby
+        await waitFor(() => expect(screen.queryByRole("heading", { name: /Workflow editor/ })).not.toBeInTheDocument());
+        expect(dialog).toHaveAccessibleName("Task view");
+    } finally {
+        consoleError.mockRestore();
+        consoleLog.mockRestore();
+        consoleWarn.mockRestore();
+    }
+});
 
 it("exposes selected tabs and their labelled panels, keeping external links outside the tablist", async () => {
     renderTabs();

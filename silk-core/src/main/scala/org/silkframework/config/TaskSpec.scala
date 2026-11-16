@@ -66,6 +66,14 @@ trait TaskSpec {
   }
 
   /**
+   * All variables that this task may set during its execution, e.g., by a 'Set execution variable' operator.
+   * This list is just a hint and not guaranteed to be complete. A listed variable is not necessarily set in every run.
+   */
+  def modifiedVariables: Seq[TemplateVariableName] = {
+    Seq.empty
+  }
+
+  /**
     * Retrieves all parameter values for this task.
     */
   def parameters(implicit pluginContext: PluginContext): ParameterValues

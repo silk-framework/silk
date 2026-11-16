@@ -497,7 +497,10 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
 
   private def transformTask: ProjectTask[TransformSpec] = workspaceProject(project).task[TransformSpec](task)
 
-  private def lastChange: Change = transformTask.project.changeJournal.all.last.change
+  private def lastChange: Change = {
+    val journal = transformTask.project.changeJournal
+    journal.entry(journal.all.last.seq).get.change
+  }
 
   "Copy an existing mapping rule and put it next to the existing one" in {
     postRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules/copyFrom?" +

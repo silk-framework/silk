@@ -57,6 +57,11 @@ object VariableWorkflowRequestUtils {
   // Reserved query-parameter prefix for execution-variable overrides, e.g. variable-myVar=value. Works for all content types.
   final val EXECUTION_VARIABLES_QUERY_PREFIX = s"variable$QUERY_PARAM_SEPARATOR"
 
+  /** True for query parameters that control the request and are therefore never part of the input entity. */
+  def isReservedQueryParameter(key: String): Boolean = {
+    key == QUERY_PARAM_OUTPUT_TYPE || key.startsWith(QUERY_CONFIG_PREFIX) || key.startsWith(EXECUTION_VARIABLES_QUERY_PREFIX)
+  }
+
   /** The mime types that the variable workflow supports as response. */
   val acceptedMimeType: Seq[String] = Seq(
     jsonMimeType, // JSON dataset
@@ -91,20 +96,19 @@ object VariableWorkflowRequestUtils {
   private def replaceableDataSinkConfig(datasetId: String,
                                         fileBasedPluginIds: Seq[String])
                                        (implicit request: Request[_], project: Project, userContext: UserContext): VariableDataSinkConfig = {
-    request.getQueryString(QUERY_PARAM_OUTPUT_TYPE) match {
-      case Some(datasetType) =>
-        fromQueryOutputTypeParameter(datasetId, datasetType)
+    val (datasetType: String, datasetParameters: Map[String, String], mimeType) = request.getQueryString(QUERY_PARAM_OUTPUT_TYPE) match {
+      case Some(pluginId) =>
+        // The query parameter takes precedence over the ACCEPT header
+        if (!fileBasedPluginIds.contains(pluginId)) {
+          throw BadUserInputException(s"Unsupported output type '$pluginId' in query parameter '$QUERY_PARAM_OUTPUT_TYPE'. " +
+            "Must be the id of a file-based dataset plugin, e.g. json, xml, csv, file, excel or binaryFile.")
+        }
+        pluginIdToSinkConfig(pluginId)
       case None =>
-        val pluginId = pluginIdFromAcceptedTypes(request.acceptedTypes, fileBasedPluginIds)
-        val (datasetType: String, datasetParameters: Map[String, String], mimeType) = pluginId match {
-          case Some("file") => ("file", Map("format" -> "N-Triples"), "application/n-triples")
-          case Some("xml") => ("xml", Map.empty, "application/xml")
-          case Some("json") => ("json", Map.empty, "application/json")
-          case Some("csv") => ("csv", Map.empty, "text/comma-separated-values")
-          case Some("excel") => ("excel", Map.empty, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-          case Some(BinaryFileDataset.id) => (BinaryFileDataset.id, Map.empty, BinaryFileDataset.mimeType)
-          case Some(pluginId) => (pluginId, Map.empty, s"application/x-plugin-$pluginId")
-          case _ =>
+        pluginIdFromAcceptedTypes(request.acceptedTypes, fileBasedPluginIds) match {
+          case Some(pluginId) =>
+            pluginIdToSinkConfig(pluginId)
+          case None =>
             acceptedMimeType.find(mimeType => request.accepts(mimeType)) match {
               case Some(mimeType) =>
                 acceptedMimeTypeToSinkConfig(mimeType)
@@ -114,8 +118,21 @@ object VariableWorkflowRequestUtils {
                   "Supported mime types are: " + acceptedMimeType.mkString(", "))
             }
         }
-        val sinkConfig = datasetConfigJson(datasetId, datasetType, datasetParameters ++ datasetParametersFromQuery(QUERY_DATA_SINK_CONFIG_PREFIX), OUTPUT_FILE_RESOURCE_NAME)
-        VariableDataSinkConfig(sinkConfig, mimeType)
+    }
+    val sinkConfig = datasetConfigJson(datasetId, datasetType, datasetParameters ++ datasetParametersFromQuery(QUERY_DATA_SINK_CONFIG_PREFIX), OUTPUT_FILE_RESOURCE_NAME)
+    VariableDataSinkConfig(sinkConfig, mimeType)
+  }
+
+  /** Sink dataset type, fixed parameters and response mime type for a file-based dataset plugin id. */
+  private def pluginIdToSinkConfig(pluginId: String): (String, Map[String, String], String) = {
+    pluginId match {
+      case "file" => ("file", Map("format" -> "N-Triples"), ntriplesMimeType)
+      case "xml" => ("xml", Map.empty, xmlMimeType)
+      case "json" => ("json", Map.empty, jsonMimeType)
+      case "csv" => ("csv", Map.empty, csvMimeType)
+      case "excel" => ("excel", Map.empty, xlsxMimeType)
+      case BinaryFileDataset.id => (BinaryFileDataset.id, Map.empty, BinaryFileDataset.mimeType)
+      case pluginId => (pluginId, Map.empty, s"application/x-plugin-$pluginId")
     }
   }
 
@@ -128,18 +145,6 @@ object VariableWorkflowRequestUtils {
       case "text/comma-separated-values" | "text/csv" => ("csv", Map.empty, mimeType)
       case BinaryFileDataset.mimeType => (BinaryFileDataset.id, Map.empty, mimeType)
     }
-  }
-
-  private def fromQueryOutputTypeParameter(datasetId: String, datasetType: String)
-                                          (implicit project: Project, userContext: UserContext): VariableDataSinkConfig = {
-    val datasetParams: Map[String, String] =
-      if (datasetType == "file") {
-        Map("format" -> "N-Triples")
-      } else {
-        Map.empty
-      }
-    val sinkConfig = datasetConfigJson(datasetId, datasetType, datasetParams, OUTPUT_FILE_RESOURCE_NAME)
-    VariableDataSinkConfig(sinkConfig, jsonMimeType)
   }
 
   private def pluginIdFromAcceptedTypes(acceptedTypes: Seq[MediaRange],
@@ -479,9 +484,8 @@ object VariableWorkflowRequestUtils {
         throw BadUserInputException(s"Content-type (${mediaType.get}) is specified, but request body is empty! " +
             s"If you need to input an 'empty entity', use an empty JSON object or XML element instead as request payload.")
       case AnyContentAsEmpty =>
-        // Config parameters will also be included in the input parameters. However in this case, setting config parameters does not (yet) make sense.
-        // Reserved execution-variable parameters hold overrides (see parseExecutionVariables) and must not become part of the input entity.
-        val inputParameters = request.queryString.filter { case (key, _) => !key.startsWith(EXECUTION_VARIABLES_QUERY_PREFIX) }
+        // Reserved control parameters (execution variables, dataset config, output type) must not become part of the input entity.
+        val inputParameters = request.queryString.filter { case (key, _) => !isReservedQueryParameter(key) }
         if(inputParameters.nonEmpty) {
           parametersToJsonResource(inputParameters)
         } else {

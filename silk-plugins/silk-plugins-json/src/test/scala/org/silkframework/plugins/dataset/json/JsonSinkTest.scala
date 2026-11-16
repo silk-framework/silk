@@ -1,9 +1,10 @@
 package org.silkframework.plugins.dataset.json
 
 import org.silkframework.config.Prefixes
+import org.silkframework.dataset.DirtyTrackingFileDataSink
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
-import org.silkframework.plugins.dataset.hierarchical.MaxDepthExceededException
+import org.silkframework.plugins.dataset.hierarchical.{MaxDepthExceededException, MissingReferencedEntityException}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import play.api.libs.json.Json
@@ -173,12 +174,76 @@ class JsonSinkTest extends AnyFlatSpec with Matchers {
     }
   }
 
-  private def test(entityTables: Seq[Seq[Entity]], outputSingleJsonObject: Boolean = false, template: JsonTemplate = JsonTemplate.default, expected: String): Unit = {
+  it should "fail with the referencing entity and property if a referenced entity has not been written" in {
+    val orderSchema = EntitySchema(typeUri = "", typedPaths = IndexedSeq(TypedPath(UntypedPath("items"), ValueType.URI, isAttribute = false)))
+    val itemSchema = EntitySchema(typeUri = "", typedPaths = IndexedSeq(TypedPath(UntypedPath("sku"), ValueType.STRING, isAttribute = true)))
+    val entityTables = Seq(
+      Seq(Entity("urn:order:1", IndexedSeq(Seq("urn:item:1", "urn:item:2")), orderSchema)),
+      Seq(Entity("urn:item:1", IndexedSeq(Seq("A")), itemSchema))
+    )
+
+    val ex = intercept[MissingReferencedEntityException] {
+      test(
+        entityTables = entityTables,
+        expected = "should never generate a JSON"
+      )
+    }
+    ex.getMessage should include ("Entity <urn:order:1> references entity <urn:item:2> via property <items>")
+  }
+
+  it should "only delete the file on clear if forced" in {
+    implicit val userContext: UserContext = UserContext.Empty
+    val resource = InMemoryResourceManager().get("temp")
+    resource.writeString("[]")
+    val sink = new JsonSink(resource)
+
+    sink.clear()
+    resource.exists shouldBe true
+
+    sink.clear(force = true)
+    resource.exists shouldBe false
+  }
+
+  it should "replace the existing content of the file when writing after an unforced clear" in {
+    val schema = EntitySchema(typeUri = "", typedPaths = IndexedSeq(TypedPath(UntypedPath("key"), ValueType.STRING, isAttribute = true)))
+
+    test(
+      entityTables = Seq(Seq(Entity("someUri", IndexedSeq(Seq("value")), schema))),
+      existingContent = Some("""[{"previous": "a considerably longer output than the one that is written afterwards"}]"""),
+      expected = """[{"key": "value"}]"""
+    )
+  }
+
+  it should "only mark the file as updated on clear if forced" in {
+    implicit val userContext: UserContext = UserContext.Empty
+    val resource = InMemoryResourceManager().get("dirtyTrackingOnClear.json")
+    resource.writeString("[]")
+    val sink = new JsonSink(resource)
+    def fetchUpdatedFiles(): Set[String] = DirtyTrackingFileDataSink.fetchAndClearUpdatedFiles(Seq(resource))
+
+    sink.clear()
+    fetchUpdatedFiles() shouldBe empty
+
+    sink.clear(force = true)
+    fetchUpdatedFiles() shouldBe Set(resource.name)
+  }
+
+  private def test(entityTables: Seq[Seq[Entity]],
+                   outputSingleJsonObject: Boolean = false,
+                   template: JsonTemplate = JsonTemplate.default,
+                   existingContent: Option[String] = None,
+                   expected: String): Unit = {
     implicit val userContext: UserContext = UserContext.Empty
     implicit val prefixes: Prefixes = Prefixes.empty
 
     val resource = InMemoryResourceManager().get("temp")
     val sink = new JsonSink(resource, template)
+
+    // Pre-seeds the file and clears the sink without forcing, like a workflow run does before writing
+    for (content <- existingContent) {
+      resource.writeString(content)
+      sink.clear()
+    }
 
     for ((entityTable, index) <- entityTables.zipWithIndex) {
       val schema = entityTable.head.schema

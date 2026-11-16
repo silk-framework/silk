@@ -3,7 +3,9 @@ package controllers.workspaceApi.search
 import controllers.workspaceApi.search.SearchApiModel.Facets
 import org.silkframework.runtime.activity.{Status, UserContext}
 import org.silkframework.workspace.ProjectTask
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow}
+import org.silkframework.workspace.activity.workflow.{AllReplaceableDatasets, LocalWorkflowExecutorGeneratingProvenance, Workflow}
+
+import scala.util.control.NonFatal
 
 /**
   * Facet collector for workflows.
@@ -38,11 +40,17 @@ case class WorkflowReplaceableInputOutput() extends NoLabelKeywordFacetCollector
                                 (implicit user: UserContext): Set[String] = {
     var keywords = Set.empty[String]
     val workflow = projectTask.data
-    val variableDatasets = workflow.legacyVariableDatasets(projectTask.project)
+    val variableDatasets =
+      try {
+        workflow.legacyVariableDatasets(projectTask.project)
+      } catch {
+        // A broken workflow (e.g. an operator reading from a removed node) must not fail the whole search; the workflow info endpoint reports it.
+        case NonFatal(_) => AllReplaceableDatasets(Seq.empty, Seq.empty)
+      }
     if(workflow.replaceableInputs.nonEmpty || variableDatasets.dataSources.nonEmpty) {
       keywords = keywords + "Input"
     }
-    if(workflow.replaceableOutputs.nonEmpty || variableDatasets.dataSources.nonEmpty) {
+    if(workflow.replaceableOutputs.nonEmpty || variableDatasets.sinks.nonEmpty) {
       keywords = keywords + "Output"
     }
     keywords

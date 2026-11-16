@@ -13,7 +13,7 @@ import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.users.DefaultUserManager
-import org.silkframework.util.{ConfigTestTrait, Identifier}
+import org.silkframework.util.{ConfigTestTrait, Identifier, Uri}
 import org.silkframework.workspace.WorkspaceTest.RecordingWorkspaceProvider
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowOperator}
 import org.silkframework.workspace.exceptions.{CircularDependencyException, TaskNotFoundException}
@@ -86,6 +86,68 @@ class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTe
       project.removeAnyTask("task1", removeDependentTasks = false)(regularUser)
       recordingProvider.recordedUsers should contain(("deleteTask", adminUser))
     }
+  }
+
+  it should "derive the meta data of a task from its current meta data when putting it" in {
+    val project = retrieveOrCreateProject("PutAnyTaskTest")
+    val tag1 = Uri("urn:tag:1")
+    def stored = {
+      val metaData = project.anyTask("task1").metaData
+      (metaData.label, metaData.description, metaData.tags)
+    }
+
+    // A new task has no current meta data
+    project.putAnyTask("task1", ProjectTestTask()) { current =>
+      current shouldBe None
+      MetaData(Some("label"), Some("description"), tags = Set(tag1))
+    }
+    stored shouldBe ((Some("label"), Some("description"), Set(tag1)))
+
+    // An existing task hands in its current meta data
+    project.putAnyTask("task1", ProjectTestTask("updated"))(_.get.copy(description = None))
+    project.anyTask("task1").data shouldBe ProjectTestTask("updated")
+    stored shouldBe ((Some("label"), None, Set(tag1)))
+
+    // updateAnyTask takes the label and the description of the given meta data, but keeps the tags of an existing task
+    project.updateAnyTask("task1", ProjectTestTask(), Some(MetaData(Some("new label"), tags = Set(Uri("urn:tag:2")))))
+    stored shouldBe ((Some("new label"), None, Set(tag1)))
+  }
+
+  it should "update the meta data of a task, leaving the task itself as it is" in {
+    val project = retrieveOrCreateProject("UpdateMetaDataTest")
+    project.addAnyTask("task1", ProjectTestTask("param"), MetaData(Some("label"), Some("description")))
+    val created = project.anyTask("task1").metaData.created
+
+    val written = project.updateTaskMetaData("task1")(_.copy(label = Some("new label"), tags = Set(Uri("urn:tag:1"))))
+    val task = project.anyTask("task1")
+    written shouldBe task.metaData
+    task.data shouldBe ProjectTestTask("param")
+    task.metaData.label shouldBe Some("new label")
+    task.metaData.description shouldBe Some("description")
+    task.metaData.tags shouldBe Set(Uri("urn:tag:1"))
+    task.metaData.created shouldBe created
+
+    a[TaskNotFoundException] should be thrownBy project.updateTaskMetaData("noSuchTask")(identity)
+  }
+
+  it should "not write a task whose meta data update changes nothing" in {
+    val recordingProvider = new RecordingWorkspaceProvider()
+    val projectConfig = ProjectConfig("NoOpMetaDataUpdateTest", metaData = MetaData(Some("project")))
+    recordingProvider.putProject(projectConfig)
+    val project = new Project(projectConfig, recordingProvider, new InMemoryResourceManager, userContext)
+    project.addAnyTask("task1", ProjectTestTask("param"), MetaData(Some("label"), tags = Set(Uri("urn:tag:1"))))
+    val metaData = project.anyTask("task1").metaData
+    def taskWrites: Int = recordingProvider.recordedUsers.count(_._1 == "putTask")
+    val writesBefore = taskWrites
+
+    // Neither is the task persisted, which would also restart its activities, nor is its modification date moved
+    project.updateTaskMetaData("task1")(identity) shouldBe metaData
+    project.updateTaskMetaData("task1")(current => current.copy(tags = current.tags + Uri("urn:tag:1"))) shouldBe metaData
+    taskWrites shouldBe writesBefore
+    project.anyTask("task1").metaData shouldBe metaData
+
+    project.updateTaskMetaData("task1")(_.copy(label = Some("new label")))
+    taskWrites shouldBe writesBefore + 1
   }
 
   it should "remove a task that failed to load" in {

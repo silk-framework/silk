@@ -65,6 +65,8 @@ export interface IArtefactItemProperty {
     advanced: boolean;
     parameterType: string;
     visibleInDialog: boolean;
+    // If templates of this parameter may use sensitive variables, like password parameters. Their values are masked in the preview.
+    allowSensitiveVariables?: boolean;
     autoCompletion?: IPropertyAutocomplete;
     // in case of type=="object" this will be defined
     pluginId?: string;
@@ -313,6 +315,9 @@ export interface IInitFrontend {
     /** If the assistant feature is enabled. */
     assistantSupported: boolean;
 
+    /** Configuration of the Explore companion integration for the current user. */
+    companion: ICompanionFrontendConfig;
+
     /** If the mapping creator is enabled. */
     mappingCreatorEnabled: boolean;
 
@@ -321,6 +326,15 @@ export interface IInitFrontend {
 
     /** If access control is enabled. */
     aclEnabled: boolean;
+}
+
+/** InitApi configuration needed to mount and connect the companion frontend. */
+export interface ICompanionFrontendConfig {
+    /** Whether the installation and current user's actions allow the companion. */
+    enabled: boolean;
+
+    /** Same-origin base path of the Explore Companion V2 HTTP API. */
+    apiBasePath: string;
 }
 
 type HotKeyIds = "quickSearch" | "overview";

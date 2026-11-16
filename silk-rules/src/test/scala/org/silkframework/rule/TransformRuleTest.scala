@@ -2,7 +2,8 @@ package org.silkframework.rule
 
 
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.rule.input.{PathInput, TransformInput}
+import org.silkframework.rule.input.{InputPortInput, PathInput, RuleBlockBinding, RuleBlockInput, TransformInput}
+import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.plugins.transformer.value.ConstantUriTransformer
 import org.silkframework.runtime.validation.ValidationException
@@ -27,6 +28,44 @@ class TransformRuleTest extends AnyFlatSpec with Matchers {
     intercept[ValidationException] {
       createRuleWithDuplicatedOperatorID()
     }
+  }
+
+  it should "detect a rule that reads the empty path" in {
+    DirectMapping(sourcePath = UntypedPath.empty).readsEntityUri mustBe true
+  }
+
+  it should "not detect a rule reading a real path as reading the entity URI" in {
+    DirectMapping(sourcePath = UntypedPath("name")).readsEntityUri mustBe false
+  }
+
+  it should "not detect a rule with no path input at all as reading the entity URI" in {
+    ComplexMapping(operator = TransformInput(transformer = ConstantUriTransformer())).readsEntityUri mustBe false
+  }
+
+  it should "detect a rule mixing the empty path with a real path as reading the entity URI" in {
+    val operator = TransformInput(transformer = ConcatTransformer(""), inputs = IndexedSeq(
+      PathInput("empty", UntypedPath.empty),
+      PathInput("name", UntypedPath("name"))
+    ))
+    ComplexMapping(operator = operator).readsEntityUri mustBe true
+  }
+
+  it should "detect a rule reading the empty path through a rule block binding" in {
+    val operator = RuleBlockInput(ruleBlockId = "block", bindings = IndexedSeq(
+      RuleBlockBinding(portId = "p", input = PathInput("empty", UntypedPath.empty))
+    ))
+    ComplexMapping(operator = operator).readsEntityUri mustBe true
+  }
+
+  it should "not detect a rule block binding reading a real path as reading the entity URI" in {
+    val operator = RuleBlockInput(ruleBlockId = "block", bindings = IndexedSeq(
+      RuleBlockBinding(portId = "p", input = PathInput("name", UntypedPath("name")))
+    ))
+    ComplexMapping(operator = operator).readsEntityUri mustBe false
+  }
+
+  it should "not detect an input port placeholder as reading the entity URI" in {
+    ComplexMapping(operator = InputPortInput(portId = "p")).readsEntityUri mustBe false
   }
 
   private def testErrorCases(duplicate1: Boolean, duplicate2: Boolean): Unit = {
