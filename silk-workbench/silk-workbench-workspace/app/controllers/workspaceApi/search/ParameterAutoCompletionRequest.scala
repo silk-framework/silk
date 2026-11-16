@@ -12,6 +12,7 @@ import scala.language.implicitConversions
   * @param pluginId                 The ID of the plugin.
   * @param parameterId              The ID of the plugin parameter.
   * @param projectId                The project ID that will be passed to the auto-completion service provider.
+  * @param taskId                   The ID of the task the parameter belongs to, if the task exists already.
   * @param dependsOnParameterValues The parameter values this parameter auto-completion depends on. These dependencies are
   *                                 stated in the @Param annotation of the parameter.
   * @param textQuery                The text query to filter the results.
@@ -21,6 +22,7 @@ import scala.language.implicitConversions
 case class ParameterAutoCompletionRequest(pluginId: String,
                                           parameterId: String,
                                           projectId: String,
+                                          taskId: Option[String] = None,
                                           @ArraySchema(
                                             schema = new Schema(
                                               description = "The parameter values this parameter auto-completion depends on. These dependencies are stated in the @Param annotation of the parameter.",
