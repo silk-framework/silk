@@ -1,7 +1,6 @@
 import { selectOptionProps } from "../../../../../../utils/selectOptionProps";
 import React, { useEffect, useState } from "react";
 import { Button, FieldItem, Highlighter, MenuItem, Select, SelectProps } from "@eccenca/gui-elements";
-import { useTranslation } from "react-i18next";
 import { IPrefix } from "./suggestion.typings";
 
 interface IProps {
@@ -16,7 +15,6 @@ interface IProps {
 
 /** The selection of URI prefixes used for auto-generated properties */
 export default function PrefixList({ prefixes, selectedPrefix, onChange, disabled }: IProps) {
-    const [t] = useTranslation();
     const createOptionId = `${React.useId()}-create-prefix`;
     const [createOptionActive, setCreateOptionActive] = useState(false);
     const [items, setItems] = useState<IPrefix[]>([]);
@@ -93,10 +91,10 @@ export default function PrefixList({ prefixes, selectedPrefix, onChange, disable
     );
 
     return (
-        <FieldItem labelProps={{ text: t("MappingSuggestion.selection.knownPrefix") }}>
+        <FieldItem labelProps={{ text: "Use known prefix" }}>
             <Select<IPrefix>
                 inputProps={{
-                    "aria-label": t("MappingSuggestion.selection.searchPrefixes"),
+                    "aria-label": "Search prefixes",
                     ...(createOptionActive ? { "aria-activedescendant": createOptionId } : {}),
                 }}
                 onActiveItemChange={(_item, isCreateNewItem) => setCreateOptionActive(isCreateNewItem)}

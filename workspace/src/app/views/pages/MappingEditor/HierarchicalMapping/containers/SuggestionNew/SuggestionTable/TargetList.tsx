@@ -13,7 +13,6 @@ import {
     OverviewItemLine,
     highlighterUtils,
 } from "@eccenca/gui-elements";
-import { useTranslation } from "react-i18next";
 import { ITargetWithSelected } from "../suggestion.typings";
 import { SuggestionListContext } from "../SuggestionContainer";
 
@@ -24,7 +23,6 @@ interface IProps {
     onChange(uri: ITargetWithSelected);
 }
 export default function TargetList({ targets, onChange, elementLabel }: IProps) {
-    const [t] = useTranslation();
     const context = useContext(SuggestionListContext);
 
     const [items, setItems] = useState<ITargetWithSelected[]>(targets);
@@ -74,15 +72,10 @@ export default function TargetList({ targets, onChange, elementLabel }: IProps) 
 
     const suggestVocabularyProperties = context.isFromDataset;
     const selectionLabel = context.isFromDataset
-        ? t("MappingSuggestion.selection.targetPropertyFor", { element: elementLabel })
-        : t("MappingSuggestion.selection.sourcePathFor", { element: elementLabel });
-    const searchLabel = context.isFromDataset
-        ? t("MappingSuggestion.selection.searchTargetProperties")
-        : t("MappingSuggestion.selection.searchSourcePaths");
-    const selectedValueLabel = t("MappingSuggestion.selection.selectedFieldValue", {
-        field: selectionLabel,
-        value: selected.label || selected.uri,
-    });
+        ? `Target property for ${elementLabel}`
+        : `Source path for ${elementLabel}`;
+    const searchLabel = context.isFromDataset ? "Search target properties" : "Search source paths";
+    const selectedValueLabel = `${selectionLabel}, ${selected.label || selected.uri} selected`;
 
     const areTargetsEqual = (targetA: ITargetWithSelected, targetB: ITargetWithSelected) => {
         // Compare only the titles (ignoring case) just for simplicity.

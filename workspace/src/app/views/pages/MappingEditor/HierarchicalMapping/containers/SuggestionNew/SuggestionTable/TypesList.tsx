@@ -1,7 +1,6 @@
 import { selectOptionProps } from "../../../../../../../utils/selectOptionProps";
 import React from "react";
 import { FieldItem, MenuItem, Select } from "@eccenca/gui-elements";
-import { useTranslation } from "react-i18next";
 import { SuggestionTypeValues } from "../suggestion.typings";
 
 const TYPES: SuggestionTypeValues[] = ["value", "object"];
@@ -14,14 +13,10 @@ interface IProps {
 }
 
 export default function TypesList({ onChange, selected, elementLabel }: IProps) {
-    const [t] = useTranslation();
     const areTypesEqual = (typeA: SuggestionTypeValues, typeB: SuggestionTypeValues) => {
         return typeA.toLowerCase() === typeB.toLowerCase();
     };
-    const selectedValueLabel = t("MappingSuggestion.selection.selectedFieldValue", {
-        field: t("MappingSuggestion.selection.mappingTypeFor", { element: elementLabel }),
-        value: selected,
-    });
+    const selectedValueLabel = `Mapping type for ${elementLabel}, ${selected} selected`;
 
     return (
         <FieldItem
