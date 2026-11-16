@@ -15,6 +15,7 @@ interface IProps {
 
 /** The selection of URI prefixes used for auto-generated properties */
 export default function PrefixList({ prefixes, selectedPrefix, onChange, disabled }: IProps) {
+    const triggerId = `prefix-trigger-${React.useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
     const createOptionId = `${React.useId()}-create-prefix`;
     const [createOptionActive, setCreateOptionActive] = useState(false);
     const [items, setItems] = useState<IPrefix[]>([]);
@@ -112,6 +113,8 @@ export default function PrefixList({ prefixes, selectedPrefix, onChange, disable
                 createNewItemPosition={"last"}
             >
                 <Button
+                    id={triggerId}
+                    aria-labelledby={triggerId}
                     rightIcon="toggler-caretdown"
                     text={
                         selectedItem === selectedPrefix ? selectedItem : "Select prefix for auto-generated properties"

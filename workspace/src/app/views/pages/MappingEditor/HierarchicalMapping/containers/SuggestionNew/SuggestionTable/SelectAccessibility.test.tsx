@@ -112,15 +112,38 @@ it("navigates and selects a mapping type with the keyboard", async () => {
     expect(combobox).toHaveFocus();
 });
 
-it("names the prefix selector and its search input", async () => {
-    renderWithTranslations(
-        <PrefixList prefixes={[{ key: "ex", uri: "urn:example" }]} selectedPrefix="urn:example" onChange={jest.fn()} />,
-    );
-
-    const selectButton = screen.getByRole("button", { name: "Use known prefix" });
-    expect(selectButton).toBeInTheDocument();
-    await act(async () => fireEvent.click(selectButton));
-    expect(screen.getByRole("combobox", { name: "Search prefixes" })).toBeInTheDocument();
+it("connects the prefix label and current value to the custom trigger", async () => {
+    const user = userEvent.setup();
+    const ControlledPrefixList = () => {
+        const [selected, setSelected] = React.useState("urn:example");
+        return (
+            <PrefixList
+                prefixes={[
+                    { key: "ex", uri: "urn:example" },
+                    { key: "other", uri: "urn:other" },
+                ]}
+                selectedPrefix={selected}
+                onChange={setSelected}
+            />
+        );
+    };
+    const { container } = renderWithTranslations(<ControlledPrefixList />);
+    const selectButton = container.querySelector("button")!;
+    const expectLabelAndValue = (value: string) => {
+        const references = selectButton
+            .getAttribute("aria-labelledby")
+            ?.split(/\s+/)
+            .map((id) => document.getElementById(id));
+        expect(references).toEqual([screen.getByText("Use known prefix").closest("label"), selectButton]);
+        expect(selectButton).toHaveTextContent(value);
+    };
+    expectLabelAndValue("urn:example");
+    await act(async () => user.click(selectButton));
+    const input = screen.getByRole("combobox", { name: "Search prefixes" });
+    await waitFor(() => expect(input).toHaveFocus());
+    await act(async () => user.click(screen.getByRole("option", { name: /urn:other/ })));
+    await waitFor(() => expect(selectButton).toHaveFocus());
+    expectLabelAndValue("urn:other");
 });
 
 it.each(["target", "prefix", "single source"])("connects the active %s to a real option", async (kind) => {
