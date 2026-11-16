@@ -40,9 +40,24 @@ import { useSelector } from "react-redux";
 import { workspaceSel } from "@ducks/workspace";
 
 describe("Project changes", () => {
+    let consoleError: jest.SpyInstance<void, Parameters<typeof console.error>>;
+
+    beforeEach(() => {
+        consoleError = jest.spyOn(console, "error");
+    });
+
     afterEach(() => {
-        mockAxios.reset();
-        document.getElementById(APP_VIEWHEADER_ID)?.remove();
+        try {
+            const actWarnings = consoleError.mock.calls.filter((args) =>
+                args.some((value) => typeof value === "string" && value.includes("not wrapped in act")),
+            );
+            expect(actWarnings).toEqual([]);
+        } finally {
+            consoleError.mockRestore();
+            jest.useRealTimers();
+            mockAxios.reset();
+            document.getElementById(APP_VIEWHEADER_ID)?.remove();
+        }
     });
 
     const PROJECT_ID = "cmem";
@@ -229,7 +244,9 @@ describe("Project changes", () => {
             ),
             history,
         );
-        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(list) }));
+        await act(async () => {
+            mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(list) }));
+        });
         await waitFor(() => {
             expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(list.length);
         });
@@ -238,7 +255,9 @@ describe("Project changes", () => {
             .map((change) => change.seq);
         if (seqs.length > 0) {
             await waitFor(() => checkRequestMade(conflictsUrl(seqs), "GET"));
-            mockAxios.mockResponseFor({ url: conflictsUrl(seqs) }, mockedAxiosResponse({ data: { conflicts } }));
+            await act(async () => {
+                mockAxios.mockResponseFor({ url: conflictsUrl(seqs) }, mockedAxiosResponse({ data: { conflicts } }));
+            });
         }
         return wrapper;
     };
@@ -246,13 +265,23 @@ describe("Project changes", () => {
     /** Answers the search that follows a revert or a review. */
     const answerReload = async (list: IChangeEntry[] = changes, reviewedUpTo: number = 0) => {
         await waitFor(() => checkRequestMade(searchUrl, "POST"));
-        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(list, reviewedUpTo) }));
+        await act(async () => {
+            mockAxios.mockResponseFor(
+                { url: searchUrl },
+                mockedAxiosResponse({ data: searchAnswer(list, reviewedUpTo) }),
+            );
+        });
     };
 
     /** Answers the search for all unreviewed entries that the batch revert of them starts with. */
     const answerUnreviewedSearch = async () => {
         await waitFor(() => checkRequestMade(searchUrl, "POST", { limit: 0 }, true));
-        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(unreviewedChanges) }));
+        await act(async () => {
+            mockAxios.mockResponseFor(
+                { url: searchUrl },
+                mockedAxiosResponse({ data: searchAnswer(unreviewedChanges) }),
+            );
+        });
     };
 
     const answerReviewPreview = async (entries: IChangeEntry[] = unreviewedChanges) => {
@@ -267,7 +296,9 @@ describe("Project changes", () => {
                 true,
             ),
         );
-        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(entries) }));
+        await act(async () => {
+            mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(entries) }));
+        });
         await waitFor(() =>
             expect(findElement(document.body, byTestId("changes-mark-reviewed-confirm-btn"))).toBeEnabled(),
         );
@@ -276,7 +307,9 @@ describe("Project changes", () => {
     /** Answers the check the batch dialog makes when it opens, and waits until the dialog offers the revert. */
     const answerBatchCheck = async (head: number, conflicts: { seq: number; reason: string }[] = []) => {
         await waitFor(() => checkRequestMade(conflictsUrl([head]), "GET"));
-        mockAxios.mockResponseFor({ url: conflictsUrl([head]) }, mockedAxiosResponse({ data: { conflicts } }));
+        await act(async () => {
+            mockAxios.mockResponseFor({ url: conflictsUrl([head]) }, mockedAxiosResponse({ data: { conflicts } }));
+        });
         await waitFor(() => {
             expect(findElement(document.body, byTestId("remove-item-button"))).toBeEnabled();
         });
@@ -395,10 +428,12 @@ describe("Project changes", () => {
                 true,
             ),
         );
-        mockAxios.mockResponseFor(
-            { url: searchUrl },
-            mockedAxiosResponse({ data: searchAnswer([mappingChange], 0, unreviewedChanges.length) }),
-        );
+        await act(async () => {
+            mockAxios.mockResponseFor(
+                { url: searchUrl },
+                mockedAxiosResponse({ data: searchAnswer([mappingChange], 0, unreviewedChanges.length) }),
+            );
+        });
         await waitFor(() => expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(1));
         expect(findElement(wrapper, byTestId("change-conversation-5"))).toHaveTextContent("C2");
         expect(findElement(wrapper, byTestId("change-conversation-5"))).toHaveAttribute("aria-pressed", "true");
@@ -413,10 +448,14 @@ describe("Project changes", () => {
             workspace: { filters: { pagination: { current: page, limit: 25, offset: (page - 1) * 25, total: 100 } } },
         });
         await waitFor(() => checkRequestMade(searchUrl, "POST", { offset: (page - 1) * 25 }, true));
-        mockAxios.mockResponseFor(
-            { url: searchUrl },
-            mockedAxiosResponse({ data: { ...searchAnswer([{ ...mappingChange, revertible: false }]), total: 100 } }),
-        );
+        await act(async () => {
+            mockAxios.mockResponseFor(
+                { url: searchUrl },
+                mockedAxiosResponse({
+                    data: { ...searchAnswer([{ ...mappingChange, revertible: false }]), total: 100 },
+                }),
+            );
+        });
         await waitFor(() => expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(1));
         const navigations: string[] = [];
         const stopListening = history.listen((location, action) => {
@@ -430,7 +469,9 @@ describe("Project changes", () => {
             expect(query.get("f_ids")).toBe("changeConversation");
             expect(query.get("f_keys")).toBe(mappingChange.conversationId);
             await waitFor(() => checkRequestMade(searchUrl, "POST", { offset: 0 }, true));
-            mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+            await act(async () => {
+                mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+            });
         } finally {
             stopListening();
         }
@@ -505,7 +546,9 @@ describe("Project changes", () => {
         const details = Array.from({ length: 8 }, (_, i) => ({ label: `Mapping rule 'rule-${i}' added` }));
         const longChange: IChangeEntry = { ...mappingChange, details };
         const wrapper = renderWrapper(<ChangeList projectId={PROJECT_ID} />);
-        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([longChange]) }));
+        await act(async () => {
+            mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([longChange]) }));
+        });
         await waitFor(() => {
             expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(1);
         });
@@ -555,18 +598,20 @@ describe("Project changes", () => {
         await waitFor(() => {
             checkRequestMade(revertUrl(5), "POST");
         });
-        mockAxios.mockResponseFor(
-            { url: revertUrl(5) },
-            mockedAxiosResponse({
-                data: {
-                    seq: 6,
-                    timestamp: "2026-08-26T09:52:00.000Z",
-                    type: "RemoveMapping",
-                    revertible: true,
-                    reverts: 5,
-                },
-            }),
-        );
+        await act(async () => {
+            mockAxios.mockResponseFor(
+                { url: revertUrl(5) },
+                mockedAxiosResponse({
+                    data: {
+                        seq: 6,
+                        timestamp: "2026-08-26T09:52:00.000Z",
+                        type: "RemoveMapping",
+                        revertible: true,
+                        reverts: 5,
+                    },
+                }),
+            );
+        });
         // The list is reloaded after the revert; the rows stay until the answer arrives
         await waitFor(() => checkRequestMade(searchUrl, "POST"));
         expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(changes.length);
@@ -582,10 +627,14 @@ describe("Project changes", () => {
         // The entries from the change upwards come from the journal, as the page may not hold them
         await waitFor(() => checkRequestMade(changesUrl, "GET"));
         expect(mockAxios.getReqMatching({ url: changesUrl, params: { fromSeq: 4 } })).toBeDefined();
-        mockAxios.mockResponseFor(
-            { url: changesUrl },
-            mockedAxiosResponse({ data: { reviewedUpTo: 0, changes: changes.filter((change) => change.seq >= 4) } }),
-        );
+        await act(async () => {
+            mockAxios.mockResponseFor(
+                { url: changesUrl },
+                mockedAxiosResponse({
+                    data: { reviewedUpTo: 0, changes: changes.filter((change) => change.seq >= 4) },
+                }),
+            );
+        });
         await waitFor(() => {
             expect(findElement(document.body, byTestId("remove-item-button"))).toBeInTheDocument();
         });
@@ -605,17 +654,19 @@ describe("Project changes", () => {
         await waitFor(() => {
             checkRequestMade(revertAllUrl, "POST", { seqs: [5, 4] });
         });
-        mockAxios.mockResponseFor(
-            { url: revertAllUrl },
-            mockedAxiosResponse({
-                data: {
-                    results: [
-                        { seq: 5, outcome: "reverted", entry: { seq: 6, type: "RemoveMapping", revertible: true } },
-                        { seq: 4, outcome: "reverted", entry: { seq: 7, type: "ReplaceTask", revertible: true } },
-                    ],
-                },
-            }),
-        );
+        await act(async () => {
+            mockAxios.mockResponseFor(
+                { url: revertAllUrl },
+                mockedAxiosResponse({
+                    data: {
+                        results: [
+                            { seq: 5, outcome: "reverted", entry: { seq: 6, type: "RemoveMapping", revertible: true } },
+                            { seq: 4, outcome: "reverted", entry: { seq: 7, type: "ReplaceTask", revertible: true } },
+                        ],
+                    },
+                }),
+            );
+        });
         await answerReload();
         await waitFor(() => {
             expect(findElement(wrapper, byTestId("changes-revert-all-summary")).textContent).toContain(
@@ -643,7 +694,9 @@ describe("Project changes", () => {
         await waitFor(() => {
             checkRequestMade(reviewedUrl, "PUT", { upTo: 5 });
         });
-        mockAxios.mockResponseFor({ url: reviewedUrl }, mockedAxiosResponse({ data: { reviewedUpTo: 5 } }));
+        await act(async () => {
+            mockAxios.mockResponseFor({ url: reviewedUrl }, mockedAxiosResponse({ data: { reviewedUpTo: 5 } }));
+        });
         await answerReload(reviewedChanges, 5);
         await waitFor(() => {
             expect(wrapper.container.querySelector(byTestId("changes-mark-reviewed-btn"))).not.toBeInTheDocument();
@@ -674,16 +727,18 @@ describe("Project changes", () => {
             workspace: { filters: { pagination: { current: 2, limit: 25, offset: 25 } } },
         });
         await waitFor(() => checkRequestMade(searchUrl, "POST", { offset: 25 }, true));
-        mockAxios.mockResponseFor(
-            { url: searchUrl },
-            mockedAxiosResponse({
-                data: {
-                    ...searchAnswer(unreviewedChanges),
-                    results: [changes[3]],
-                    total: 30,
-                },
-            }),
-        );
+        await act(async () => {
+            mockAxios.mockResponseFor(
+                { url: searchUrl },
+                mockedAxiosResponse({
+                    data: {
+                        ...searchAnswer(unreviewedChanges),
+                        results: [changes[3]],
+                        total: 30,
+                    },
+                }),
+            );
+        });
         await waitFor(() => expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(1));
         clickFoundElement(wrapper, byTestId("changes-mark-reviewed-btn"));
         const newerChange = { ...mappingChange, seq: 6, description: "A change added after the page loaded" };
@@ -702,10 +757,12 @@ describe("Project changes", () => {
         const wrapper = await loadChangeList();
         clickFoundElement(wrapper, byTestId("changes-mark-reviewed-btn"));
         await waitFor(() => checkRequestMade(searchUrl, "POST", { limit: 0 }, true));
-        mockAxiosResponse(
-            { url: searchUrl },
-            mockedAxiosError(500, { title: "Server error", detail: "Preview failed." }),
-        );
+        await act(async () => {
+            mockAxiosResponse(
+                { url: searchUrl },
+                mockedAxiosError(500, { title: "Server error", detail: "Preview failed." }),
+            );
+        });
         const dialog = findElement(document.body, byTestId("changes-mark-reviewed-modal"));
         const retry = await within(dialog).findByRole("button", { name: "Retry" });
         expect(findElement(dialog, byTestId("changes-mark-reviewed-confirm-btn"))).toBeDisabled();
@@ -719,7 +776,9 @@ describe("Project changes", () => {
         const wrapper = await loadChangeList();
         clickFoundElement(wrapper, byTestId("changes-mark-reviewed-btn"));
         await waitFor(() => checkRequestMade(searchUrl, "POST", { limit: 0 }, true));
-        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+        await act(async () => {
+            mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+        });
         const dialog = findElement(document.body, byTestId("changes-mark-reviewed-modal"));
         await waitFor(() => expect(dialog).toHaveTextContent("Changes to mark as reviewed: 0."));
         expect(findElement(dialog, byTestId("changes-mark-reviewed-confirm-btn"))).toBeDisabled();
@@ -733,10 +792,12 @@ describe("Project changes", () => {
         });
         await waitFor(() => checkRequestMade(searchUrl, "POST", { textQuery: "mapping" }, true));
         // One of the two unreviewed changes matches: marking all as reviewed would approve the other one unseen
-        mockAxios.mockResponseFor(
-            { url: searchUrl },
-            mockedAxiosResponse({ data: searchAnswer([mappingChange], 0, 2) }),
-        );
+        await act(async () => {
+            mockAxios.mockResponseFor(
+                { url: searchUrl },
+                mockedAxiosResponse({ data: searchAnswer([mappingChange], 0, 2) }),
+            );
+        });
         await waitFor(() => {
             expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(1);
         });
@@ -755,12 +816,14 @@ describe("Project changes", () => {
         await waitFor(() => checkRequestMade(searchUrl, "POST"));
         // The state facet counts its values as if it were not applied, so the count still says 2 while none is shown
         const reverted = changes.filter((change) => change.revertedBy != null);
-        mockAxios.mockResponseFor(
-            { url: searchUrl },
-            mockedAxiosResponse({
-                data: { ...searchAnswer(reverted, 0, 2), facets: searchAnswer(unreviewedChanges).facets },
-            }),
-        );
+        await act(async () => {
+            mockAxios.mockResponseFor(
+                { url: searchUrl },
+                mockedAxiosResponse({
+                    data: { ...searchAnswer(reverted, 0, 2), facets: searchAnswer(unreviewedChanges).facets },
+                }),
+            );
+        });
         await waitFor(() => {
             expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(reverted.length);
         });
@@ -770,10 +833,12 @@ describe("Project changes", () => {
     it("should report a failed search instead of an empty journal", async () => {
         const wrapper = renderWrapper(<ChangeList projectId={PROJECT_ID} />);
         await waitFor(() => checkRequestMade(searchUrl, "POST"));
-        mockAxiosResponse(
-            searchUrl,
-            mockedAxiosError(500, { title: "Server error", detail: "The journal is unreadable." }),
-        );
+        await act(async () => {
+            mockAxiosResponse(
+                searchUrl,
+                mockedAxiosError(500, { title: "Server error", detail: "The journal is unreadable." }),
+            );
+        });
         await waitFor(() => {
             expect(wrapper.container.textContent).toContain("The journal is unreadable.");
         });
@@ -786,10 +851,12 @@ describe("Project changes", () => {
         const wrapper = await loadChangeList(runAndProposal, []);
         fireEvent.click(await openMenuItem(wrapper, 1, "change-revert-back-btn-1"));
         await waitFor(() => checkRequestMade(changesUrl, "GET"));
-        mockAxios.mockResponseFor(
-            { url: changesUrl },
-            mockedAxiosResponse({ data: { reviewedUpTo: 0, changes: runAndProposal } }),
-        );
+        await act(async () => {
+            mockAxios.mockResponseFor(
+                { url: changesUrl },
+                mockedAxiosResponse({ data: { reviewedUpTo: 0, changes: runAndProposal } }),
+            );
+        });
         await waitFor(() => {
             expect(findElement(document.body, byTestId("changes-revert-batch-nothing"))).toBeInTheDocument();
         });
@@ -811,11 +878,15 @@ describe("Project changes", () => {
         await waitFor(() => {
             checkRequestMade(reviewedUrl, "PUT", { upTo: 5 });
         });
-        mockAxios.mockResponseFor({ url: reviewedUrl }, mockedAxiosResponse({ data: { reviewedUpTo: 5 } }));
+        await act(async () => {
+            mockAxios.mockResponseFor({ url: reviewedUrl }, mockedAxiosResponse({ data: { reviewedUpTo: 5 } }));
+        });
         await answerReload(changes, 5);
         // The check fails this time: the earlier reason of change 4 does not hold on, as a revert answers with the conflict itself
         await waitFor(() => checkRequestMade(conflictsUrl([5, 4]), "GET"));
-        mockAxiosResponse({ url: conflictsUrl([5, 4]) }, mockedAxiosError(500));
+        await act(async () => {
+            mockAxiosResponse({ url: conflictsUrl([5, 4]) }, mockedAxiosError(500));
+        });
         await waitFor(() => {
             expect(isDisabled(findElement(document.body, byTestId("change-menu-4")))).toBe(false);
         });
@@ -831,18 +902,24 @@ describe("Project changes", () => {
         await waitFor(() => checkRequestMade(conflictsUrl([5]), "GET"));
         expect(findElement(document.body, byTestId("remove-item-button"))).toBeDisabled();
         // Enter does not do what the button refuses, neither while checking nor once blocked
-        triggerHotkeyHandler("enter");
+        await act(async () => {
+            triggerHotkeyHandler("enter");
+        });
         expect(mockAxios.getReqMatching({ url: revertAllUrl })).toBeUndefined();
-        mockAxios.mockResponseFor(
-            { url: conflictsUrl([5]) },
-            mockedAxiosResponse({ data: { conflicts: [{ seq: 5, reason }] } }),
-        );
+        await act(async () => {
+            mockAxios.mockResponseFor(
+                { url: conflictsUrl([5]) },
+                mockedAxiosResponse({ data: { conflicts: [{ seq: 5, reason }] } }),
+            );
+        });
         await waitFor(() => {
             expect(findElement(document.body, byTestId("changes-revert-batch-blocked"))).toBeInTheDocument();
         });
         expect(findElement(document.body, byTestId("changes-revert-batch-blocked")).textContent).toContain(reason);
         expect(findElement(document.body, byTestId("remove-item-button"))).toBeDisabled();
-        triggerHotkeyHandler("enter");
+        await act(async () => {
+            triggerHotkeyHandler("enter");
+        });
         expect(mockAxios.getReqMatching({ url: revertAllUrl })).toBeUndefined();
     });
 
@@ -861,21 +938,25 @@ describe("Project changes", () => {
         );
         await answerBatchCheck(5);
         // Enter confirms once the revert is offered
-        triggerHotkeyHandler("enter");
+        await act(async () => {
+            triggerHotkeyHandler("enter");
+        });
         await waitFor(() => {
             checkRequestMade(revertAllUrl, "POST", { seqs: [5, 2] });
         });
-        mockAxios.mockResponseFor(
-            { url: revertAllUrl },
-            mockedAxiosResponse({
-                data: {
-                    results: [
-                        { seq: 5, outcome: "reverted", entry: { seq: 6, type: "RemoveMapping", revertible: true } },
-                        { seq: 2, outcome: "skipped", message: "Change 2 (WorkflowExecuted) cannot be reverted." },
-                    ],
-                },
-            }),
-        );
+        await act(async () => {
+            mockAxios.mockResponseFor(
+                { url: revertAllUrl },
+                mockedAxiosResponse({
+                    data: {
+                        results: [
+                            { seq: 5, outcome: "reverted", entry: { seq: 6, type: "RemoveMapping", revertible: true } },
+                            { seq: 2, outcome: "skipped", message: "Change 2 (WorkflowExecuted) cannot be reverted." },
+                        ],
+                    },
+                }),
+            );
+        });
         await answerReload();
         await waitFor(() => {
             const summary = findElement(wrapper, byTestId("changes-revert-all-summary"));
@@ -899,7 +980,9 @@ describe("Project changes", () => {
         setUseParams(PROJECT_ID, "");
         const wrapper = renderWrapper(<ProjectChanges />);
         await waitFor(() => checkRequestMade(searchUrl, "POST"));
-        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(changes) }));
+        await act(async () => {
+            mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(changes) }));
+        });
         await waitFor(() => {
             expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(changes.length);
         });
@@ -936,7 +1019,9 @@ describe("Project changes", () => {
         expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(0);
         expect(wrapper.container.textContent).not.toContain("Stale facet");
         expect(wrapper.container.textContent).not.toContain("Stale error");
-        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(changes) }));
+        await act(async () => {
+            mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(changes) }));
+        });
         await waitFor(() => {
             expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(changes.length);
         });
@@ -969,7 +1054,9 @@ describe("Project changes", () => {
         }).toString()}`;
         const wrapper = renderWrapper(<ProjectChanges />, history);
         await waitFor(() => checkRequestMade(searchUrl, "POST", { offset: 25 }, true));
-        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+        await act(async () => {
+            mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+        });
 
         const emptyResults = await wrapper.findByText("No changes match the search.");
         const state = findElement(wrapper, byTestId("applied-facet-changeState"));
@@ -999,11 +1086,15 @@ describe("Project changes", () => {
         expect(query.get("page")).toBe("1");
         expect(query.get("f_ids")).toBe("changeState");
         expect(wrapper.container.querySelector(byTestId("applied-facet-changeConversation"))).toBeNull();
-        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+        await act(async () => {
+            mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+        });
         fireEvent.click(within(state).getByRole("button", { name: "Remove tag" }));
         await waitFor(() => checkRequestMade(searchUrl, "POST", { facets: [], textQuery: "movies" }, true));
         expect(wrapper.container.querySelector(byTestId("applied-facet-changeState"))).toBeNull();
-        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+        await act(async () => {
+            mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+        });
     });
 
     it("resets pagination when navigation removes the page parameter", async () => {
@@ -1023,25 +1114,31 @@ describe("Project changes", () => {
             history,
         );
         await waitFor(() => checkRequestMade(searchUrl, "POST", { offset: 0 }, true));
-        mockAxios.mockResponseFor(
-            { url: searchUrl },
-            mockedAxiosResponse({ data: { ...searchAnswer([mappingChange]), total: 100 } }),
-        );
+        await act(async () => {
+            mockAxios.mockResponseFor(
+                { url: searchUrl },
+                mockedAxiosResponse({ data: { ...searchAnswer([mappingChange]), total: 100 } }),
+            );
+        });
         await waitFor(() => expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(1));
 
         act(() => history.push(`${path}?highlightConversation=conversation-a&page=3`));
         await waitFor(() => checkRequestMade(searchUrl, "POST", { offset: 50 }, true));
-        mockAxios.mockResponseFor(
-            { url: searchUrl },
-            mockedAxiosResponse({ data: { ...searchAnswer([mappingChange]), total: 100 } }),
-        );
+        await act(async () => {
+            mockAxios.mockResponseFor(
+                { url: searchUrl },
+                mockedAxiosResponse({ data: { ...searchAnswer([mappingChange]), total: 100 } }),
+            );
+        });
 
         await waitFor(() => expect(wrapper.getByTestId("current-page")).toHaveTextContent("3"));
         act(() => history.push(`${path}?highlightConversation=conversation-a`));
         await waitFor(() => expect(wrapper.getByTestId("current-page")).toHaveTextContent("1"));
         await waitFor(() => checkRequestMade(searchUrl, "POST", { offset: 0 }, true));
         expect(new URLSearchParams(history.location.search).get("highlightConversation")).toBe("conversation-a");
-        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+        await act(async () => {
+            mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+        });
     });
 
     it("highlights and prioritizes the linked conversation, preserves its URL context, and applies review links without remounting", async () => {
@@ -1070,7 +1167,9 @@ describe("Project changes", () => {
         }));
         const wrapper = renderWrapper(<ProjectChanges />, history);
         await waitFor(() => checkRequestMade(searchUrl, "POST", { facets: [stateFacet] }, true));
-        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(entries) }));
+        await act(async () => {
+            mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(entries) }));
+        });
         await waitFor(() => expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(9));
         const facetInputs = () =>
             Array.from(
@@ -1098,14 +1197,21 @@ describe("Project changes", () => {
                 true,
             ),
         );
-        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([entries[8]], 0, 9) }));
+        await act(async () => {
+            mockAxios.mockResponseFor(
+                { url: searchUrl },
+                mockedAxiosResponse({ data: searchAnswer([entries[8]], 0, 9) }),
+            );
+        });
         await waitFor(() => expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(1));
         expect(findElement(wrapper, byTestId("change-conversation-9"))).toHaveAttribute("aria-pressed", "true");
         expect(findElement(wrapper, byTestId("changes-mark-reviewed-btn"))).toBeDisabled();
 
         act(() => history.push(`${path}?${projectQuery.toString()}`));
         await waitFor(() => checkRequestMade(searchUrl, "POST", { facets: [stateFacet] }, true));
-        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(entries) }));
+        await act(async () => {
+            mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(entries) }));
+        });
         await waitFor(() => expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(9));
         expect(findElement(wrapper, byTestId("changes-mark-reviewed-btn"))).not.toBeDisabled();
         clickFoundElement(wrapper, byTestId("change-conversation-1"));
@@ -1123,26 +1229,38 @@ describe("Project changes", () => {
             ),
         );
         expect(new URLSearchParams(history.location.search).get("highlightConversation")).toBe(highlight);
-        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([entries[0]], 0, 9) }));
+        await act(async () => {
+            mockAxios.mockResponseFor(
+                { url: searchUrl },
+                mockedAxiosResponse({ data: searchAnswer([entries[0]], 0, 9) }),
+            );
+        });
         await waitFor(() => expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(1));
     });
 
     it("should reload the list on Enter in the search field, keeping the query and the facets", async () => {
+        jest.useFakeTimers();
         setUseParams(PROJECT_ID, "");
         const history = createBrowserHistory();
         history.location.pathname = workspacePath(`/projects/${PROJECT_ID}/changes`);
         history.location.search = "?textQuery=persons&f_ids=changeState&types=keyword&f_keys=unreviewed";
         const wrapper = renderWrapper(<ProjectChanges />, history);
         await waitFor(() => checkRequestMade(searchUrl, "POST", { textQuery: "persons" }, true));
-        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(changes) }));
+        await act(async () => {
+            mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(changes) }));
+        });
         await waitFor(() => {
             expect(wrapper.container.querySelectorAll("tbody tr")).toHaveLength(changes.length);
         });
         // The search bar also fires for the query it was handed, after its debounce: no second search for it
-        await new Promise((resolve) => setTimeout(resolve, 600));
+        await act(async () => {
+            await jest.advanceTimersByTimeAsync(500);
+        });
         expect(mockAxios.queue().filter((item) => item.url === searchUrl)).toHaveLength(0);
         // Enter reloads; the search bar's default would search the unchanged query and clear the facets
-        pressKeyDown(findElement(wrapper, byTestId("search-bar")) as HTMLElement);
+        await act(async () => {
+            await pressKeyDown(findElement(wrapper, byTestId("search-bar")) as HTMLElement);
+        });
         await waitFor(() => checkRequestMade(searchUrl, "POST"));
         expect(mockAxios.getReqMatching({ url: searchUrl })?.data).toMatchObject({
             textQuery: "persons",
@@ -1167,12 +1285,16 @@ describe("Project changes", () => {
             history,
         );
         await waitFor(() => checkRequestMade(searchUrl, "POST"));
-        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+        await act(async () => {
+            mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+        });
         fireEvent.click(wrapper.getByRole("button", { name: "Next page" }));
         await waitFor(() => checkRequestMade(searchUrl, "POST", { offset: 25 }, true));
         expect(new URLSearchParams(history.location.search).get("highlightConversation")).toBe("conversation-a");
         expect(mockAxios.getReqMatching({ url: searchUrl })?.data).not.toHaveProperty("preservedQueryKeys");
-        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+        await act(async () => {
+            mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer([]) }));
+        });
         wrapper.rerender(<NextPage />);
         fireEvent.click(wrapper.getByRole("button", { name: "Next page" }));
         expect(new URLSearchParams(history.location.search).has("highlightConversation")).toBe(false);
@@ -1186,7 +1308,9 @@ describe("Project changes", () => {
         renderWrapper(<ProjectChanges />);
         const metaDataUrl = apiUrl(`/workspace/projects/${PROJECT_ID}/metaData`);
         await waitFor(() => checkRequestMade(metaDataUrl, "GET"));
-        mockAxiosResponse(metaDataUrl, mockedAxiosResponse({ data: { label: "CMEM" } }));
+        await act(async () => {
+            mockAxiosResponse(metaDataUrl, mockedAxiosResponse({ data: { label: "CMEM" } }));
+        });
         await waitFor(() => expect(headerRoot.textContent).toContain("Changes: CMEM"));
         // Without a layout, the breadcrumbs before the current one are collapsed into a menu
         fireEvent.click(findElement(headerRoot, '[aria-label="collapsed breadcrumbs"]'));
@@ -1304,7 +1428,9 @@ describe("Project changes", () => {
         setUseParams("missingProject", "");
         const wrapper = renderWrapper(<ProjectChanges />);
         await waitFor(() => checkRequestMade(metaDataUrl("missingProject"), "GET"));
-        mockAxiosResponse(metaDataUrl("missingProject"), mockedAxiosError(404));
+        await act(async () => {
+            mockAxiosResponse(metaDataUrl("missingProject"), mockedAxiosError(404));
+        });
         await waitFor(() => {
             expect(notFoundPage()).toBeInTheDocument();
         });
@@ -1313,7 +1439,9 @@ describe("Project changes", () => {
         switchProject(PROJECT_ID);
         await waitFor(() => checkRequestMade(searchUrl, "POST"));
         expect(notFoundPage()).not.toBeInTheDocument();
-        mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(changes) }));
+        await act(async () => {
+            mockAxios.mockResponseFor({ url: searchUrl }, mockedAxiosResponse({ data: searchAnswer(changes) }));
+        });
         await waitFor(() => {
             expect(rows()).toHaveLength(changes.length);
         });
@@ -1324,11 +1452,15 @@ describe("Project changes", () => {
         await waitFor(() => checkRequestMade(otherSearchUrl, "POST"));
         expect(rows()).toHaveLength(0);
         // An answer for the previous project that arrives late is not taken for this one
-        mockAxiosResponse(metaDataUrl(PROJECT_ID), mockedAxiosError(404));
-        mockAxios.mockResponseFor(
-            { url: otherSearchUrl },
-            mockedAxiosResponse({ data: searchAnswer([mappingChange]) }),
-        );
+        await act(async () => {
+            mockAxiosResponse(metaDataUrl(PROJECT_ID), mockedAxiosError(404));
+        });
+        await act(async () => {
+            mockAxios.mockResponseFor(
+                { url: otherSearchUrl },
+                mockedAxiosResponse({ data: searchAnswer([mappingChange]) }),
+            );
+        });
         await waitFor(() => {
             expect(rows()).toHaveLength(1);
         });
