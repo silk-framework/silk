@@ -13,20 +13,33 @@ interface IProps {
 }
 
 export default function TypesList({ onChange, selected, elementLabel }: IProps) {
+    const [activeType, setActiveType] = React.useState<SuggestionTypeValues>(selected);
+
+    React.useEffect(() => setActiveType(selected), [selected]);
+
     const areTypesEqual = (typeA: SuggestionTypeValues, typeB: SuggestionTypeValues) => {
         return typeA.toLowerCase() === typeB.toLowerCase();
     };
-    const selectedValueLabel = `Mapping type for ${elementLabel}, ${selected} selected`;
 
     return (
         <FieldItem
             labelProps={{
-                text: selectedValueLabel,
+                text: `Mapping type for ${elementLabel}`,
                 hidden: true,
             }}
         >
             <Select<SuggestionTypeValues>
                 filterable={false}
+                activeItem={activeType}
+                onActiveItemChange={(type) => {
+                    if (type != null) {
+                        setActiveType(type);
+                    }
+                }}
+                contextOverlayProps={{
+                    // Navigation may move away from the selection without committing it.
+                    onClosing: () => setActiveType(selected),
+                }}
                 onItemSelect={onChange}
                 items={TYPES}
                 itemRenderer={(type, { handleClick, ...optionState }) => (

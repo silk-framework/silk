@@ -1,6 +1,6 @@
 import React from "react";
 import "@testing-library/jest-dom";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createInstance } from "i18next";
 import { I18nextProvider } from "react-i18next";
@@ -75,8 +75,8 @@ it("names the source path selector when the suggestion table is reversed", async
 it("announces the selected mapping type for its source", () => {
     renderWithTranslations(<TypesList selected="value" onChange={jest.fn()} elementLabel="Source A" />);
 
-    expect(screen.queryByRole("button", { name: "Mapping type for Source A, value selected" })).not.toBeInTheDocument();
-    expect(screen.getByRole("combobox", { name: "Mapping type for Source A, value selected" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Mapping type for Source A" })).not.toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Mapping type for Source A" })).toHaveTextContent(/^value$/);
 });
 
 it("navigates and selects a mapping type with the keyboard", async () => {
@@ -98,7 +98,7 @@ it("navigates and selects a mapping type with the keyboard", async () => {
     renderWithTranslations(<ControlledTypesList />);
 
     await act(async () => user.tab());
-    const combobox = screen.getByRole("combobox", { name: "Mapping type for Source A, value selected" });
+    const combobox = screen.getByRole("combobox", { name: "Mapping type for Source A" });
     expect(combobox).toHaveFocus();
     await act(async () => user.keyboard("{Enter}"));
     await act(async () => user.keyboard("{ArrowDown}"));
@@ -107,7 +107,8 @@ it("navigates and selects a mapping type with the keyboard", async () => {
     );
     await act(async () => user.keyboard("{Enter}"));
     expect(onChange).toHaveBeenCalledWith("object");
-    expect(combobox).toHaveAccessibleName("Mapping type for Source A, object selected");
+    expect(combobox).toHaveAccessibleName("Mapping type for Source A");
+    expect(combobox).toHaveTextContent(/^object$/);
     expect(combobox).toHaveFocus();
 });
 
@@ -183,4 +184,38 @@ it("connects a custom prefix to the search combobox", async () => {
     await act(async () => user.keyboard("{ArrowDown}"));
     const option = screen.getByRole("option", { name: 'Create "urn:custom"' });
     expect(document.getElementById(input.getAttribute("aria-activedescendant")!)).toBe(option);
+});
+
+it("opens on the selected mapping type and resets uncommitted navigation when reopened", async () => {
+    const user = userEvent.setup();
+    const onChange = jest.fn();
+    const { rerender } = renderWithTranslations(
+        <TypesList selected="object" onChange={onChange} elementLabel="Source A" />,
+    );
+    const combobox = screen.getByRole("combobox", { name: "Mapping type for Source A" });
+    const expectActiveType = (type: string) => {
+        const option = screen.getByRole("option", { name: type });
+        expect(document.getElementById(combobox.getAttribute("aria-activedescendant")!)).toBe(option);
+        expect(option).toHaveAttribute("aria-selected", "true");
+        expect(option).toHaveClass("bp6-active");
+    };
+    await act(async () => user.tab());
+    await act(async () => user.keyboard("{Enter}"));
+    expectActiveType("object");
+    await act(async () => user.keyboard("{ArrowUp}"));
+    expectActiveType("value");
+    await act(async () => user.keyboard("{Escape}"));
+    await waitFor(() => expect(combobox).toHaveFocus());
+    await act(async () => user.keyboard("{Enter}"));
+    expectActiveType("object");
+    expect(onChange).not.toHaveBeenCalled();
+    await act(async () => user.keyboard("{Escape}"));
+    await waitFor(() => expect(combobox).toHaveFocus());
+    rerender(
+        <I18nextProvider i18n={i18n}>
+            <TypesList selected="value" onChange={onChange} elementLabel="Source A" />
+        </I18nextProvider>,
+    );
+    await act(async () => user.keyboard("{Enter}"));
+    expectActiveType("value");
 });
