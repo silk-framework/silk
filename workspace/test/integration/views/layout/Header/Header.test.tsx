@@ -18,7 +18,7 @@ import { APP_VIEWHEADER_ID, PageHeader } from "../../../../../src/app/views/shar
 import { fireEvent, RenderResult, waitFor } from "@testing-library/react";
 import { Helmet } from "react-helmet";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../../src/app/views/plugins/PluginRegistry";
-import { BrandingProps } from "../../../../../src/app/views/plugins/plugin.types";
+import { BrandingProps, CompanionToolbarProps } from "../../../../../src/app/views/plugins/plugin.types";
 
 jest.mock("../../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal", () => ({
     CreateArtefactModal: () => null,
@@ -41,6 +41,13 @@ describe("Header", () => {
         applicationName: "some app",
         applicationSuiteName: "some suite",
     });
+    const panelContainer = document.createElement("div");
+    panelContainer.id = "panel-container";
+    pluginRegistry.registerReactPluginComponent<CompanionToolbarProps>({
+        id: SUPPORTED_PLUGINS.DI_COMPANION,
+        label: "Companion test plugin",
+        Component: ({ panelContainer }) => <div data-test-id="companion-plugin">{panelContainer?.id}</div>,
+    });
 
     beforeEach(() => {
         // add explicitely extra tragets for portals, @see https://stackoverflow.com/a/48094582
@@ -52,7 +59,11 @@ describe("Header", () => {
         setUseParams("SomeProjectId", "SomeTaskId");
 
         wrapper = renderWrapper(
-            <Header onClickApplicationSidebarExpand={() => {}} isApplicationSidebarExpanded={false} />,
+            <Header
+                onClickApplicationSidebarExpand={() => {}}
+                isApplicationSidebarExpanded={false}
+                panelContainer={panelContainer}
+            />,
             history,
             {
                 common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
@@ -86,6 +97,12 @@ describe("Header", () => {
         );
         const helmet = Helmet.peek();
         expect(helmet.title).toBe("My Page Title (artefacttype) at Workbench / My Project — some corp some suite");
+    });
+
+    it("should hand the panel container to the companion plugin", () => {
+        expect(wrapper.container.querySelector(byTestId("companion-plugin"))).toHaveTextContent(
+            "panel-container",
+        );
     });
 
     it("should delete button works properly", async () => {

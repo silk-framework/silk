@@ -104,6 +104,8 @@ export interface IAppliedFiltersState {
 }
 
 export interface IFiltersState {
+    /** Query parameters the active page retains when search filters or pagination change. */
+    preservedQueryKeys: string[];
     /**
      * Array of available facets for current filter
      * received from search results request

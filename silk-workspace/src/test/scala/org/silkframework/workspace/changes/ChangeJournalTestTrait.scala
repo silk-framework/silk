@@ -126,6 +126,17 @@ abstract class ChangeJournalTestTrait extends AnyFlatSpec with Matchers with Tes
     journal.entry(4) shouldBe None
   }
 
+  it should "retain the request conversation in headers and stored entries" in {
+    val project = retrieveOrCreateProject("journalConversation")
+    val requester = SimpleUserContext(None,
+      UserExecutionContext(origin = Some("mcp:test"), conversationId = Some("conversation-1")))
+    ChangeJournal.onBehalfOf(requester) {
+      project.addTask[TransformSpec]("transform", transform(name))(implicitly, agentContext())
+    }
+    project.changeJournal.all.map(_.conversationId) shouldBe Seq(Some("conversation-1"))
+    project.changeJournal.entry(1).map(_.conversationId) shouldBe Some(Some("conversation-1"))
+  }
+
   it should "not record an update of a file based dataset that changes nothing" in {
     val project = retrieveOrCreateProject("journalDatasetUpdate")
     implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
