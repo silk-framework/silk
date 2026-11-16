@@ -50,24 +50,26 @@ class WorkflowRunContextTest extends AnyFlatSpec with Matchers {
   it should "record the tasks that are still running when the workflow is cancelled" in {
     val monitor = new ActivityMonitor[WorkflowExecutionReport]("workflowRun", initialValue = Some(WorkflowExecutionReport(workflowTask)))
     val runContext = WorkflowRunContext(monitor, WorkflowTest.testWorkflow, UserContext.Empty)
-    runContext.trackOperation("Executing 'plugin'") {
-      runContext.trackOperation("Writing 'output'") {
-        runContext.trackOperation("Reading 'input'") {} // The input has been read completely
-        runContext.trackOperation("Executing 'plugin'") { // The plugin is executed a second time, e.g. for its error output
-          monitor.status.update(Canceling(None))
+    runContext.trackOperation("plugin", "Executing 'plugin'") {
+      runContext.trackOperation("plugin2", "Executing 'plugin'") { // Another node with the same label
+        runContext.trackOperation("output", "Writing 'output'") {
+          runContext.trackOperation("input", "Reading 'input'") {} // The input has been read completely
+          runContext.trackOperation("plugin", "Executing 'plugin'") { // The plugin is executed a second time, e.g. for its error output
+            monitor.status.update(Canceling(None))
+          }
         }
       }
     }
 
     monitor.value().workflowWarnings shouldBe Seq("The workflow was cancelled while the following tasks were still running: " +
-      "Executing 'plugin', Writing 'output'. The workflow stops once they have finished.")
+      "Executing 'plugin', Executing 'plugin', Writing 'output'. The workflow stops once they have finished.")
     monitor.value().version shouldBe 1 // Report consumers rely on a version bump for every change
 
     runContext.runFinished() // The tasks have finished, so the warning gets its final wording
 
     monitor.value().workflowWarnings should have size 1
     monitor.value().workflowWarnings.head should fullyMatch regex ("The workflow was cancelled while the following tasks were still running: " +
-      "Executing 'plugin', Writing 'output'\\. They finished after (\\d+ms|\\d+\\.\\d+s)\\.")
+      "Executing 'plugin', Executing 'plugin', Writing 'output'\\. They finished after (\\d+ms|\\d+\\.\\d+s)\\.")
     monitor.value().version shouldBe 2
   }
 

@@ -52,15 +52,16 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
   private val statusListeners: mutable.Buffer[WorkflowStatusListener] = mutable.Buffer.empty
 
   /**
-    * The operations in progress, innermost first, e.g. "Executing 'My task'". An operation is in progress until the
-    * result of its task has been consumed, so a task whose entities are still being pulled by a later task counts as well.
+    * The operations in progress, innermost first, each with the id of its workflow node, e.g. "Executing 'My task'".
+    * An operation is in progress until the result of its task has been consumed, so a task whose entities are still
+    * being pulled by a later task counts as well.
     */
   @volatile
-  private var runningOperations: List[String] = Nil
+  private var runningOperations: List[(Identifier, String)] = Nil
 
-  /** Runs an operation on a task, e.g. "Executing 'My task'", and tracks it as in progress until it returns. */
-  def trackOperation[T](operation: String)(body: => T): T = {
-    runningOperations = operation :: runningOperations
+  /** Runs an operation on a workflow node, e.g. "Executing 'My task'", and tracks it as in progress until it returns. */
+  def trackOperation[T](nodeId: Identifier, operation: String)(body: => T): T = {
+    runningOperations = (nodeId, operation) :: runningOperations
     try {
       body
     } finally {
@@ -90,7 +91,7 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
   private val cancellationListener: Status => Unit = { status =>
     if(status.isInstanceOf[Canceling]) {
       activityContext.value.synchronized {
-        val running = runningOperations.reverse.distinct // A task may be in progress twice, e.g. during its error output pass
+        val running = runningOperations.reverse.distinct.map(_._2) // A node may be in progress twice, e.g. during its error output pass
         if(running.nonEmpty) {
           val tasks = running.mkString(", ")
           cancelledWhileRunning = Some((tasks, System.nanoTime()))
