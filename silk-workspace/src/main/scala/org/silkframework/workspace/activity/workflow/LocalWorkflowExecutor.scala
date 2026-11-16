@@ -160,12 +160,14 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     for { currentWorkflow <- workflow +: workflow.subWorkflows(project).map(_.data)
           datasetTask <- currentWorkflow.outputDatasets(project)(workflowRunContext.userContext) } {
       val usedDatasetTask = resolveDataset(datasetTask, replaceSinks)
-      workflowRunContext.trackOperation(usedDatasetTask.id, s"Clearing '${usedDatasetTask.fullLabel}'") {
-        try {
-          ExecutorRegistry.access(usedDatasetTask, executionContext).entitySink.clear()
-        } catch {
-          case NonFatal(ex) =>
-            throw WorkflowExecutionException(s"Failed to clear dataset '${usedDatasetTask.label()}': " + ex.getMessage, Some(ex))
+      if(!cancellationRequested) {
+        workflowRunContext.trackOperation(usedDatasetTask.id, s"Clearing '${usedDatasetTask.fullLabel}'") {
+          try {
+            ExecutorRegistry.access(usedDatasetTask, executionContext).entitySink.clear()
+          } catch {
+            case NonFatal(ex) =>
+              throw WorkflowExecutionException(s"Failed to clear dataset '${usedDatasetTask.label()}': " + ex.getMessage, Some(ex))
+          }
         }
       }
     }

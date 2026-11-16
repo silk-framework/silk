@@ -70,4 +70,20 @@ class LocalNestedWorkflowExecutionTest extends NestedWorkflowExecutionTest {
     enclosingContext.value().taskReports.head.report.warnings.mkString should include ("The workflow stopped")
   }
 
+  it should "not clear the remaining output datasets once the workflow has been cancelled" in {
+    PluginRegistry.unregisterPlugin(classOf[MockDatasetExecutor])
+    PluginRegistry.registerPlugin(classOf[MockDatasetExecutor])
+    val overallWorkflow = project.task[Workflow]("f044b20f-ba34-4035-be2b-9ac33ccdaed3_OverallWorkflow")
+    val context = new ActivityMonitor[WorkflowExecutionReport]("workflowRun", initialValue = Some(WorkflowExecutionReport(overallWorkflow)))
+    var cleared = 0
+    val output = MockDataset()
+    output.clearFn = () => { cleared += 1; context.status.update(Status.Canceling(None)) } // The cancel arrives while a dataset is being cleared
+
+    // The run clears the output datasets of its two nested workflows
+    LocalWorkflowExecutor(overallWorkflow, replaceSinks = Map("abb27b6c-0058-4642-badc-cff2fbeafa97_Persons2" -> output,
+      "43e3d58c-3779-487a-85c8-53301553997b_Persons3" -> output)).run(context)(UserContext.Empty)
+
+    cleared shouldBe 1
+  }
+
 }
