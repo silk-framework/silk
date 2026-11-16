@@ -134,21 +134,27 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     } finally {
       try {
         this.executionContext.executeShutdownHooks()
-        workflowRunContext.taskExecutors.foreach { case (taskId, exec) =>
-          val taskLabel = Try(project.anyTaskOption(taskId).map(_.fullLabel)).toOption.flatten.getOrElse(taskId.toString)
-          try {
-            workflowRunContext.trackOperation(taskId, s"Closing '$taskLabel'") {
-              exec.close()
-            }
-          } catch {
-            case NonFatal(ex) =>
-              log.log(Level.WARNING, s"Exception while closing executor for task '$taskId'.", ex)
-          }
-        }
+        closeExecutors()
       } finally {
         // The report is finalized after the cleanup: an enclosing run adds a new entry for every update of a report that is done.
         workflowRunContext.runFinished()
         workflowRunContext.updateReport(_.withAuthDiagnostics(userContext).asDone())
+      }
+    }
+  }
+
+  // Closes the executors of all tasks. Each closing is tracked, so that a cancel names an executor that blocks in it.
+  private def closeExecutors()(implicit workflowRunContext: WorkflowRunContext): Unit = {
+    implicit val userContext: UserContext = workflowRunContext.userContext
+    workflowRunContext.taskExecutors.foreach { case (taskId, exec) =>
+      val taskLabel = Try(project.anyTaskOption(taskId).map(_.fullLabel)).toOption.flatten.getOrElse(taskId.toString)
+      try {
+        workflowRunContext.trackOperation(taskId, s"Closing '$taskLabel'") {
+          exec.close()
+        }
+      } catch {
+        case NonFatal(ex) =>
+          log.log(Level.WARNING, s"Exception while closing executor for task '$taskId'.", ex)
       }
     }
   }
