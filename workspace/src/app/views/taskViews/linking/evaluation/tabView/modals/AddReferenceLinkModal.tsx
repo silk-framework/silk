@@ -122,22 +122,17 @@ export const AddReferenceLinkModal = ({ projectId, linkingTaskId, onClose }: Pro
                                 {...selectOptionProps(optionState)}
                                 key={item}
                                 data-test-id={`add-reference-${item}`}
-                                text={t(`ReferenceLinks.${LinkTypeMapping[item]}`, LinkTypeMapping[item])}
+                                text={t(`ReferenceLinks.${LinkTypeMapping[item]}`)}
                                 onClick={handleClick}
                             />
                         );
                     }}
                     filterable={false}
-                >
-                    <Button
-                        alignText="left"
-                        text={t(`ReferenceLinks.${LinkTypeMapping[newLinkType]}`, LinkTypeMapping[newLinkType])}
-                        fill
-                        outlined
-                        rightIcon="toggler-showmore"
-                        data-test-id="reference-links-types-select"
-                    />
-                </Select>
+                    text={t(`ReferenceLinks.${LinkTypeMapping[newLinkType]}`)}
+                    fill
+                    rightIcon="toggler-showmore"
+                    data-test-id="reference-links-types-select"
+                />
             </FieldItem>
         </SimpleDialog>
     );
