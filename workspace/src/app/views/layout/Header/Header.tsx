@@ -250,7 +250,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                                     <languageSwitcher.Component />
                                                 </li>
                                             )}
-                                            <MenuDivider />
+                                            <MenuDivider role="listitem" aria-hidden={true} />
                                             {hotKeys.quickSearch && (
                                                 <MenuItem
                                                     roleStructure="listitem"
