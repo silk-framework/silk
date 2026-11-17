@@ -2,12 +2,16 @@
 
 import React from "react";
 import PropTypes from "prop-types";
+import _ from "lodash";
 import {
+    ApplicationViewability,
     Card,
     Grid,
     GridRow,
     GridColumn,
+    HtmlContentBlock,
     Icon,
+    Link,
     OverviewItemList,
     OverviewItem,
     Depiction,
@@ -32,6 +36,8 @@ export default class WorkflowExecutionReport extends React.Component {
         this.state = {
             selectedIndex: -1, // the index of the selected task report or -1 for the workflow itself
         };
+        this.reportNavId = _.uniqueId("silk-workflow-report-nav-");
+        this.reportTargetId = _.uniqueId("silk-workflow-report-target-");
     }
 
     render() {
@@ -47,36 +53,48 @@ export default class WorkflowExecutionReport extends React.Component {
             <Grid useAbsoluteSpace verticalStretchable>
                 <GridRow verticalStretched>
                     <GridColumn small style={{ overflow: "auto", paddingLeft: 0 }}>
-                        <Section className="silk-report-sidebar-overview">
-                            <SectionHeader>
-                                <TitleSubsection>Workflow</TitleSubsection>
-                            </SectionHeader>
-                            <div>
-                                <OverviewItemList hasSpacing>
-                                    {this.renderTaskItem(this.props.executionReport, -1, executionWarnings)}
-                                </OverviewItemList>
-                            </div>
-                        </Section>
-                        <Spacing />
-                        <Section className="silk-report-sidebar-tasks">
-                            <SectionHeader className="silk-report-sidebar-tasks-title">
-                                <TitleSubsection>Tasks</TitleSubsection>
-                            </SectionHeader>
-                            <div className="silk-report-sidebar-tasks-content">
-                                <OverviewItemList hasSpacing>
-                                    {this.props.executionReport.taskReports.map((report, index) =>
-                                        this.renderTaskItem(report, index, report.warnings),
-                                    )}
-                                </OverviewItemList>
-                            </div>
-                        </Section>
+                        <nav id={this.reportNavId} aria-label="Execution report outline">
+                            <Section className="silk-report-sidebar-overview">
+                                <SectionHeader>
+                                    <TitleSubsection>Workflow</TitleSubsection>
+                                </SectionHeader>
+                                <div>
+                                    <OverviewItemList hasSpacing>
+                                        {this.renderTaskItem(this.props.executionReport, -1, executionWarnings)}
+                                    </OverviewItemList>
+                                </div>
+                            </Section>
+                            <Spacing />
+                            <Section className="silk-report-sidebar-tasks">
+                                <SectionHeader className="silk-report-sidebar-tasks-title">
+                                    <TitleSubsection>Tasks</TitleSubsection>
+                                </SectionHeader>
+                                <div className="silk-report-sidebar-tasks-content">
+                                    <OverviewItemList hasSpacing>
+                                        {this.props.executionReport.taskReports.map((report, index) =>
+                                            this.renderTaskItem(report, index, report.warnings),
+                                        )}
+                                    </OverviewItemList>
+                                </div>
+                            </Section>
+                        </nav>
                     </GridColumn>
                     <GridColumn style={{ overflow: "auto" }}>
-                        {this.renderReport(this.props.executionReport.nodeId)}
+                        {this.renderReportTarget(this.renderReport())}
                     </GridColumn>
                 </GridRow>
             </Grid>
         );
+    }
+
+    selectReport(index) {
+        // Move focus to the report after it was rendered, so keyboard and screen reader users land on the new content
+        this.setState({ selectedIndex: index }, () => {
+            const reportTarget = document.getElementById(this.reportTargetId);
+            if (reportTarget) {
+                reportTarget.focus();
+            }
+        });
     }
 
     renderTaskItem(report, index, warnings) {
@@ -91,7 +109,24 @@ export default class WorkflowExecutionReport extends React.Component {
                 elevated={index === this.state.selectedIndex}
                 key={"report-" + index}
                 className={classNames}
-                onClick={() => this.setState({ selectedIndex: index })}
+                onClick={() => this.selectReport(index)}
+                onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                    }
+                    if (event.key === "Enter") {
+                        event.currentTarget.click();
+                    }
+                }}
+                onKeyUp={(event) => {
+                    if (event.key === " ") {
+                        event.currentTarget.click();
+                    }
+                }}
+                aria-current={index === this.state.selectedIndex ? true : undefined}
+                aria-controls={this.reportTargetId}
+                tabIndex={0}
+                role={"button"}
             >
                 <OverviewItem densityHigh hasSpacing>
                     {this.renderTaskIcon(warnings, report.error)}
@@ -128,7 +163,7 @@ export default class WorkflowExecutionReport extends React.Component {
         }
     }
 
-    renderReport(nodeId) {
+    renderReport() {
         if (this.state.selectedIndex >= 0) {
             const taskReport = this.props.executionReport.taskReports[this.state.selectedIndex];
             if ("taskReports" in taskReport) {
@@ -149,6 +184,21 @@ export default class WorkflowExecutionReport extends React.Component {
                 />
             );
         }
+    }
+
+    renderReportTarget(reportElement) {
+        return (
+            <article id={this.reportTargetId} tabIndex={-1} aria-label={"Workflow execution feedback"}>
+                <ApplicationViewability hide={"screen"}>
+                    <HtmlContentBlock>
+                        <p>
+                            <Link href={`#${this.reportNavId}`}>Back to report outline</Link>
+                        </p>
+                    </HtmlContentBlock>
+                </ApplicationViewability>
+                {reportElement}
+            </article>
+        );
     }
 }
 
