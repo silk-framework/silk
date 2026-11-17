@@ -3,9 +3,12 @@ package org.silkframework.dataset.rdf
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.util.{DynamicContent, MockServerTestTrait, ServedContent}
 
+import java.io.File
 import java.net.URLEncoder
+import java.nio.file.Files
 
 class GraphStoreTraitTest extends AnyFlatSpec with Matchers with MockServerTestTrait {
 
@@ -48,5 +51,23 @@ class GraphStoreTraitTest extends AnyFlatSpec with Matchers with MockServerTestT
     withAdditionalServer(Seq(DynamicContent("/graphstore", _ => ServedContent(statusCode = NOT_FOUND)))) { port =>
       noException should be thrownBy new TestGraphStore(port).deleteGraph(graph, ignoreIfNotExists = true)
     }
+  }
+
+  it should "upload a resource that is not held in a local file via a temporary file" in {
+    var uploaded: Option[(File, String)] = None
+    val graphStore = new TestGraphStore(0) with GraphStoreFileUploadTrait {
+      override def uploadFileToGraph(graph: String, file: File, contentType: String, comment: Option[String])
+                                    (implicit userContext: UserContext): Unit = {
+        uploaded = Some((file, Files.readString(file.toPath)))
+      }
+    }
+    val resource = InMemoryResourceManager().get("data.jsonld")
+    resource.writeString("{}")
+    resource.underlyingFile shouldBe None
+    graphStore.uploadResourceToGraph(graph, resource, "application/ld+json", None)
+    val (file, content) = uploaded.get
+    content shouldBe "{}"
+    file.getName should endWith(".jsonld")
+    file should not(exist)
   }
 }

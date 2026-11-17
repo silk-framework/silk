@@ -350,10 +350,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case None => throw new ValidationException(s"No graph defined on dataset $datasetLabelOrId of type '${dataset.plugin.pluginSpec.label}'!")
     }
     for(fileEntity <- files) {
-      val file = fileEntity.file.underlyingFile.getOrElse(
-        throw new ValidationException(s"Cannot upload non-local file to GraphStore: $fileEntity"))
       val mimeType = fileEntity.mimeType.getOrElse(throw new ValidationException(s"Cannot upload file to GraphStore that is missing the MIME type: $fileEntity"))
-      graphStore.uploadFileToGraph(targetGraph, file, mimeType, None)
+      graphStore.uploadResourceToGraph(targetGraph, fileEntity.file, mimeType, None)
       reportUpdater.increaseEntityCounter()
     }
     reportUpdater.executionDone()

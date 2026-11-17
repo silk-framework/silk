@@ -34,14 +34,22 @@ import { atomicParamDescription, mockAutoCompleteResponse, objectParamDescriptio
 import { INPUT_TYPES } from "../../../../src/app/constants";
 import { TaskTypes } from "../../../../src/app/store/ducks/shared/typings";
 import { MemoryHistory } from "history/createMemoryHistory";
+import {
+    ApplicationContextRegistryProvider,
+    useApplicationContextRegistry,
+} from "../../../../src/app/contexts/ApplicationContextRegistry";
+
 import { bluePrintClassPrefix } from "../../../HierarchicalMapping/utils/TestHelpers";
 
+// Forward exports live: circular imports can reach this mock before the library finishes loading.
 jest.mock("@eccenca/gui-elements", () => {
-    const React = jest.requireActual("react");
-    const actual = jest.requireActual("@eccenca/gui-elements");
-    const jestTestUtils = jest.requireActual("../../../../src/app/test/jestTestUtils").default;
+    const React = jest.requireActual<typeof import("react")>("react");
+    const actual = jest.requireActual<typeof import("@eccenca/gui-elements")>("@eccenca/gui-elements");
+    const jestTestUtils = jest.requireActual<typeof import("../../../../src/app/test/jestTestUtils")>(
+        "../../../../src/app/test/jestTestUtils",
+    ).default;
     const BaseCodeEditor = jestTestUtils.createCodeEditorMock(React);
-    function CodeEditor(props) {
+    function CodeEditor(props: Parameters<typeof BaseCodeEditor>[0]) {
         return React.createElement(
             "div",
             { "data-test-id": props["data-test-id"] },
@@ -49,10 +57,11 @@ jest.mock("@eccenca/gui-elements", () => {
         );
     }
     CodeEditor.supportedModes = [];
-    return {
-        ...actual,
-        CodeEditor,
-    };
+    return new Proxy(actual, {
+        get(target, property, receiver) {
+            return property === "CodeEditor" ? CodeEditor : Reflect.get(target, property, receiver);
+        },
+    });
 });
 
 jest.mock("../../../../src/app/views/shared/FileUploader/FileSelectionMenu", () => {
@@ -81,13 +90,27 @@ jest.mock("../../../../src/app/views/shared/FileUploader/FileSelectionMenu", () 
 });
 
 describe("Task creation widget", () => {
+    let consoleError: jest.SpyInstance<void, Parameters<typeof console.error>>;
+
     beforeAll(() => {
         window.HTMLElement.prototype.scrollIntoView = function () {};
     });
 
+    beforeEach(() => {
+        consoleError = jest.spyOn(console, "error");
+    });
+
     afterEach(() => {
-        mockAxios.reset();
-        cleanUpDOM();
+        try {
+            const actWarnings = consoleError.mock.calls.filter((args) =>
+                args.some((value) => typeof value === "string" && value.includes("not wrapped in act")),
+            );
+            expect(actWarnings).toEqual([]);
+        } finally {
+            consoleError.mockRestore();
+            mockAxios.reset();
+            cleanUpDOM();
+        }
     });
 
     const PROJECT_ID = "projectId";
@@ -152,7 +175,9 @@ describe("Task creation widget", () => {
             ),
         );
         const url = apiUrl("core/taskPlugins?addMarkdownDocumentation=true");
-        mockAxios.mockResponseFor({ url }, mockedAxiosResponse({ data: artefactListResponse }));
+        await act(async () => {
+            mockAxios.mockResponseFor({ url }, mockedAxiosResponse({ data: artefactListResponse }));
+        });
         if (!existingTask) {
             await waitFor(() => {
                 expect(selectionItems(wrapper.element).length).toBeGreaterThan(0);
@@ -194,10 +219,12 @@ describe("Task creation widget", () => {
                 clickRenderedElement(pluginA);
                 clickRenderedElement(findElement(wrapper.element, byTestId("item-add-btn")));
             }
-            mockAxios.mockResponseFor(
-                { url: apiUrl("core/plugins/pluginA") },
-                mockedAxiosResponse({ data: mockPluginDescription }),
-            );
+            await act(async () => {
+                mockAxios.mockResponseFor(
+                    { url: apiUrl("core/plugins/pluginA") },
+                    mockedAxiosResponse({ data: mockPluginDescription }),
+                );
+            });
         }
         const waitForTaskFormLoaded = async () => {
             await waitFor(() => {
@@ -216,7 +243,8 @@ describe("Task creation widget", () => {
     };
 
     const respondWithPluginDetails = async (pluginId: string, pluginDetails: IPluginDetails) => {
-        await waitFor(() => {
+        await waitFor(() => checkRequestMade(apiUrl(`core/plugins/${pluginId}`)));
+        await act(async () => {
             mockAxiosResponse(apiUrl(`core/plugins/${pluginId}`), mockedAxiosResponse({ data: pluginDetails }));
         });
     };
@@ -233,7 +261,8 @@ describe("Task creation widget", () => {
         filter: string,
         tags: Array<{ uri: string; label: string }>,
     ) => {
-        await waitFor(() => {
+        await waitFor(() => checkRequestMade(apiUrl(`/workspace/projects/${projectId}/tags?filter=${filter}`)));
+        await act(async () => {
             mockAxiosResponse(
                 apiUrl(`/workspace/projects/${projectId}/tags?filter=${filter}`),
                 mockedAxiosResponse({ data: { tags } }),
@@ -258,9 +287,11 @@ describe("Task creation widget", () => {
         const tagSelection = findElement(wrapper, byTestId("task-tags-select"));
         const tagInput = findElement(tagSelection, "input") as HTMLInputElement;
 
-        clickRenderedElement(tagInput);
-        await pressKeyDown(tagInput, tag.label[0]);
-        changeInputValue(tagInput, tag.label);
+        await act(async () => {
+            clickRenderedElement(tagInput);
+            await pressKeyDown(tagInput, tag.label[0]);
+            changeInputValue(tagInput, tag.label);
+        });
         await respondWithProjectTags(PROJECT_ID, tag.label, [tag]);
 
         const tagOption = await waitFor(() => {
@@ -271,7 +302,9 @@ describe("Task creation widget", () => {
             expect(option).toBeTruthy();
             return option as HTMLElement;
         });
-        clickRenderedElement(tagOption);
+        await act(async () => {
+            clickRenderedElement(tagOption);
+        });
         await expectTaskTags(wrapper, tag.label);
     };
 
@@ -521,7 +554,9 @@ describe("Task creation widget", () => {
         expect(data.parameters.stringParam).toEqual("default string");
         // Test redirection to task details page
         const newTaskId = "newTaskId";
-        mockAxiosResponse(tasksUri, { data: { id: newTaskId } });
+        await act(async () => {
+            mockAxiosResponse(tasksUri, { data: { id: newTaskId } });
+        });
         await waitFor(() => {
             expect(history.location.pathname).toEqual(
                 expect.stringMatching(new RegExp(`projects/${PROJECT_ID}/task/${newTaskId}$`)),
@@ -540,7 +575,8 @@ describe("Task creation widget", () => {
         clickCreate(element);
         await expectValidationErrors(element, 0);
         const expectedErrorMsg = "internal server error ;)";
-        await waitFor(() => {
+        await waitFor(() => checkRequestMade(legacyApiUrl("workspace/projects/projectId/tasks"), "POST"));
+        await act(async () => {
             mockAxiosResponse(
                 legacyApiUrl("workspace/projects/projectId/tasks"),
                 mockedAxiosError(500, { title: "error", detail: expectedErrorMsg }),
@@ -750,6 +786,54 @@ describe("Task creation widget", () => {
         currentParameterValues: expectedParams,
         currentTemplateValues: {},
     };
+
+    it("does not republish task context on unrelated update-modal renders", async () => {
+        const contextUpdates = jest.fn();
+        const ObserveContext = () => {
+            const { foregroundViews } = useApplicationContextRegistry();
+            React.useEffect(() => {
+                contextUpdates(foregroundViews);
+            }, [foregroundViews]);
+            return null;
+        };
+        const ModalParent = () => {
+            const [revision, setRevision] = React.useState(0);
+            return (
+                <>
+                    <button onClick={() => setRevision((value) => value + 1)}>Rerender {revision}</button>
+                    <CreateArtefactModal />
+                </>
+            );
+        };
+        const view = renderWrapper(
+            <ApplicationContextRegistryProvider>
+                <ModalParent />
+                <ObserveContext />
+            </ApplicationContextRegistryProvider>,
+            createMemoryHistory(),
+            {
+                common: {
+                    initialSettings: { emptyWorkspace: false, templatingEnabled: true },
+                    artefactModal: { isOpen: true, updateExistingTask: existingTask },
+                },
+            },
+        );
+        await act(async () => {
+            mockAxios.mockResponseFor(
+                { url: apiUrl("core/taskPlugins?addMarkdownDocumentation=true") },
+                mockedAxiosResponse({ data: mockArtefactListResponse }),
+            );
+        });
+        await waitFor(() =>
+            expect(contextUpdates).toHaveBeenLastCalledWith([
+                expect.objectContaining({ kind: "artefactForm", taskId: TASK_ID, operation: "update" }),
+            ]),
+        );
+        contextUpdates.mockClear();
+        await act(async () => fireEvent.click(view.getByRole("button", { name: "Rerender 0" })));
+        expect(view.getByRole("button", { name: "Rerender 1" })).toBeInTheDocument();
+        expect(contextUpdates).not.toHaveBeenCalled();
+    });
 
     // Updates a task via update button and returns the request data
     const updateTask = async (wrapper) => {

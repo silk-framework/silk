@@ -61,7 +61,8 @@ object ChangeJsonFormats {
         ruleId = ofThisVersion(stringValueOption(value, "ruleId")).map(Identifier(_)),
         path = ofThisVersion(stringValueOption(value, "path")),
         executionId = ofThisVersion(stringValueOption(value, "executionId")),
-        reverts = integerOption(value, "reverts"), fulfils = integerOption(value, "fulfils"))
+        reverts = integerOption(value, "reverts"), fulfils = integerOption(value, "fulfils"),
+        conversationId = stringValueOption(value, "conversationId"))
     }
 
     override def write(header: ChangeHeader)(implicit writeContext: WriteContext[JsValue]): JsValue = JsObject(fields(header))
@@ -72,6 +73,7 @@ object ChangeJsonFormats {
         "type" -> JsString(header.changeType)) ++
       field("user", header.user) ++
       field("origin", header.origin) ++
+      field("conversationId", header.conversationId) ++
       field("reverts", header.reverts) ++
       field("fulfils", header.fulfils) ++
       Seq("summary" -> JsString(header.summary)) ++
