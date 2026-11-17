@@ -4,7 +4,6 @@ import { batch, useDispatch, useSelector } from "react-redux";
 import {
     Button,
     Notification,
-    SimpleDialog,
     Spacing,
     Table,
     TableBody,
@@ -16,6 +15,7 @@ import {
     ToolbarSection,
 } from "@eccenca/gui-elements";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import { filtersSlice } from "@ducks/workspace/filtersSlice";
 import { ISearchListRequest, ISearchListResponse } from "@ducks/workspace/requests";
 import { AppDispatch } from "store/configureStore";
 import { GlobalTableContext } from "../../../GlobalContextsWrapper";
@@ -37,8 +37,11 @@ import {
     UNREVIEWED_STATE,
 } from "./changesRequests";
 import { entriesBackTo, hasInverse, relatedSeqs } from "./changeListUtils";
+import { RequestChangeConversationsContext } from "./ChangeConversationsContext";
 import ChangeRow from "./ChangeRow";
 import BatchRevertModal from "./BatchRevertModal";
+import MarkReviewedModal from "./MarkReviewedModal";
+import { CONVERSATION_FACET } from "./ChangeSource";
 
 interface IProps {
     /** Must not change while the list is mounted, as the list keeps the state of its project: key the list by it. */
@@ -90,6 +93,10 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
         }
     }, [isLoading, entries]);
     const shown = isLoading ? lastEntries.current : entries;
+    const requestConversationMetadata = React.useContext(RequestChangeConversationsContext);
+    React.useEffect(() => {
+        requestConversationMetadata(shown.flatMap((entry) => (entry.conversationId ? [entry.conversationId] : [])));
+    }, [shown, requestConversationMetadata]);
     const error = useSelector(workspaceSel.errorSelector);
     const pagination = useSelector(workspaceSel.paginationSelector);
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
@@ -350,6 +357,19 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
             onRevertBack={entry.seq !== journal.latestSeq ? () => openRevertBack(entry) : undefined}
             onMarkReviewed={entry.unreviewed ? () => setMarkReviewedUpTo(entry.seq) : undefined}
             markReviewedBlocker={markReviewedBlocker}
+            conversationSelected={appliedFacets.some(
+                (facet) =>
+                    facet.facetId === CONVERSATION_FACET && facet.keywordIds.includes(entry.conversationId ?? ""),
+            )}
+            onFilterConversation={(id) => {
+                const facet = facets.find((candidate) => candidate.id === CONVERSATION_FACET);
+                if (facet) {
+                    batch(() => {
+                        dispatch(filtersSlice.actions.changePage(1));
+                        dispatch(workspaceOp.toggleFacetOp(facet, id));
+                    });
+                }
+            }}
         />
     );
 
@@ -400,12 +420,13 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
                 <Notification message={t(filtered ? "pages.changes.noMatch" : "pages.changes.noChanges")} />
             ) : (
                 <TableContainer>
-                    <Table columnWidths={["50px", "14%", "18%", "56%", "130px"]}>
+                    <Table columnWidths={["50px", "14%", "18%", "100px", "auto", "160px"]}>
                         <TableHead>
                             <TableRow>
                                 <TableHeader>{t("pages.changes.column.seq")}</TableHeader>
                                 <TableHeader>{t("pages.changes.column.date")}</TableHeader>
                                 <TableHeader>{t("pages.changes.column.user")}</TableHeader>
+                                <TableHeader>{t("pages.changes.column.source")}</TableHeader>
                                 <TableHeader>{t("pages.changes.column.change")}</TableHeader>
                                 <TableHeader>{""}</TableHeader>
                             </TableRow>
@@ -455,33 +476,15 @@ const ChangeList = ({ projectId, ready = true, refreshKey = 0 }: IProps) => {
                 />
             )}
             {markReviewedUpTo != null && (
-                <SimpleDialog
-                    data-test-id={"changes-mark-reviewed-modal"}
-                    size="small"
-                    title={t("pages.changes.markReviewed.title")}
-                    isOpen={true}
+                <MarkReviewedModal
+                    key={markReviewedUpTo}
+                    projectId={projectId}
+                    upTo={markReviewedUpTo}
+                    all={markReviewedUpTo === journal.latestSeq}
+                    loading={reviewLoading}
+                    onConfirm={markReviewed}
                     onClose={() => setMarkReviewedUpTo(undefined)}
-                    actions={[
-                        <Button
-                            key="confirm"
-                            affirmative
-                            loading={reviewLoading}
-                            onClick={markReviewed}
-                            data-test-id={"changes-mark-reviewed-confirm-btn"}
-                        >
-                            {t("common.action.confirm")}
-                        </Button>,
-                        <Button key="cancel" onClick={() => setMarkReviewedUpTo(undefined)} disabled={reviewLoading}>
-                            {t("common.action.cancel")}
-                        </Button>,
-                    ]}
-                >
-                    <p>
-                        {markReviewedUpTo === journal.latestSeq
-                            ? t("pages.changes.markReviewed.confirmText")
-                            : t("pages.changes.markReviewed.confirmUpToText", { seq: markReviewedUpTo })}
-                    </p>
-                </SimpleDialog>
+                />
             )}
         </>
     );

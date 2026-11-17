@@ -92,7 +92,7 @@ can combine variable substitutions with fixed expressions to construct semi-flex
 
 Input values are accessible via various methods of the `row` variable (used with `$row`):
 
-- `$row.uri(inputPath: String)`: Renders an input value as **URI**. Throws an exception if the value isn't a valid URI.
+- `$row.uri(inputPath: String)`: Renders an input value as **URI**. Throws an exception for invalid URIs.
 - `$row.plainLiteral(inputPath: String)`: Renders an input value as **plain literal**, i.e. it escapes problematic
   characters, etc.
 - `$row.rawUnsafe(inputPath: String)`: Renders an input value as is, i.e. **no escaping** is done.

@@ -4,6 +4,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater}
+import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
 import org.silkframework.util.Identifier
 
@@ -44,6 +45,32 @@ class WorkflowRunContextTest extends AnyFlatSpec with Matchers {
     reports.map(_.report.isDone) shouldBe IndexedSeq(true, true)
     reports.head.report.operationDesc should include ("clear instruction")
     reports.last.report.operationDesc should include ("update query")
+  }
+
+  it should "record the tasks that are still running when the workflow is cancelled" in {
+    val monitor = new ActivityMonitor[WorkflowExecutionReport]("workflowRun", initialValue = Some(WorkflowExecutionReport(workflowTask)))
+    val runContext = WorkflowRunContext(monitor, WorkflowTest.testWorkflow, UserContext.Empty)
+    runContext.trackOperation("plugin", "Executing 'plugin'") {
+      runContext.trackOperation("plugin2", "Executing 'plugin'") { // Another node with the same label
+        runContext.trackOperation("output", "Writing 'output'") {
+          runContext.trackOperation("input", "Reading 'input'") {} // The input has been read completely
+          runContext.trackOperation("plugin", "Executing 'plugin'") { // The plugin is executed a second time, e.g. for its error output
+            monitor.status.update(Canceling(None))
+          }
+        }
+      }
+    }
+
+    monitor.value().workflowWarnings shouldBe Seq("The workflow was cancelled while the following tasks were still running: " +
+      "Executing 'plugin', Executing 'plugin', Writing 'output'. The workflow has not stopped yet.")
+    monitor.value().version shouldBe 1 // Report consumers rely on a version bump for every change
+
+    runContext.runFinished() // The run has ended, so the warning gets its final wording
+
+    monitor.value().workflowWarnings should have size 1
+    monitor.value().workflowWarnings.head should fullyMatch regex ("The workflow was cancelled while the following tasks were still running: " +
+      "Executing 'plugin', Executing 'plugin', Writing 'output'\\. The workflow stopped (\\d+ms|\\d+\\.\\d+s) later\\.")
+    monitor.value().version shouldBe 2
   }
 
   private def reportUpdater(taskContext: ActivityContext[ExecutionReport], singular: String, plural: String): ExecutionReportUpdater = {

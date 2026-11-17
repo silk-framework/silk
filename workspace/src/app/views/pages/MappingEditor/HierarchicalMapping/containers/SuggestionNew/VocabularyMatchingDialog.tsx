@@ -59,6 +59,7 @@ export default function VocabularyMatchingDialog({
     ) => {
         return (
             <MenuItem
+                roleStructure="listoption"
                 icon={vocabSelected(vocabInfo) ? "state-checked" : "state-unchecked"}
                 active={modifiers.active}
                 key={vocabInfo.uri}
@@ -130,8 +131,7 @@ export default function VocabularyMatchingDialog({
                         id: "vocselect",
                     }}
                     placeholder={"Select vocabularies..."}
-                    clearQueryOnSelection={true}
-                    noResults={<MenuItem disabled={true} text="No results." />}
+                    noResults={<MenuItem roleStructure="listoption" disabled={true} text="No results." />}
                     itemRenderer={renderVocabulary}
                     contextOverlayProps={{
                         portalContainer: context.portalContainer,

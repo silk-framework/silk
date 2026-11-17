@@ -1,24 +1,14 @@
 import React from "react";
-import { createBrowserHistory, createMemoryHistory } from "history";
+import { createBrowserHistory } from "history";
 import mockAxios from "../../../../__mocks__/axios";
-import {
-    byTestId,
-    clickFoundElement,
-    findElement,
-    mockedAxiosResponse,
-    renderWrapper,
-    setUseParams,
-    testWrapper,
-    withMount,
-    workspacePath,
-} from "../../../TestHelper";
+import { byTestId, mockedAxiosResponse, renderWrapper, setUseParams, workspacePath } from "../../../TestHelper";
 import { Header } from "../../../../../src/app/views/layout/Header/Header";
 import Task from "../../../../../src/app/views/pages/Task";
 import { APP_VIEWHEADER_ID, PageHeader } from "../../../../../src/app/views/shared/PageHeader/PageHeader";
 import { fireEvent, RenderResult, waitFor } from "@testing-library/react";
 import { Helmet } from "react-helmet";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../../src/app/views/plugins/PluginRegistry";
-import { BrandingProps } from "../../../../../src/app/views/plugins/plugin.types";
+import { BrandingProps, CompanionToolbarProps } from "../../../../../src/app/views/plugins/plugin.types";
 
 jest.mock("../../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal", () => ({
     CreateArtefactModal: () => null,
@@ -41,6 +31,13 @@ describe("Header", () => {
         applicationName: "some app",
         applicationSuiteName: "some suite",
     });
+    const panelContainer = document.createElement("div");
+    panelContainer.id = "panel-container";
+    pluginRegistry.registerReactPluginComponent<CompanionToolbarProps>({
+        id: SUPPORTED_PLUGINS.DI_COMPANION,
+        label: "Companion test plugin",
+        Component: ({ panelContainer }) => <div data-test-id="companion-plugin">{panelContainer?.id}</div>,
+    });
 
     beforeEach(() => {
         // add explicitely extra tragets for portals, @see https://stackoverflow.com/a/48094582
@@ -52,7 +49,11 @@ describe("Header", () => {
         setUseParams("SomeProjectId", "SomeTaskId");
 
         wrapper = renderWrapper(
-            <Header onClickApplicationSidebarExpand={() => {}} isApplicationSidebarExpanded={false} />,
+            <Header
+                onClickApplicationSidebarExpand={() => {}}
+                isApplicationSidebarExpanded={false}
+                panelContainer={panelContainer}
+            />,
             history,
             {
                 common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
@@ -63,6 +64,44 @@ describe("Header", () => {
     afterEach(() => {
         wrapper.unmount();
         mockAxios.reset();
+    });
+
+    it("exposes the fallback Data Manager entry as a link", () => {
+        const sidebar = wrapper.container.querySelector(".eccgui-application__menu__sidebar") as HTMLElement;
+        expect(sidebar.querySelectorAll('[role="list"]')).toHaveLength(2);
+        expect(sidebar.querySelectorAll('[role="menu"], [role="menuitem"]')).toHaveLength(0);
+        expect(sidebar.querySelector('a[href="http://docker.local"]')).not.toBeNull();
+    });
+
+    it("exposes sidebar navigation entries as links in lists", () => {
+        wrapper.unmount();
+        wrapper = renderWrapper(
+            <Header onClickApplicationSidebarExpand={() => {}} isApplicationSidebarExpanded={true} />,
+            history,
+            {
+                common: {
+                    initialSettings: {
+                        dmBaseUrl: "http://docker.local",
+                        dmModuleLinks: [{ path: "thesaurus", defaultLabel: "Thesauri" }],
+                    },
+                },
+            },
+        );
+
+        const sidebar = wrapper.container.querySelector(".eccgui-application__menu__sidebar") as HTMLElement;
+        expect(sidebar).not.toBeNull();
+        expect(sidebar.querySelectorAll('[role="list"]')).toHaveLength(2);
+        expect(sidebar.querySelectorAll('[role="menu"], [role="menuitem"]')).toHaveLength(0);
+        expect(sidebar.querySelectorAll("a[href]")).toHaveLength(5);
+        expect(sidebar.querySelector('a[href="http://docker.local/thesaurus"]')).not.toBeNull();
+    });
+
+    it("exposes the user panel as a list of links, not a menu", () => {
+        fireEvent.click(wrapper.container.querySelector("#headerUserMenu") as HTMLElement);
+        const panel = document.querySelector('[aria-label="User menu"]') as HTMLElement;
+        expect(panel).not.toBeNull();
+        expect(panel.querySelector('[role="list"]')).not.toBeNull();
+        expect(panel.querySelector('[role="menu"], [role="menuitem"]')).toBeNull();
     });
 
     it("should page title is correct", () => {
@@ -86,6 +125,12 @@ describe("Header", () => {
         );
         const helmet = Helmet.peek();
         expect(helmet.title).toBe("My Page Title (artefacttype) at Workbench / My Project — some corp some suite");
+    });
+
+    it("should hand the panel container to the companion plugin", () => {
+        expect(wrapper.container.querySelector(byTestId("companion-plugin"))).toHaveTextContent(
+            "panel-container",
+        );
     });
 
     it("should delete button works properly", async () => {

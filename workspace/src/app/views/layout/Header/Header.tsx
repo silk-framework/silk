@@ -33,7 +33,7 @@ import { APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME 
 import { CONTEXT_PATH, SERVE_PATH } from "../../../constants/path";
 import { APP_VIEWHEADER_ID } from "../../shared/PageHeader/PageHeader";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
-import { UserMenuFooterProps } from "../../plugins/plugin.types";
+import { CompanionToolbarProps, UserMenuFooterProps } from "../../plugins/plugin.types";
 import { ExampleProjectImportMenu } from "./ExampleProjectImportMenu";
 import { useKeyboardHeaderShortcuts } from "./useKeyBoardHeaderShortcuts";
 import { getFullRoutePath } from "../../../utils/routerUtils";
@@ -42,9 +42,11 @@ import { AppDispatch } from "store/configureStore";
 interface IProps {
     onClickApplicationSidebarExpand: any;
     isApplicationSidebarExpanded: boolean;
+    /** Where a toolbar panel can dock, s. AppLayout. */
+    panelContainer: HTMLElement | null;
 }
 
-export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarExpanded }: IProps) {
+export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarExpanded, panelContainer }: IProps) {
     const dispatch = useDispatch<AppDispatch>();
     const location = useLocation();
     const locationParams = new URLSearchParams(location.search?.substring(1));
@@ -52,6 +54,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
     const { dmBaseUrl, dmModuleLinks, version } = useSelector(commonSel.initialSettingsSelector);
     const [t] = useTranslation();
     const displayUserMenu = useSelector(commonSel.userMenuDisplaySelector);
+    const displayNotifications = useSelector(commonSel.notificationMenuSelector);
 
     //general keyboard shortcuts
     useKeyboardHeaderShortcuts();
@@ -60,6 +63,14 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
         SUPPORTED_PLUGINS.DI_USER_MENU_FOOTER,
     );
     const languageSwitcher = pluginRegistry.pluginReactComponent<{}>(SUPPORTED_PLUGINS.DI_LANGUAGE_SWITCHER);
+    const companionToolbar = pluginRegistry.pluginReactComponent<CompanionToolbarProps>(
+        SUPPORTED_PLUGINS.DI_COMPANION,
+    );
+
+    const closeOtherToolbarPanels = React.useCallback(() => {
+        dispatch(commonOp.toggleNotificationMenuDisplay(false));
+        dispatch(commonOp.toggleUserMenuDisplay(false));
+    }, [dispatch]);
 
     const handleCreateDialog = React.useCallback(() => {
         dispatch(commonOp.setSelectedArtefactDType("all"));
@@ -112,10 +123,11 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                             <TitleSubsection title={t("navigation.side.dmBrowserTooltip", "")}>
                                 {t("navigation.side.dmBrowser", "Explore")}
                             </TitleSubsection>
-                            <Menu>
+                            <Menu role="list">
                                 {dmModuleLinks ? (
                                     dmModuleLinks.map((link) => (
                                         <MenuItem
+                                            roleStructure="listitem"
                                             icon={link.icon ? [link.icon] : undefined}
                                             text={t("navigation.side.dm." + link.path, link.defaultLabel)}
                                             htmlTitle={t("navigation.side.dm." + link.path + "Tooltip")}
@@ -125,6 +137,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                     ))
                                 ) : (
                                     <MenuItem
+                                        roleStructure="listitem"
                                         icon="application-explore"
                                         text={t("navigation.side.dm.explore", "Knowledge Graphs")}
                                         htmlTitle={t("navigation.side.dm.exploreTooltip")}
@@ -140,8 +153,9 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                     <TitleSubsection title={t("navigation.side.diBrowseTooltip", "")}>
                         {t("navigation.side.diBrowse", "")}
                     </TitleSubsection>
-                    <Menu>
+                    <Menu role="list">
                         <MenuItem
+                            roleStructure="listitem"
                             icon="artefact-project"
                             text={t("navigation.side.di.projects", "Projects")}
                             htmlTitle={t("navigation.side.di.projectsTooltip")}
@@ -154,6 +168,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                             active={location.pathname === SERVE_PATH && locationParams.get("itemType") === "project"}
                         />
                         <MenuItem
+                            roleStructure="listitem"
                             icon="artefact-dataset"
                             text={t("navigation.side.di.datasets", "Datasets")}
                             htmlTitle={t("navigation.side.di.datasetsTooltip")}
@@ -166,6 +181,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                             active={location.pathname === SERVE_PATH && locationParams.get("itemType") === "dataset"}
                         />
                         <MenuItem
+                            roleStructure="listitem"
                             icon="artefact-workflow"
                             text={t("navigation.side.di.workflows", "Workflows")}
                             htmlTitle={t("navigation.side.di.workflowsTooltip")}
@@ -178,6 +194,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                             active={location.pathname === SERVE_PATH && locationParams.get("itemType") === "workflow"}
                         />
                         <MenuItem
+                            roleStructure="listitem"
                             icon="application-activities"
                             text={t("navigation.side.di.activities", "Activities")}
                             htmlTitle={t("navigation.side.di.activitiesTooltip")}
@@ -199,6 +216,13 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         <CreateButton onClick={handleCreateDialog} />
                     </ApplicationToolbarSection>
                     <NotificationsMenu />
+                    {companionToolbar && (
+                        <companionToolbar.Component
+                            closeOtherToolbarPanels={closeOtherToolbarPanels}
+                            isAnotherToolbarPanelOpen={displayNotifications || displayUserMenu}
+                            panelContainer={panelContainer}
+                        />
+                    )}
                     {displayUserMenu ? (
                         <>
                             <ApplicationToolbarAction
@@ -220,11 +244,16 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                             >
                                 <Toolbar verticalStack={true} style={{ height: "100%" }}>
                                     <ToolbarSection canGrow={true} style={{ width: "100%" }}>
-                                        <Menu>
-                                            {languageSwitcher && <languageSwitcher.Component />}
-                                            <MenuDivider />
+                                        <Menu role="list">
+                                            {languageSwitcher && (
+                                                <li>
+                                                    <languageSwitcher.Component />
+                                                </li>
+                                            )}
+                                            <MenuDivider role="listitem" aria-hidden={true} />
                                             {hotKeys.quickSearch && (
                                                 <MenuItem
+                                                    roleStructure="listitem"
                                                     text={t("RecentlyViewedModal.title")}
                                                     href={"#"}
                                                     onClick={(e) => {
@@ -246,6 +275,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                             )}
                                             {hotKeys.overview && (
                                                 <MenuItem
+                                                    roleStructure="listitem"
                                                     text={t("header.keyboardShortcutsModal.title")}
                                                     href={"#"}
                                                     onClick={(e) => {
@@ -266,12 +296,14 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                                 />
                                             )}
                                             <MenuItem
+                                                roleStructure="listitem"
                                                 text={t("common.action.showApiDoc", "API")}
                                                 href={CONTEXT_PATH + "/doc/api"}
                                                 icon={"application-homepage"}
                                             />
 
                                             <MenuItem
+                                                roleStructure="listitem"
                                                 text={t("common.action.listDeprecatedPlugins")}
                                                 href={CONTEXT_PATH + "/workbench/deprecatedPlugins"}
                                                 icon={"state-warning"}

@@ -37,3 +37,16 @@
     align-items: center;
     justify-content: flex-end;
 }
+
+.#{$eccgui}-button.#{$ns}-button.diapp-changes__conversation--highlighted,
+.#{$eccgui}-tag__item.#{$ns}-tag.diapp-changes__conversation--highlighted {
+    &,
+    &:hover,
+    &:active {
+        color: $eccgui-color-accent;
+        background-color: $eccgui-color-accent-contrast;
+        border: 1px solid $eccgui-color-accent;
+        box-shadow: none;
+        font-weight: $eccgui-font-weight-bold;
+    }
+}

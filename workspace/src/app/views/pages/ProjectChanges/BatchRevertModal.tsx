@@ -102,6 +102,7 @@ const BatchRevertModal = ({ projectId, title, confirmText, entries, onClose, onR
             render={() => (
                 <div>
                     <p>{confirmText}</p>
+                    <p>{t("pages.changes.revertAll.affectedCount", { count: entries.length - skipped })}</p>
                     <ul>
                         {entries.filter(hasInverse).map((entry) => (
                             <li key={entry.seq}>{entry.description}</li>

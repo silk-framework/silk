@@ -32,6 +32,10 @@ export function initialCommonState(): ICommonState {
             hotKeys: {},
             templatingEnabled: false,
             assistantSupported: false,
+            companion: {
+                enabled: false,
+                apiBasePath: "/dataplatform/api/companion/interactive",
+            },
             mappingCreatorEnabled: false,
             aclEnabled: false,
         },

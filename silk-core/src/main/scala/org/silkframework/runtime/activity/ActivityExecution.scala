@@ -11,7 +11,7 @@ import java.time.Instant
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
-import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future, blocking}
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -211,6 +211,7 @@ private class ActivityExecution[T](activity: Activity[T],
   private def waitUntilFinished(runnerOpt: Option[ForkJoinRunner]): Unit = {
     for (runner <- runnerOpt) {
       try {
+        blockForeignWorkerUntilDone(runner)
         runner.join()
       } catch {
         case NonFatal(ex) =>
@@ -230,6 +231,18 @@ private class ActivityExecution[T](activity: Activity[T],
     }
     for (ex <- status().exception if !activity.wasCancelled()) {
       throw ex
+    }
+  }
+
+  /* A worker of a foreign fork join pool, e.g., an Akka request thread, must not wait in join(): it would run other
+     tasks of its own pool meanwhile, which Akka rejects and drops. It polls until the runner is done instead. */
+  private def blockForeignWorkerUntilDone(runner: ForkJoinRunner): Unit = {
+    if (Thread.currentThread.isInstanceOf[ForkJoinWorkerThread] && !runningInOwnPool()) {
+      blocking {
+        while (!runner.isDone) {
+          Thread.sleep(ActivityExecution.FOREIGN_WORKER_POLL_INTERVAL_MS)
+        }
+      }
     }
   }
 
@@ -274,8 +287,12 @@ private class ActivityExecution[T](activity: Activity[T],
         startTimestamp = Some(Instant.now)
         // Skip the body if cancelled before this run started (even if the cancellation's side effects are still
         // being delivered and the cancel flag is not set yet), but still finish via finishOrRequestReRun().
-        if (cancelTimestamp.isEmpty && !activity.wasCancelled() && !parent.exists(_.status().isInstanceOf[Canceling])) {
-          activity.run(this)
+        if (cancelTimestamp.isEmpty && !activity.wasCancelled()) {
+          if (parent.exists(_.status().isInstanceOf[Canceling])) {
+            recordParentCancellation()
+          } else {
+            activity.run(this)
+          }
         }
         finishOrRequestReRun()
       } catch {
@@ -283,6 +300,15 @@ private class ActivityExecution[T](activity: Activity[T],
           reRunAfterFailure(ex, runner, isInitialRun)
       }
       isInitialRun = false
+    }
+  }
+
+  /* Records the parent's cancellation on this run, whose body is skipped because the parent is being cancelled. The
+     parent's cancel() may reach this child only after the run has finished, or not at all if it was started later. */
+  private def recordParentCancellation(): Unit = StatusLock.synchronized {
+    if (cancelTimestamp.isEmpty) {
+      cancelledByUser = parent.collect { case p: ActivityExecution[_] => p.cancelledByUser }.getOrElse(UserContext.Empty)
+      cancelTimestamp = Some(Instant.now)
     }
   }
 
@@ -474,6 +500,8 @@ object ActivityExecution {
   private final val MAX_POOL_SIZE = 32
   // How long are extra threads kept alive, 1 second
   private final val KEEP_ALIVE_MS = 1000L
+  // Interval at which a worker of a foreign fork join pool re-checks whether the activity it waits for is done
+  private final val FOREIGN_WORKER_POLL_INTERVAL_MS = 10L
   // Thread pool used for managing activities asynchronously, e.g. restart.
   implicit val activityManagementExecutionContext: ExecutionContextExecutor = ExecutionContext.fromExecutor(Execution.createFixedThreadPool(
     "activity-management-thread",

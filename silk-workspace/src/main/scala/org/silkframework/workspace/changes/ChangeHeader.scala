@@ -25,11 +25,12 @@ import scala.util.control.NonFatal
   * @param executionId The identifier of the execution report of a workflow run, if the run has one.
   * @param reverts     The seq of the entry this change reverts, if it was recorded by reverting one.
   * @param fulfils     The seq of the proposal this change fulfilled, if any.
+  * @param conversationId The companion conversation responsible for this change, if known.
   */
 case class ChangeHeader(seq: Int, timestamp: Instant, user: Option[String], origin: Option[String], changeType: String,
                         summary: String, details: Seq[ChangeDetail], revertible: Boolean, proposal: Boolean,
                         taskId: Option[Identifier], ruleId: Option[Identifier], path: Option[String], executionId: Option[String],
-                        reverts: Option[Int] = None, fulfils: Option[Int] = None) {
+                        reverts: Option[Int] = None, fulfils: Option[Int] = None, conversationId: Option[String] = None) {
 
   /** Whether the change came in through a client that names itself, e.g. an MCP agent; these queue for user review. */
   def agentWrite: Boolean = origin.isDefined
@@ -63,7 +64,7 @@ object ChangeHeader {
 
   /** The header of a new entry, derived from its change; see [[ChangeEntry.apply]] for the parameters. */
   def of(seq: Int, timestamp: Instant, user: Option[String], origin: Option[String], change: Change,
-         reverts: Option[Int], fulfils: Option[Int]): ChangeHeader = {
+         reverts: Option[Int], fulfils: Option[Int], conversationId: Option[String] = None): ChangeHeader = {
     val taskId = change match {
       case names: NamesTask => Some(names.taskId)
       case _ => None
@@ -93,6 +94,6 @@ object ChangeHeader {
       case NonFatal(ex) => Seq(ChangeDetail(s"The details could not be rendered: ${Change.reason(ex)}"))
     }
     ChangeHeader(seq, timestamp, user, origin, change.changeType, change.summary, details,
-      change.inverse.isDefined, change.isInstanceOf[Proposal], taskId, ruleId, path, executionId, reverts, fulfils)
+      change.inverse.isDefined, change.isInstanceOf[Proposal], taskId, ruleId, path, executionId, reverts, fulfils, conversationId)
   }
 }

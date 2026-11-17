@@ -18,6 +18,7 @@ const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
 const { CycloneDxWebpackPlugin } = require("@cyclonedx/webpack-plugin");
 const paths = require("./paths");
 const getClientEnvironment = require("./env");
+const SharedLibraryVersionsPlugin = require("./SharedLibraryVersionsPlugin");
 
 const cssRegex = /\.css$/;
 const cssModuleRegex = /\.module\.css$/;
@@ -74,6 +75,11 @@ module.exports = function createWebpackConfig(webpackEnv, isWatch = false, diagn
         bail: isEnvProduction,
         profile: profilingEnabled,
         devtool: isEnvProduction ? "source-map" : "cheap-module-source-map",
+        watchOptions: {
+            aggregateTimeout: 300,
+            // Version injection depends on package metadata, even for installed libraries.
+            ignored: /node_modules[\\/](?!.*[\\/]package\.json$)/,
+        },
         entry: [paths.stylesEntry, paths.appIndexJs, ...paths.additionalEntries()],
         output: {
             path: buildPath,
@@ -249,6 +255,7 @@ module.exports = function createWebpackConfig(webpackEnv, isWatch = false, diagn
             new InterpolateHtmlPlugin(HtmlWebpackPlugin, env.raw),
             new ModuleNotFoundPlugin(paths.appPath),
             new webpack.DefinePlugin(env.stringified),
+            new SharedLibraryVersionsPlugin(),
             isEnvDevelopment && new CaseSensitivePathsPlugin(),
             new MiniCssExtractPlugin({
                 filename: "assets/css/[name].[contenthash:8].css",

@@ -18,8 +18,12 @@ function ArtefactTypesList({ onSelect, typesToRemove }: Props) {
     return (
         <>
             <TitleSubsection>{t("common.words.itemType", "Item type")}</TitleSubsection>
-            <Menu>
+            <Menu role="list" aria-label={t("common.words.itemType", "Item type")}>
                 <MenuItem
+                    roleStructure="listitem"
+                    tagName="button"
+                    type="button"
+                    aria-pressed={selectedDType === "all"}
                     text={t("common.words.all", "All")}
                     key="all"
                     onClick={() => onSelect("all")}
@@ -30,6 +34,10 @@ function ArtefactTypesList({ onSelect, typesToRemove }: Props) {
                         .filter((type) => !typesToRemove.has(type.id))
                         .map((type) => (
                             <MenuItem
+                                roleStructure="listitem"
+                                tagName="button"
+                                type="button"
+                                aria-pressed={selectedDType === type.id}
                                 text={type.label}
                                 key={type.id}
                                 onClick={() => onSelect(type.id)}
