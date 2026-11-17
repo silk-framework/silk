@@ -14,6 +14,8 @@
 
 package org.silkframework.runtime.activity
 
+import org.silkframework.util.Timer.formatDuration
+
 /**
  * A status message
  */
@@ -145,19 +147,11 @@ object Status {
    */
   case class Finished(success: Boolean, runtime: Long, cancelled: Boolean, override val exception: Option[Throwable] = None) extends Status {
     override def message: String = (success, exception, cancelled) match {
-      case (true, None, false) => "Finished in " + formattedTime
-      case (_, _, true) => "Cancelled after " + formattedTime
-      case (false, Some(ex), _) => "Failed after " + formattedTime + " - " + ex.getMessage
-      case (true, Some(ex), _) => "Errors occurred after " + formattedTime + " - " + ex.getMessage
+      case (true, None, false) => "Finished in " + formatDuration(runtime)
+      case (_, _, true) => "Cancelled after " + formatDuration(runtime)
+      case (false, Some(ex), _) => "Failed after " + formatDuration(runtime) + " - " + ex.getMessage
+      case (true, Some(ex), _) => "Errors occurred after " + formatDuration(runtime) + " - " + ex.getMessage
       case _ => "Unknown status"
-    }
-
-    private def formattedTime = {
-      if (runtime < 1000) {
-        s"${runtime}ms"
-      } else {
-        "%.3fs".format(runtime.toDouble / 1000)
-      }
     }
 
     override def progress: Option[Double] = Some(1.0)

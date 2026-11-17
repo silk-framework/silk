@@ -1,8 +1,11 @@
 package org.silkframework.workspace.activity.workflow
 
 
+import org.silkframework.dataset.{MockDataset, MockDatasetExecutor}
 import org.silkframework.rule.execution.TransformReport
-import org.silkframework.runtime.plugin.{PluginContext, TestPluginContext}
+import org.silkframework.runtime.activity.Status.Canceling
+import org.silkframework.runtime.activity.{ActivityMonitor, UserContext}
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TestPluginContext}
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
@@ -83,6 +86,45 @@ class LocalWorkflowExecutorTest extends AnyFlatSpec with Matchers with SinglePro
     a[ChangeConflictException] should be thrownBy journal.revert(entries.head.seq)
   }
 
+  it should "end the run if the clearing of an output dataset fails" in {
+    PluginRegistry.unregisterPlugin(classOf[MockDatasetExecutor])
+    PluginRegistry.registerPlugin(classOf[MockDatasetExecutor])
+    val workflow = project.task[Workflow]("workflow")
+    val outputDataset = MockDataset()
+    outputDataset.clearFn = () => throw new IllegalStateException("Clearing failed")
+    val context = new ActivityMonitor[WorkflowExecutionReport]("workflowRun", initialValue = Some(WorkflowExecutionReport(workflow)))
+
+    val error = intercept[WorkflowExecutionException] {
+      LocalWorkflowExecutor(workflow, replaceSinks = Map("output" -> outputDataset)).run(context)(UserContext.Empty)
+    }
+
+    error.getMessage shouldBe "Failed to clear dataset 'output': Clearing failed"
+    error.getCause shouldBe a[IllegalStateException]
+    context.value().taskReports shouldBe empty // No node has been executed
+    context.value().error shouldBe Some(error.getMessage)
+    context.value().isDone shouldBe true // The run has ended, although the clearing failed
+  }
+
+  it should "name an executor that is being closed when the workflow is cancelled" in {
+    try {
+      PluginRegistry.unregisterPlugin(classOf[MockDatasetExecutor])
+      PluginRegistry.registerPlugin(classOf[CancelOnCloseExecutor])
+      val workflow = project.task[Workflow]("workflow")
+      val context = new ActivityMonitor[WorkflowExecutionReport]("workflowRun", initialValue = Some(WorkflowExecutionReport(workflow)))
+      CancelOnCloseExecutor.onClose = () => context.status.update(Canceling(None)) // The run is cancelled while it closes the executor
+
+      LocalWorkflowExecutor(workflow, replaceSinks = Map("output" -> MockDataset())).run(context)(UserContext.Empty)
+
+      context.value().workflowWarnings should have size 1
+      context.value().workflowWarnings.head should fullyMatch regex ("The workflow was cancelled while the following tasks were still running: " +
+        "Closing 'output'\\. The workflow stopped (\\d+ms|\\d+\\.\\d+s) later\\.")
+    } finally {
+      CancelOnCloseExecutor.onClose = () => {}
+      PluginRegistry.unregisterPlugin(classOf[CancelOnCloseExecutor])
+      PluginRegistry.registerPlugin(classOf[MockDatasetExecutor])
+    }
+  }
+
   override def propertyMap: Map[String, Option[String]] = {
     Map(
       "workspace.reportManager.plugin" -> Some("inMemoryExecutionReportManager"),
@@ -90,4 +132,13 @@ class LocalWorkflowExecutorTest extends AnyFlatSpec with Matchers with SinglePro
       "workspace.changes.plugin" -> Some("inMemoryChangeJournal")
     )
   }
+}
+
+/** A mock dataset executor that runs a callback when it is closed. */
+class CancelOnCloseExecutor extends MockDatasetExecutor {
+  override def close(): Unit = CancelOnCloseExecutor.onClose()
+}
+
+object CancelOnCloseExecutor {
+  @volatile var onClose: () => Unit = () => {}
 }
