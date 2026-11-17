@@ -92,6 +92,7 @@ export default function VocabularyMultiSelect({
     ) => {
         return (
             <MenuItem
+                roleStructure="listoption"
                 icon={vocabSelected(vocabInfo) ? "state-checked" : "state-unchecked"}
                 active={modifiers.active}
                 key={vocabInfo.uri}
@@ -135,6 +136,7 @@ export default function VocabularyMultiSelect({
         ) {
             return (
                 <MenuItem
+                    roleStructure="listoption"
                     id={"new-vocab-item"}
                     icon={"item-add-artefact"}
                     active={active}
@@ -195,9 +197,8 @@ export default function VocabularyMultiSelect({
                     tagProps: getTagProps,
                 }}
                 placeholder={"Select vocabularies..."}
-                clearQueryOnSelection={true}
                 createNewItemRenderer={newItemRenderer}
-                noResults={<MenuItem disabled={true} text="No results." />}
+                noResults={<MenuItem roleStructure="listoption" disabled={true} text="No results." />}
                 itemRenderer={renderVocabulary}
             />
             {warning ? (

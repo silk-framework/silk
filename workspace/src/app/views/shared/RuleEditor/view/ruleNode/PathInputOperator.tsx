@@ -296,6 +296,7 @@ const LanguageSwitcher = ({ onLanguageChange, initialLanguage }: LanguageSwitche
                 if (languageTagRegex.test(query)) {
                     return (
                         <MenuItem
+                            roleStructure="listoption"
                             data-test-id={"language-filter-custom"}
                             icon={"item-add-artefact"}
                             active={active}
@@ -310,6 +311,7 @@ const LanguageSwitcher = ({ onLanguageChange, initialLanguage }: LanguageSwitche
                 return lang === NO_LANG ? (
                     currentLanguageFilter.current ? (
                         <MenuItem
+                            roleStructure="listoption"
                             data-test-id={"language-filter-remove"}
                             active={modifiers.active}
                             icon={"operation-filterremove"}
@@ -319,6 +321,7 @@ const LanguageSwitcher = ({ onLanguageChange, initialLanguage }: LanguageSwitche
                     ) : null
                 ) : (
                     <MenuItem
+                        roleStructure="listoption"
                         data-test-id={`language-filter-${lang}`}
                         active={modifiers.active}
                         icon={"operation-filter"}

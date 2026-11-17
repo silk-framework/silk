@@ -45,7 +45,14 @@ export default function PrefixList({ prefixes, selectedPrefix, onChange, disable
     );
 
     const itemRenderer = (prefix: IPrefix, { handleClick }) => {
-        return <MenuItem text={itemLabel(prefix, inputQuery)} key={prefix.uri} onClick={handleClick} />;
+        return (
+            <MenuItem
+                roleStructure="listoption"
+                text={itemLabel(prefix, inputQuery)}
+                key={prefix.uri}
+                onClick={handleClick}
+            />
+        );
     };
 
     const handleQueryChange = (value) => {
@@ -69,9 +76,10 @@ export default function PrefixList({ prefixes, selectedPrefix, onChange, disable
     const renderCreatePrefixOptionRenderer = (
         query: string,
         active: boolean,
-        handleClick: React.MouseEventHandler<HTMLElement>
+        handleClick: React.MouseEventHandler<HTMLElement>,
     ) => (
         <MenuItem
+            roleStructure="listoption"
             icon="item-add-artefact"
             text={`Create "${query}"`}
             active={active}
