@@ -223,6 +223,7 @@ type ArtefactDataParameters = {
 };
 
 const createArtefactAsync = (
+    projectId: string | undefined,
     formData,
     taskType: TaskType | "Project",
     dataParameters: ArtefactDataParameters | undefined,
@@ -240,18 +241,21 @@ const createArtefactAsync = (
                 await dispatch(fetchCreateProjectAsync(formData, groups));
                 break;
             default:
+                if (!projectId) {
+                    throw new Error("Not in a project context!");
+                }
                 if (selectedArtefact) {
-                    selectedArtefact &&
-                        (await dispatch(
-                            fetchCreateTaskAsync(
-                                formData,
-                                selectedArtefact.key,
-                                taskType as TaskType,
-                                dataParameters,
-                                variableTemplateParameterSet,
-                                alternativeCallback,
-                            ),
-                        ));
+                    await dispatch(
+                        fetchCreateTaskAsync(
+                            projectId,
+                            formData,
+                            selectedArtefact.key,
+                            taskType,
+                            dataParameters,
+                            variableTemplateParameterSet,
+                            alternativeCallback,
+                        ),
+                    );
                 } else {
                     console.error("selectedArtefact not set! Cannot create item.");
                 }
@@ -309,6 +313,7 @@ const extractParameterValues = (
 };
 
 const fetchCreateTaskAsync = (
+    projectId: string,
     formData: any,
     artefactId: string,
     taskType: TaskType,
@@ -319,7 +324,6 @@ const fetchCreateTaskAsync = (
     alternativeCallback?: (newTask: IProjectTask) => any,
 ) => {
     return async (dispatch, getState) => {
-        const currentProjectId = commonSel.currentProjectIdSelector(getState());
         const { cachedArtefactProperties } = commonSel.artefactModalSelector(getState());
         const { label, description, id, tags } = formData;
         const { parameters, variableTemplateParameters } = splitParameterAndVariableTemplateParameters(
@@ -351,17 +355,14 @@ const fetchCreateTaskAsync = (
 
         dispatch(setModalError({}));
         try {
-            if (!currentProjectId) {
-                throw new Error("Not in a project context!");
-            }
-            const data = await requestCreateTask(payload, currentProjectId);
+            const data = await requestCreateTask(payload, projectId);
             const newTask = data.data;
             const newTaskId = newTask.id;
             await createTagsAndAddToMetadata({
                 label,
                 description,
                 tags,
-                projectId: currentProjectId,
+                projectId,
                 taskId: newTaskId,
             });
 
@@ -373,7 +374,7 @@ const fetchCreateTaskAsync = (
                           routerOp.goToTaskPage({
                               id: newTaskId,
                               type: taskType,
-                              projectId: currentProjectId,
+                              projectId,
                               label,
                           }),
                       );

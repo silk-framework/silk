@@ -1075,6 +1075,48 @@ describe("Task creation widget", () => {
         });
     };
 
+    const selectOtherProject = async (element: HTMLElement, projectId: string) => {
+        clickRenderedElement(findElement(element, byTestId("project-selection-btn")));
+        const searchUrl = apiUrl("workspace/searchItems");
+        await waitFor(() => checkRequestMade(searchUrl));
+        await act(async () => {
+            mockAxiosResponse(
+                searchUrl,
+                mockedAxiosResponse({ data: { results: [{ id: projectId, label: "Other project" }] } }),
+            );
+        });
+        const otherProject = await within(element).findByRole("option", { name: "Other project" });
+        clickRenderedElement(within(otherProject).getByText("Other project"));
+    };
+
+    it("creates the task in the newly selected project and redirects there", async () => {
+        const { element, history } = await pluginCreationDialogWrapper();
+        await respondWithProjectMetadata(PROJECT_ID);
+        const otherProjectId = "otherProject";
+        await selectOtherProject(element, otherProjectId);
+        expect(await within(element).findByText("Selected target project: Other project")).toBeVisible();
+
+        changeInputValue(findElement(element, "#label") as HTMLInputElement, "Task in another project");
+        changeInputValue(findElement(element, "#intParam") as HTMLInputElement, "100");
+        changeInputValue(findElement(element, byName("objectParameter.subStringParam")) as HTMLInputElement, "Value");
+        clickCreate(element);
+
+        const tasksUri = legacyApiUrl(`workspace/projects/${otherProjectId}/tasks`);
+        await waitFor(() => {
+            const createRequests = mockAxios.queue().filter(
+                ({ url, method }) => url.endsWith("/tasks") && method.toUpperCase() === "POST",
+            );
+            expect(createRequests.map(({ url }) => url)).toEqual([tasksUri]);
+        });
+        expect(history.location.pathname).toBe(`${SERVE_PATH}/projects/${PROJECT_ID}`);
+
+        const newTaskId = "newTaskId";
+        await act(async () => {
+            mockAxiosResponse(tasksUri, mockedAxiosResponse({ data: { id: newTaskId } }));
+        });
+        expect(history.location.pathname).toBe(`${SERVE_PATH}/projects/${otherProjectId}/task/${newTaskId}`);
+    });
+
     const requestDatasetAutoConfiguration = async (element: HTMLElement, projectId: string) => {
         clickRenderedElement(findElement(element, byTestId("autoConfigureItem-btn")));
         const autoConfigureUrl = apiUrl(`workspace/projects/${projectId}/dataset/autoConfigure`);
@@ -1156,17 +1198,7 @@ describe("Task creation widget", () => {
     it("ignores pending auto-configuration after changing the target project and sends the next request there", async () => {
         const { element, autoConfigureRequest } = await startDatasetAutoConfiguration(true);
         const otherProjectId = "otherProject";
-        clickRenderedElement(findElement(element, byTestId("project-selection-btn")));
-        const searchUrl = apiUrl("workspace/searchItems");
-        await waitFor(() => checkRequestMade(searchUrl));
-        await act(async () => {
-            mockAxiosResponse(
-                searchUrl,
-                mockedAxiosResponse({ data: { results: [{ id: otherProjectId, label: "Other project" }] } }),
-            );
-        });
-        const otherProject = await within(element).findByRole("option", { name: "Other project" });
-        clickRenderedElement(within(otherProject).getByText("Other project"));
+        await selectOtherProject(element, otherProjectId);
         clickRenderedElement(await within(element).findByRole("button", { name: "Change target project" }));
 
         await act(async () => {

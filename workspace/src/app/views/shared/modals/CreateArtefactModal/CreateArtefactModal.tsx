@@ -531,9 +531,9 @@ export function CreateArtefactModal() {
                                 taskId: updateExistingTask.taskId,
                             });
                         } else {
-                            !projectId && currentProject && dispatch(commonOp.setProjectId(currentProject.id));
                             await dispatch(
                                 commonOp.createArtefactAsync(
+                                    effectiveProjectId,
                                     formValues,
                                     type,
                                     dataParameters,
@@ -565,7 +565,7 @@ export function CreateArtefactModal() {
                 setActionLoading(false);
             }
         },
-        [form, updateExistingTask, taskType, currentProject],
+        [form, updateExistingTask, taskType, effectiveProjectId, newTaskPreConfiguration?.alternativeCallback],
     );
 
     const closeModal = () => {
