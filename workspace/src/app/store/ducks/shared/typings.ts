@@ -5,6 +5,8 @@ export interface IRequestAutocompletePayload {
     pluginId: string;
     parameterId: string;
     projectId: string;
+    /** The task the parameter belongs to, if the task exists already. */
+    taskId?: string;
     dependsOnParameterValues: DependsOnParameterValue[];
     textQuery: string;
     limit?: number;

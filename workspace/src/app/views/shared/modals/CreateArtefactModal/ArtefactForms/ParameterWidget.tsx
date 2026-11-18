@@ -56,6 +56,8 @@ export interface ExtendedParameterCallbacks extends ParameterCallbacks {
 
 interface IProps {
     projectId: string;
+    // The ID of the task the parameter belongs to, if the task exists already
+    taskId?: string;
     // The ID of the parent object
     pluginId: string;
     // ID of the form parameter. For nested parameters this has the form of 'parentParam.param'.
@@ -101,6 +103,7 @@ export const errorMessage = (title: string, errors: any) => {
 export const ParameterWidget = (props: IProps) => {
     const {
         projectId,
+        taskId,
         pluginId,
         formParamId,
         required,
@@ -224,6 +227,7 @@ export const ParameterWidget = (props: IProps) => {
                             <ParameterWidget
                                 key={nestedFormParamId}
                                 projectId={projectId}
+                                taskId={taskId}
                                 pluginId={propertyDetails.pluginId as string}
                                 formParamId={nestedFormParamId}
                                 required={requiredNestedParams.includes(nestedParamId)}
@@ -319,6 +323,7 @@ export const ParameterWidget = (props: IProps) => {
                         return (
                             <ParameterAutoCompletion
                                 projectId={projectId}
+                                taskId={taskId}
                                 paramId={taskParameter.paramId}
                                 pluginId={pluginId}
                                 onChange={(value) =>
