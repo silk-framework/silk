@@ -66,6 +66,7 @@ import { PluginDocumentationModal } from "../PluginDocumentationModal";
 import { PluginDocumentation as ArtefactDocumentation, RelatedPluginDocumentation } from "../PluginDocumentation";
 import { PARAMETER_DOC_PREFIX } from "./ArtefactForms/TaskForm";
 import { AppDispatch } from "store/configureStore";
+import { useForegroundViewContext } from "../../../../contexts/ApplicationContextRegistry";
 
 const projectChangePreservedFields = new Set(["label", "description"]);
 const relatedPluginSwitchPreservedFields = new Set(["label", "description", "tags"]);
@@ -130,9 +131,11 @@ export function CreateArtefactModal() {
     const [autoConfigPending, setAutoConfigPending] = useState(false);
     const DOUBLE_CLICK_LIMIT_MS = 500;
 
-    const updateTaskPluginDetails: IPluginOverview | undefined = updateExistingTask
-        ? { ...updateExistingTask.taskPluginDetails, key: updateExistingTask.taskPluginDetails.pluginId }
-        : undefined;
+    const taskPluginDetails = updateExistingTask?.taskPluginDetails;
+    const updateTaskPluginDetails = React.useMemo<IPluginOverview | undefined>(
+        () => taskPluginDetails ? { ...taskPluginDetails, key: taskPluginDetails.pluginId } : undefined,
+        [taskPluginDetails],
+    );
     const selectedArtefact: IPluginOverview | undefined = updateTaskPluginDetails ?? selectedArtefactFromStore;
     const selectedArtefactKey = React.useRef<string | undefined>();
     selectedArtefactKey.current = selectedArtefactFromStore?.key;
@@ -164,6 +167,32 @@ export function CreateArtefactModal() {
     const generalWarningTimeout = React.useRef<number | undefined>(undefined);
     const projectAcl = React.useRef<AccessControlConfig | undefined>(undefined);
     const preservedFieldValuesRef = React.useRef<Record<string, unknown> | undefined>(undefined);
+    const artefactFormContext = React.useMemo(() => {
+        if (!isOpen || isProjectImport || !selectedArtefact) {
+            return undefined;
+        }
+        const artefactKind = selectedArtefact.key === DATA_TYPES.PROJECT ? "project" : "task";
+        const targetProjectId = updateExistingTask?.projectId ?? currentProject?.id ?? projectId;
+        const targetProjectLabel = currentProject?.label;
+        const selectedTaskType = updateExistingTask?.taskPluginDetails.taskType ?? selectedArtefact.taskType;
+        return {
+            artefactKind: artefactKind as "project" | "task",
+            kind: "artefactForm" as const,
+            operation: updateExistingTask ? ("update" as const) : ("create" as const),
+            pluginId: selectedArtefact.pluginId ?? selectedArtefact.key,
+            pluginLabel: selectedArtefact.title,
+            ...(targetProjectId ? { projectId: targetProjectId } : {}),
+            ...(targetProjectLabel ? { projectLabel: targetProjectLabel } : {}),
+            ...(updateExistingTask
+                ? {
+                      taskId: updateExistingTask.taskId,
+                      taskLabel: updateExistingTask.metaData.label,
+                  }
+                : {}),
+            ...(selectedTaskType ? { taskType: selectedTaskType } : {}),
+        };
+    }, [currentProject, isOpen, isProjectImport, projectId, selectedArtefact, updateExistingTask]);
+    useForegroundViewContext(artefactFormContext);
 
     const updateProjectAcl = React.useCallback((newProjectAcl: AccessControlConfig) => {
         projectAcl.current = newProjectAcl;

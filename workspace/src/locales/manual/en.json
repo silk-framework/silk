@@ -490,7 +490,12 @@
             "deprecatedPluginBannerDeprecationMessage": "Deprecation Message"
         },
         "sorter": {
-            "recentlyViewed": "Recently viewed"
+            "recentlyViewed": "Recently viewed",
+            "ascending": "ascending",
+            "descending": "descending",
+            "optionsWithState": "Sort options. Currently sorted by {{field}}, {{direction}}.",
+            "currentAndAction": "Current sort: {{direction}}. Activate to sort {{nextDirection}}.",
+            "action": "Activate to sort by {{field}}, {{direction}}."
         },
         "units": {
             "second": "second",
@@ -695,6 +700,17 @@
                 "title": "The change journal"
             },
             "originTooltip": "The client the change came from",
+            "agentSource": "AI-origin change",
+            "conversation": {
+                "badge": "C{{number}}",
+                "unavailableBadge": "?",
+                "untitled": "Untitled conversation",
+                "unavailable": "Conversation unavailable",
+                "label": "Conversation label: {{label}}",
+                "id": "ID: {{id}}",
+                "filter": "Filter by conversation {{label}}",
+                "open": "Open companion conversation"
+            },
             "emptyValue": "empty",
             "emptyValueTooltip": "The value is empty",
             "detailAdded": "added",
@@ -716,6 +732,7 @@
                 "seq": "#",
                 "date": "Date",
                 "user": "User",
+                "source": "Source",
                 "change": "Change"
             },
             "revert": {
@@ -730,16 +747,21 @@
             },
             "markReviewed": {
                 "button": "Mark all as reviewed",
-                "action": "Mark as reviewed up to here",
+                "action": "Mark this and older changes as reviewed",
                 "hidden": "Unreviewed changes hidden by the current search: {{count}}. Clear it to mark changes as reviewed.",
                 "hidden_plural": "Unreviewed changes hidden by the current search: {{count}}. Clear it to mark changes as reviewed.",
                 "title": "Mark changes as reviewed",
+                "affectedCount": "Changes to mark as reviewed: {{count}}.",
+                "affectedCount_plural": "Changes to mark as reviewed: {{count}}.",
+                "nothing": "No unreviewed changes remain in this selection.",
                 "confirmText": "Mark all listed changes as reviewed?",
                 "confirmUpToText": "Mark change #{{seq}} and all older changes as reviewed?"
             },
             "revertAll": {
                 "button": "Revert unreviewed",
                 "title": "Revert unreviewed changes",
+                "affectedCount": "Changes to revert: {{count}}.",
+                "affectedCount_plural": "Changes to revert: {{count}}.",
                 "confirmText": "The following unreviewed changes will be reverted, newest first:",
                 "blocked": "Nothing can be reverted: the newest of these changes cannot be reverted now, and no newer change is left whose revert could clear that. {{reason}}",
                 "nothing": "None of these changes can be reverted.",
@@ -1145,6 +1167,10 @@
         },
         "FacetsList": {
             "facet": {
+                "changeConversation": {
+                    "label": "Conversation",
+                    "description": "The conversation responsible for the change, identified by its ID."
+                },
                 "changeKind": {
                     "description": "What the change did: added, updated, removed or run.",
                     "label": "Kind",
@@ -1370,8 +1396,10 @@
                 "sensitive": "Sensitive",
                 "sensitiveDescription": "The value is not displayed. It can only be used by password parameters, by parameters that allow sensitive variables and by other sensitive variables of the same scope.",
                 "keepSensitiveValue": "Leave empty to keep the current value or template.",
-                "infoBoxTitle": "Project variables",
-                "infoBoxDescription": "User-defined project variables. They can be used in dataset and task parameters and in the template transform operator. Variables may use templates that access other preceding project variables or globally configured variables."
+                "infoBoxDescription": {
+                    "project": "User-defined project variables. They can be used in dataset and task parameters and in the template transform operator. Variables may use templates that access other preceding project variables or globally configured variables.",
+                    "execution": "User-defined variables that are available while this task is executed. They are referenced with the prefix \"execution.\" in parameter templates and in the template operator. The values defined here are defaults: they can be overridden when the execution is started and changed by the \"Set execution variable\" operators during a workflow run. When a workflow is executed, its execution variables apply to all tasks in the workflow, and the execution variables of those tasks are not used. Variables may use templates that access global variables, project variables or preceding execution variables of this task."
+                }
             },
             "dependencyTypes": {
                 "tasks": "Dependent tasks",

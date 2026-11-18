@@ -16,6 +16,7 @@ import {
     WorkspaceSide,
 } from "@eccenca/gui-elements";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import { commonSel } from "@ducks/common";
 import { routerSel } from "@ducks/router";
 import { filtersSlice } from "@ducks/workspace/filtersSlice";
 import { previewSlice } from "@ducks/workspace/previewSlice";
@@ -29,8 +30,17 @@ import NotFound from "../NotFound";
 import MarkdownModal from "../../shared/modals/MarkdownModal";
 import SearchBar from "../../shared/SearchBar";
 import Filterbar from "../Workspace/Filterbar";
+import AppliedFacets from "../Workspace/AppliedFacets";
 import ChangeList from "./ChangeList";
 import { changeJournalHelpMarkdown } from "./changeJournalHelp";
+import {
+    ChangeConversationsProvider,
+    RefreshChangeConversationsContext,
+    RequestChangeConversationsContext,
+} from "./ChangeConversationsContext";
+import { ChangeConversationLabel, CONVERSATION_FACET } from "./ChangeSource";
+import { CONVERSATION_PARAM, HIGHLIGHT_CONVERSATION_PARAM } from "../../../constants/queryParams";
+import { changeSearchMatches } from "./changeSearchQuery";
 
 const PAGE_SIZE = 25;
 
@@ -39,17 +49,40 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
     const [t] = useTranslation();
     const dispatch = useDispatch<AppDispatch>();
     const { registerError } = useErrorHandler();
-    const qs = useSelector(routerSel.routerSearchSelector);
+    const qs = useSelector(routerSel.routerSearchSelector) || "";
+    const highlightConversation = new URLSearchParams(qs).get(HIGHLIGHT_CONVERSATION_PARAM);
     const sorters = useSelector(workspaceSel.sortersSelector);
-    const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
+    const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
+    const { textQuery } = appliedFilters;
+    const appliedFacets = useSelector(workspaceSel.appliedFacetsSelector);
+    const pagination = useSelector(workspaceSel.paginationSelector);
+    const previousSearch = React.useRef(qs);
     const { clearSearchResults, setError } = previewSlice.actions;
     const { globalTableSettings, updateGlobalTableSettings } = React.useContext(GlobalTableContext);
     const tableSettings = globalTableSettings["changes"] ?? {};
     const [notFound, setNotFound] = React.useState(false);
     const [refreshKey, setRefreshKey] = React.useState(0);
+    const refreshConversations = React.useContext(RefreshChangeConversationsContext);
+    const reload = () => {
+        refreshConversations();
+        setRefreshKey((key) => key + 1);
+    };
     const [helpOpen, setHelpOpen] = React.useState(false);
     // The search store is shared with the workspace search and the activities page: the list waits until it is this page's
     const [ready, setReady] = React.useState(false);
+    const requestConversationMetadata = React.useContext(RequestChangeConversationsContext);
+    React.useEffect(() => {
+        if (!ready) return;
+        const linkedId = new URLSearchParams(qs).get(CONVERSATION_PARAM);
+        const filteredIds = appliedFacets
+            .filter((facet) => facet.facetId === CONVERSATION_FACET)
+            .flatMap((facet) => facet.keywordIds);
+        requestConversationMetadata([
+            ...filteredIds,
+            ...(highlightConversation ? [highlightConversation] : []),
+            ...(linkedId ? [linkedId] : []),
+        ]);
+    }, [ready, qs, highlightConversation, appliedFacets, requestConversationMetadata]);
 
     const breadcrumbs = [
         {
@@ -103,17 +136,35 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
             dispatch(clearSearchResults());
             dispatch(setError({}));
             dispatch(workspaceOp.resetFilters());
+            dispatch(filtersSlice.actions.setPreservedQueryKeys([HIGHLIGHT_CONVERSATION_PARAM]));
             dispatch(filtersSlice.actions.updateFacets([]));
             dispatch(filtersSlice.actions.updateSorters([]));
             dispatch(filtersSlice.actions.changePage(1));
-            dispatch(workspaceOp.changeLimitOp(tableSettings.pageSize ?? PAGE_SIZE));
+            dispatch(filtersSlice.actions.changeProjectsLimit(tableSettings.pageSize ?? PAGE_SIZE));
             dispatch(workspaceOp.setupFiltersFromQs(qs));
         });
         setReady(true);
         return () => {
-            dispatch(clearSearchResults());
+            batch(() => {
+                dispatch(clearSearchResults());
+                dispatch(filtersSlice.actions.setPreservedQueryKeys([]));
+            });
         };
     }, [projectId]);
+
+    // Review links and browser navigation can change filters while this page stays mounted.
+    React.useEffect(() => {
+        if (!ready || previousSearch.current === qs) {
+            return;
+        }
+        previousSearch.current = qs;
+        if (!changeSearchMatches(qs, appliedFilters, appliedFacets, pagination.current)) {
+            batch(() => {
+                dispatch(workspaceOp.resetFilters());
+                dispatch(workspaceOp.setupFiltersFromQs(qs));
+            });
+        }
+    }, [qs, ready, appliedFilters, appliedFacets, pagination.current, dispatch]);
 
     // The store's default sorter is the workspace search's recently viewed order, which the journal has not: its one
     // sort property, time, is active from the start, newest first, which is also the server's order without a property
@@ -159,7 +210,7 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
                                                 textQuery={ready ? textQuery : ""}
                                                 sorters={changeSorters}
                                                 onSearch={handleSearch}
-                                                onEnter={() => setRefreshKey((key) => key + 1)}
+                                                onEnter={reload}
                                                 globalTableKey={"changes"}
                                             />
                                         </div>
@@ -167,7 +218,7 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
                                             data-test-id={"changes-reload-btn"}
                                             name="item-reload"
                                             text={t("pages.changes.reload")}
-                                            onClick={() => setRefreshKey((key) => key + 1)}
+                                            onClick={reload}
                                         />
                                         <IconButton
                                             data-test-id={"changes-help-btn"}
@@ -184,9 +235,34 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
                     <Grid>
                         <GridRow>
                             <GridColumn small>
-                                <Filterbar facetsOnly projectId={projectId} />
+                                <Filterbar
+                                    facetsOnly
+                                    projectId={projectId}
+                                    prioritizedFacetValues={
+                                        highlightConversation
+                                            ? { [CONVERSATION_FACET]: highlightConversation }
+                                            : undefined
+                                    }
+                                    renderValueLabel={(facetId, value) =>
+                                        facetId === CONVERSATION_FACET ? (
+                                            <ChangeConversationLabel conversationId={value.id} />
+                                        ) : undefined
+                                    }
+                                />
                             </GridColumn>
                             <GridColumn>
+                                {ready && (
+                                    <AppliedFacets
+                                        renderTag={(facetId, value, onRemove) =>
+                                            facetId === CONVERSATION_FACET ? (
+                                                <ChangeConversationLabel
+                                                    conversationId={value.id}
+                                                    onRemove={onRemove}
+                                                />
+                                            ) : undefined
+                                        }
+                                    />
+                                )}
                                 <ChangeList projectId={projectId} ready={ready} refreshKey={refreshKey} />
                             </GridColumn>
                         </GridRow>
@@ -212,7 +288,12 @@ const ProjectChangesPage = ({ projectId }: { projectId: string }) => {
  */
 const ProjectChanges = () => {
     const { projectId } = useParams<{ projectId: string }>();
-    return <ProjectChangesPage key={projectId} projectId={projectId} />;
+    const { userUri } = useSelector(commonSel.initialSettingsSelector);
+    return (
+        <ChangeConversationsProvider key={`${projectId}:${userUri ?? ""}`}>
+            <ProjectChangesPage projectId={projectId} />
+        </ChangeConversationsProvider>
+    );
 };
 
 export default ProjectChanges;
