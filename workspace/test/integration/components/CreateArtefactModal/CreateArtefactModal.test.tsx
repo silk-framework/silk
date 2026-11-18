@@ -41,6 +41,8 @@ import {
 
 import { bluePrintClassPrefix } from "../../../HierarchicalMapping/utils/TestHelpers";
 
+const mockTextFieldRender = jest.fn<void, [string | undefined]>();
+
 // Forward exports live: circular imports can reach this mock before the library finishes loading.
 jest.mock("@eccenca/gui-elements", () => {
     const React = jest.requireActual<typeof import("react")>("react");
@@ -57,9 +59,15 @@ jest.mock("@eccenca/gui-elements", () => {
         );
     }
     CodeEditor.supportedModes = [];
+    function TextField(props: React.ComponentProps<typeof actual.TextField>) {
+        mockTextFieldRender(props.name);
+        return React.createElement(actual.TextField, props);
+    }
     return new Proxy(actual, {
         get(target, property, receiver) {
-            return property === "CodeEditor" ? CodeEditor : Reflect.get(target, property, receiver);
+            if (property === "CodeEditor") return CodeEditor;
+            if (property === "TextField") return TextField;
+            return Reflect.get(target, property, receiver);
         },
     });
 });
@@ -575,6 +583,24 @@ describe("Task creation widget", () => {
         expect(mockAxios.getReqByUrl(legacyApiUrl(`workspace/projects/${PROJECT_ID}/tasks`))).toBeFalsy();
     });
 
+    it.each(["label", "objectParameter.subStringParam"])(
+        "keeps unrelated inputs out of the render path when editing %s",
+        async (fieldName) => {
+            mockTextFieldRender.mockClear();
+            const { element } = await pluginCreationDialogWrapper();
+            expect(mockTextFieldRender).toHaveBeenCalledWith("stringParam");
+            mockTextFieldRender.mockClear();
+
+            const input = findElement(element, byName(fieldName)) as HTMLInputElement;
+            await act(async () => {
+                changeInputValue(input, "Typed value");
+            });
+
+            expect(input).toHaveValue("Typed value");
+            expect(mockTextFieldRender).not.toHaveBeenCalledWith("stringParam");
+        },
+    );
+
     it.each([true, false])("keeps the latest custom ID validation result (latest ID valid: %s)", async (latestValid) => {
         const { element } = await pluginCreationDialogWrapper();
         const advancedOptions = within(findElement(element, byTestId("advanced-option-accordion")));
@@ -733,7 +759,7 @@ describe("Task creation widget", () => {
         }
     });
 
-    const createDependentParameterWrapper = async () => {
+    const createDependentParameterWrapper = async (password = "old-secret", database = "analytics") => {
         const dependentParameterPluginDescription: IPluginDetails = {
             ...mockPluginDescription,
             required: [],
@@ -741,6 +767,7 @@ describe("Task creation widget", () => {
                 password: atomicParamDescription({
                     title: "password",
                     parameterType: INPUT_TYPES.PASSWORD,
+                    value: null,
                 }),
                 database: atomicParamDescription(
                     {
@@ -762,8 +789,8 @@ describe("Task creation widget", () => {
                 label: "Task label",
             },
             currentParameterValues: {
-                password: value("old-secret"),
-                database: value("analytics"),
+                password: value(password),
+                database: value(database),
             },
             currentTemplateValues: {},
         };
@@ -776,6 +803,24 @@ describe("Task creation widget", () => {
     };
 
     const databaseInput = (element: Element | RenderResult) => findElement(element, "#database") as HTMLInputElement;
+
+    it("updates autocomplete availability when its dependency changes and no value is selected", async () => {
+        const { element } = await createDependentParameterWrapper("", "");
+        const password = findElement(element, "#password") as HTMLInputElement;
+        expect(databaseInput(element)).toBeDisabled();
+
+        await act(async () => {
+            changeInputValue(password, "new-secret");
+        });
+        expect(databaseInput(element)).toBeEnabled();
+        expect(element.querySelector(byTestId("task-form-dependent-values-warning"))).not.toBeInTheDocument();
+
+        await act(async () => {
+            changeInputValue(password, "");
+        });
+        expect(databaseInput(element)).toBeDisabled();
+    });
+
     const databaseInputGroupClassName = (element: Element | RenderResult) =>
         databaseInput(element).closest(`.${bluePrintClassPrefix}-input-group`)?.className ?? "";
 
@@ -1022,8 +1067,29 @@ describe("Task creation widget", () => {
         expect(updateRequest.data.parameters).toEqual(expectedObject);
     });
 
-    const startDatasetAutoConfiguration = async () => {
+    const respondWithProjectMetadata = async (projectId: string) => {
+        const url = apiUrl(`workspace/projects/${projectId}/metaData`);
+        await waitFor(() => checkRequestMade(url));
+        await act(async () => {
+            mockAxiosResponse(url, mockedAxiosResponse({ data: { label: "Current project" } }));
+        });
+    };
+
+    const requestDatasetAutoConfiguration = async (element: HTMLElement, projectId: string) => {
+        clickRenderedElement(findElement(element, byTestId("autoConfigureItem-btn")));
+        const autoConfigureUrl = apiUrl(`workspace/projects/${projectId}/dataset/autoConfigure`);
+        return await waitFor(() => {
+            const request = mockAxios.queue().find(
+                ({ url, method }) => url.trim() === autoConfigureUrl && method.toUpperCase() === "POST",
+            );
+            expect(request?.data).toMatchObject({ parameters: { bParam: "original" } });
+            return request!;
+        });
+    };
+
+    const startDatasetAutoConfiguration = async (loadProjectMetadata = false) => {
         const { element } = await createMockedListWrapper();
+        if (loadProjectMetadata) await respondWithProjectMetadata(PROJECT_ID);
         const plugin = findElement(element, byTestId("artefact-plugin-pluginB"));
         clickRenderedElement(plugin);
         clickRenderedElement(findElement(element, byTestId("item-add-btn")));
@@ -1034,16 +1100,7 @@ describe("Task creation widget", () => {
             changeInputValue(findElement(element, "#bParam") as HTMLInputElement, "original");
         });
 
-        clickRenderedElement(findElement(element, byTestId("autoConfigureItem-btn")));
-        const autoConfigureUrl = apiUrl(`workspace/projects/${PROJECT_ID}/dataset/autoConfigure`);
-        const autoConfigureRequest = await waitFor(() => {
-            const request = mockAxios.queue().find(
-                ({ url, method }) => url.trim() === autoConfigureUrl && method.toUpperCase() === "POST",
-            );
-            expect(request?.data).toMatchObject({ parameters: { bParam: "original" } });
-            return request!;
-        });
-        return { element, autoConfigureRequest };
+        return { element, autoConfigureRequest: await requestDatasetAutoConfiguration(element, PROJECT_ID) };
     };
 
     it("displays and submits a parameter changed by auto-configuration", async () => {
@@ -1060,6 +1117,67 @@ describe("Task creation widget", () => {
         const tasksUri = legacyApiUrl(`workspace/projects/${PROJECT_ID}/tasks`);
         await waitFor(() => checkRequestMade(tasksUri));
         expect(mockAxios.getReqByUrl(tasksUri).data.data.parameters).toEqual({ bParam: "configured" });
+    });
+
+    it.each([PROJECT_ID, "otherRouteProject"])(
+        "keeps update auto-configuration pending while loading project metadata (route project: %s)",
+        async (routeProjectId) => {
+            const plugin = { ...mockPluginBDescription, autoConfigurable: true };
+            const history = createMemoryHistory<{}>();
+            history.push(`${SERVE_PATH}/projects/${routeProjectId}`);
+            const { baseElement: element } = renderWrapper(<CreateArtefactModal />, history, {
+                common: {
+                    initialSettings: { emptyWorkspace: false },
+                    artefactModal: {
+                        isOpen: true,
+                        cachedArtefactProperties: { [plugin.pluginId]: plugin },
+                        updateExistingTask: {
+                            ...existingTask,
+                            taskPluginDetails: plugin,
+                            currentParameterValues: { bParam: { value: "original" } },
+                        },
+                    },
+                },
+            });
+            await waitFor(() => expect(findElement(element, "#bParam")).toHaveValue("original"));
+            const request = await requestDatasetAutoConfiguration(element, PROJECT_ID);
+
+            await respondWithProjectMetadata(routeProjectId);
+            expect(findElement(element, byTestId("autoConfigureItem-btn"))).toBeDisabled();
+
+            await act(async () => {
+                mockAxios.mockResponse(mockedAxiosResponse({ data: { parameters: { bParam: "configured" } } }), request);
+            });
+            expect(findElement(element, "#bParam")).toHaveValue("configured");
+            expect(findElement(element, byTestId("autoConfigureItem-btn"))).toBeEnabled();
+        },
+    );
+
+    it("ignores pending auto-configuration after changing the target project and sends the next request there", async () => {
+        const { element, autoConfigureRequest } = await startDatasetAutoConfiguration(true);
+        const otherProjectId = "otherProject";
+        clickRenderedElement(findElement(element, byTestId("project-selection-btn")));
+        const searchUrl = apiUrl("workspace/searchItems");
+        await waitFor(() => checkRequestMade(searchUrl));
+        await act(async () => {
+            mockAxiosResponse(
+                searchUrl,
+                mockedAxiosResponse({ data: { results: [{ id: otherProjectId, label: "Other project" }] } }),
+            );
+        });
+        const otherProject = await within(element).findByRole("option", { name: "Other project" });
+        clickRenderedElement(within(otherProject).getByText("Other project"));
+        clickRenderedElement(await within(element).findByRole("button", { name: "Change target project" }));
+
+        await act(async () => {
+            changeInputValue(findElement(element, "#bParam") as HTMLInputElement, "original");
+            mockAxios.mockResponse(
+                mockedAxiosResponse({ data: { parameters: { bParam: "stale response" } } }),
+                autoConfigureRequest,
+            );
+        });
+        expect(findElement(element, "#bParam")).toHaveValue("original");
+        await requestDatasetAutoConfiguration(element, otherProjectId);
     });
 
     it("ignores a pending auto-configuration response after opening another plugin", async () => {
