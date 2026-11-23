@@ -312,7 +312,6 @@ it("does not overwrite fresh recent metadata with a superseded fallback", async 
     await act(async () => view.getByRole("button", { name: "Reload" }).click());
     await waitFor(() => expect(view.container).toHaveTextContent("old:1:Fresh"));
     await act(async () => finish({ id: "old", label: "Stale" }));
-    await settle();
     expect(view.container).toHaveTextContent("old:1:Fresh");
     expect(view.container).not.toHaveTextContent("Stale");
 });
@@ -340,7 +339,6 @@ it("clears metadata and stops pending fallbacks when the session is lost", async
     await waitFor(() => expect(view.getByTestId("metadata").textContent).toBe(""));
     expect(pendingSignal.aborted).toBe(true);
     await act(async () => finishPending({ id: "pending", label: "Private fallback" }));
-    await settle();
     expect(view.getByTestId("metadata").textContent).toBe("");
 });
 
@@ -355,7 +353,6 @@ it("keeps accessible metadata when a specific conversation is unavailable", asyn
     const view = render(cachedTree(["missing"]));
     await waitFor(() => expect(mockLoadConversation).toHaveBeenCalledTimes(1));
     await act(async () => finishLookup(null));
-    await settle();
     expect(view.container).toHaveTextContent("recent:1:Accessible");
     expect(view.container).not.toHaveTextContent("missing:");
 });
