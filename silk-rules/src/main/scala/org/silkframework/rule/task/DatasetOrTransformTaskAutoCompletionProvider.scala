@@ -5,6 +5,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{AutoCompletionResult, ParamValue, PluginContext, PluginParameterAutoCompletionProvider}
+import org.silkframework.util.Identifier
 import org.silkframework.workspace.WorkspaceReadTrait
 
 /**
@@ -26,6 +27,13 @@ case class DatasetOrTransformTaskAutoCompletionProvider() extends PluginParamete
       .filter(task => task.data.outputPort.exists(_.schemaOpt.isDefined))
     val all = (allDatasets ++ allTransformTasks ++ allFixedSchemaCustomTasks).map(spec => AutoCompletionResult(spec.id, spec.metaData.label))
     filterResults(searchQuery, all)
+  }
+
+  /** A task is not suggested as its own input. */
+  override def autoCompleteForTask(taskId: Identifier, searchQuery: String, dependOnParameterValues: Seq[ParamValue],
+                                   workspace: WorkspaceReadTrait)
+                                  (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
+    autoComplete(searchQuery, dependOnParameterValues, workspace).filterNot(_.value == taskId.toString)
   }
 
   /**

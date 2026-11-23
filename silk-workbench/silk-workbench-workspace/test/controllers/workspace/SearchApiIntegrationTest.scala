@@ -395,6 +395,16 @@ class SearchApiIntegrationTest extends AnyFlatSpec
         JsArray(Seq("", "top", "top/middle").map(v => Json.obj("value" -> v)))
   }
 
+  it should "not suggest a transform task as its own input" in {
+    def suggestedInputs(taskId: Option[String]): Seq[String] = {
+      val request = ParameterAutoCompletionRequest("datasetSelectionParameter", "inputId", projectId, taskId, limit = Some(100))
+      pluginParameterAutoCompletion(request).as[Seq[JsObject]].map(result => (result \ "value").as[String])
+    }
+    suggestedInputs(None) must contain("transformA")
+    suggestedInputs(Some("transformA")) must not contain "transformA"
+    suggestedInputs(Some("transformA")) must contain("csvA")
+  }
+
   it should "support returning task parameter values when requested" in {
     val resultWithoutParameters = facetedSearchRequest(
       FacetedSearchRequest(textQuery = Some(s"xyz dataset"))
