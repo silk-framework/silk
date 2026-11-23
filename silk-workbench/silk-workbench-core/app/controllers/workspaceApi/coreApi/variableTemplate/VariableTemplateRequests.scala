@@ -66,7 +66,8 @@ case class ValidateVariableTemplateRequest(templateString: String,
     val variables = collectVariables(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false))
     val isWithheldSensitive = withheldSensitiveVariable()
     for(missingVariable <- missingKnownScopedVariable(variables)) {
-      return if (isWithheldSensitive(missingVariable)) invalid(withheldMessage(Seq(missingVariable))) else invalidVariable(missingVariable.scopedName)
+      val message = if (isWithheldSensitive(missingVariable)) withheldMessage(Seq(missingVariable)) else UnboundVariablesException.message(Seq(missingVariable))
+      return invalidVariable(missingVariable, message)
     }
     try {
       // Sensitive variables are included for parameter templates, whose preview must not show their values.
@@ -84,7 +85,8 @@ case class ValidateVariableTemplateRequest(templateString: String,
     } catch {
       case ex: UnboundVariablesException if ex.missingVars.exists(isWithheldSensitive) =>
         val (withheld, otherMissing) = ex.missingVars.partition(isWithheldSensitive)
-        invalid(withheldMessage(withheld, otherMissing))
+        val message = withheldMessage(withheld, otherMissing)
+        if (ex.missingVars.size == 1) invalidVariable(ex.missingVars.head, message) else invalid(message)
       case ex: UnboundVariablesException if variableName.isDefined && ex.missingVars.size == 1 =>
         // Check if the variable is unbound because it is defined after the current one
         Try(collectVariables(ignoreVariableName = true).resolveMaskedTemplateValue(templateString, evaluationConfig)) match {
@@ -94,7 +96,7 @@ case class ValidateVariableTemplateRequest(templateString: String,
             invalid(ex.getMessage)
         }
       case ex: UnboundVariablesException if !evaluationConfig.ignoreUnboundVariables && ex.missingVars.size == 1 =>
-        invalidVariable(ex.missingVars.head.scopedName)
+        invalidVariable(ex.missingVars.head, ex.getMessage)
       case ex: TemplateSyntaxException =>
         // Syntax errors do not depend on the variable values, so they are also reported in lenient mode
         invalid(ex.getMessage)
@@ -116,7 +118,7 @@ case class ValidateVariableTemplateRequest(templateString: String,
     project match {
       case _ if includeSensitiveVariables.getOrElse(false) =>
         _ => false
-      case _ if variableName.isEmpty =>
+      case _ if !isVariableTemplate =>
         collectVariables(includeSensitiveVariables = true).isSensitiveMember
       case Some(projectName) =>
         val scopeVariables = WorkspaceFactory().workspace.project(projectName).variablesManager(task).all
@@ -128,8 +130,11 @@ case class ValidateVariableTemplateRequest(templateString: String,
 
   /** Same rule and message as saving the task or the variable, see PluginDescription and TemplateVariables.resolveTemplate. */
   private def withheldMessage(withheld: Seq[TemplateVariableName], otherMissing: Seq[TemplateVariableName] = Seq.empty): String = {
-    SensitiveVariableReferenceException.message(withheld, otherMissing, inParameter = variableName.isEmpty)
+    SensitiveVariableReferenceException.message(withheld, otherMissing, inParameter = !isVariableTemplate)
   }
+
+  /** The variable editor always tells whether the variable is sensitive, also for a new variable without a name. Otherwise, it is a parameter template. */
+  private def isVariableTemplate: Boolean = variableName.isDefined || variableIsSensitive.isDefined
 
   /** Whether the validated variable is sensitive, by the request flag or as saved under its name. */
   private def isSensitiveVariable()(implicit user: UserContext): Boolean = {
@@ -170,11 +175,12 @@ case class ValidateVariableTemplateRequest(templateString: String,
   }
 
   /** Validation error for a missing variable that underlines its first occurrence instead of the whole template. */
-  private def invalidVariable(scopedName: String): VariableTemplateValidationResponse = {
+  private def invalidVariable(variable: TemplateVariableName, message: String): VariableTemplateValidationResponse = {
+    val scopedName = variable.scopedName
     val start = templateString.indexOf(scopedName)
     val error =
-      if(start != -1) VariableTemplateValidationError(s"'$scopedName' is not defined.", start, start + scopedName.length)
-      else VariableTemplateValidationError(s"'$scopedName' is not defined.", 0, templateString.length)
+      if(start != -1) VariableTemplateValidationError(message, start, start + scopedName.length)
+      else VariableTemplateValidationError(message, 0, templateString.length)
     VariableTemplateValidationResponse(valid = false, parseError = Some(error), evaluatedTemplate = None)
   }
 
