@@ -111,7 +111,7 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
 
   /** True if this set contains a sensitive variable of that name and scope. */
   def isSensitiveMember(name: TemplateVariableName): Boolean = {
-    map.get(name.name).exists(member => member.isSensitive && member.scope == name.scope)
+    variables.exists(member => member.isSensitive && member.name == name.name && member.scope == name.scope)
   }
 
   /**
