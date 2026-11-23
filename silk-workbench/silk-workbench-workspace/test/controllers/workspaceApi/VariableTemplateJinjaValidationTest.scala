@@ -64,6 +64,10 @@ class VariableTemplateJinjaValidationTest extends AnyFlatSpec with Matchers with
     val error = response.parseError.get
     error.start shouldBe template.indexOf("global.unknownVar")
     error.end shouldBe template.indexOf("global.unknownVar") + "global.unknownVar".length
+    // Neither literal text nor a longer variable name is underlined
+    val prefixed = "global.my: {{ global.myVar }} {{ global.my }}"
+    val start = prefixed.lastIndexOf("global.my")
+    validate(prefixed, lenient = true).parseError.map(e => (e.start, e.end)) shouldBe Some((start, start + "global.my".length))
   }
 
   it should "distinguish method calls from property access on existing variables" in {

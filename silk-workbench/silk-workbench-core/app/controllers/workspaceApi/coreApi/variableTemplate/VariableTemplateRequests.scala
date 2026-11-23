@@ -8,6 +8,7 @@ import org.silkframework.util.StringUtils
 import org.silkframework.workspace.WorkspaceFactory
 import play.api.libs.json.{Format, Json}
 
+import java.util.regex.Pattern
 import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
 
@@ -19,7 +20,10 @@ trait VariableTemplateRequest {
 
   def task: Option[String]
 
-  /** Whether the variable being edited is sensitive, as set in the editor. If not given, a saved variable is recognized by its name. */
+  /**
+    * Whether the variable being edited is sensitive, as set in the editor. If not given, a saved variable is recognized by its name.
+    * Sending it also marks the template of a new variable, which has no name yet, as a variable template instead of a parameter template.
+    */
   def variableIsSensitive: Option[Boolean]
 
   /**
@@ -174,14 +178,27 @@ case class ValidateVariableTemplateRequest(templateString: String,
     VariableTemplateValidationResponse(valid = true, parseError = None, evaluatedTemplate = evaluatedTemplate)
   }
 
-  /** Validation error for a missing variable that underlines its first occurrence instead of the whole template. */
+  /**
+    * Validation error for a missing variable that underlines its first reference instead of the whole template.
+    * A reference is inside an expression and not part of a longer name, so literal text and other variables are not underlined.
+    */
   private def invalidVariable(variable: TemplateVariableName, message: String): VariableTemplateValidationResponse = {
     val scopedName = variable.scopedName
-    val start = templateString.indexOf(scopedName)
+    val reference = ("(?<![\\w.])" + Pattern.quote(scopedName) + "(?!\\w)").r
+    val start = reference.findAllMatchIn(templateString).map(_.start).find(insideExpression).getOrElse(-1)
     val error =
       if(start != -1) VariableTemplateValidationError(message, start, start + scopedName.length)
       else VariableTemplateValidationError(message, 0, templateString.length)
     VariableTemplateValidationResponse(valid = false, parseError = Some(error), evaluatedTemplate = None)
+  }
+
+  /**
+    * True if the given position is inside a {{ }} or {% %} block.
+    * Only looks at the closest delimiters, so comments and delimiters nested in an expression are not recognized.
+    */
+  private def insideExpression(position: Int): Boolean = {
+    val before = templateString.substring(0, position)
+    math.max(before.lastIndexOf("{{"), before.lastIndexOf("{%")) > math.max(before.lastIndexOf("}}"), before.lastIndexOf("%}"))
   }
 
   private def invalid(errorMessage: String): VariableTemplateValidationResponse = {

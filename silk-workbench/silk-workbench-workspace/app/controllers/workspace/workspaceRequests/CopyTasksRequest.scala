@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{InvalidPluginParameterValueException, PluginContext}
-import org.silkframework.runtime.templating.exceptions.{TemplateVariableEvaluationException, TemplateVariablesEvaluationException, UnboundVariablesException}
+import org.silkframework.runtime.templating.exceptions.{SensitiveVariableReferenceException, TemplateVariableEvaluationException, TemplateVariablesEvaluationException, UnboundVariablesException}
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariable, TemplateVariableName, TemplateVariables, VariableScope}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Identifier
@@ -188,11 +188,20 @@ object CopyTasksRequest {
       try {
         f
       } catch {
-        case InvalidPluginParameterValueException(_, unboundEx: UnboundVariablesException) =>
-          for(missingVar <- unboundEx.missingVars if missingVar.scope == VariableScope.project) {
+        case InvalidPluginParameterValueException(_, cause) if missingVariables(cause).nonEmpty =>
+          for(missingVar <- missingVariables(cause) if missingVar.scope == VariableScope.project) {
             copyVariable(missingVar.name)
           }
           f
+      }
+    }
+
+    /** The undefined variables a parameter error names, also those named next to a referenced sensitive variable. */
+    private def missingVariables(cause: Throwable): Seq[TemplateVariableName] = {
+      cause match {
+        case ex: UnboundVariablesException => ex.missingVars
+        case ex: SensitiveVariableReferenceException => ex.otherMissingVars
+        case _ => Seq.empty
       }
     }
 

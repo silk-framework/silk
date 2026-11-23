@@ -637,6 +637,16 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     val dangling = the[BadUserInputException] thrownBy
       CopyTasksRequest(dryRun = Some(false), overwriteTasks = Some(true), targetProject = targetName).copyTask(sourceName, danglingTaskName)
     dangling.getMessage shouldBe s"The copied tasks reference the variable 'project.missing', which is not defined in project '$sourceName'."
+
+    // A variable missing next to a sensitive one is copied too, so that the error only names the sensitive one
+    val mixedSourceName = "variables-test-copy-mixed-source"
+    createProjectWithVariablesTask(mixedSourceName, taskName, projectVariables = Seq(projectVariable("a", "A"), projectVariable("secret", "S")),
+      taskParameters = Map("title" -> "{{project.a}}-{{project.secret}}", "year" -> "2002"))
+    val sensitiveTargetName = "variables-test-copy-sensitive-target"
+    WorkspaceFactory().workspace.createProject(ProjectConfig(sensitiveTargetName)).templateVariables.put(TemplateVariables(Seq(projectVariable("secret", "S", isSensitive = true))))
+    val sensitive = the[Exception] thrownBy
+      CopyTasksRequest(dryRun = Some(false), overwriteTasks = Some(true), targetProject = sensitiveTargetName).copyTask(mixedSourceName, taskName)
+    sensitive.getMessage should (include("'project.secret' is sensitive") and not include "not defined")
   }
 
   it should "reject invalid-scope execution variables without persisting them" in {
