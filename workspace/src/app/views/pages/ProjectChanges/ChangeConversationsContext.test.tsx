@@ -197,7 +197,13 @@ it.each(["user", "api", "disabled"])(
         );
         const view = render(tree);
         await waitFor(() => expect(view.container).toHaveTextContent("Private"));
-        mockLoadConversations.mockRejectedValue(new Error("Unavailable"));
+        let rejectLookup!: (error: Error) => void;
+        mockLoadConversations.mockImplementationOnce(
+            () =>
+                new Promise<never>((_, reject) => {
+                    rejectLookup = reject;
+                }),
+        );
         if (change === "user") mockUserUri = "second";
         if (change === "api") mockApiBasePath = "/other/api";
         if (change === "disabled") mockEnabled = false;
@@ -207,6 +213,13 @@ it.each(["user", "api", "disabled"])(
             </ChangeConversationsProvider>,
         );
         await waitFor(() => expect(view.container.textContent).toBe(""));
+        if (change === "disabled") {
+            expect(mockLoadConversations).toHaveBeenCalledTimes(1);
+        } else {
+            await waitFor(() => expect(mockLoadConversations).toHaveBeenCalledTimes(2));
+            await act(async () => rejectLookup(new Error("Unavailable")));
+            expect(view.container.textContent).toBe("");
+        }
     },
 );
 
@@ -279,7 +292,7 @@ it.each(["user", "api", "disabled"])("ignores fallback responses after a %s chan
 });
 
 it("does not overwrite fresh recent metadata with a superseded fallback", async () => {
-    let finish: ((value: { id: string; label: string }) => void) | undefined;
+    let finish!: (value: { id: string; label: string }) => void;
     mockLoadConversations.mockResolvedValueOnce([]);
     mockLoadConversation.mockReturnValueOnce(
         new Promise((resolve) => {
@@ -290,33 +303,49 @@ it("does not overwrite fresh recent metadata with a superseded fallback", async 
     await waitFor(() => expect(mockLoadConversation).toHaveBeenCalledTimes(1));
     mockLoadConversations.mockResolvedValueOnce([{ id: "old", label: "Fresh" }]);
     await act(async () => view.getByRole("button", { name: "Reload" }).click());
-    await act(async () => finish?.({ id: "old", label: "Stale" }));
+    await waitFor(() => expect(view.container).toHaveTextContent("old:1:Fresh"));
+    await act(async () => finish({ id: "old", label: "Stale" }));
     expect(view.container).toHaveTextContent("old:1:Fresh");
     expect(view.container).not.toHaveTextContent("Stale");
 });
 
 it("clears metadata and stops pending fallbacks when the session is lost", async () => {
     mockLoadConversations.mockResolvedValue([{ id: "recent", label: "Private" }]);
-    let finish: ((value: { id: string; label: string }) => void) | undefined;
-    mockLoadConversation.mockImplementation((id: string) =>
-        id === "lost"
-            ? Promise.reject(new ChangeConversationAccessError("Unauthorized"))
-            : new Promise((resolve) => {
-                  finish = resolve;
-              }),
-    );
+    let rejectLost!: (error: ChangeConversationAccessError) => void;
+    const lost = new Promise<never>((_, reject) => {
+        rejectLost = reject;
+    });
+    let finishPending!: (value: { id: string; label: string }) => void;
+    const pending = new Promise((resolve) => {
+        finishPending = resolve;
+    });
+    mockLoadConversation.mockImplementation((id: string) => (id === "lost" ? lost : pending));
     const view = render(cachedTree(["lost", "pending"]));
-    await waitFor(() => expect(mockLoadConversation).toHaveBeenCalledTimes(2));
-    await act(async () => finish?.({ id: "pending", label: "Private fallback" }));
+    await waitFor(() => {
+        expect(mockLoadConversation).toHaveBeenCalledWith("lost", expect.any(AbortSignal), mockApiBasePath);
+        expect(mockLoadConversation).toHaveBeenCalledWith("pending", expect.any(AbortSignal), mockApiBasePath);
+        expect(view.getByTestId("metadata")).toHaveTextContent("recent:1:Private");
+    });
+    const pendingSignal = mockLoadConversation.mock.calls.find(([id]) => id === "pending")![1];
+    expect(pendingSignal.aborted).toBe(false);
+    await act(async () => rejectLost(new ChangeConversationAccessError("Unauthorized")));
+    await waitFor(() => expect(view.getByTestId("metadata").textContent).toBe(""));
+    expect(pendingSignal.aborted).toBe(true);
+    await act(async () => finishPending({ id: "pending", label: "Private fallback" }));
     expect(view.getByTestId("metadata").textContent).toBe("");
-    expect(mockLoadConversation.mock.calls[1][1].aborted).toBe(true);
 });
 
 it("keeps accessible metadata when a specific conversation is unavailable", async () => {
     mockLoadConversations.mockResolvedValue([{ id: "recent", label: "Accessible" }]);
-    mockLoadConversation.mockResolvedValue(null);
+    let finishLookup!: (value: null) => void;
+    mockLoadConversation.mockReturnValueOnce(
+        new Promise<null>((resolve) => {
+            finishLookup = resolve;
+        }),
+    );
     const view = render(cachedTree(["missing"]));
     await waitFor(() => expect(mockLoadConversation).toHaveBeenCalledTimes(1));
+    await act(async () => finishLookup(null));
     expect(view.container).toHaveTextContent("recent:1:Accessible");
     expect(view.container).not.toHaveTextContent("missing:");
 });
