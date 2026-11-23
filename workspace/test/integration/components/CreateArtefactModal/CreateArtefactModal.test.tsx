@@ -628,7 +628,6 @@ describe("Task creation widget", () => {
                 autoCompleteInput.focus();
             });
             changeInputValue(autoCompleteInput as HTMLInputElement, "abc");
-            const beforePortals = window.document.querySelectorAll(`div.${bluePrintClassPrefix}-portal`).length;
             await waitFor(() => {
                 expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(1);
             });
