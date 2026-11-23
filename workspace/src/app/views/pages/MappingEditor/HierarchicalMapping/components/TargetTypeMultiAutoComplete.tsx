@@ -60,7 +60,6 @@ const TargetTypeMultiAutoComplete = ({
                     value: removeExtraSpaces(query),
                 })}
                 requestDelay={200}
-                clearQueryOnSelection={true} // workaround that another Tab does not uncheck matches
             />
         </FieldItem>
     );

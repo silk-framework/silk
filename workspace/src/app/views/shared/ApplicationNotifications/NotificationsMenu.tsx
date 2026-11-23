@@ -103,7 +103,11 @@ export function NotificationsMenu({ autoDisplayNotifications = true, errorNotifi
             {displayNotifications && (
                 <ApplicationToolbarPanel aria-label="Notification menu" expanded={true} style={{ width: "40rem" }}>
                     {notificationQueue.clearAllButton}
-                    {notificationQueue.notifications}
+                    {/* Safari needs the explicit role when list markers are hidden. */}
+                    {/* eslint-disable-next-line jsx-a11y/no-redundant-roles */}
+                    <ul role="list" style={{ listStyle: "none", margin: 0, padding: 0 }}>
+                        {notificationQueue.notifications}
+                    </ul>
                 </ApplicationToolbarPanel>
             )}
         </>
@@ -207,12 +211,12 @@ export function useNotificationsQueue(errorNotificationInstanceId?: string, auto
         </>
     );
 
-    const notifications = messages.map((item, id) => {
+    const notifications = messages.map((item) => {
         return (
-            <div key={"message" + id}>
+            <li key={item.id}>
                 <ApplicationNotification errorItem={item} removeError={removeMessages} />
                 <Spacing size="small" />
-            </div>
+            </li>
         );
     });
 

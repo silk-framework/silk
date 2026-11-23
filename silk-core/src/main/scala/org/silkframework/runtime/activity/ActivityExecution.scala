@@ -11,9 +11,8 @@ import java.time.Instant
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
-import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
+import scala.concurrent.blocking
 import scala.jdk.CollectionConverters._
-import scala.util.Try
 import scala.util.control.NonFatal
 
 private class ActivityExecution[T](activity: Activity[T],
@@ -192,25 +191,12 @@ private class ActivityExecution[T](activity: Activity[T],
     }
   }
 
-  /** Restarts the activity. */
-  override def restart()(implicit userContext: UserContext): Future[Unit] = {
-    import ActivityExecution.activityManagementExecutionContext
-    cancel()
-    Future {
-      Try(waitUntilFinished()) // Ignore if the previous execution failed
-      try {
-        start()
-      } catch {
-        case _: IllegalStateException => // ignore possible race condition that the activity was started since the check
-      }
-    }
-  }
-
   def waitUntilFinished(): Unit = waitUntilFinished(forkJoinRunner)
 
   private def waitUntilFinished(runnerOpt: Option[ForkJoinRunner]): Unit = {
     for (runner <- runnerOpt) {
       try {
+        blockForeignWorkerUntilDone(runner)
         runner.join()
       } catch {
         case NonFatal(ex) =>
@@ -230,6 +216,18 @@ private class ActivityExecution[T](activity: Activity[T],
     }
     for (ex <- status().exception if !activity.wasCancelled()) {
       throw ex
+    }
+  }
+
+  /* A worker of a foreign fork join pool, e.g., an Akka request thread, must not wait in join(): it would run other
+     tasks of its own pool meanwhile, which Akka rejects and drops. It polls until the runner is done instead. */
+  private def blockForeignWorkerUntilDone(runner: ForkJoinRunner): Unit = {
+    if (Thread.currentThread.isInstanceOf[ForkJoinWorkerThread] && !runningInOwnPool()) {
+      blocking {
+        while (!runner.isDone) {
+          Thread.sleep(ActivityExecution.FOREIGN_WORKER_POLL_INTERVAL_MS)
+        }
+      }
     }
   }
 
@@ -274,8 +272,12 @@ private class ActivityExecution[T](activity: Activity[T],
         startTimestamp = Some(Instant.now)
         // Skip the body if cancelled before this run started (even if the cancellation's side effects are still
         // being delivered and the cancel flag is not set yet), but still finish via finishOrRequestReRun().
-        if (cancelTimestamp.isEmpty && !activity.wasCancelled() && !parent.exists(_.status().isInstanceOf[Canceling])) {
-          activity.run(this)
+        if (cancelTimestamp.isEmpty && !activity.wasCancelled()) {
+          if (parent.exists(_.status().isInstanceOf[Canceling])) {
+            recordParentCancellation()
+          } else {
+            activity.run(this)
+          }
         }
         finishOrRequestReRun()
       } catch {
@@ -283,6 +285,15 @@ private class ActivityExecution[T](activity: Activity[T],
           reRunAfterFailure(ex, runner, isInitialRun)
       }
       isInitialRun = false
+    }
+  }
+
+  /* Records the parent's cancellation on this run, whose body is skipped because the parent is being cancelled. The
+     parent's cancel() may reach this child only after the run has finished, or not at all if it was started later. */
+  private def recordParentCancellation(): Unit = StatusLock.synchronized {
+    if (cancelTimestamp.isEmpty) {
+      cancelledByUser = parent.collect { case p: ActivityExecution[_] => p.cancelledByUser }.getOrElse(UserContext.Empty)
+      cancelTimestamp = Some(Instant.now)
     }
   }
 
@@ -468,19 +479,8 @@ private class ActivityExecution[T](activity: Activity[T],
 }
 
 object ActivityExecution {
-  // The number of threads that always exist
-  private final val CORE_POOL_SIZE = 2
-  // The max. number of threads in the pool
-  private final val MAX_POOL_SIZE = 32
-  // How long are extra threads kept alive, 1 second
-  private final val KEEP_ALIVE_MS = 1000L
-  // Thread pool used for managing activities asynchronously, e.g. restart.
-  implicit val activityManagementExecutionContext: ExecutionContextExecutor = ExecutionContext.fromExecutor(Execution.createFixedThreadPool(
-    "activity-management-thread",
-    CORE_POOL_SIZE,
-    maxPoolSize = Some(MAX_POOL_SIZE),
-    keepAliveInMs = KEEP_ALIVE_MS
-  ))
+  // Interval at which a worker of a foreign fork join pool re-checks whether the activity it waits for is done
+  private final val FOREIGN_WORKER_POLL_INTERVAL_MS = 10L
 
   /**
     * The size of the fork join thread pool

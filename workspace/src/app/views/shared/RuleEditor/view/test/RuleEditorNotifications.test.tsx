@@ -1,6 +1,7 @@
 import React from "react";
 import "@testing-library/jest-dom";
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
+import { RuleEditorNotifications } from "../RuleEditorNotifications";
 
 const mockUseNotificationsQueue = jest.fn((_instanceId?: string) => ({
     messages: [],
@@ -25,8 +26,6 @@ jest.mock("@eccenca/gui-elements", () => {
 jest.mock("../../../ApplicationNotifications/NotificationsMenu", () => ({
     useNotificationsQueue: (instanceId: string) => mockUseNotificationsQueue(instanceId),
 }));
-
-import { RuleEditorNotifications } from "../RuleEditorNotifications";
 
 describe("RuleEditorNotifications", () => {
     beforeEach(() => {
@@ -80,5 +79,6 @@ describe("RuleEditorNotifications", () => {
 
         expect(screen.getByTestId("context-overlay")).toBeInTheDocument();
         expect(screen.getAllByTestId("notification")).toHaveLength(2);
+        expect(within(screen.getByRole("list")).getAllByRole("listitem")).toHaveLength(2);
     });
 });

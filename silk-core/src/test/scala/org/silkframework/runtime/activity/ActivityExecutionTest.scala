@@ -5,7 +5,7 @@ import org.scalatest.time.{Seconds, Span}
 import org.silkframework.runtime.activity.Status.{Canceling, Finished, Running, Waiting}
 import org.silkframework.runtime.users.{User, UserActions}
 
-import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.{ConcurrentLinkedQueue, CountDownLatch, TimeUnit}
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -653,6 +653,65 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
       status mustBe a[Finished]
       status.asInstanceOf[Finished].success mustBe true
     }
+  }
+
+  it should "restart an activity while the restarts of other activities wait for their slow cancellations" in {
+    // Two runs that ignore their cancellation until released
+    val slowCounters = Seq.fill(2)(new AtomicInteger(0))
+    val slowActivities = slowCounters.map(new StubbornGatedActivity(_))
+    val slowControls = slowActivities.map(Activity(_))
+    try {
+      slowControls.foreach(_.start())
+      eventually { slowCounters.foreach(_.get() mustBe 1) } // the run bodies have started
+      slowControls.foreach(_.restart())
+      // An unrelated activity must still be restarted
+      val counter = new AtomicInteger(0)
+      val gated = new GatedActivity(counter)
+      gated.released = true
+      val activity = Activity(gated)
+      activity.startBlocking()
+      activity.restart()
+      eventually { counter.get() mustBe 2 }
+    } finally {
+      slowActivities.foreach(_.released = true)
+      slowControls.foreach(_.waitUntilFinished())
+    }
+    // The restarted activities run again once their cancelled runs have ended
+    slowCounters.map(_.get()) mustBe Seq(2, 2)
+  }
+
+  it should "record the parent's cancellation on a child that starts before the parent's cancel() reaches it" in {
+    val parentCanceling = new CountDownLatch(1)
+    val childFinished = new CountDownLatch(1)
+    @volatile var child: Option[ActivityControl[Unit]] = None
+    val activity = Activity(new Activity[Unit] {
+      override def run(context: ActivityContext[Unit])(implicit userContext: UserContext): Unit = {
+        parentCanceling.await(30, TimeUnit.SECONDS) mustBe true
+        val control = context.child(new Activity[Unit] {
+          override def run(childContext: ActivityContext[Unit])(implicit userContext: UserContext): Unit = {}
+        }, 1.0)
+        try control.startBlocking() finally {
+          child = Some(control)
+          childFinished.countDown()
+        }
+      }
+    })
+    // Holds cancel() between the parent's Canceling transition and the cancellation of its children.
+    val observer: Status => Unit = {
+      case _: Canceling =>
+        parentCanceling.countDown()
+        childFinished.await(30, TimeUnit.SECONDS) mustBe true
+      case _ =>
+    }
+    activity.status.subscribe(observer)
+    activity.start()
+    eventually { activity.status() mustBe a[Running] }
+    activity.cancel()(userContextFor("urn:user:user2"))
+    child mustBe defined
+    val childMetaData = child.get.lastResult.get.metaData
+    childMetaData.cancelledBy.map(_.uri) mustBe Some("urn:user:user2")
+    childMetaData.cancelledAt mustBe defined
+    childMetaData.finishStatus.get.asInstanceOf[Finished].cancelled mustBe true
   }
 
   private def userContextFor(userUri: String): UserContext = new UserContext {

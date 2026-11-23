@@ -490,7 +490,12 @@
             "deprecatedPluginBannerDeprecationMessage": "Deprecation Message"
         },
         "sorter": {
-            "recentlyViewed": "Recently viewed"
+            "recentlyViewed": "Recently viewed",
+            "ascending": "ascending",
+            "descending": "descending",
+            "optionsWithState": "Sort options. Currently sorted by {{field}}, {{direction}}.",
+            "currentAndAction": "Current sort: {{direction}}. Activate to sort {{nextDirection}}.",
+            "action": "Activate to sort by {{field}}, {{direction}}."
         },
         "units": {
             "second": "second",
@@ -1659,6 +1664,10 @@
         "passwordCleared": "Password was removed because it would be visible in clear text"
     },
     "PathInputOperator": {
+        "filterByLanguage": "Filter by language",
+        "filterByLanguageNoFilter": "Filter by language, no filter.",
+        "selectedLanguageFilter": "Filter by language, {{language}} selected",
+        "searchLanguages": "Search languages",
         "languageButtonTooltip": "Set a language filter. Only values for the chosen language will be fetched.",
         "noFilter": "No language filter"
     },
