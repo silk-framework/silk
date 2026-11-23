@@ -1,7 +1,10 @@
+import { selectOptionProps } from "../../../../../../../utils/selectOptionProps";
 import React, { useContext, useEffect, useState } from "react";
 import {
     MenuItem,
+    FieldItem,
     Select,
+    SelectProps,
     Button,
     Highlighter,
     OverflowText,
@@ -15,10 +18,11 @@ import { SuggestionListContext } from "../SuggestionContainer";
 
 interface IProps {
     targets: ITargetWithSelected[];
+    elementLabel: string;
 
     onChange(uri: ITargetWithSelected);
 }
-export default function TargetList({ targets, onChange }: IProps) {
+export default function TargetList({ targets, onChange, elementLabel }: IProps) {
     const context = useContext(SuggestionListContext);
 
     const [items, setItems] = useState<ITargetWithSelected[]>(targets);
@@ -67,6 +71,11 @@ export default function TargetList({ targets, onChange }: IProps) {
     }, [inputQuery]);
 
     const suggestVocabularyProperties = context.isFromDataset;
+    const selectionLabel = context.isFromDataset
+        ? `Target property for ${elementLabel}`
+        : `Source path for ${elementLabel}`;
+    const searchLabel = context.isFromDataset ? "Search target properties" : "Search source paths";
+    const selectedValueLabel = `${selectionLabel}, ${selected.label || selected.uri} selected`;
 
     const areTargetsEqual = (targetA: ITargetWithSelected, targetB: ITargetWithSelected) => {
         // Compare only the titles (ignoring case) just for simplicity.
@@ -105,10 +114,13 @@ export default function TargetList({ targets, onChange }: IProps) {
         </OverviewItem>
     );
 
-    const itemRenderer = (target: ITargetWithSelected, { handleClick }) => {
+    const itemRenderer: SelectProps<ITargetWithSelected>["itemRenderer"] = (
+        target: ITargetWithSelected,
+        { handleClick, ...optionState },
+    ) => {
         return (
             <MenuItem
-                roleStructure="listoption"
+                {...selectOptionProps(optionState)}
                 text={
                     <div style={{ minWidth: "100%", width: "40rem", maxWidth: "90vw" }}>
                         {itemLabel(target, inputQuery)}
@@ -116,7 +128,6 @@ export default function TargetList({ targets, onChange }: IProps) {
                 }
                 key={target.uri}
                 onClick={handleClick}
-                active={target.uri === selected.uri}
             />
         );
     };
@@ -130,32 +141,40 @@ export default function TargetList({ targets, onChange }: IProps) {
     };
 
     return (
-        <Select<ITargetWithSelected>
-            className={"ecc-silk-mapping__suggestionlist__target-select"}
-            filterable={suggestVocabularyProperties || targets.length > 1}
-            onItemSelect={handleSelectTarget}
-            items={items}
-            itemRenderer={itemRenderer}
-            itemsEqual={areTargetsEqual}
-            resetOnSelect={true}
-            resetOnClose={true}
-            inputProps={{
-                placeholder: context.isFromDataset
-                    ? "Enter text to search in all target properties..."
-                    : "Filter candidates...",
-                className: "ecc-silk-mapping__suggestionlist__target-property-search",
-                fill: true,
+        <FieldItem
+            labelProps={{
+                text: selectedValueLabel,
+                hidden: true,
             }}
-            contextOverlayProps={{
-                popoverClassName: "ecc-silk-mapping__suggestionlist__target-dropdown",
-                portalContainer: context.portalContainer,
-                matchTargetWidth: false,
-            }}
-            onQueryChange={handleQueryChange}
-            query={inputQuery}
-            fill
         >
-            <Button fill outlined rightIcon="toggler-caretdown" text={itemLabel(selected, context.search)} />
-        </Select>
+            <Select<ITargetWithSelected>
+                className={"ecc-silk-mapping__suggestionlist__target-select"}
+                filterable={suggestVocabularyProperties || targets.length > 1}
+                onItemSelect={handleSelectTarget}
+                items={items}
+                itemRenderer={itemRenderer}
+                itemsEqual={areTargetsEqual}
+                resetOnSelect={true}
+                resetOnClose={true}
+                inputProps={{
+                    "aria-label": searchLabel,
+                    placeholder: context.isFromDataset
+                        ? "Enter text to search in all target properties..."
+                        : "Filter candidates...",
+                    className: "ecc-silk-mapping__suggestionlist__target-property-search",
+                    fill: true,
+                }}
+                contextOverlayProps={{
+                    popoverClassName: "ecc-silk-mapping__suggestionlist__target-dropdown",
+                    portalContainer: context.portalContainer,
+                    matchTargetWidth: false,
+                }}
+                onQueryChange={handleQueryChange}
+                query={inputQuery}
+                fill
+            >
+                <Button fill outlined rightIcon="toggler-caretdown" text={itemLabel(selected, context.search)} />
+            </Select>
+        </FieldItem>
     );
 }

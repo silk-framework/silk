@@ -1664,6 +1664,10 @@
         "passwordCleared": "Password was removed because it would be visible in clear text"
     },
     "PathInputOperator": {
+        "filterByLanguage": "Filter by language",
+        "filterByLanguageNoFilter": "Filter by language, no filter.",
+        "selectedLanguageFilter": "Filter by language, {{language}} selected",
+        "searchLanguages": "Search languages",
         "languageButtonTooltip": "Set a language filter. Only values for the chosen language will be fetched.",
         "noFilter": "No language filter"
     },
