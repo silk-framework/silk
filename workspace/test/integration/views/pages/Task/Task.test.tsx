@@ -21,7 +21,7 @@ import {
     requestArtefactPropertiesTestResponse,
     requestTaskDataTestResponse,
 } from "../../../requests/sharedResponseStubs";
-import { RenderResult, waitFor } from "@testing-library/react";
+import { fireEvent, RenderResult, screen, waitFor } from "@testing-library/react";
 import { IArtefactItemProperty } from "../../../../../src/app/store/ducks/common/typings";
 import { IMetadata } from "@ducks/shared/typings";
 
@@ -139,6 +139,18 @@ describe("Task page", () => {
         expect(propertyValues).toStrictEqual(
             params.map(([pluginId, pluginLabel, value, label]) => (label ? label : value)),
         );
+    });
+
+    it("names the metadata description editor", async () => {
+        const wrapper = renderTaskPage();
+        mockAxios.mockResponseFor(
+            taskMetaDataExpandedURL,
+            mockedAxiosResponse({ data: { label: taskLabel, description: taskDescription, tags: [] } }),
+        );
+        fireEvent.click(await waitFor(() => findElement(wrapper, byTestId("meta-data-edit-btn"))));
+        const description = await screen.findByRole("textbox", { name: "Description" });
+        expect(description).toHaveAccessibleDescription(/Learn more about Markdown formatting/);
+        expect(description).toHaveAccessibleDescription(/Press Escape then Tab to leave the editor/);
     });
 
     it("should display meta data of the task", async () => {

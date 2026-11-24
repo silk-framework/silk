@@ -263,6 +263,7 @@ export function Metadata(props: IProps) {
         return (now - then) / 1000 / 60 / 60 / 24;
     };
 
+    const descriptionLabel = t("form.field.description");
     const widgetContent = (
         <CardContent data-test-id={"metaDataWidget"}>
             {loading && <Loading description={t("Metadata.loading", "Loading summary data.")} />}
@@ -296,11 +297,10 @@ export function Metadata(props: IProps) {
                         </PropertyValue>
                     </PropertyValuePair>
                     <PropertyValuePair hasSpacing key="description">
-                        <PropertyName>
-                            <Label text={t("form.field.description", "Description")} htmlFor="description" />
-                        </PropertyName>
+                        <PropertyName>{descriptionLabel}</PropertyName>
                         <PropertyValue>
                             <FieldItem
+                                labelProps={{ text: descriptionLabel, hidden: true }}
                                 helperText={
                                     <p>
                                         {t("Metadata.markdownHelperText")}{" "}
@@ -353,7 +353,7 @@ export function Metadata(props: IProps) {
                     )}
                     {!!description && (
                         <PropertyValuePair hasSpacing hasDivider>
-                            <PropertyName>{t("form.field.description", "Description")}</PropertyName>
+                            <PropertyName>{descriptionLabel}</PropertyName>
                             <PropertyValue>
                                 <StringPreviewContentBlobToggler
                                     className="di__dataset__metadata-description"
