@@ -29,6 +29,8 @@ export interface ParameterAutoCompletionProps {
     /** Unique ID/name of the parameter in the form. */
     formParamId: string;
     projectId: string;
+    /** ID of the task the parameter belongs to, if the task exists already. */
+    taskId?: string;
     /** ID of this plugin. */
     pluginId: string;
     /** The auto-completion config. */
@@ -82,6 +84,7 @@ export const ParameterAutoCompletion = ({
     paramId,
     formParamId,
     projectId,
+    taskId,
     intent,
     pluginId,
     autoCompletion,
@@ -156,6 +159,7 @@ export const ParameterAutoCompletion = ({
                     pluginId: pluginId,
                     parameterId: paramId,
                     projectId,
+                    taskId,
                     dependsOnParameterValues: selectDependentValues(autoCompletion),
                     textQuery: input,
                     limit: limit,

@@ -1,3 +1,4 @@
+import { selectOptionProps } from "../../../../../../utils/selectOptionProps";
 import { LinkTypeMapping, ReferenceLinkType } from "../typings";
 import React, { useState } from "react";
 import {
@@ -19,6 +20,8 @@ interface Props {
     linkingTaskId: string;
     onClose: (needsRefresh: boolean) => any;
 }
+
+const LINK_TYPES: ReferenceLinkType[] = ["positive", "negative"];
 
 /** Modal to add a new reference link manually. */
 export const AddReferenceLinkModal = ({ projectId, linkingTaskId, onClose }: Props) => {
@@ -110,30 +113,26 @@ export const AddReferenceLinkModal = ({ projectId, linkingTaskId, onClose }: Pro
                     text: t("ReferenceLinks.type"),
                 }}
             >
-                <Select
-                    items={["positive", "negative"].map((type) => ({ label: type }))}
-                    onItemSelect={() => {}}
-                    itemRenderer={(item, props) => {
+                <Select<ReferenceLinkType>
+                    items={LINK_TYPES}
+                    onItemSelect={setNewLinkType}
+                    itemRenderer={(item, { handleClick, ...optionState }) => {
                         return (
                             <MenuItem
-                                roleStructure="listoption"
-                                data-test-id={`add-reference-${item.label}`}
-                                text={t(`ReferenceLinks.${LinkTypeMapping[item.label]}`, LinkTypeMapping[item.label])}
-                                onClick={() => setNewLinkType(item.label as ReferenceLinkType)}
+                                {...selectOptionProps(optionState)}
+                                key={item}
+                                data-test-id={`add-reference-${item}`}
+                                text={t(`ReferenceLinks.${LinkTypeMapping[item]}`)}
+                                onClick={handleClick}
                             />
                         );
                     }}
                     filterable={false}
-                >
-                    <Button
-                        alignText="left"
-                        text={t(`ReferenceLinks.${LinkTypeMapping[newLinkType]}`, LinkTypeMapping[newLinkType])}
-                        fill
-                        outlined
-                        rightIcon="toggler-showmore"
-                        data-test-id="reference-links-types-select"
-                    />
-                </Select>
+                    text={t(`ReferenceLinks.${LinkTypeMapping[newLinkType]}`)}
+                    fill
+                    rightIcon="toggler-showmore"
+                    data-test-id="reference-links-types-select"
+                />
             </FieldItem>
         </SimpleDialog>
     );

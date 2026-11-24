@@ -677,6 +677,7 @@ export function TaskForm({
                     <ParameterWidget
                         key={key}
                         projectId={projectId}
+                        taskId={taskId}
                         pluginId={artefact.pluginId}
                         formParamId={key}
                         required={requiredRootParameters.includes(key)}
@@ -734,6 +735,7 @@ export function TaskForm({
                         <ParameterWidget
                             key={key}
                             projectId={projectId}
+                            taskId={taskId}
                             pluginId={artefact.pluginId}
                             formParamId={key}
                             required={requiredRootParameters.includes(key)}
