@@ -3,7 +3,7 @@ package org.silkframework.runtime.plugin
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.runtime.plugin.StringParameterType.PasswordParameterType
-import org.silkframework.runtime.templating.exceptions.{TemplateSyntaxException, UnboundVariablesException}
+import org.silkframework.runtime.templating.exceptions.{SensitiveVariableReferenceException, TemplateSyntaxException, UnboundVariablesException}
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.Identifier
 
@@ -173,17 +173,16 @@ trait PluginDescription[+T] {
       case template: ParameterTemplateValue =>
         // Password parameters and parameters that declare it are allowed to resolve sensitive variables
         val resolvesSensitiveVariables = stringParam.name == PasswordParameterType.name || parameter.allowSensitiveVariables
-        val templateVariables =
-          if(resolvesSensitiveVariables) {
-            context.templateVariables.all
-          } else {
-            context.templateVariables.all.withoutSensitiveVariables()
-          }
+        val allVariables = context.templateVariables.all
         // Evaluate template
         val evaluatedValue =
           try {
-            template.evaluate(templateVariables)
+            template.evaluate(if(resolvesSensitiveVariables) allVariables else allVariables.withoutSensitiveVariables())
           } catch {
+            case ex: UnboundVariablesException if ex.missingVars.exists(allVariables.isSensitiveMember) =>
+              // Only withheld variables can be missing although they are defined
+              val (sensitive, otherMissing) = ex.missingVars.partition(allVariables.isSensitiveMember)
+              throw new SensitiveVariableReferenceException(sensitive, otherMissing, inParameter = true)
             case ex @ (_: TemplateSyntaxException | _: UnboundVariablesException) =>
               throw ex
             case NonFatal(_) if resolvesSensitiveVariables =>

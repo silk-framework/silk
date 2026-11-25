@@ -457,15 +457,19 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     val validation = validateTemplate(ValidateVariableTemplateRequest(derived.template.get, Some(projectName), variableName = Some(derived.name)))
     validation.valid shouldBe false
     validation.parseError.map(_.message) shouldBe Some(sensitivityMessage)
+    // Also for a new variable, which has no name yet
+    val newValidation = validateTemplate(ValidateVariableTemplateRequest(derived.template.get, Some(projectName), variableIsSensitive = Some(false)))
+    newValidation.parseError.map(_.message) shouldBe Some(sensitivityMessage)
     // Also for several withheld variables; a truly undefined one is reported along instead of hiding them
     putVariable(projectName, projectVariable("user", "u", isSensitive = true))
     val validation2 = validateTemplate(ValidateVariableTemplateRequest("{{project.user}}:{{project.password}}@{{project.host}}", Some(projectName), variableName = Some(derived.name)))
     validation2.parseError.map(_.message) shouldBe
       Some("The following variables are sensitive and can only be referenced from a sensitive variable: 'project.user', 'project.password'. 'project.host' is not defined.")
-    // A parameter template (no variable name) follows the password-parameter rule instead: the withheld variable is not defined, in both modes
+    // A parameter template follows the password-parameter rule instead and names it, in both modes, underlining the variable
     for (lenient <- Seq(None, Some(true))) {
-      val parameterValidation = validateTemplate(ValidateVariableTemplateRequest("{{project.password}}", Some(projectName), ignoreUnboundVariables = lenient))
-      parameterValidation.parseError.map(_.message) shouldBe Some("'project.password' is not defined.")
+      val parameterValidation = validateTemplate(ValidateVariableTemplateRequest("key={{project.password}}", Some(projectName), ignoreUnboundVariables = lenient))
+      parameterValidation.parseError.map(e => (e.message, e.start, e.end)) shouldBe
+        Some(("'project.password' is sensitive and can only be used in password parameters and in parameters that allow sensitive variables.", 6, 22))
     }
     // A sensitive variable may reference its sensitive siblings, so its live validation and completion see them like the save does,
     // and its preview is masked
@@ -633,6 +637,16 @@ class VariableTemplateApiTest extends AnyFlatSpec with IntegrationTestTrait with
     val dangling = the[BadUserInputException] thrownBy
       CopyTasksRequest(dryRun = Some(false), overwriteTasks = Some(true), targetProject = targetName).copyTask(sourceName, danglingTaskName)
     dangling.getMessage shouldBe s"The copied tasks reference the variable 'project.missing', which is not defined in project '$sourceName'."
+
+    // A variable missing next to a sensitive one is copied too, so that the error only names the sensitive one
+    val mixedSourceName = "variables-test-copy-mixed-source"
+    createProjectWithVariablesTask(mixedSourceName, taskName, projectVariables = Seq(projectVariable("a", "A"), projectVariable("secret", "S")),
+      taskParameters = Map("title" -> "{{project.a}}-{{project.secret}}", "year" -> "2002"))
+    val sensitiveTargetName = "variables-test-copy-sensitive-target"
+    WorkspaceFactory().workspace.createProject(ProjectConfig(sensitiveTargetName)).templateVariables.put(TemplateVariables(Seq(projectVariable("secret", "S", isSensitive = true))))
+    val sensitive = the[Exception] thrownBy
+      CopyTasksRequest(dryRun = Some(false), overwriteTasks = Some(true), targetProject = sensitiveTargetName).copyTask(mixedSourceName, taskName)
+    sensitive.getMessage should (include("'project.secret' is sensitive") and not include "not defined")
   }
 
   it should "reject invalid-scope execution variables without persisting them" in {
