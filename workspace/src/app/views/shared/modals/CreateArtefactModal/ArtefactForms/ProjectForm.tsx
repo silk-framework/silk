@@ -3,14 +3,13 @@ import { CodeEditor, FieldItem, TextField, MultiSuggestFieldSelectionProps } fro
 import { errorMessage } from "./ParameterWidget";
 import { useTranslation } from "react-i18next";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
-import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentifierInput";
-import useErrorHandler from "../../../../../hooks/useErrorHandler";
+import CustomIdentifierInput from "./CustomIdentifierInput";
 import { Keyword } from "@ducks/workspace/typings";
 import { MultiTagSelect } from "../../../MultiTagSelect";
 import useHotKey from "../../../HotKeyHandler/HotKeyHandler";
 import { AccessControlConfig } from "@ducks/workspace/requests";
 import { useProjectAclManagementComponent } from "../../../../../hooks/useProjectAclManagementComponent";
-import type { UseFormReturn } from "react-hook-form/dist/types";
+import { useFormState, type Control, type FieldValues, type UseFormReturn } from "react-hook-form";
 
 interface IProps {
     form: UseFormReturn;
@@ -25,16 +24,43 @@ const DESCRIPTION = "description";
 const IDENTIFIER = "id";
 const TAGS = "tags";
 
+function ProjectTitleField({
+    control,
+    onChange,
+}: {
+    control: Control<FieldValues>;
+    onChange: React.ChangeEventHandler<HTMLInputElement>;
+}) {
+    const [t] = useTranslation();
+    const { errors } = useFormState({ control, name: LABEL, exact: true });
+    const title = t("form.projectForm.title");
+    return (
+        <FieldItem
+            labelProps={{
+                text: title,
+                info: t("common.words.required"),
+                htmlFor: LABEL,
+            }}
+            intent={errors.label ? "danger" : undefined}
+            messageText={errorMessage(title, errors.label)}
+        >
+            <TextField
+                id={LABEL}
+                placeholder={t("form.projectForm.projectTitle")}
+                name={LABEL}
+                autoFocus
+                intent={errors.label ? "danger" : undefined}
+                onChange={onChange}
+                escapeToBlur
+            />
+        </FieldItem>
+    );
+}
+
 /** The project create form */
 export function ProjectForm({ form, goBackOnEscape = () => {}, updateProjectAcl }: IProps) {
-    const {
-        register,
-        formState: { errors },
-        trigger,
-        setValue,
-    } = form;
+    const { register, trigger, setValue } = form;
     const [t] = useTranslation();
-    const { registerError } = useErrorHandler();
     const escapeKeyDisabled = React.useRef(false);
     const aclManagement = useProjectAclManagementComponent({
         onChange: updateProjectAcl,
@@ -67,8 +93,6 @@ export function ProjectForm({ form, goBackOnEscape = () => {}, updateProjectAcl 
             const value = e.target ? e.target.value : e;
             setValue(key, value);
             await trigger(key);
-            //verify project identifier
-            if (key === IDENTIFIER) handleCustomIdValidation(t, form, registerError, value);
             if (!escapeKeyDisabled.current) {
                 escapeKeyDisabled.current = true;
             }
@@ -105,26 +129,7 @@ export function ProjectForm({ form, goBackOnEscape = () => {}, updateProjectAcl 
 
     return (
         <>
-            <FieldItem
-                key={LABEL}
-                labelProps={{
-                    text: t("form.projectForm.title", "Title"),
-                    info: t("common.words.required"),
-                    htmlFor: "title-input",
-                }}
-                intent={errorMessage("Title", errors.label) ? "danger" : undefined}
-                messageText={errorMessage("Title", errors.label)}
-            >
-                <TextField
-                    id={LABEL}
-                    placeholder={t("form.projectForm.projectTitle", "Project title")}
-                    name={LABEL}
-                    autoFocus={true}
-                    intent={errors.label ? "danger" : undefined}
-                    onChange={onValueChange(LABEL)}
-                    escapeToBlur={true}
-                />
-            </FieldItem>
+            <ProjectTitleField control={form.control} onChange={onValueChange(LABEL)} />
             <FieldItem
                 labelProps={{
                     text: t("form.field.description"),

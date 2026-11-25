@@ -21,6 +21,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.MetaDataSerializers.FullTag
+import org.silkframework.util.Identifier
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, InjectedController, Result}
@@ -186,6 +187,8 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
         of parameters are returned in the plugin parameter description.
         The 'textQuery' parameter is a conjunctive multi word query matching against the possible results.
         The 'offset' and 'limit' parameters allow for paging through the result list.
+        The optional 'taskId' is the ID of the task the parameter belongs to, if the task exists already. With it,
+        the input of a transform task does not suggest the task itself.
         """,
     required = true,
     content = Array(
@@ -245,6 +248,7 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
                                                                       dependOnParameterValues,
                                                                       limit = request.workingLimit,
                                                                       offset = request.workingOffset,
+                                                                      taskId = request.taskId.map(Identifier(_)),
                                                                       workspace = workspace)
       Ok(Json.toJson(result.map(_.withNonEmptyLabels).toSeq))
     } catch {

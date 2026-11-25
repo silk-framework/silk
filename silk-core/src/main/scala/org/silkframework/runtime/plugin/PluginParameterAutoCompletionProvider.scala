@@ -42,14 +42,37 @@ trait PluginParameterAutoCompletionProvider extends AnyPlugin {
     StringUtils.extractSearchTerms(term)
   }
 
-  /** Auto-completion based on a text query with limit and offset. */
+  /**
+    * Auto-completion for a parameter of a task that exists already.
+    * Providers that suggest tasks override this in order to leave out the task itself.
+    *
+    * @param taskId The task the parameter belongs to.
+    */
+  def autoCompleteForTask(taskId: Identifier,
+                          searchQuery: String,
+                          dependOnParameterValues: Seq[ParamValue],
+                          workspace: WorkspaceReadTrait)
+                         (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
+    autoComplete(searchQuery, dependOnParameterValues, workspace)
+  }
+
+  /**
+    * Auto-completion based on a text query with limit and offset.
+    *
+    * @param taskId The task the parameter belongs to, if the task exists already.
+    */
   def autoComplete(searchQuery: String,
                    dependOnParameterValues: Seq[ParamValue],
                    workspace: WorkspaceReadTrait,
                    limit: Int,
-                   offset: Int)
+                   offset: Int,
+                   taskId: Option[Identifier] = None)
                   (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
-    autoComplete(searchQuery, dependOnParameterValues, workspace).slice(offset, offset + limit)
+    val results = taskId match {
+      case Some(id) => autoCompleteForTask(id, searchQuery, dependOnParameterValues, workspace)
+      case None => autoComplete(searchQuery, dependOnParameterValues, workspace)
+    }
+    results.slice(offset, offset + limit)
   }
 
   /** Filters an auto-completion result list by the search query. */
@@ -201,6 +224,14 @@ trait ReferencePluginParameterAutoCompletionProvider extends PluginParameterAuto
                             workspace: WorkspaceReadTrait)
                             (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
     autoCompletionProvider.toSeq.flatMap(_.autoComplete(searchQuery, dependOnParameterValues, workspace))
+  }
+
+  override def autoCompleteForTask(taskId: Identifier,
+                                   searchQuery: String,
+                                   dependOnParameterValues: Seq[ParamValue],
+                                   workspace: WorkspaceReadTrait)
+                                  (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
+    autoCompletionProvider.toSeq.flatMap(_.autoCompleteForTask(taskId, searchQuery, dependOnParameterValues, workspace))
   }
 
   override def valueToLabel(value: String,

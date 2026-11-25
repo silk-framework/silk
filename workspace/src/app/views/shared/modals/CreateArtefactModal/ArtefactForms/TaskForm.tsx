@@ -1,10 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-    IArtefactItemProperty,
-    IPluginDetails,
-    IPropertyAutocomplete,
-    TaskPreConfiguration,
-} from "@ducks/common/typings";
+import { IArtefactItemProperty, IPluginDetails, TaskPreConfiguration } from "@ducks/common/typings";
 import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
 import {
     CodeEditor,
@@ -18,8 +13,7 @@ import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOption
 import { errorMessage, ExtendedParameterCallbacks, ParameterCallbacks, ParameterWidget } from "./ParameterWidget";
 import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
 import { useTranslation } from "react-i18next";
-import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentifierInput";
-import useErrorHandler from "../../../../../hooks/useErrorHandler";
+import CustomIdentifierInput from "./CustomIdentifierInput";
 import Loading from "../../../Loading";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginRegistry";
 import { DataPreviewProps, IDatasetConfigPreview, TaskParameters } from "../../../../plugins/plugin.types";
@@ -30,8 +24,7 @@ import { MultiTagSelect } from "../../../MultiTagSelect";
 import useHotKey from "../../../HotKeyHandler/HotKeyHandler";
 import utils from "@eccenca/gui-elements/src/cmem/markdown/markdown.utils";
 import { commonOp } from "@ducks/common";
-import { DependsOnParameterValueAny } from "./ParameterAutoCompletion";
-import { FieldValues, UseFormReturn } from "react-hook-form";
+import { Control, FieldValues, UseFormReturn, useFormState, useWatch } from "react-hook-form";
 import { collectPopulatedDependentParameters } from "./TaskForm.utils";
 
 export const READ_ONLY_PARAMETER = "readOnly";
@@ -93,6 +86,72 @@ const DESCRIPTION = "description";
 const IDENTIFIER = "id";
 const TAGS = "tags";
 
+interface TaskLabelFieldProps {
+    control: Control<FieldValues>;
+    projectId: string;
+    onChange: React.ChangeEventHandler<HTMLInputElement>;
+}
+
+function TaskLabelField({ control, projectId, onChange }: TaskLabelFieldProps) {
+    const [t] = useTranslation();
+    const label = useWatch({ control, name: LABEL, exact: true });
+    const { errors } = useFormState({ control, name: LABEL, exact: true });
+    const fieldLabel = t("form.field.label");
+    return (
+        <ArtefactFormParameter
+            projectId={projectId}
+            parameterId={LABEL}
+            label={fieldLabel}
+            required
+            infoMessage={errorMessage(fieldLabel, errors.label)}
+            inputElementFactory={() => (
+                <TextField
+                    id={LABEL}
+                    name={LABEL}
+                    autoFocus
+                    value={label ?? ""}
+                    onChange={onChange}
+                    intent={errors.label ? "danger" : undefined}
+                    onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                            event.preventDefault();
+                        }
+                    }}
+                    escapeToBlur
+                />
+            )}
+        />
+    );
+}
+
+interface TaskTagsFieldProps {
+    control: Control<FieldValues>;
+    projectId: string;
+    onSelectionChange: (selection: MultiSuggestFieldSelectionProps<Keyword>) => void;
+}
+
+function TaskTagsField({ control, projectId, onSelectionChange }: TaskTagsFieldProps) {
+    const [t] = useTranslation();
+    const selection = useWatch({ control, name: TAGS, exact: true }) as
+        | MultiSuggestFieldSelectionProps<Keyword>
+        | undefined;
+    return (
+        <ArtefactFormParameter
+            projectId={projectId}
+            parameterId={TAGS}
+            label={t("form.field.tags")}
+            inputElementFactory={() => (
+                <MultiTagSelect
+                    dataTestId="task-tags-select"
+                    projectId={projectId}
+                    handleTagSelectionChange={onSelectionChange}
+                    selectedTags={selection?.selectedItems}
+                />
+            )}
+        />
+    );
+}
+
 const datasetConfigPreview = (
     projectId: string,
     pluginId: string,
@@ -106,6 +165,50 @@ const datasetConfigPreview = (
         },
     };
 };
+
+interface TaskDatasetPreviewProps {
+    control: Control<FieldValues>;
+    Preview: React.ComponentType<DataPreviewProps>;
+    projectId: string;
+    pluginId: string;
+    datasetConfigValues: () => TaskParameters;
+    validate: () => Promise<boolean>;
+    autoLoad: boolean;
+    startWithRawView: boolean;
+}
+
+function TaskDatasetPreview({
+    control,
+    Preview,
+    projectId,
+    pluginId,
+    datasetConfigValues,
+    validate,
+    autoLoad,
+    startWithRawView,
+}: TaskDatasetPreviewProps) {
+    const [t] = useTranslation();
+    // The preview reloads automatically when its resource changes and reads the full config on demand.
+    const file = useWatch({ control, name: "file", exact: true });
+    const preview = useMemo(
+        () => datasetConfigPreview(projectId, pluginId, datasetConfigValues()),
+        [projectId, pluginId, datasetConfigValues, file],
+    );
+    return (
+        <Preview
+            title={t("pages.dataset.title")}
+            preview={preview}
+            externalValidation={{ validate, errorMessage: t("form.validations.parameter") }}
+            datasetConfigValues={datasetConfigValues}
+            autoLoad={autoLoad}
+            startWithRawView={startWithRawView}
+            emptyStateMessages={{
+                noEntries: t("DataPreview.emptyState.taskConfiguration.noEntries"),
+                entriesWithoutProperties: t("DataPreview.emptyState.taskConfiguration.entriesWithoutProperties"),
+            }}
+        />
+    );
+}
 
 const intRegex = /^(0|-?[1-9][0-9]*)$/;
 const isInt = (value) => {
@@ -155,21 +258,11 @@ export function TaskForm({
     preservedFieldValues,
 }: IProps) {
     const { properties, required: requiredRootParameters } = artefact;
-    const {
-        register,
-        formState: { errors },
-        getValues,
-        setValue,
-        unregister,
-        trigger,
-    } = form;
+    const { register, getValues, setValue, unregister, trigger } = form;
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
-    const dependentValues: React.MutableRefObject<Record<string, DependsOnParameterValueAny | undefined>> =
-        React.useRef<Record<string, DependsOnParameterValueAny | undefined>>({});
     const dependentParameters = React.useRef<Map<string, Set<string>>>(new Map());
     const [doChange, setDoChange] = useState<boolean>(false);
     const [staleDependentParameterIds, setStaleDependentParameterIds] = useState<string[]>([]);
-    const { registerError } = useErrorHandler();
     const parameterDefaultValues = React.useRef<Map<string, string | null>>(new Map());
     const staleDependentParameterIdsRef = React.useRef<string[]>([]);
     parameterDefaultValues.current = extractDefaultValues(artefact);
@@ -197,8 +290,6 @@ export function TaskForm({
     );
     const [t] = useTranslation();
     const parameterLabels = React.useRef(new Map<string, string>());
-    const [label, description] = form.watch([LABEL, DESCRIPTION]);
-    const tagSelection = form.watch(TAGS) as MultiSuggestFieldSelectionProps<Keyword> | undefined;
     const dataPreviewPlugin = pluginRegistry.pluginReactComponent<DataPreviewProps>(SUPPORTED_PLUGINS.DATA_PREVIEW);
     const escapeKeyDisabled = React.useRef(false);
 
@@ -302,12 +393,6 @@ export function TaskForm({
             parameterValues: Record<string, any>,
             requiredParameters: string[],
         ) => {
-            // Construct array of parameter keys that other parameters depend on
-            const autoCompletionParams = params.filter(([key, propertyDetails]) => propertyDetails.autoCompletion);
-            const dependsOnParameters = autoCompletionParams.flatMap(
-                ([key, propertyDetails]) =>
-                    (propertyDetails.autoCompletion as IPropertyAutocomplete).autoCompletionDependsOnParameters,
-            );
             params.forEach(([paramId, param]) => {
                 const fullParameterId = prefix + paramId;
                 parameterLabels.current.set(fullParameterId, param.title);
@@ -354,13 +439,6 @@ export function TaskForm({
                         }
                     }
                     setValue(fullParameterId, currentValue);
-                    // Add dependent values
-                    if (dependsOnParameters.includes(paramId)) {
-                        dependentValues.current[fullParameterId] = {
-                            value: currentValue,
-                            isTemplate: parameterCallbacks.templateFlag(fullParameterId),
-                        };
-                    }
                     // Add dependent parameters
                     (param.autoCompletion?.autoCompletionDependsOnParameters ?? []).forEach((dependsOn) =>
                         addDependentParameter(fullParameterId, prefix + dependsOn),
@@ -426,12 +504,6 @@ export function TaskForm({
         const highlightedParameterIds = staleDependentParameterIdsRef.current;
         highlightedParameterIds.forEach((paramId) => {
             const oldValue = getValues(paramId);
-            if (dependentValues.current[paramId] !== undefined) {
-                dependentValues.current[paramId] = {
-                    value: "",
-                    isTemplate: parameterCallbacks.templateFlag(paramId),
-                };
-            }
             setValue(paramId, "");
             detectChange(paramId, "", oldValue);
             propagateExternallyChangedParameterValue(paramId, "");
@@ -475,22 +547,12 @@ export function TaskForm({
     /** Change handler for a specific parameter. */
     const handleChange = useCallback(
         (key: string) => async (e) => {
-            const { trigger } = form;
             const value = e.target ? e.target.value : e;
 
-            if (dependentValues.current[key] !== undefined) {
-                // We need to update the state with a new object to trigger re-render.
-                dependentValues.current[key] = {
-                    value: value,
-                    isTemplate: parameterCallbacks.templateFlag(key),
-                };
-            }
-            const oldValue = getValues()[key];
+            const oldValue = getValues(key);
             setValue(key, value);
             detectChange(key, value, oldValue);
             await trigger(key);
-            //verify task identifier
-            if (key === IDENTIFIER) handleCustomIdValidation(t, form, registerError, value, projectId);
             if (!escapeKeyDisabled.current) {
                 escapeKeyDisabled.current = true;
             }
@@ -501,19 +563,23 @@ export function TaskForm({
                 scrollParameterIntoView(populatedDependentParameters[0]);
             }
             setStaleDependentParameterIds((previousIds) => {
+                if (!populatedDependentParameters.length && !previousIds.includes(key)) {
+                    return previousIds;
+                }
                 const nextIds = new Set(previousIds);
                 nextIds.delete(key);
                 populatedDependentParameters.forEach((paramId) => nextIds.add(paramId));
+                if (nextIds.size === previousIds.length && previousIds.every((paramId) => nextIds.has(paramId))) {
+                    return previousIds;
+                }
                 return Array.from(nextIds);
             });
         },
         [
             detectChange,
-            form,
             getValues,
             projectId,
             propagateExternallyChangedParameterValue,
-            registerError,
             setValue,
             showWarningMessage,
             scrollParameterIntoView,
@@ -561,22 +627,6 @@ export function TaskForm({
 
     const normalParams = visibleParams.filter(([k, param]) => !param.advanced);
     const advancedParams = visibleParams.filter(([k, param]) => param.advanced);
-    const formHooks = { errors };
-
-    const CodeEditorMemoed = React.useMemo(
-        () => (
-            <CodeEditor
-                mode="markdown"
-                useToolbar
-                id={DESCRIPTION}
-                name={DESCRIPTION}
-                defaultValue={description}
-                onChange={handleChange(DESCRIPTION)}
-                data-test-id="codemirror-wrapper"
-            />
-        ),
-        [],
-    );
 
     const datasetConfigValues = React.useCallback(() => {
         return commonOp.buildStringValuedObject(commonOp.extractParameterValues(getValues(), artefact.properties));
@@ -589,31 +639,7 @@ export function TaskForm({
             <form>
                 {updateTask ? null : (
                     <>
-                        <ArtefactFormParameter
-                            key={LABEL}
-                            projectId={projectId}
-                            parameterId={LABEL}
-                            label={t("form.field.label")}
-                            required={true}
-                            infoMessage={errorMessage("Label", errors.label)}
-                            inputElementFactory={() => (
-                                <TextField
-                                    id={LABEL}
-                                    name={LABEL}
-                                    autoFocus={true}
-                                    value={label ?? ""}
-                                    onChange={handleChange(LABEL)}
-                                    intent={!!errors.label ? "danger" : undefined}
-                                    onKeyDown={(e) => {
-                                        if (e.keyCode === 13) {
-                                            e.preventDefault();
-                                            return false;
-                                        }
-                                    }}
-                                    escapeToBlur={true}
-                                />
-                            )}
-                        />
+                        <TaskLabelField control={form.control} projectId={projectId} onChange={handleChange(LABEL)} />
                         <ArtefactFormParameter
                             projectId={projectId}
                             key={DESCRIPTION}
@@ -628,21 +654,22 @@ export function TaskForm({
                                     .
                                 </p>
                             }
-                            inputElementFactory={() => CodeEditorMemoed}
-                        />
-                        <ArtefactFormParameter
-                            projectId={projectId}
-                            key={TAGS}
-                            parameterId={TAGS}
-                            label={t("form.field.tags")}
                             inputElementFactory={() => (
-                                <MultiTagSelect
-                                    dataTestId="task-tags-select"
-                                    projectId={projectId}
-                                    handleTagSelectionChange={handleTagSelectionChange}
-                                    selectedTags={tagSelection?.selectedItems}
+                                <CodeEditor
+                                    mode="markdown"
+                                    useToolbar
+                                    id={DESCRIPTION}
+                                    name={DESCRIPTION}
+                                    defaultValue={getValues(DESCRIPTION)}
+                                    onChange={handleChange(DESCRIPTION)}
+                                    data-test-id="codemirror-wrapper"
                                 />
                             )}
+                        />
+                        <TaskTagsField
+                            control={form.control}
+                            projectId={projectId}
+                            onSelectionChange={handleTagSelectionChange}
                         />
                     </>
                 )}
@@ -650,6 +677,7 @@ export function TaskForm({
                     <ParameterWidget
                         key={key}
                         projectId={projectId}
+                        taskId={taskId}
                         pluginId={artefact.pluginId}
                         formParamId={key}
                         required={requiredRootParameters.includes(key)}
@@ -657,10 +685,9 @@ export function TaskForm({
                             paramId: key,
                             param: properties[key],
                         }}
-                        formHooks={formHooks}
+                        form={form}
                         changeHandlers={changeHandlers}
                         initialValues={initialValues}
-                        dependentValues={dependentValues}
                         parameterCallbacks={extendedCallbacks}
                         isDependencyReviewHighlighted={isDependencyReviewHighlighted}
                     />
@@ -708,6 +735,7 @@ export function TaskForm({
                         <ParameterWidget
                             key={key}
                             projectId={projectId}
+                            taskId={taskId}
                             pluginId={artefact.pluginId}
                             formParamId={key}
                             required={requiredRootParameters.includes(key)}
@@ -715,10 +743,9 @@ export function TaskForm({
                                 paramId: key,
                                 param: properties[key],
                             }}
-                            formHooks={formHooks}
+                            form={form}
                             changeHandlers={changeHandlers}
                             initialValues={initialValues}
-                            dependentValues={dependentValues}
                             parameterCallbacks={extendedCallbacks}
                             isDependencyReviewHighlighted={isDependencyReviewHighlighted}
                         />
@@ -728,29 +755,15 @@ export function TaskForm({
                     <>
                         <Spacing />
                         {dataPreviewPlugin && (
-                            <dataPreviewPlugin.Component
-                                title={t("pages.dataset.title")}
-                                preview={datasetConfigPreview(projectId, artefact.pluginId, datasetConfigValues())}
-                                externalValidation={{
-                                    validate: trigger,
-                                    errorMessage: t(
-                                        "form.validations.parameter",
-                                        "Parameter validation failed. Please fix the issues first.",
-                                    ),
-                                }}
+                            <TaskDatasetPreview
+                                control={form.control}
+                                Preview={dataPreviewPlugin.Component}
+                                projectId={projectId}
+                                pluginId={artefact.pluginId}
+                                validate={trigger}
                                 datasetConfigValues={datasetConfigValues}
                                 autoLoad={showPreviewAutomatically}
                                 startWithRawView={showRawView}
-                                emptyStateMessages={{
-                                    noEntries: t(
-                                        "DataPreview.emptyState.taskConfiguration.noEntries",
-                                        "No preview entries found for the current configuration.",
-                                    ),
-                                    entriesWithoutProperties: t(
-                                        "DataPreview.emptyState.taskConfiguration.entriesWithoutProperties",
-                                        "Preview entries do not contain any properties.",
-                                    ),
-                                }}
                             />
                         )}
                     </>

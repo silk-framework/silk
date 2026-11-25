@@ -22,14 +22,10 @@ import { ArtefactFormParameter } from "./ArtefactFormParameter";
 import { optionallyLabelledParameterToValue } from "../../../../taskViews/linking/linking.types";
 import { PARAMETER_DOC_PREFIX } from "./TaskForm";
 import { YamlEditor } from "../../../../../views/shared/YamlEditor";
-import { reduceToText } from "@eccenca/gui-elements/src/common/utils/reduceToText";
+import { FieldError, get, UseFormReturn, useFormState, useWatch } from "react-hook-form";
 
 const MAXLENGTH_TOOLTIP = 32;
 const MAXLENGTH_SIMPLEHELP = 192;
-
-interface IHookFormParam {
-    errors: any;
-}
 
 /** Parameter related callbacks. */
 export interface ParameterCallbacks {
@@ -56,6 +52,8 @@ export interface ExtendedParameterCallbacks extends ParameterCallbacks {
 
 interface IProps {
     projectId: string;
+    // The ID of the task the parameter belongs to, if the task exists already
+    taskId?: string;
     // The ID of the parent object
     pluginId: string;
     // ID of the form parameter. For nested parameters this has the form of 'parentParam.param'.
@@ -65,7 +63,7 @@ interface IProps {
     // The details of this parameter
     taskParameter: ITaskParameter;
     // from react-hook-form
-    formHooks: IHookFormParam;
+    form: Pick<UseFormReturn, "control" | "getValues">;
     // All change handlers
     changeHandlers: Record<string, (value) => void>;
     // Initial values in a flat form, e.g. "nestedParam.param1". This is either set for all parameters or not set for none.
@@ -73,8 +71,6 @@ interface IProps {
     initialValues: {
         [key: string]: any;
     };
-    // Values that the auto-completion of other parameters depends on
-    dependentValues: React.MutableRefObject<Record<string, DependsOnParameterValueAny | undefined>>;
     parameterCallbacks: ExtendedParameterCallbacks;
     isDependencyReviewHighlighted: (fullParameterId: string) => boolean;
 }
@@ -101,42 +97,50 @@ export const errorMessage = (title: string, errors: any) => {
 export const ParameterWidget = (props: IProps) => {
     const {
         projectId,
+        taskId,
         pluginId,
         formParamId,
         required,
         taskParameter,
-        formHooks,
+        form,
         changeHandlers,
         initialValues,
-        dependentValues,
         parameterCallbacks,
         isDependencyReviewHighlighted,
     } = props;
     const parameterExtensions = pluginRegistry.pluginComponent<ParameterExtensions>(
         SUPPORTED_PLUGINS.DI_PARAMETER_EXTENSIONS,
     );
-    const errors = formHooks.errors[taskParameter.paramId];
     const propertyDetails = parameterExtensions ? parameterExtensions.extend(taskParameter.param) : taskParameter.param;
     const { title, description, autoCompletion } = propertyDetails;
     const [t] = useTranslation();
+    const { errors: formErrors } = useFormState({ control: form.control, name: formParamId, exact: true });
+    const errors: FieldError | undefined = get(formErrors, formParamId);
 
     const formParameterPrefix = formParamId.substring(0, formParamId.length - taskParameter.paramId.length);
+    const dependencyIds = autoCompletion?.autoCompletionDependsOnParameters;
+    const dependencyPaths = React.useMemo(
+        () => (dependencyIds ?? []).map((id) => formParameterPrefix + id),
+        [dependencyIds, formParameterPrefix],
+    );
+    const dependencyValues = useWatch({
+        control: form.control,
+        name: dependencyPaths,
+        exact: true,
+        disabled: dependencyPaths.length === 0,
+    });
 
-    const dependentValue = (paramId: string) => {
+    const dependentValue = (paramId: string): DependsOnParameterValueAny => {
         const prefixedParamId = formParameterPrefix + paramId;
-        return dependentValues.current[prefixedParamId];
+        // A search can run after the render that scheduled it.
+        return { value: form.getValues(prefixedParamId), isTemplate: parameterCallbacks.templateFlag(prefixedParamId) };
     };
 
-    const hasDefaultValue = (paramId: string) => {
-        return parameterCallbacks.defaultValue(paramId) != null;
-    };
-
-    const missingParameterLabels = missingDependentParameters(
-        taskParameter.param,
-        dependentValues.current,
-        formParameterPrefix,
-        hasDefaultValue,
-    ).map((paramId) => parameterCallbacks.parameterLabel(formParameterPrefix + paramId));
+    const missingParameterLabels = dependencyPaths
+        .filter(
+            (id, index) => !dependentValueIsSet(dependencyValues[index], parameterCallbacks.defaultValue(id) != null),
+        )
+        .map(parameterCallbacks.parameterLabel);
     /** Text that should be displayed below the input element for this parameter as long as there is no error message displayed. */
     const infoHelperText =
         missingParameterLabels.length > 0
@@ -224,14 +228,14 @@ export const ParameterWidget = (props: IProps) => {
                             <ParameterWidget
                                 key={nestedFormParamId}
                                 projectId={projectId}
+                                taskId={taskId}
                                 pluginId={propertyDetails.pluginId as string}
                                 formParamId={nestedFormParamId}
                                 required={requiredNestedParams.includes(nestedParamId)}
                                 taskParameter={{ paramId: nestedParamId, param: nestedParam }}
-                                formHooks={{ errors: errors ? errors : {} }}
+                                form={form}
                                 changeHandlers={changeHandlers}
                                 initialValues={initialValues}
-                                dependentValues={dependentValues}
                                 parameterCallbacks={parameterCallbacks}
                                 isDependencyReviewHighlighted={isDependencyReviewHighlighted}
                             />
@@ -319,6 +323,7 @@ export const ParameterWidget = (props: IProps) => {
                         return (
                             <ParameterAutoCompletion
                                 projectId={projectId}
+                                taskId={taskId}
                                 paramId={taskParameter.paramId}
                                 pluginId={pluginId}
                                 onChange={(value) =>
@@ -365,21 +370,4 @@ export const ParameterWidget = (props: IProps) => {
             />
         );
     }
-};
-
-/** Returns an array of parameter IDs of missing dependent values. */
-export const missingDependentParameters = (
-    propertyDetails: IArtefactItemProperty,
-    dependentValues: Record<string, DependsOnParameterValueAny | undefined>,
-    parameterPrefix: string,
-    hasDefaultValue: (paramId: string) => boolean,
-): string[] => {
-    const dependsOnParameters = propertyDetails.autoCompletion?.autoCompletionDependsOnParameters ?? [];
-    return dependsOnParameters.filter(
-        (paramId) =>
-            !dependentValueIsSet(
-                dependentValues[parameterPrefix + paramId]?.value,
-                hasDefaultValue(parameterPrefix + paramId),
-            ),
-    );
 };
