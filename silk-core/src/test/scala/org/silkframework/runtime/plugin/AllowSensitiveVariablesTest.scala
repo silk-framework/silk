@@ -20,7 +20,7 @@ class AllowSensitiveVariablesTest extends AnyFlatSpec with Matchers with ConfigT
   it should "resolve sensitive variables only for parameters that allow them and keep the value out of error messages" in {
     pluginDesc(templates("content" -> "key={{global.secret}}")).content shouldBe "key=s3cret"
     val withheld = intercept[InvalidPluginParameterValueException](pluginDesc(templates("other" -> "{{global.secret}}")))
-    withheld.getMessage should include ("'global.secret' is not defined")
+    withheld.getMessage should include ("'global.secret' is sensitive and can only be used in password parameters and in parameters that allow sensitive variables.")
     withheld.getMessage should not include "s3cret"
     val invalid = intercept[InvalidPluginParameterValueException](pluginDesc(templates("number" -> "{{global.secret}}")))
     invalid.getMessage should include ("{{global.secret}}")
