@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect, useRef, useState } from "react";
 import { batch, useDispatch, useSelector } from "react-redux";
-import { useForm } from "react-hook-form";
+import { Control, FieldValues, useForm, useFormState } from "react-hook-form";
 import {
     AlertDialog,
     Button,
@@ -81,6 +81,28 @@ export interface InfoMessage {
     removeAfterSeconds?: number;
 }
 
+interface SubmitArtefactActionProps {
+    control: Control<FieldValues>;
+    isOpen: boolean;
+    loading: boolean;
+    label: string;
+    onSubmit: (event: React.MouseEvent<HTMLElement> | KeyboardEvent) => Promise<void>;
+}
+
+function SubmitArtefactAction({ control, isOpen, loading, label, onSubmit }: SubmitArtefactActionProps) {
+    const { errors } = useFormState({ control });
+    const hasErrors = Object.keys(errors).length > 0;
+    useHotKey({ hotkey: "enter", handler: onSubmit, enabled: isOpen && !loading && !hasErrors });
+
+    return loading ? (
+        <Loading size="small" elevated delay={0} />
+    ) : (
+        <Button data-test-id="createArtefactButton" affirmative onClick={onSubmit} disabled={hasErrors}>
+            {label}
+        </Button>
+    );
+}
+
 export function CreateArtefactModal() {
     const MAX_SINGLEPLUGINBUTTONS = 2;
 
@@ -129,6 +151,7 @@ export function CreateArtefactModal() {
     const lastSelectedClick = useRef<number>(0);
     const [isProjectImport, setIsProjectImport] = useState<boolean>(false);
     const [autoConfigPending, setAutoConfigPending] = useState(false);
+    const autoConfigRequest = useRef<symbol>();
     const DOUBLE_CLICK_LIMIT_MS = 500;
 
     const taskPluginDetails = updateExistingTask?.taskPluginDetails;
@@ -151,10 +174,23 @@ export function CreateArtefactModal() {
     const [infoMessage, setInfoMessage] = useState<InfoMessage | undefined>(undefined);
     const isEmptyWorkspace = useSelector(workspaceSel.isEmptyPageSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
+    const effectiveProjectId = updateExistingTask?.projectId ?? currentProject?.id ?? projectId;
     const externalParameterUpdateMap = React.useRef(
         new Map<string, (value: { value: string; label?: string }) => any>(),
     );
     const templateParameters = React.useRef(new Set<string>());
+
+    const invalidateAutoConfiguration = React.useCallback(() => {
+        autoConfigRequest.current = undefined;
+        setAutoConfigPending(false);
+    }, []);
+
+    React.useLayoutEffect(() => {
+        invalidateAutoConfiguration();
+        return () => {
+            autoConfigRequest.current = undefined;
+        };
+    }, [isOpen, selectedArtefact?.key, updateExistingTask?.taskId, effectiveProjectId, invalidateAutoConfiguration]);
 
     const setToBeAdded = React.useCallback((plugin: IPluginOverview | undefined) => {
         toBeAdded.current = plugin;
@@ -172,7 +208,6 @@ export function CreateArtefactModal() {
             return undefined;
         }
         const artefactKind = selectedArtefact.key === DATA_TYPES.PROJECT ? "project" : "task";
-        const targetProjectId = updateExistingTask?.projectId ?? currentProject?.id ?? projectId;
         const targetProjectLabel = currentProject?.label;
         const selectedTaskType = updateExistingTask?.taskPluginDetails.taskType ?? selectedArtefact.taskType;
         return {
@@ -181,7 +216,7 @@ export function CreateArtefactModal() {
             operation: updateExistingTask ? ("update" as const) : ("create" as const),
             pluginId: selectedArtefact.pluginId ?? selectedArtefact.key,
             pluginLabel: selectedArtefact.title,
-            ...(targetProjectId ? { projectId: targetProjectId } : {}),
+            ...(effectiveProjectId ? { projectId: effectiveProjectId } : {}),
             ...(targetProjectLabel ? { projectLabel: targetProjectLabel } : {}),
             ...(updateExistingTask
                 ? {
@@ -191,7 +226,7 @@ export function CreateArtefactModal() {
                 : {}),
             ...(selectedTaskType ? { taskType: selectedTaskType } : {}),
         };
-    }, [currentProject, isOpen, isProjectImport, projectId, selectedArtefact, updateExistingTask]);
+    }, [currentProject?.label, effectiveProjectId, isOpen, isProjectImport, selectedArtefact, updateExistingTask]);
     useForegroundViewContext(artefactFormContext);
 
     const updateProjectAcl = React.useCallback((newProjectAcl: AccessControlConfig) => {
@@ -460,65 +495,66 @@ export function CreateArtefactModal() {
     };
 
     const handleCreate = React.useCallback(
-        async (e) => {
-            if ((e as KeyboardEvent).key === "Enter") {
-                if (e.target.type === "button" && e.target.popoverTargetAction === "toggle") {
+        async (e: React.MouseEvent<HTMLElement> | KeyboardEvent) => {
+            if ("key" in e && e.key === "Enter") {
+                if (e.target instanceof HTMLButtonElement && e.target.popoverTargetAction === "toggle") {
                     // This should trigger a toggle, e.g. on an accordion element, do not trigger create.
                     return;
                 }
             }
             e.preventDefault();
             setActionLoading(true);
-            const isValidFields = await form.trigger();
             try {
-                if (isValidFields) {
-                    const formValues = form.getValues();
-                    const type =
-                        updateExistingTask?.taskPluginDetails.taskType ?? taskType(selectedArtefactKey.current);
-                    let dataParameters: any;
-                    if (type === "Dataset") {
-                        dataParameters = commonOp.extractDataAttributes(formValues);
-                    }
-                    if (updateExistingTask) {
-                        await dispatch(
-                            commonOp.fetchUpdateTaskAsync(
-                                updateExistingTask.projectId,
-                                updateExistingTask.taskId,
-                                formValues,
-                                dataParameters,
-                                templateParameters.current,
-                                updateExistingTask?.alternativeUpdateFunction,
-                                updateExistingTask.taskPluginDetails.properties,
-                            ),
-                        );
-                        updateExistingTask.successHandler?.({
-                            projectId: updateExistingTask.projectId,
-                            taskId: updateExistingTask.taskId,
-                        });
-                    } else {
-                        !projectId && currentProject && dispatch(commonOp.setProjectId(currentProject.id));
-                        await dispatch(
-                            commonOp.createArtefactAsync(
-                                formValues,
-                                type,
-                                dataParameters,
-                                templateParameters.current,
-                                newTaskPreConfiguration?.alternativeCallback,
-                                projectAcl.current?.groups,
-                            ),
-                        );
-                        setSearchValue("");
-                    }
-                } else {
-                    const errKey = Object.keys(form.formState.errors)[0];
-                    const el = document.getElementById(errKey);
-                    if (el) {
-                        el.scrollIntoView({
-                            block: "start",
-                            inline: "start",
-                        });
-                    }
-                }
+                await form.handleSubmit(
+                    async () => {
+                        const formValues = form.getValues();
+                        const type =
+                            updateExistingTask?.taskPluginDetails.taskType ?? taskType(selectedArtefactKey.current);
+                        let dataParameters: any;
+                        if (type === "Dataset") {
+                            dataParameters = commonOp.extractDataAttributes(formValues);
+                        }
+                        if (updateExistingTask) {
+                            await dispatch(
+                                commonOp.fetchUpdateTaskAsync(
+                                    updateExistingTask.projectId,
+                                    updateExistingTask.taskId,
+                                    formValues,
+                                    dataParameters,
+                                    templateParameters.current,
+                                    updateExistingTask?.alternativeUpdateFunction,
+                                    updateExistingTask.taskPluginDetails.properties,
+                                ),
+                            );
+                            updateExistingTask.successHandler?.({
+                                projectId: updateExistingTask.projectId,
+                                taskId: updateExistingTask.taskId,
+                            });
+                        } else {
+                            await dispatch(
+                                commonOp.createArtefactAsync(
+                                    effectiveProjectId,
+                                    formValues,
+                                    type,
+                                    dataParameters,
+                                    templateParameters.current,
+                                    newTaskPreConfiguration?.alternativeCallback,
+                                    projectAcl.current?.groups,
+                                ),
+                            );
+                            setSearchValue("");
+                        }
+                    },
+                    (errors) => {
+                        const errKey = Object.keys(errors)[0];
+                        if (errKey) {
+                            document.getElementById(errKey)?.scrollIntoView({
+                                block: "start",
+                                inline: "start",
+                            });
+                        }
+                    },
+                )();
             } catch (error) {
                 registerError(
                     "CreateArtefactModal.handleCreate",
@@ -529,7 +565,7 @@ export function CreateArtefactModal() {
                 setActionLoading(false);
             }
         },
-        [form, updateExistingTask, taskType, currentProject],
+        [form, updateExistingTask, taskType, effectiveProjectId, newTaskPreConfiguration?.alternativeCallback],
     );
 
     const closeModal = () => {
@@ -538,13 +574,12 @@ export function CreateArtefactModal() {
         newTaskPreConfiguration?.onCloseCallback?.();
     };
 
-    const isErrorPresented = () => !!Object.keys(form.formState.errors).length;
-
     const handleSelectDType = (value: string) => {
         dispatch(commonOp.setSelectedArtefactDType(value));
     };
 
     const resetModal = (closeModal?: boolean) => {
+        invalidateAutoConfiguration();
         templateParameters.current = new Set<string>();
         setIsProjectImport(false);
         setToBeAdded(undefined);
@@ -603,6 +638,7 @@ export function CreateArtefactModal() {
     const hasModifiedValuesForProjectChange = (): boolean => hasModifiedValuesOutside(projectChangePreservedFields);
 
     const resetFormPreservingFields = (preservedFields: Set<string>) => {
+        invalidateAutoConfiguration();
         const resetValue = Object.create(null);
         const currentValues = form.getValues();
         preservedFields.forEach((field) => {
@@ -755,8 +791,7 @@ export function CreateArtefactModal() {
                 );
             } else {
                 const detailedArtefact = cachedArtefactProperties[selectedArtefactKey.current];
-                const activeProjectId = currentProject?.id ?? projectId;
-                if (detailedArtefact && activeProjectId) {
+                if (detailedArtefact && effectiveProjectId) {
                     let updatedNewTaskPreConfiguration: TaskPreConfiguration | undefined = {
                         ...newTaskPreConfiguration,
                     };
@@ -775,7 +810,7 @@ export function CreateArtefactModal() {
                             detectChange={detectFormChange}
                             form={form}
                             artefact={detailedArtefact}
-                            projectId={activeProjectId}
+                            projectId={effectiveProjectId}
                             parameterCallbacks={{
                                 setTemplateFlag,
                                 registerForExternalChanges,
@@ -857,12 +892,12 @@ export function CreateArtefactModal() {
     }, [artefactListWithProject.map((item) => item.key).join("|"), selectedDType]);
 
     const handleAutoConfigure = async (projectId: string, artefactId: string) => {
-        const isValidFields = await form.trigger();
-        if (!isValidFields) {
-            return;
-        }
+        const request = Symbol();
+        autoConfigRequest.current = request;
+        const isCurrent = () => autoConfigRequest.current === request;
+        setAutoConfigPending(true);
         try {
-            setAutoConfigPending(true);
+            if (!(await form.trigger()) || !isCurrent()) return;
             resetModalError();
             const { parameters, variableTemplateParameters } = commonOp.splitParameterAndVariableTemplateParameters(
                 commonOp.extractParameterValues(form.getValues(), declaredPluginParameters()),
@@ -879,6 +914,7 @@ export function CreateArtefactModal() {
             const parameterChanges: Record<string, string> = (
                 await requestAutoConfiguredDataset(projectId, requestBody)
             ).data.parameters;
+            if (!isCurrent()) return;
             const formValues = form.getValues();
             let valuesUpdated = 0;
             let firstUpdatedParamId: string | undefined;
@@ -903,16 +939,18 @@ export function CreateArtefactModal() {
                 removeAfterSeconds: 5,
             });
         } catch (ex) {
-            registerError("CreateArtefactModal.handleAutConfigure", "Auto-configuration has failed.", ex);
+            if (isCurrent()) {
+                registerError("CreateArtefactModal.handleAutConfigure", "Auto-configuration has failed.", ex);
+            }
         } finally {
-            setAutoConfigPending(false);
+            if (isCurrent()) invalidateAutoConfiguration();
         }
     };
 
     const isCreationUpdateDialog = selectedArtefactKey.current || updateExistingTask;
     const additionalButtons: React.JSX.Element[] = [];
     if (
-        (projectId || currentProject) &&
+        effectiveProjectId &&
         ((updateExistingTask && updateExistingTask.taskPluginDetails.autoConfigurable) ||
             (selectedArtefactKey.current && cachedArtefactProperties[selectedArtefactKey.current]?.autoConfigurable))
     ) {
@@ -924,7 +962,7 @@ export function CreateArtefactModal() {
                 tooltip={t("CreateModal.autoConfigTooltip")}
                 onClick={() =>
                     handleAutoConfigure(
-                        projectId ?? currentProject!.id,
+                        effectiveProjectId,
                         selectedArtefactKey.current ?? updateExistingTask!.taskPluginDetails.pluginId,
                     )
                 }
@@ -1134,9 +1172,6 @@ export function CreateArtefactModal() {
         );
     }
 
-    const submitEnabled = !!isCreationUpdateDialog && !isErrorPresented();
-    useHotKey({ hotkey: "enter", handler: handleCreate, enabled: submitEnabled });
-
     if (taskActionResult) {
         notifications.push(
             <Notification
@@ -1200,63 +1235,60 @@ export function CreateArtefactModal() {
             onClose={closeModal}
             isOpen={isOpen}
             actions={
-                isCreationUpdateDialog ? (
-                    actionLoading ? (
-                        <Loading size={"small"} elevated delay={0} />
-                    ) : (
-                        [
-                            <Button
-                                data-test-id={"createArtefactButton"}
-                                key="create"
-                                affirmative={true}
-                                onClick={handleCreate}
-                                disabled={isErrorPresented()}
-                            >
-                                {updateExistingTask ? t("common.action.update") : t("common.action.create")}
-                            </Button>,
-                            <Button key="cancel" data-test-id="create-dialog-cancel-btn" onClick={closeModal}>
-                                {t("common.action.cancel")}
-                            </Button>,
-                            <CardActionsAux key="aux">
-                                {!updateExistingTask && (
-                                    <>
-                                        <Button
-                                            data-test-id={"create-dialog-back-btn"}
-                                            key="back"
-                                            onClick={() => handleBack(false)}
-                                        >
-                                            {t("common.words.back", "Back")}
-                                        </Button>
-                                        {additionalButtons.length + pluginActions.length > 0 && (
-                                            <Spacing vertical hasDivider />
+                isCreationUpdateDialog
+                    ? [
+                          <SubmitArtefactAction
+                              key="create"
+                              control={form.control}
+                              isOpen={isOpen}
+                              loading={actionLoading}
+                              label={updateExistingTask ? t("common.action.update") : t("common.action.create")}
+                              onSubmit={handleCreate}
+                          />,
+                          ...(!actionLoading
+                              ? [
+                                    <Button key="cancel" data-test-id="create-dialog-cancel-btn" onClick={closeModal}>
+                                        {t("common.action.cancel")}
+                                    </Button>,
+                                    <CardActionsAux key="aux">
+                                        {!updateExistingTask && (
+                                            <>
+                                                <Button
+                                                    data-test-id={"create-dialog-back-btn"}
+                                                    key="back"
+                                                    onClick={() => handleBack(false)}
+                                                >
+                                                    {t("common.words.back", "Back")}
+                                                </Button>
+                                                {additionalButtons.length + pluginActions.length > 0 && (
+                                                    <Spacing vertical hasDivider />
+                                                )}
+                                            </>
                                         )}
-                                    </>
-                                )}
-                                {additionalButtons}
-                                {pluginActionsMenu}
-                            </CardActionsAux>,
-                        ]
-                    )
-                ) : (
-                    [
-                        <Button
-                            key="add"
-                            affirmative={true}
-                            onClick={handleAdd}
-                            disabled={!toBeAddedState?.key}
-                            data-test-id={"item-add-btn"}
-                        >
-                            {t("common.action.add")}
-                        </Button>,
-                        <Button data-test-id="create-dialog-cancel-btn" key="cancel" onClick={closeModal}>
-                            {t("common.action.cancel")}
-                        </Button>,
-                        <CardActionsAux key="aux">
-                            {additionalButtons}
-                            {pluginActionsMenu}
-                        </CardActionsAux>,
-                    ]
-                )
+                                        {additionalButtons}
+                                        {pluginActionsMenu}
+                                    </CardActionsAux>,
+                                ]
+                              : []),
+                      ]
+                    : [
+                          <Button
+                              key="add"
+                              affirmative={true}
+                              onClick={handleAdd}
+                              disabled={!toBeAddedState?.key}
+                              data-test-id={"item-add-btn"}
+                          >
+                              {t("common.action.add")}
+                          </Button>,
+                          <Button data-test-id="create-dialog-cancel-btn" key="cancel" onClick={closeModal}>
+                              {t("common.action.cancel")}
+                          </Button>,
+                          <CardActionsAux key="aux">
+                              {additionalButtons}
+                              {pluginActionsMenu}
+                          </CardActionsAux>,
+                      ]
             }
             actionsProps={{ noWrap: true }}
             notifications={
