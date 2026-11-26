@@ -61,6 +61,21 @@ class GraphStoreSinkTest extends AnyFlatSpec with Matchers with ConfigTestTrait 
     dataset.getNamedModel(graph).size() mustBe 1
   }
 
+  it should "write blank node subjects as blank nodes" in {
+    val graph = "urn:graph:blank-node-subject"
+    val dataset = DatasetFactory.createTxnMem()
+    val sink = GraphStoreSink(new JenaDatasetEndpoint(dataset), graph, None, None, dropGraphOnClear = false)
+    sink.init()
+    sink.writeTriple("subjectLabel", "urn:prop:p", "Leipzig", ValueType.BLANK_NODE, ValueType.STRING)
+    sink.close()
+
+    val statements = dataset.getNamedModel(graph).listStatements().toList
+    statements.size() mustBe 1
+    statements.get(0).getSubject.isAnon mustBe true
+    statements.get(0).getPredicate.getURI mustBe "urn:prop:p"
+    statements.get(0).getObject.asLiteral().getString mustBe "Leipzig"
+  }
+
   /** The properties that should be changed.
     * If the value is [[None]] then the property value is removed,
     * else it is set to the new value.

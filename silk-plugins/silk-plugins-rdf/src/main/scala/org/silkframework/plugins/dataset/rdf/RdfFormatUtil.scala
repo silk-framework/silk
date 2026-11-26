@@ -19,6 +19,12 @@ object RdfFormatUtil {
 
   val WriterFactory = new RDFWriterFactoryRIOT()
 
+  def tripleValuesToNTriplesSyntax(subject: String,
+                                    property: String,
+                                    value: String,
+                                    valueType: ValueType): String = {
+     tripleValuesToNTriplesSyntax(subject, property, value, ValueType.URI, valueType)
+  }
 
   /**
     * Converts a [[Quad]] into a [[JenaQuad]]
@@ -108,9 +114,34 @@ object RdfFormatUtil {
   }
 
   private val model = ModelFactory.createDefaultModel()
-  def tripleValuesToNTriplesSyntax(subject: String, property: String, value: String, valueType: ValueType): String = {
+
+  def tripleValuesToNTriplesSyntax(subject: String,
+                                   property: String,
+                                   value: String,
+                                   subjectType: ValueType,
+                                   valueType: ValueType): String = {
+    val subjectNode = subjectType match {
+      case ValueType.URI =>
+        NodeFactory.createURI(subject)
+      case ValueType.BLANK_NODE =>
+        val rawLabel = Option(subject)
+          .map(_.trim)
+          .map(s => if (s.startsWith("_:")) s.stripPrefix("_:") else s)
+          .getOrElse("")
+
+        // If empty/blank, generate a fresh Jena blank node; otherwise preserve the given label
+        if (rawLabel.isEmpty) {
+          NodeFactory.createBlankNode()
+        }
+        else {
+          NodeFactory.createBlankNode(rawLabel)
+        }
+
+      case _ =>
+        throw new IllegalArgumentException(s"Invalid RDF subject type '${subjectType.label}'. Expected URI or BlankNode.")
+    }
     val objNode = resolveObjectValue(value, valueType)
-    val tripleString = JenaSerializationUtil.serializeTriple(subject, property, objNode)
+    val tripleString = JenaSerializationUtil.serializeTriple(subjectNode, property, objNode)
     valueType match {
       case CustomValueType(typeUri) if ValueType.URI.validate(typeUri) =>
         val cutLine = tripleString.dropRight(3) // Hack, since Jena does not provide any way to use arbitrary types without implementing a custom type

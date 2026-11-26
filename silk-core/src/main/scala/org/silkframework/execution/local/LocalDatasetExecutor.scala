@@ -491,7 +491,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
                                     (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     sink.init()
     for (quad <- quads.typedEntities) {
-      sink.writeTriple(quad.subject.value, quad.predicate.value, quad.objectVal.value, QuadEntitySchema.getValueType(quad.objectVal))
+      sink.writeTriple(quad.subject.value, quad.predicate.value, quad.objectVal.value,
+        QuadEntitySchema.getValueType(quad.subject), QuadEntitySchema.getValueType(quad.objectVal))
       reportUpdater.increaseEntityCounter()
     }
     reportUpdater.executionDone()

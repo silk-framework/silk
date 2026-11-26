@@ -129,4 +129,17 @@ class SparqlSink(params: SparqlParams,
                           (implicit userContext: UserContext): Unit = {
     writeStatement(subject, predicate, obj, valueType)
   }
+
+  override def writeTriple(subject: String, predicate: String, obj: String, subjectType: ValueType, valueType: ValueType)
+                          (implicit userContext: UserContext): Unit = {
+    if(body.isEmpty) {
+      beginSparul()
+    } else if (statements + 1 > statementsPerRequest) {
+      endSparql()
+      beginSparul()
+    }
+
+    body.append(buildStatementString(subject, predicate, obj, subjectType, valueType))
+    statements += 1
+  }
 }

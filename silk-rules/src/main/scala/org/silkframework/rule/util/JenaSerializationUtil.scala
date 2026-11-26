@@ -19,8 +19,12 @@ object JenaSerializationUtil {
     * @return
     */
   def serializeTriple(subject: String, property: String, node: Node): String = {
+    serializeTriple(NodeFactory.createURI(subject), property, node)
+  }
+
+  def serializeTriple(subject: Node, property: String, node: Node): String = {
     val output = new ByteArrayOutputStream()
-    val triple = JenaTriple.create(NodeFactory.createURI(subject), NodeFactory.createURI(property), node)
+    val triple = JenaTriple.create(subject, NodeFactory.createURI(property), node)
     RDFDataMgr.writeTriples(output, Iterator(triple).asJava)
     output.toString("UTF-8")
   }

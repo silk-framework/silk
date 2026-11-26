@@ -34,4 +34,12 @@ case class NTriplesLinkFormatter() extends LinkFormatter with EntityFormatter {
   override def formatLiteralStatement(subject: String, predicate: String, value: String, valueType: ValueType): String = {
     RdfFormatUtil.tripleValuesToNTriplesSyntax(subject, predicate, value, valueType)
   }
+
+  override def formatLiteralStatement(subject: String,
+                                      predicate: String,
+                                      value: String,
+                                      subjectType: ValueType,
+                                      valueType: ValueType): String = {
+    RdfFormatUtil.tripleValuesToNTriplesSyntax(subject, predicate, value, subjectType, valueType)
+  }
 }

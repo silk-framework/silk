@@ -70,6 +70,17 @@ class RdfFormatUtilTest extends AnyFlatSpec with Matchers {
         s"""$S_P _:""" // Jena constructs new blank node ids
   }
 
+  it should "serialize a blank node triple subject" in {
+    println(RdfFormatUtil.tripleValuesToNTriplesSyntax(
+      "blankNode1", "p", "Leipzig", ValueType.BLANK_NODE, ValueType.STRING
+    ))
+    println(RdfFormatUtil.tripleValuesToNTriplesSyntax(
+      "_:blankNode2", "p", "Leipzig", ValueType.BLANK_NODE, ValueType.STRING
+    ))
+    RdfFormatUtil.tripleValuesToNTriplesSyntax("blankNode", "p", "Leipzig", ValueType.BLANK_NODE, ValueType.STRING) must
+      startWith regex s"""_:.* <p> "Leipzig" .$NL"""
+  }
+
   it should "serialize triples with BooleanValueType" in {
     format("true", ValueType.BOOLEAN) mustBe
         s"""$S_P "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .$NL"""

@@ -143,6 +143,13 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
     writeStatement(subject, predicate, obj, valueType)
   }
 
+  override def writeTriple(subject: String, predicate: String, obj: String, subjectType: ValueType, valueType: ValueType)
+                          (implicit userContext: UserContext): Unit = {
+    val stmtString = buildStatementString(subject, predicate, obj, subjectType, valueType)
+    writeStatementString(stmtString)
+    stmtCount += 1
+  }
+
   override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
     if(dropGraphOnClear || force) {
       log.fine("Clearing graph " + graphUri)

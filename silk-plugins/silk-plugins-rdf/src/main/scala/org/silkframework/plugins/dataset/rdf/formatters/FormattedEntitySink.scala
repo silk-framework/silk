@@ -70,6 +70,11 @@ class FormattedEntitySink(resource: WritableResource, formatterFactory: => Entit
     writeStatement(subject, predicate, value, valueType)
   }
 
+  override def writeTriple(subject: String, predicate: String, value: String, subjectType: ValueType, valueType: ValueType)
+                          (implicit userContext: UserContext): Unit = {
+    writer.write(formatter.formatLiteralStatement(subject, predicate, value, subjectType, valueType))
+  }
+
   /**
     * Makes sure that the next write will start from an empty dataset.
     */

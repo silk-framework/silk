@@ -54,4 +54,12 @@ trait RdfSink {
   def buildStatementString(subject: String, property: String, value: String, valueType: ValueType): String = {
     RdfFormatUtil.tripleValuesToNTriplesSyntax(subject, property, value, valueType)
   }
+
+  def buildStatementString(subject: String,
+                           property: String,
+                           value: String,
+                           subjectType: ValueType,
+                           valueType: ValueType): String = {
+    RdfFormatUtil.tripleValuesToNTriplesSyntax(subject, property, value, subjectType, valueType)
+  }
 }
