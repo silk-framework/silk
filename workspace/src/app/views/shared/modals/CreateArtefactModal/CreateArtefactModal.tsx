@@ -1369,7 +1369,10 @@ export function CreateArtefactModal() {
                                                                     </strong>
                                                                 </OverviewItemLine>
                                                                 <OverviewItemLine small>
-                                                                    <OverflowText useHtmlElement="p">
+                                                                    <OverflowText
+                                                                        useHtmlElement="p"
+                                                                        title={artefact.description}
+                                                                    >
                                                                         <Highlighter
                                                                             label={artefact.description}
                                                                             searchValue={searchValue}

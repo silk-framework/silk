@@ -461,6 +461,17 @@ describe("Task creation widget", () => {
         checkRequestMade(apiUrl("/core/plugins/pluginB"));
     });
 
+    it("shows the full plugin description in the preview title", async () => {
+        const description = "Replaces input values using a mapping table from a worksheet in an uploaded workbook.";
+        const { element } = await createMockedListWrapper(undefined, {
+            ...mockArtefactListResponse,
+            pluginA: { ...mockArtefactListResponse.pluginA, description },
+        });
+        const item = findElement(element, byTestId("artefact-plugin-pluginA"));
+
+        expect(within(item).getByText(description)).toHaveAttribute("title", description);
+    });
+
     it("should hide blacklisted item types from the left selection and artefact list", async () => {
         const artefactListWithRuleBlock: IOverviewArtefactItemList = {
             ...mockArtefactListResponse,

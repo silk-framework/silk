@@ -7,12 +7,18 @@ import org.silkframework.dataset.DatasetSpec
 import org.silkframework.plugins.dataset.csv.CsvDataset
 import org.silkframework.rule.TaskContext
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{PluginContext, TaskResolver}
+import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginContext}
 import org.silkframework.runtime.resource.InMemoryResourceManager
 
 class FileHashTransformerTest extends AnyFlatSpec with Matchers {
 
   behavior of "FileHashTransformer"
+
+  it should "provide a one-line description and load the hash algorithm details from the documentation" in {
+    val plugin = ClassPluginDescription.create(classOf[FileHashTransformer])
+    plugin.description.linesIterator.size shouldBe 1
+    plugin.documentation should include ("## Hash algorithms")
+  }
 
   it should "generate the hash sum of the specified file" in {
     val resource = InMemoryResourceManager().get("test")
