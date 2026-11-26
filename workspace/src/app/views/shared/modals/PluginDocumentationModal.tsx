@@ -177,7 +177,10 @@ export const PluginDocumentationModal = ({
                                                         <strong>{pluginLabel}</strong>
                                                     </OverviewItemLine>
                                                     <OverviewItemLine small>
-                                                        <Tooltip content={relatedPlugin.description}>
+                                                        <Tooltip
+                                                            content={relatedPlugin.description}
+                                                            markdownEnabler={false}
+                                                        >
                                                             <OverflowText>{relatedPlugin.description}</OverflowText>
                                                         </Tooltip>
                                                     </OverviewItemLine>

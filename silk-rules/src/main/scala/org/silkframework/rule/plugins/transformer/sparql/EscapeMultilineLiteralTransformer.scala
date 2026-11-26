@@ -11,7 +11,7 @@ import scala.util.matching.Regex
   categories = Array("SPARQL"),
   label = "Escape SPARQL multiline literal",
   description = "Escapes a value so it can be safely used inside a SPARQL triple-quoted string literal " +
-    "(`\"\"\"...\"\"\"` or `'''...'''`). Escapes backslashes and breaks any run of three or more " +
+    "(\"\"\"...\"\"\" or '''...'''). Escapes backslashes and breaks any run of three or more " +
     "consecutive single or double quotes. Individual quotes and newlines are preserved. " +
     "The returned value does not include enclosing quotation marks."
 )

@@ -8,6 +8,7 @@ import {
     Spacing,
     Highlighter,
     highlighterUtils,
+    Tooltip,
     CLASSPREFIX as eccgui,
 } from "@eccenca/gui-elements";
 import utils from "../ruleNode/ruleNode.utils";
@@ -37,6 +38,8 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
     const itemLabel = ruleOperator.label;
     const [t] = useTranslation();
     const operatorDoc = ruleOperator.markdownDocumentation || ruleOperator.description || "";
+    const markdownEnabler =
+        ruleOperator.pluginType === "RuleBlock" || ruleOperator.pluginType === "InputPortOperator" ? undefined : false;
     const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
     const ruleEditorContext = React.useContext(RuleEditorContext);
 
@@ -74,6 +77,7 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                                 tooltipProps={{
                                     placement: "right",
                                     rootBoundary: "viewport",
+                                    markdownEnabler,
                                 }}
                             />
                         </>
@@ -81,27 +85,35 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                     {ruleOperator.markdownDocumentation && (
                         <>
                             <Spacing vertical={true} size={"tiny"} />
-                            <Icon
-                                data-test-id="operator-markdown-icon"
-                                name="item-question"
-                                onClick={() =>
-                                    ruleEditorUiContext.setCurrentRuleNodeInfo({
-                                        ...ruleOperatorToPluginDocumentation(
-                                            ruleOperator,
-                                            ruleEditorContext.operatorList,
-                                        ),
-                                        markdownDocumentation: operatorDoc,
-                                    })
+                            <Tooltip
+                                content={
+                                    <span style={{ whiteSpace: "pre-line" }}>
+                                        {t("RuleEditor.sidebar.operator.markdownTooltip", {
+                                            shortDescription: ruleOperator.description,
+                                        }).trim()}
+                                    </span>
                                 }
-                                small
-                                tooltipText={t("RuleEditor.sidebar.operator.markdownTooltip", {
-                                    shortDescription: ruleOperator.description,
-                                })}
-                                tooltipProps={{
-                                    placement: "top",
-                                    rootBoundary: "viewport",
-                                }}
-                            />
+                                placement="top"
+                                rootBoundary="viewport"
+                                usePlaceholder
+                            >
+                                <span>
+                                    <Icon
+                                        data-test-id="operator-markdown-icon"
+                                        name="item-question"
+                                        onClick={() =>
+                                            ruleEditorUiContext.setCurrentRuleNodeInfo({
+                                                ...ruleOperatorToPluginDocumentation(
+                                                    ruleOperator,
+                                                    ruleEditorContext.operatorList,
+                                                ),
+                                                markdownDocumentation: operatorDoc,
+                                            })
+                                        }
+                                        small
+                                    />
+                                </span>
+                            </Tooltip>
                         </>
                     )}
                 </OverviewItemLine>,
@@ -110,15 +122,17 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
             )}
             {descriptionSearchSnippet && (
                 <OverviewItemLine data-test-id={"ruleOperator-sidebar-search-operator-description"}>
-                    {wrapTooltip(
-                        true,
-                        ruleOperator.description!!,
+                    <Tooltip
+                        content={ruleOperator.description ?? ""}
+                        placement="bottom-end"
+                        size="medium"
+                        minimal
+                        markdownEnabler={markdownEnabler}
+                    >
                         <OverflowText>
                             <Highlighter label={descriptionSearchSnippet} searchValue={textQuery} />
-                        </OverflowText>,
-                        "bottom-end",
-                        "medium",
-                    )}
+                        </OverflowText>
+                    </Tooltip>
                 </OverviewItemLine>
             )}
             <OverviewItemLine>

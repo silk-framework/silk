@@ -26,7 +26,7 @@ import org.silkframework.runtime.validation.ValidationException
   label = "Set execution variable",
   description =
     "Sets an execution variable to the first value of the (single) input and passes the input values through unchanged. " +
-    "The variable is written to the 'execution' scope and can be read downstream as 'execution.<name>'. " +
+    "The variable is written to the 'execution' scope. To read it downstream, prefix its name with 'execution.', for example 'execution.myVariable'. " +
     "Only works while running inside a workflow execution."
 )
 case class SetExecutionVariableTransformer(@Param("Name of the execution variable to set. " +

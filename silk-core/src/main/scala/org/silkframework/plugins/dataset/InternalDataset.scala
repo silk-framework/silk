@@ -15,7 +15,7 @@ import scala.util.Try
   id = "internal",
   label = "Internal dataset",
   categories = Array(DatasetCategories.embedded),
-  description = """Dataset for storing entities between workflow steps. The underlying dataset type can be configured using the `dataset.internal.*` configuration parameters.""",
+  description = "Dataset for storing entities between workflow steps. The underlying dataset type can be configured using the 'dataset.internal.*' configuration parameters.",
   deprecation = "This dataset is deprecated and will be removed in a future version. Instead use either the \"In-workflow dataset\" or the \"In-memory dataset\"."
 )
 case class InternalDataset(

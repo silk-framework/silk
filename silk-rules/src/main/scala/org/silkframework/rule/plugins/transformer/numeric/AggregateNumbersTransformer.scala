@@ -29,7 +29,7 @@ import org.silkframework.util.StringUtils.DoubleLiteral
   id = AggregateNumbersTransformer.pluginId,
   categories = Array("Numeric"),
   label = "Aggregate numbers",
-  description = "Applies one of the aggregation operators (`+`, `*`, `min`, `max` or `average`) to the sequence of input values.",
+  description = "Applies one of the aggregation operators (+, *, min, max or average) to the sequence of input values.",
   documentationFile = "AggregateNumbersTransformer.md",
   relatedPlugins = Array(
     new PluginReference(
