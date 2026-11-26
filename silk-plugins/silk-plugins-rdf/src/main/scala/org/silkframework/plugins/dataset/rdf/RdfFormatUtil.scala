@@ -124,19 +124,7 @@ object RdfFormatUtil {
       case ValueType.URI =>
         NodeFactory.createURI(subject)
       case ValueType.BLANK_NODE =>
-        val rawLabel = Option(subject)
-          .map(_.trim)
-          .map(s => if (s.startsWith("_:")) s.stripPrefix("_:") else s)
-          .getOrElse("")
-
-        // If empty/blank, generate a fresh Jena blank node; otherwise preserve the given label
-        if (rawLabel.isEmpty) {
-          NodeFactory.createBlankNode()
-        }
-        else {
-          NodeFactory.createBlankNode(rawLabel)
-        }
-
+        NodeFactory.createBlankNode(subject)
       case _ =>
         throw new IllegalArgumentException(s"Invalid RDF subject type '${subjectType.label}'. Expected URI or BlankNode.")
     }

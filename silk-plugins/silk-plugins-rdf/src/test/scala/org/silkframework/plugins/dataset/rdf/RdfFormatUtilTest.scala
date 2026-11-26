@@ -71,13 +71,7 @@ class RdfFormatUtilTest extends AnyFlatSpec with Matchers {
   }
 
   it should "serialize a blank node triple subject" in {
-    println(RdfFormatUtil.tripleValuesToNTriplesSyntax(
-      "blankNode1", "p", "Leipzig", ValueType.BLANK_NODE, ValueType.STRING
-    ))
-    println(RdfFormatUtil.tripleValuesToNTriplesSyntax(
-      "_:blankNode2", "p", "Leipzig", ValueType.BLANK_NODE, ValueType.STRING
-    ))
-    RdfFormatUtil.tripleValuesToNTriplesSyntax("blankNode", "p", "Leipzig", ValueType.BLANK_NODE, ValueType.STRING) must
+    RdfFormatUtil.tripleValuesToNTriplesSyntax("_:blankNode", "p", "Leipzig", ValueType.BLANK_NODE, ValueType.STRING) must
       startWith regex s"""_:.* <p> "Leipzig" .$NL"""
   }
 
