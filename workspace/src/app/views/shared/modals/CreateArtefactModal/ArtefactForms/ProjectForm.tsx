@@ -42,7 +42,7 @@ function ProjectTitleField({
                 htmlFor: LABEL,
             }}
             intent={errors.label ? "danger" : undefined}
-            messageText={errorMessage(title, errors.label)}
+            messageText={errorMessage(title, errors.label, t)}
         >
             <TextField
                 id={LABEL}

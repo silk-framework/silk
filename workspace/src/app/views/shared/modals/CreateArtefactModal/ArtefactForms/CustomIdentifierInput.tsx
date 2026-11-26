@@ -105,7 +105,7 @@ const CustomIdentifierInput = ({ form, onValueChange, taskId, projectId }: IProp
                     : t("CreateModal.CustomIdentifierInput.ProjectId")
             }
             helperText={t("CreateModal.CustomIdentifierInput.helperDescription")}
-            infoMessage={errorMessage(IDENTIFIER, errors.id)}
+            infoMessage={errorMessage(IDENTIFIER, errors.id, t)}
             inputElementFactory={() => (
                 <TextField
                     id={IDENTIFIER}

@@ -14,6 +14,7 @@ import { Intent } from "@eccenca/gui-elements/blueprint/constants";
 import { InputMapper, RegisterForExternalChangesFn } from "./InputMapper";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
 import { INPUT_TYPES } from "../../../../../constants";
+import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { dependentValueIsSet, DependsOnParameterValueAny, ParameterAutoCompletion } from "./ParameterAutoCompletion";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginRegistry";
@@ -22,7 +23,7 @@ import { ArtefactFormParameter } from "./ArtefactFormParameter";
 import { optionallyLabelledParameterToValue } from "../../../../taskViews/linking/linking.types";
 import { PARAMETER_DOC_PREFIX } from "./TaskForm";
 import { YamlEditor } from "../../../../../views/shared/YamlEditor";
-import { FieldError, get, UseFormReturn, useFormState, useWatch } from "react-hook-form";
+import { FieldError, FieldErrors, get, UseFormReturn, useFormState, useWatch } from "react-hook-form";
 
 const MAXLENGTH_TOOLTIP = 32;
 const MAXLENGTH_SIMPLEHELP = 192;
@@ -75,21 +76,22 @@ interface IProps {
     isDependencyReviewHighlighted: (fullParameterId: string) => boolean;
 }
 
-/** Renders the errors message based on the error type. */
-export const errorMessage = (title: string, errors: any) => {
-    if (!errors) {
+export const errorMessage = (title: string, error: FieldErrors[string], t: TFunction): string => {
+    if (typeof error?.type !== "string" || !error.type) {
         return "";
-    } else if (errors.type === "pattern") {
-        return `${title} ${errors.message}.`;
-    } else if (errors.type === "required") {
-        return `${title} must be specified.`;
-    } else if (errors.type === "manual") {
-        return errors.message;
-    } else if (errors.type) {
-        // Errors should always have an error message, define fallback message though
-        return errors.message ? `${title} ${errors.message}` : `Invalid value for ${title}`;
-    } else {
-        return "";
+    }
+    const message = typeof error.message === "string" ? error.message : undefined;
+    switch (error.type) {
+        case "pattern":
+            return `${title} ${message}.`;
+        case "required":
+            return t("form.validations.isRequired", { field: title });
+        case "integer":
+            return t("form.validations.integer");
+        case "manual":
+            return message ?? "";
+        default:
+            return message ? `${title} ${message}` : t("form.validations.invalidValue", { field: title });
     }
 };
 
@@ -201,7 +203,7 @@ export const ParameterWidget = (props: IProps) => {
             />
         );
     }
-    const errorText = errorMessage(title, errors);
+    const errorText = errorMessage(title, errors, t);
 
     if (propertyDetails.type === "object") {
         const requiredNestedParams = propertyDetails.required ? propertyDetails.required : [];
@@ -258,7 +260,7 @@ export const ParameterWidget = (props: IProps) => {
                     />
                 }
                 helperText={propertyHelperText}
-                intent={!!errorMessage(title, errors) ? "danger" : dependencyReviewHighlighted ? "warning" : undefined}
+                intent={!!errorText ? "danger" : dependencyReviewHighlighted ? "warning" : undefined}
                 messageText={errorText ? errorText : (dependencyReviewMessage ?? infoHelperText)}
             >
                 <InputMapper

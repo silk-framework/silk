@@ -3,6 +3,8 @@ import "@testing-library/jest-dom";
 import mockAxios from "../../../__mocks__/axios";
 import { SERVE_PATH } from "../../../../src/app/constants/path";
 import { createMemoryHistory } from "history";
+import { createInstance } from "i18next";
+import { getI18n, setI18n } from "react-i18next";
 
 import {
     apiUrl,
@@ -23,7 +25,7 @@ import {
     renderWrapper,
 } from "../../TestHelper";
 import { CreateArtefactModal } from "../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal";
-import { act, fireEvent, RenderResult, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, RenderResult, waitFor, within } from "@testing-library/react";
 import {
     IOverviewArtefactItemList,
     IPluginDetails,
@@ -539,6 +541,47 @@ describe("Task creation widget", () => {
         // Enter invalid value for int parameter
         changeInputValue(findElement(element, "#intParam") as HTMLInputElement, "abc");
         await expectValidationErrors(element, 6);
+    });
+
+    it("shows German validation messages when the dialog opens in German", async () => {
+        const appI18n = getI18n();
+        const germanI18n = createInstance();
+        await germanI18n.init({
+            lng: "de",
+            fallbackLng: "en",
+            resources: {
+                en: { translation: appI18n.getResourceBundle("en", "translation") },
+                de: {
+                    translation: {
+                        form: {
+                            field: { label: "Bezeichnung" },
+                            validations: {
+                                integer: "Parameterwert muss ganzzahlig sein",
+                                isRequired: "{{field}} ist ein Pflichtfeld",
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        setI18n(germanI18n);
+        try {
+            const { element } = await pluginCreationDialogWrapper();
+            const labelInput = findElement(element, "#label");
+            const integerInput = findElement(element, "#intParam") as HTMLInputElement;
+            const nestedInput = findElement(element, byName("objectParameter.subStringParam"));
+            await act(async () => clickCreate(element));
+            await act(async () => changeInputValue(integerInput, "abc"));
+
+            await waitFor(() => {
+                expect(labelInput).toHaveAccessibleDescription("Bezeichnung ist ein Pflichtfeld");
+                expect(integerInput).toHaveAccessibleDescription("Parameterwert muss ganzzahlig sein");
+                expect(nestedInput).toHaveAccessibleDescription("string param ist ein Pflichtfeld");
+            });
+        } finally {
+            cleanup();
+            setI18n(appI18n);
+        }
     });
 
     it("updates field validation and submit availability while the user is editing", async () => {

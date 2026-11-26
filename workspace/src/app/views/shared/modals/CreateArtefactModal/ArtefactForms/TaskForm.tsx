@@ -103,7 +103,7 @@ function TaskLabelField({ control, projectId, onChange }: TaskLabelFieldProps) {
             parameterId={LABEL}
             label={fieldLabel}
             required
-            infoMessage={errorMessage(fieldLabel, errors.label)}
+            infoMessage={errorMessage(fieldLabel, errors.label, t)}
             inputElementFactory={() => (
                 <TextField
                     id={LABEL}
@@ -211,7 +211,7 @@ function TaskDatasetPreview({
 }
 
 const intRegex = /^(0|-?[1-9][0-9]*)$/;
-const isInt = (value) => {
+const isInt = (value: unknown) => {
     return intRegex.test(`${value}`);
 };
 
@@ -332,32 +332,16 @@ export function TaskForm({
         };
     }, [initialTemplateFlag, artefact.markdownDocumentation]);
 
-    /** Additional restrictions/validation for the form parameter values
-     *  The returned error messages must be defined in such a way that the parameter label can be prefixed in front of it.
-     **/
     const valueRestrictions = (fullParameterId: string, param: IArtefactItemProperty) => {
-        const wrapTemplateValidation = (validationFunction: (value) => true | string): ((value) => true | string) => {
-            return (value): true | string => {
-                if (parameterCallbacks.templateFlag(fullParameterId)) {
-                    return true; // Templates are validated via auto-completion
-                } else {
-                    return validationFunction(value);
-                }
-            };
-        };
-        if (param.parameterType === INPUT_TYPES.INTEGER) {
-            return {
-                validate: {
-                    isInt: wrapTemplateValidation((value) => {
-                        return isInt(value)
-                            ? true
-                            : (t("form.validations.integer", "must be an integer number") as string);
-                    }),
-                },
-            };
-        } else {
+        if (param.parameterType !== INPUT_TYPES.INTEGER) {
             return {};
         }
+        return {
+            validate: {
+                // Templates are validated via auto-completion.
+                integer: (value: unknown) => parameterCallbacks.templateFlag(fullParameterId) || isInt(value),
+            },
+        };
     };
 
     /** Set doChange in order to re-render/reset the task form when the project has changed. */
