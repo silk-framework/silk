@@ -1,6 +1,6 @@
 import React from "react";
 import "@testing-library/jest-dom";
-import { act, RenderResult, waitFor } from "@testing-library/react";
+import { act, fireEvent, RenderResult, waitFor } from "@testing-library/react";
 import mockAxios from "../../../../__mocks__/axios";
 import { apiUrl, byTestId, mockedAxiosResponse, renderWrapper, workspacePath } from "../../../TestHelper";
 import { createBrowserHistory } from "history";
@@ -66,12 +66,20 @@ describe("Changes widget", () => {
         expect(wrapper.container.querySelector(byTestId("review-project-changes-btn"))).toBeInTheDocument();
     });
 
-    it("should name the dropped changes next to those awaiting review", async () => {
-        const wrapper = renderWidget(1, createBrowserHistory(), 5, 2);
-        await waitFor(() => {
-            expect(status(wrapper)).toContain("Changes made by an agent awaiting your review: 1");
-        });
-        expect(status(wrapper)).toContain("Changes made by an agent that the journal dropped before your review: 2");
+    it("should show the review link below both warnings and open the project changes page", async () => {
+        const history = createBrowserHistory();
+        const wrapper = renderWidget(1, history, 5, 2);
+        const unreviewedWarning = await wrapper.findByText("Changes made by an agent awaiting your review: 1");
+        const droppedWarning = wrapper.getByText("Changes made by an agent that the journal dropped before your review: 2");
+        expect(droppedWarning.previousElementSibling).toBe(unreviewedWarning);
+        const reviewAction = wrapper.container.querySelector(byTestId("review-project-changes-btn"));
+        expect(reviewAction?.previousElementSibling).toBe(droppedWarning);
+
+        const reviewLink = wrapper.getByRole("link", { name: "Review changes" });
+        const changesPath = workspacePath(`/projects/${PROJECT_ID}/changes`);
+        expect(reviewLink).toHaveAttribute("href", changesPath);
+        fireEvent.click(reviewLink);
+        expect(history.location.pathname).toBe(changesPath);
     });
 
     it("should say so when no change has been recorded", async () => {

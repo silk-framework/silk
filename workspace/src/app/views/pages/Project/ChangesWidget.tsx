@@ -1,6 +1,5 @@
 import React from "react";
 import {
-    Button,
     Card,
     CardContent,
     CardHeader,
@@ -8,6 +7,7 @@ import {
     CardTitle,
     Divider,
     IconButton,
+    Link,
     Notification,
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
@@ -78,28 +78,17 @@ const ChangesWidget = () => {
         // Changes the cap dropped unreviewed wait for the review as well: until it, the watermark stays put
         if (summary.unreviewed > 0 || summary.droppedUnreviewed > 0) {
             return (
-                <Notification
-                    data-test-id={"project-changes-unreviewed"}
-                    intent="warning"
-                    message={
-                        <>
-                            {summary.unreviewed > 0 && (
-                                <div>{t("widget.ChangesWidget.unreviewed", { count: summary.unreviewed })}</div>
-                            )}
-                            {summary.droppedUnreviewed > 0 && (
-                                <div>{t("widget.ChangesWidget.dropped", { count: summary.droppedUnreviewed })}</div>
-                            )}
-                        </>
-                    }
-                    actions={
-                        <Button
-                            data-test-id={"review-project-changes-btn"}
-                            href={changesUrl}
-                            onClick={openChanges}
-                            text={t("widget.ChangesWidget.review", "Review changes")}
-                        />
-                    }
-                />
+                <Notification data-test-id={"project-changes-unreviewed"} intent="warning">
+                    {summary.unreviewed > 0 && (
+                        <div>{t("widget.ChangesWidget.unreviewed", { count: summary.unreviewed })}</div>
+                    )}
+                    {summary.droppedUnreviewed > 0 && (
+                        <div>{t("widget.ChangesWidget.dropped", { count: summary.droppedUnreviewed })}</div>
+                    )}
+                    <Link data-test-id={"review-project-changes-btn"} href={changesUrl} onClick={openChanges}>
+                        {t("widget.ChangesWidget.review")}
+                    </Link>
+                </Notification>
             );
         } else if (summary.latestSeq > 0) {
             return t("widget.ChangesWidget.allReviewed", { count: summary.latestSeq });
