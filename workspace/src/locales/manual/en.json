@@ -559,8 +559,8 @@
         },
         "taskForm": {
             "resetMessage": "Following parameters have been reset because they depend on the changed parameter '{{dependOn}}': {{parameters}}",
-            "dependentValuesNeedReview": "You have changed a parameter that {{count}} other parameter depends on. Following parameter needs to be checked: {{parameters}}",
-            "dependentValuesNeedReview_plural": "You have changed a parameter that {{count}} other parameters depend on. Following parameters need to be checked: {{parameters}}",
+            "dependentValuesNeedReview_one": "You have changed a parameter that {{count}} other parameter depends on. Following parameter needs to be checked: {{parameters}}",
+            "dependentValuesNeedReview_other": "You have changed a parameter that {{count}} other parameters depend on. Following parameters need to be checked: {{parameters}}",
             "affectedParameterNeedsReview": "This parameter depends on a changed parameter. Please check whether its value is still correct.",
             "clearHighlightedValues": "Clear highlighted values"
         },
@@ -727,8 +727,8 @@
             "fulfilledTag": "Run as #{{seq}}",
             "unreviewed": "Unreviewed",
             "unreviewedTooltip": "An agent change that has not been reviewed yet",
-            "unreviewedInfo": "Unreviewed changes: {{count}}",
-            "unreviewedInfo_plural": "Unreviewed changes: {{count}}",
+            "unreviewedInfo_one": "Unreviewed changes: {{count}}",
+            "unreviewedInfo_other": "Unreviewed changes: {{count}}",
             "column": {
                 "seq": "#",
                 "date": "Date",
@@ -749,11 +749,11 @@
             "markReviewed": {
                 "button": "Mark all as reviewed",
                 "action": "Mark this and older changes as reviewed",
-                "hidden": "Unreviewed changes hidden by the current search: {{count}}. Clear it to mark changes as reviewed.",
-                "hidden_plural": "Unreviewed changes hidden by the current search: {{count}}. Clear it to mark changes as reviewed.",
+                "hidden_one": "Unreviewed changes hidden by the current search: {{count}}. Clear it to mark changes as reviewed.",
+                "hidden_other": "Unreviewed changes hidden by the current search: {{count}}. Clear it to mark changes as reviewed.",
                 "title": "Mark changes as reviewed",
-                "affectedCount": "Changes to mark as reviewed: {{count}}.",
-                "affectedCount_plural": "Changes to mark as reviewed: {{count}}.",
+                "affectedCount_one": "Changes to mark as reviewed: {{count}}.",
+                "affectedCount_other": "Changes to mark as reviewed: {{count}}.",
                 "nothing": "No unreviewed changes remain in this selection.",
                 "confirmText": "Mark all listed changes as reviewed?",
                 "confirmUpToText": "Mark change #{{seq}} and all older changes as reviewed?"
@@ -761,17 +761,17 @@
             "revertAll": {
                 "button": "Revert unreviewed",
                 "title": "Revert unreviewed changes",
-                "affectedCount": "Changes to revert: {{count}}.",
-                "affectedCount_plural": "Changes to revert: {{count}}.",
+                "affectedCount_one": "Changes to revert: {{count}}.",
+                "affectedCount_other": "Changes to revert: {{count}}.",
                 "confirmText": "The following unreviewed changes will be reverted, newest first:",
                 "blocked": "Nothing can be reverted: the newest of these changes cannot be reverted now, and no newer change is left whose revert could clear that. {{reason}}",
                 "nothing": "None of these changes can be reverted.",
-                "skippedNote": "Skipped as not revertible: {{count}}.",
-                "skippedNote_plural": "Skipped as not revertible: {{count}}.",
-                "resultReverted": "Reverted changes: {{count}}.",
-                "resultReverted_plural": "Reverted changes: {{count}}.",
-                "resultSkipped": "Skipped: {{count}}.",
-                "resultSkipped_plural": "Skipped: {{count}}.",
+                "skippedNote_one": "Skipped as not revertible: {{count}}.",
+                "skippedNote_other": "Skipped as not revertible: {{count}}.",
+                "resultReverted_one": "Reverted changes: {{count}}.",
+                "resultReverted_other": "Reverted changes: {{count}}.",
+                "resultSkipped_one": "Skipped: {{count}}.",
+                "resultSkipped_other": "Skipped: {{count}}.",
                 "resultUnchanged": "Change #{{seq}} was not reverted: {{message}}",
                 "resultConflict": "Stopped at change #{{seq}}: {{message}}"
             },
@@ -956,8 +956,8 @@
         "ruleBlock": {
             "createInputPortTitle": "Create input port",
             "deleteInputPort": {
-                "confirmMessage": "Delete input port '{{portLabel}}'? This will also remove {{count}} node from the rule tree.",
-                "confirmMessage_plural": "Delete input port '{{portLabel}}'? This will also remove {{count}} nodes from the rule tree.",
+                "confirmMessage_one": "Delete input port '{{portLabel}}'? This will also remove {{count}} node from the rule tree.",
+                "confirmMessage_other": "Delete input port '{{portLabel}}'? This will also remove {{count}} nodes from the rule tree.",
                 "title": "Delete input port"
             },
             "deprecated": "Deprecated",
@@ -996,17 +996,17 @@
                     "editingValue": "Editing: {{portLabel}}",
                     "exampleTitle": "Example {{index}}",
                     "examples": "Examples",
-                    "inputsCount": "{{count}} inputs",
-                    "inputsCount_plural": "{{count}} inputs",
+                    "inputsCount_one": "{{count}} inputs",
+                    "inputsCount_other": "{{count}} inputs",
                     "label": "Label",
                     "labelHint": "Optional. If empty, the generated example title is shown.",
                     "newExample": "New example",
                     "noExamples": "No examples available yet.",
                     "searchExamples": "Search examples",
-                    "selectionActiveTooltip": "Show more options. Evaluation is restricted to {{count}} selected examples.",
-                    "selectionActiveTooltip_plural": "Show more options. Evaluation is restricted to {{count}} selected examples.",
-                    "selectionInfo": "{{count}} selected for evaluation",
-                    "selectionInfo_plural": "{{count}} selected for evaluation",
+                    "selectionActiveTooltip_one": "Show more options. Evaluation is restricted to {{count}} selected examples.",
+                    "selectionActiveTooltip_other": "Show more options. Evaluation is restricted to {{count}} selected examples.",
+                    "selectionInfo_one": "{{count}} selected for evaluation",
+                    "selectionInfo_other": "{{count}} selected for evaluation",
                     "selectValueHint": "Select a value chip or create a new value to edit it here.",
                     "title": "Example editor"
                 }
@@ -1032,8 +1032,8 @@
             "usageRefreshHint": "Click the refresh button to update this usage information.",
             "usageRefreshError": "Could not refresh rule block usage information.",
             "warnings": {
-                "unusedPorts": "This rule block contains {{count}} unused input port: {{ports}}.",
-                "unusedPorts_plural": "This rule block contains {{count}} unused input ports: {{ports}}."
+                "unusedPorts_one": "This rule block contains {{count}} unused input port: {{ports}}.",
+                "unusedPorts_other": "This rule block contains {{count}} unused input ports: {{ports}}."
             }
         },
         "linkRulesEditor": {
@@ -1136,23 +1136,24 @@
             "view": "View project activities"
         },
         "ChangesWidget": {
-            "allReviewed": "Recorded changes: {{count}}. Nothing awaits your review.",
-            "allReviewed_plural": "Recorded changes: {{count}}. Nothing awaits your review.",
-            "dropped": "Changes made by an agent that the journal dropped before your review: {{count}}",
-            "dropped_plural": "Changes made by an agent that the journal dropped before your review: {{count}}",
+            "allReviewed_one": "Recorded changes: {{count}}. Nothing awaits your review.",
+            "allReviewed_other": "Recorded changes: {{count}}. Nothing awaits your review.",
+            "dropped_one": "Changes made by an agent that the journal dropped before your review: {{count}}",
+            "dropped_other": "Changes made by an agent that the journal dropped before your review: {{count}}",
             "noChanges": "No changes recorded yet.",
             "review": "Review changes",
             "title": "Changes",
-            "unreviewed": "Changes made by an agent awaiting your review: {{count}}",
-            "unreviewed_plural": "Changes made by an agent awaiting your review: {{count}}",
+            "unreviewed_one": "Changes made by an agent awaiting your review: {{count}}",
+            "unreviewed_other": "Changes made by an agent awaiting your review: {{count}}",
             "view": "View project changes"
         },
         "ConfigWidget": {
             "loading": "Loading configuration list.",
             "loadingPrefix": "Loading prefix configuration.",
             "prefix": "Prefix",
+            "prefix_one": "Prefix",
             "prefixTitle": "Manage prefixes",
-            "prefix_plural": "Prefixes",
+            "prefix_other": "Prefixes",
             "title": "Configuration",
             "errors": {
                 "prefixLoadFailure": "Loading prefixes failed"
@@ -1488,8 +1489,8 @@
             },
             "suggestions": {
                 "title": "Add suggestions",
-                "foundSuggestions": "Found one comparison suggestion.",
-                "foundSuggestions_plural": "Found {{count}} comparison suggestions. Add them in the order you want to see them in the entity comparision later.",
+                "foundSuggestions_one": "Found one comparison suggestion.",
+                "foundSuggestions_other": "Found {{count}} comparison suggestions. Add them in the order you want to see them in the entity comparision later.",
                 "emptyList": "No suggestions available. You can add further comparison pairs manually by connection their property paths.",
                 "warningsTitle": "Warnings",
                 "warningsButton": "Show warnings"
