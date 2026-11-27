@@ -6,7 +6,6 @@ const path = require("path");
 const paths = require("../config/paths");
 const VirtualFile = require("vinyl");
 const vfs = require("vinyl-fs");
-("use strict");
 const TEMP_TARGET_LANG_FILE_DIR = "./target/locales";
 
 const flattenObjectKeys = require("i18next-scanner/lib/flatten-object-keys").default;
@@ -136,7 +135,7 @@ function createTempLanguageFiles(inputLanguageFiles) {
     const extractLang = /([a-z]{2,2})\.json/;
     const filesByLanguage = new Map();
     for (const inputLangFile of inputLanguageFiles) {
-        const [input, lang] = extractLang.exec(inputLangFile);
+        const [, lang] = extractLang.exec(inputLangFile);
         if (lang) {
             if (filesByLanguage.has(lang)) {
                 filesByLanguage.get(lang).push(inputLangFile);
@@ -225,6 +224,7 @@ vfs.src(
                 sort: true,
                 attr: false,
                 defaultLng: "en",
+                compatibilityJSON: "v4",
                 fallbackKey: false,
                 trans: false, //this is not working with typescript
                 func: {
